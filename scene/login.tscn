@@ -1,0 +1,140 @@
+[gd_scene load_steps=9 format=3 uid="uid://bhgomehtb5guv"]
+
+[ext_resource type="Texture2D" uid="uid://dvd54hnchri2o" path="res://asset/icons/background.png" id="1_mc475"]
+[ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="2_xhhai"]
+[ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="3_76uxg"]
+[ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="4_7yur4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_76uxg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xhhai"]
+bg_color = Color(0.917647, 0.0666667, 0.211765, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mc475"]
+content_margin_left = 10.0
+content_margin_top = 5.0
+bg_color = Color(0.942823, 0.942823, 0.942823, 1)
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u7yg4"]
+
+[node name="login" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NinePatchRect" type="NinePatchRect" parent="."]
+layout_mode = 0
+offset_right = 1152.0
+offset_bottom = 651.0
+texture = ExtResource("1_mc475")
+
+[node name="FillUpForm" type="PanelContainer" parent="NinePatchRect"]
+self_modulate = Color(0, 0, 0, 0.956863)
+layout_mode = 2
+offset_left = 168.0
+offset_top = 108.0
+offset_right = 649.0
+offset_bottom = 555.0
+
+[node name="logo" type="PanelContainer" parent="NinePatchRect"]
+modulate = Color(0, 0, 0, 1)
+self_modulate = Color(0, 0, 0, 1)
+layout_mode = 2
+offset_left = 642.0
+offset_top = 108.0
+offset_right = 997.0
+offset_bottom = 555.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_76uxg")
+
+[node name="LoginButton" type="Button" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 291.0
+offset_top = 383.0
+offset_right = 523.0
+offset_bottom = 427.0
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_xhhai")
+text = "LOGIN
+"
+
+[node name="PasswordLabel" type="Label" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 216.0
+offset_top = 268.0
+offset_right = 304.0
+offset_bottom = 292.0
+text = "PASSWORD"
+
+[node name="UsernameTextEdit" type="TextEdit" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 203.0
+offset_top = 198.0
+offset_right = 619.0
+offset_bottom = 252.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_mc475")
+
+[node name="UsernameTextEdit2" type="TextEdit" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 203.0
+offset_top = 292.0
+offset_right = 612.0
+offset_bottom = 346.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_mc475")
+
+[node name="UsernameLabel2" type="Label" parent="NinePatchRect"]
+offset_left = 300.0
+offset_top = 514.0
+offset_right = 462.0
+offset_bottom = 563.0
+text = "Dont Have Account?
+"
+
+[node name="UsernameLabel" type="Label" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 220.0
+offset_top = 174.0
+offset_right = 271.0
+offset_bottom = 200.0
+text = "EMAIL"
+
+[node name="LinkButton" type="LinkButton" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 459.0
+offset_top = 514.0
+offset_right = 512.0
+offset_bottom = 554.0
+theme_override_colors/font_color = Color(0.961518, 4.45209e-06, 9.62615e-07, 1)
+theme_override_styles/focus = SubResource("StyleBoxFlat_u7yg4")
+text = "Sing in"
+
+[node name="Logo" type="Sprite2D" parent="NinePatchRect"]
+position = Vector2(824, 331)
+texture = ExtResource("2_xhhai")
+
+[node name="Icons8-facebook-logo-48" type="Sprite2D" parent="NinePatchRect"]
+position = Vector2(382.5, 459.5)
+scale = Vector2(0.770833, 0.750001)
+texture = ExtResource("3_76uxg")
+
+[node name="Icons8-google-48" type="Sprite2D" parent="NinePatchRect"]
+position = Vector2(424.5, 460.5)
+scale = Vector2(0.8125, 0.812499)
+texture = ExtResource("4_7yur4")
