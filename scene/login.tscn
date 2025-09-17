@@ -1,9 +1,23 @@
-[gd_scene load_steps=9 format=3 uid="uid://bhgomehtb5guv"]
+[gd_scene load_steps=10 format=3 uid="uid://bhgomehtb5guv"]
 
 [ext_resource type="Texture2D" uid="uid://dvd54hnchri2o" path="res://asset/icons/background.png" id="1_mc475"]
 [ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="2_xhhai"]
 [ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="3_76uxg"]
 [ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="4_7yur4"]
+
+[sub_resource type="GDScript" id="GDScript_7yur4"]
+script/source = "extends NinePatchRect
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+"
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_76uxg"]
 
@@ -39,6 +53,7 @@ layout_mode = 0
 offset_right = 1152.0
 offset_bottom = 651.0
 texture = ExtResource("1_mc475")
+script = SubResource("GDScript_7yur4")
 
 [node name="FillUpForm" type="PanelContainer" parent="NinePatchRect"]
 self_modulate = Color(0, 0, 0, 0.956863)

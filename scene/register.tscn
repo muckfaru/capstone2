@@ -1,7 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://hg67aoje345"]
+[gd_scene load_steps=9 format=3 uid="uid://hg67aoje345"]
 
 [ext_resource type="Texture2D" uid="uid://dvd54hnchri2o" path="res://asset/icons/background.png" id="1_ppf8m"]
+[ext_resource type="Script" uid="uid://dhidgtnkirpt6" path="res://script/register.gd" id="1_umdsq"]
 [ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="2_eumta"]
+[ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="3_8oq1y"]
+[ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="4_umdsq"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ppf8m"]
 content_margin_left = 10.0
@@ -29,6 +32,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_umdsq")
 
 [node name="NinePatchRect" type="NinePatchRect" parent="."]
 layout_mode = 0
@@ -39,34 +43,34 @@ texture = ExtResource("1_ppf8m")
 [node name="FillUpForm" type="PanelContainer" parent="NinePatchRect"]
 self_modulate = Color(0, 0, 0, 0.956863)
 layout_mode = 0
-offset_left = 74.0
-offset_top = 90.0
-offset_right = 701.0
-offset_bottom = 606.0
+offset_left = 68.0
+offset_top = 68.0
+offset_right = 695.0
+offset_bottom = 573.0
 
 [node name="UsernameLabel" type="Label" parent="NinePatchRect"]
 layout_mode = 0
 offset_left = 115.0
-offset_top = 122.0
+offset_top = 84.0
 offset_right = 284.0
-offset_bottom = 171.0
+offset_bottom = 133.0
 text = "EMAIL
 "
 
 [node name="PasswordLabel" type="Label" parent="NinePatchRect"]
 layout_mode = 0
-offset_left = 113.0
-offset_top = 232.0
-offset_right = 280.0
-offset_bottom = 265.0
+offset_left = 114.0
+offset_top = 179.0
+offset_right = 281.0
+offset_bottom = 212.0
 text = "PASSWORD"
 
-[node name="UsernameTextEdit" type="TextEdit" parent="NinePatchRect"]
+[node name="EmailTextEdit" type="TextEdit" parent="NinePatchRect"]
 layout_mode = 0
-offset_left = 113.0
-offset_top = 150.0
-offset_right = 658.0
-offset_bottom = 204.0
+offset_left = 107.0
+offset_top = 107.0
+offset_right = 652.0
+offset_bottom = 161.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 25
@@ -74,40 +78,45 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_ppf8m")
 
 [node name="PasswordLabel2" type="Label" parent="NinePatchRect"]
 layout_mode = 0
-offset_left = 113.0
-offset_top = 336.0
-offset_right = 280.0
-offset_bottom = 365.0
+offset_left = 116.0
+offset_top = 268.0
+offset_right = 283.0
+offset_bottom = 297.0
 text = "REPEAT PASSWORD"
 
 [node name="PasswordTextEdit" type="TextEdit" parent="NinePatchRect"]
 layout_mode = 0
-offset_left = 113.0
-offset_top = 259.0
-offset_right = 658.0
-offset_bottom = 313.0
+offset_left = 107.0
+offset_top = 200.0
+offset_right = 652.0
+offset_bottom = 254.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 25
 theme_override_styles/normal = SubResource("StyleBoxFlat_ppf8m")
 
 [node name="RepeatPasswordTextEdit" type="TextEdit" parent="NinePatchRect"]
-layout_mode = 0
-offset_left = 113.0
-offset_top = 374.0
-offset_right = 658.0
-offset_bottom = 428.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.043
+anchor_top = 0.117
+anchor_right = 0.043
+anchor_bottom = 0.117
+offset_left = 57.593
+offset_top = 214.833
+offset_right = 602.593
+offset_bottom = 268.833
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 25
 theme_override_styles/normal = SubResource("StyleBoxFlat_ppf8m")
 
-[node name="LoginButton" type="Button" parent="NinePatchRect"]
+[node name="RegisterButton" type="Button" parent="NinePatchRect"]
 layout_mode = 0
-offset_left = 278.0
-offset_top = 482.0
-offset_right = 510.0
-offset_bottom = 526.0
+offset_left = 279.0
+offset_top = 371.0
+offset_right = 511.0
+offset_bottom = 415.0
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxFlat_eumta")
 text = "REGISTER
@@ -117,12 +126,31 @@ text = "REGISTER
 modulate = Color(0, 0, 0, 1)
 self_modulate = Color(0, 0, 0, 1)
 layout_mode = 0
-offset_left = 698.0
-offset_top = 100.0
-offset_right = 1070.0
-offset_bottom = 606.0
+offset_left = 692.0
+offset_top = 67.0
+offset_right = 1064.0
+offset_bottom = 573.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_2qg56")
 
+[node name="Label" type="Label" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 78.0
+offset_top = 350.0
+offset_right = 291.0
+offset_bottom = 373.0
+text = "asasasasaasassa"
+
 [node name="Logo" type="Sprite2D" parent="NinePatchRect"]
-position = Vector2(872, 322)
+position = Vector2(866, 289)
 texture = ExtResource("2_eumta")
+
+[node name="Icons8-facebook-logo-48" type="Sprite2D" parent="NinePatchRect"]
+position = Vector2(354, 502)
+scale = Vector2(0.979167, 0.979167)
+texture = ExtResource("3_8oq1y")
+
+[node name="Icons8-google-48" type="Sprite2D" parent="NinePatchRect"]
+position = Vector2(412, 502)
+texture = ExtResource("4_umdsq")
+
+[connection signal="pressed" from="NinePatchRect/RegisterButton" to="." method="_on_register_button_pressed"]
