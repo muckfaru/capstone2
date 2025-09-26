@@ -75,10 +75,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_76uxg")
 
 [node name="LoginButton" type="Button" parent="NinePatchRect"]
 layout_mode = 0
-offset_left = 312.0
-offset_top = 382.0
-offset_right = 544.0
-offset_bottom = 426.0
+offset_left = 285.0
+offset_top = 381.0
+offset_right = 517.0
+offset_bottom = 425.0
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxFlat_xhhai")
 text = "LOGIN
