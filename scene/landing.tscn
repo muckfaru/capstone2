@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3 uid="uid://5o3qtaqdnl8s"]
+
+[ext_resource type="Texture2D" uid="uid://2o4kwx4ukq6v" path="res://asset/main lobby or landing bg.png" id="1_48wdw"]
+[ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_qr7a0"]
+
+[node name="Landing" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_qr7a0")
+
+[node name="NinePatchRect" type="NinePatchRect" parent="."]
+layout_mode = 0
+offset_right = 1151.0
+offset_bottom = 646.0
+texture = ExtResource("1_48wdw")
+
+[node name="Button" type="Button" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 1005.0
+offset_top = 37.0
+offset_right = 1120.0
+offset_bottom = 68.0
+text = "LogoutButton"
