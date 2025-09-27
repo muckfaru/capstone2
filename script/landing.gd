@@ -7,7 +7,4 @@ func _ready() -> void:
 
 
 func _on_logout_pressed() -> void:
-	# i-clear ang session/token
-	Global.current_id_token = ""  # kung naka-store ka ng token sa Global singleton
-	# balik login scene
-	get_tree().change_scene_to_file("res://scene/login.tscn")
+	pass
