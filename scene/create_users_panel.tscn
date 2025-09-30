@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3 uid="uid://f75orldaceo5"]
 
 [ext_resource type="Texture2D" uid="uid://ncwfxpvc1nst" path="res://asset/create user bg .png" id="1_tblxd"]
-[ext_resource type="Script" uid="uid://u476cuxb6suk" path="res://scene/create_users_panel.gd" id="1_tv1am"]
+[ext_resource type="Script" uid="uid://u476cuxb6suk" path="res://script/create_users_panel.gd" id="1_tv1am"]
 [ext_resource type="FontFile" uid="uid://cc2vcvusnujt7" path="res://asset/fonts/Anton-Regular.ttf" id="2_sgjr0"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tv1am"]
@@ -77,6 +77,17 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_fwo4p")
 theme_override_styles/normal = SubResource("StyleBoxFlat_shsn4")
 text = "Confirm
 "
+
+[node name="MessageLabel" type="Label" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 293.0
+offset_top = 585.0
+offset_right = 473.0
+offset_bottom = 616.0
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_sgjr0")
+theme_override_font_sizes/font_size = 20
+text = "MESSAGE"
 
 [node name="CreateUserLabel" type="Label" parent="NinePatchRect"]
 layout_mode = 0

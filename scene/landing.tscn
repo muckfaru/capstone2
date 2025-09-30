@@ -26,7 +26,7 @@ offset_right = 632.0
 offset_bottom = 388.0
 text = "LogoutButton"
 
-[node name="username" type="Label" parent="NinePatchRect"]
+[node name="usernameLabel" type="Label" parent="NinePatchRect"]
 layout_mode = 0
 offset_left = 515.0
 offset_top = 230.0
@@ -35,17 +35,16 @@ offset_bottom = 253.0
 rotation = 0.0277443
 text = "welcome "
 
-[node name="usernameInputer" type="Label" parent="NinePatchRect"]
+[node name="usernameInput" type="Label" parent="NinePatchRect"]
 layout_mode = 0
-offset_left = 597.0
-offset_top = 207.0
-offset_right = 671.0
-offset_bottom = 256.0
+offset_left = 600.0
+offset_top = 229.0
+offset_right = 674.0
+offset_bottom = 259.0
 rotation = 0.0277443
-text = "
-.."
+text = ".."
 
-[node name="level" type="Label" parent="NinePatchRect"]
+[node name="levelLabel" type="Label" parent="NinePatchRect"]
 layout_mode = 0
 offset_left = 515.0
 offset_top = 261.0
@@ -63,7 +62,7 @@ offset_bottom = 283.0
 rotation = 0.0277443
 text = "..."
 
-[node name="wins" type="Label" parent="NinePatchRect"]
+[node name="winsLabel" type="Label" parent="NinePatchRect"]
 layout_mode = 0
 offset_left = 516.0
 offset_top = 289.0
@@ -81,7 +80,7 @@ offset_bottom = 309.0
 rotation = 0.0277443
 text = "..."
 
-[node name="loses" type="Label" parent="NinePatchRect"]
+[node name="losesLabel" type="Label" parent="NinePatchRect"]
 layout_mode = 0
 offset_left = 516.0
 offset_top = 314.0
@@ -90,7 +89,7 @@ offset_bottom = 337.0
 rotation = 0.0277443
 text = "loses"
 
-[node name="loses2" type="Label" parent="NinePatchRect"]
+[node name="losesInput" type="Label" parent="NinePatchRect"]
 layout_mode = 0
 offset_left = 592.0
 offset_top = 315.0
@@ -99,3 +98,41 @@ offset_bottom = 364.0
 rotation = 0.0277443
 text = "...
 "
+
+[node name="StatusLabel" type="Label" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 537.0
+offset_top = 420.0
+offset_right = 636.0
+offset_bottom = 445.0
+text = "Status"
+
+[node name="ProfilePic" type="TextureRect" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 740.0
+offset_top = 43.0
+offset_right = 810.0
+offset_bottom = 108.0
+
+[node name="SaveProfile" type="Button" parent="NinePatchRect"]
+offset_left = 149.0
+offset_top = 248.0
+offset_right = 254.0
+offset_bottom = 279.0
+text = "Save Profile"
+
+[node name="ChangeAvatarButton" type="Button" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 151.0
+offset_top = 185.0
+offset_right = 256.0
+offset_bottom = 216.0
+text = "select image"
+
+[node name="AvatarPicker" type="PopupPanel" parent="NinePatchRect"]
+
+[node name="GridContainer" type="GridContainer" parent="NinePatchRect/AvatarPicker"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 96.0
+offset_bottom = 96.0

@@ -22,6 +22,7 @@ func _ready():
 	password_input.text_changed.connect(_validate_inputs)
 	repeat_password_input.text_changed.connect(_validate_inputs)
 
+
 # real-time validation
 func _validate_inputs(new_text: String = "") -> void:
 	var email = email_input.text.strip_edges()
@@ -39,6 +40,7 @@ func _validate_inputs(new_text: String = "") -> void:
 
 	# kung okay lahat
 	message_label.text = ""
+
 
 # kapag nag click si signup
 func _on_signup_pressed():
@@ -61,10 +63,12 @@ func _on_signup_pressed():
 	Auth.sign_up(email, password)
 	message_label.text = "⏳ Signing up..."
 
+
 # kapag nag click si login button → balik sa login scene
 func _on_login_pressed():
 	var LoginScene = load("res://scene/login.tscn")
 	get_tree().change_scene_to_packed(LoginScene)
+
 
 # response galing kay Auth
 func _on_auth_response(response_code: int, response: Dictionary):
@@ -72,8 +76,12 @@ func _on_auth_response(response_code: int, response: Dictionary):
 		if "idToken" in response:
 			message_label.text = "✅ Sign Up Success! Please check your email."
 			Auth.send_verification_email(response["idToken"])
-	else:
-		message_label.text = "❌ Error: " + str(response)
+			
+			var LoginScene = load("res://scene/login.tscn")
+			get_tree().change_scene_to_packed(LoginScene)
+		else:
+			message_label.text = "❌ Error: " + str(response)
+
 
 # kapag gusto magpalit sa login scene
 func _on_change_to_login_button_pressed() -> void:
