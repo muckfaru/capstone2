@@ -9,6 +9,7 @@ const API_KEY := "AIzaSyAZvW_4HWndG-Spu5eUrxSf_yRKbpswm3Q"
 # 🔹 Store user info globally
 var current_id_token: String = ""
 var current_local_id: String = ""
+var current_username: String = ""  # dito natin i-store yung username galing Firestore
 
 func _ready() -> void:
 	if not http_request.request_completed.is_connected(_on_request_completed):

@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://f75orldaceo5"]
+[gd_scene load_steps=9 format=3 uid="uid://f75orldaceo5"]
 
 [ext_resource type="Texture2D" uid="uid://ncwfxpvc1nst" path="res://asset/create user bg .png" id="1_tblxd"]
+[ext_resource type="Script" uid="uid://u476cuxb6suk" path="res://scene/create_users_panel.gd" id="1_tv1am"]
 [ext_resource type="FontFile" uid="uid://cc2vcvusnujt7" path="res://asset/fonts/Anton-Regular.ttf" id="2_sgjr0"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tv1am"]
@@ -39,6 +40,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_tv1am")
 
 [node name="NinePatchRect" type="NinePatchRect" parent="."]
 layout_mode = 0

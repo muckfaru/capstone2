@@ -46,6 +46,7 @@ text = "
 .."
 
 [node name="level" type="Label" parent="NinePatchRect"]
+layout_mode = 0
 offset_left = 515.0
 offset_top = 261.0
 offset_right = 589.0
@@ -54,6 +55,7 @@ rotation = 0.0277443
 text = "level"
 
 [node name="levelInput" type="Label" parent="NinePatchRect"]
+layout_mode = 0
 offset_left = 593.0
 offset_top = 260.0
 offset_right = 667.0
@@ -62,6 +64,7 @@ rotation = 0.0277443
 text = "..."
 
 [node name="wins" type="Label" parent="NinePatchRect"]
+layout_mode = 0
 offset_left = 516.0
 offset_top = 289.0
 offset_right = 590.0
@@ -70,6 +73,7 @@ rotation = 0.0277443
 text = "wins"
 
 [node name="winsInput" type="Label" parent="NinePatchRect"]
+layout_mode = 0
 offset_left = 592.0
 offset_top = 286.0
 offset_right = 666.0
@@ -78,6 +82,7 @@ rotation = 0.0277443
 text = "..."
 
 [node name="loses" type="Label" parent="NinePatchRect"]
+layout_mode = 0
 offset_left = 516.0
 offset_top = 314.0
 offset_right = 590.0
@@ -86,6 +91,7 @@ rotation = 0.0277443
 text = "loses"
 
 [node name="loses2" type="Label" parent="NinePatchRect"]
+layout_mode = 0
 offset_left = 592.0
 offset_top = 315.0
 offset_right = 666.0
