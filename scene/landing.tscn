@@ -18,10 +18,78 @@ offset_right = 1151.0
 offset_bottom = 646.0
 texture = ExtResource("1_48wdw")
 
-[node name="Button" type="Button" parent="NinePatchRect"]
+[node name="LogoutButton" type="Button" parent="NinePatchRect"]
 layout_mode = 0
-offset_left = 1005.0
-offset_top = 37.0
-offset_right = 1120.0
-offset_bottom = 68.0
+offset_left = 517.0
+offset_top = 357.0
+offset_right = 632.0
+offset_bottom = 388.0
 text = "LogoutButton"
+
+[node name="username" type="Label" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 515.0
+offset_top = 230.0
+offset_right = 589.0
+offset_bottom = 253.0
+rotation = 0.0277443
+text = "welcome "
+
+[node name="usernameInputer" type="Label" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 597.0
+offset_top = 207.0
+offset_right = 671.0
+offset_bottom = 256.0
+rotation = 0.0277443
+text = "
+.."
+
+[node name="level" type="Label" parent="NinePatchRect"]
+offset_left = 515.0
+offset_top = 261.0
+offset_right = 589.0
+offset_bottom = 284.0
+rotation = 0.0277443
+text = "level"
+
+[node name="levelInput" type="Label" parent="NinePatchRect"]
+offset_left = 593.0
+offset_top = 260.0
+offset_right = 667.0
+offset_bottom = 283.0
+rotation = 0.0277443
+text = "..."
+
+[node name="wins" type="Label" parent="NinePatchRect"]
+offset_left = 516.0
+offset_top = 289.0
+offset_right = 590.0
+offset_bottom = 312.0
+rotation = 0.0277443
+text = "wins"
+
+[node name="winsInput" type="Label" parent="NinePatchRect"]
+offset_left = 592.0
+offset_top = 286.0
+offset_right = 666.0
+offset_bottom = 309.0
+rotation = 0.0277443
+text = "..."
+
+[node name="loses" type="Label" parent="NinePatchRect"]
+offset_left = 516.0
+offset_top = 314.0
+offset_right = 590.0
+offset_bottom = 337.0
+rotation = 0.0277443
+text = "loses"
+
+[node name="loses2" type="Label" parent="NinePatchRect"]
+offset_left = 592.0
+offset_top = 315.0
+offset_right = 666.0
+offset_bottom = 364.0
+rotation = 0.0277443
+text = "...
+"

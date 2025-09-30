@@ -6,11 +6,13 @@ const API_KEY := "AIzaSyAZvW_4HWndG-Spu5eUrxSf_yRKbpswm3Q"
 
 @onready var http_request: HTTPRequest = $HTTPRequest
 
+# 🔹 Store user info globally
+var current_id_token: String = ""
+var current_local_id: String = ""
 
 func _ready() -> void:
 	if not http_request.request_completed.is_connected(_on_request_completed):
 		http_request.request_completed.connect(_on_request_completed)
-
 
 # -------------------------
 # SIGN UP
@@ -25,7 +27,6 @@ func sign_up(email: String, password: String) -> void:
 		}
 	)
 
-
 # -------------------------
 # LOGIN
 # -------------------------
@@ -39,7 +40,6 @@ func login(email: String, password: String) -> void:
 		}
 	)
 
-
 # -------------------------
 # SEND EMAIL VERIFICATION
 # -------------------------
@@ -52,7 +52,6 @@ func send_verification_email(id_token: String) -> void:
 		}
 	)
 
-
 # -------------------------
 # CHECK EMAIL VERIFIED
 # -------------------------
@@ -61,7 +60,6 @@ func check_email_verified(id_token: String) -> void:
 		"https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=%s" % API_KEY,
 		{ "idToken": id_token }
 	)
-
 
 # -------------------------
 # PRIVATE HELPER
@@ -72,7 +70,6 @@ func _request(url: String, body: Dictionary) -> void:
 	if err != OK:
 		emit_signal("auth_response", 0, {"error": "Request failed with code %s" % err})
 
-
 # -------------------------
 # HANDLE RESPONSE
 # -------------------------
@@ -80,5 +77,12 @@ func _on_request_completed(result: int, response_code: int, headers: PackedStrin
 	var response := {}
 	if body.size() > 0:
 		response = JSON.parse_string(body.get_string_from_utf8())
+
+	# 🔹 Save tokens if available
+	if response.has("idToken"):
+		current_id_token = response["idToken"]
+	if response.has("localId"):
+		current_local_id = response["localId"]
+
 	emit_signal("auth_response", response_code, response)
 	print("Response Code: ", response_code, " | Response: ", response)
