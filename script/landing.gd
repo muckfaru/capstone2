@@ -116,7 +116,7 @@ func _save_avatar_to_firestore(file_name: String) -> void:
 	http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
 
 
-# === Load avatar from Firestore ===
+# === Load avatar & user info from Firestore ===
 func _load_user_data() -> void:
 	var user_id = Auth.current_local_id
 	var id_token = Auth.current_id_token
@@ -133,14 +133,36 @@ func _load_user_data() -> void:
 		if response_code == 200:
 			var data = JSON.parse_string(body.get_string_from_utf8())
 			if data.has("fields"):
-				if data["fields"].has("avatar"):
-					selected_avatar = data["fields"]["avatar"]["stringValue"]
+				var f = data["fields"]
+
+				# Avatar
+				if f.has("avatar"):
+					selected_avatar = f["avatar"]["stringValue"]
 					if avatars.has(selected_avatar):
 						profile_pic.texture = avatars[selected_avatar]
 						Auth.current_avatar = selected_avatar
 
-				if data["fields"].has("last_avatar_change"):
-					last_avatar_change = int(data["fields"]["last_avatar_change"]["integerValue"])
+				# Last avatar change
+				if f.has("last_avatar_change"):
+					last_avatar_change = int(f["last_avatar_change"]["integerValue"])
+
+				# Username
+				if f.has("username"):
+					Auth.current_username = f["username"]["stringValue"]
+					username_input.text = Auth.current_username
+
+				# Level
+				if f.has("level"):
+					level_input.text = str(f["level"]["integerValue"])
+
+				# Wins
+				if f.has("wins"):
+					wins_input.text = str(f["wins"]["integerValue"])
+
+				# Losses
+				if f.has("losses"):
+					losses_input.text = str(f["losses"]["integerValue"])
+
 		else:
 			push_error("⚠️ Failed to load user data: %s" % response_code)
 	)
