@@ -8,11 +8,12 @@ extends Control
 @onready var status_label: Label = $NinePatchRect/StatusLabel
 @onready var profile_pic: TextureRect = $NinePatchRect/ProfilePic
 @onready var change_btn: Button = $NinePatchRect/ChangeAvatarButton
+@onready var save_btn: Button = $NinePatchRect/SaveProfile
 @onready var avatar_picker: PopupPanel = $NinePatchRect/AvatarPicker
 @onready var avatar_grid: GridContainer = $NinePatchRect/AvatarPicker/GridContainer
 
 # === Avatars & User Data ===
-var avatars: Dictionary = {} # { "filename.png": Texture2D }
+var avatars: Dictionary = {}
 var selected_avatar: String = ""
 var last_avatar_change: int = 0
 var avatar_cooldown: int = 2592000 # 30 days
@@ -25,7 +26,7 @@ var firestore_base_url := "https://firestore.googleapis.com/v1/projects/capstone
 func _ready() -> void:
 	_load_avatars()
 	change_btn.pressed.connect(_on_change_avatar_pressed)
-	# Load avatar + data from Firestore kapag login
+	save_btn.pressed.connect(_on_save_profile_pressed)
 	_load_user_data()
 
 
@@ -68,30 +69,33 @@ func _on_change_avatar_pressed() -> void:
 	avatar_picker.popup_centered()
 
 
-# === User selects avatar ===
+# === User selects avatar (UI only, not save yet) ===
 func _on_avatar_selected(file_name: String) -> void:
 	if avatars.has(file_name):
 		profile_pic.texture = avatars[file_name]
 		selected_avatar = file_name
-		last_avatar_change = Time.get_unix_time_from_system()
+		status_label.text = "✅ Avatar selected (click SaveProfile to apply)"
 		avatar_picker.hide()
-		status_label.text = "✅ Avatar updated!"
-		# Save to Firestore
-		_save_avatar_to_firestore(file_name)
 
 
-# === Save avatar to Firestore ===
-func _save_avatar_to_firestore(file_name: String) -> void:
+# === SaveProfile button pressed ===
+func _on_save_profile_pressed() -> void:
 	var user_id = Auth.current_local_id
 	var id_token = Auth.current_id_token
 	if user_id == "" or id_token == "":
-		push_error("⚠️ User not logged in, cannot save avatar")
+		push_error("⚠️ User not logged in, cannot save profile")
 		return
 
-	var url = "%s/%s?updateMask.fieldPaths=avatar&updateMask.fieldPaths=last_avatar_change" % [firestore_base_url, user_id]
+	last_avatar_change = Time.get_unix_time_from_system()
+
+	var url = "%s/%s" % [firestore_base_url, user_id]
 	var body = {
 		"fields": {
-			"avatar": { "stringValue": file_name },
+			"username": { "stringValue": username_input.text },
+			"level": { "integerValue": level_input.text },
+			"wins": { "integerValue": wins_input.text },
+			"losses": { "integerValue": losses_input.text },
+			"avatar": { "stringValue": selected_avatar },
 			"last_avatar_change": { "integerValue": str(last_avatar_change) }
 		}
 	}
@@ -105,11 +109,14 @@ func _save_avatar_to_firestore(file_name: String) -> void:
 
 	http.request_completed.connect(func(result, response_code, headers, body):
 		if response_code == 200:
-			status_label.text = "✅ Avatar saved to Firestore"
-			Auth.current_avatar = file_name
+			status_label.text = "✅ Profile saved!"
+			Auth.current_avatar = selected_avatar
+			Auth.current_username = username_input.text
+			# reload UI para fresh values agad
+			_load_user_data()
 		else:
 			var msg = body.size() > 0 and body.get_string_from_utf8() or "Unknown error"
-			status_label.text = "❌ Failed to save avatar"
+			status_label.text = "❌ Failed to save profile"
 			push_error("Firestore error: %s" % msg)
 	)
 
@@ -162,7 +169,6 @@ func _load_user_data() -> void:
 				# Losses
 				if f.has("losses"):
 					losses_input.text = str(f["losses"]["integerValue"])
-
 		else:
 			push_error("⚠️ Failed to load user data: %s" % response_code)
 	)

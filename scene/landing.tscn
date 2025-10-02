@@ -14,8 +14,10 @@ script = ExtResource("1_qr7a0")
 
 [node name="NinePatchRect" type="NinePatchRect" parent="."]
 layout_mode = 0
-offset_right = 1151.0
-offset_bottom = 646.0
+offset_left = 10.0
+offset_top = 9.0
+offset_right = 1161.0
+offset_bottom = 655.0
 texture = ExtResource("1_48wdw")
 
 [node name="LogoutButton" type="Button" parent="NinePatchRect"]
