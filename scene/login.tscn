@@ -1,9 +1,10 @@
-[gd_scene load_steps=13 format=3 uid="uid://bhgomehtb5guv"]
+[gd_scene load_steps=14 format=3 uid="uid://bhgomehtb5guv"]
 
 [ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="1_7yur4"]
 [ext_resource type="Script" uid="uid://b2q0proc6qek6" path="res://script/login.gd" id="1_u7yg4"]
 [ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="2_xhhai"]
 [ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="4_7yur4"]
+[ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="5_u7yg4"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_76uxg"]
 
@@ -173,10 +174,18 @@ texture = ExtResource("2_xhhai")
 
 [node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 340.0
-offset_top = 462.0
-offset_right = 388.0
-offset_bottom = 510.0
+offset_left = 411.0
+offset_top = 461.0
+offset_right = 459.0
+offset_bottom = 509.0
 texture_normal = ExtResource("4_7yur4")
+
+[node name="FacebookLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
+layout_mode = 2
+offset_left = 362.0
+offset_top = 460.0
+offset_right = 410.0
+offset_bottom = 508.0
+texture_normal = ExtResource("5_u7yg4")
 
 [connection signal="pressed" from="VideoStreamPlayer/SignUpButton" to="." method="_on_sign_up_button_pressed"]
