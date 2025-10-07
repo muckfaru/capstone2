@@ -4,6 +4,8 @@ extends Control
 @onready var password_input: LineEdit = $VideoStreamPlayer/PasswordLineEdit
 @onready var message_label: Label = $VideoStreamPlayer/MessageLabel
 @onready var login_button: Button = $VideoStreamPlayer/LoginButton
+@onready var google_login: TextureButton = $VideoStreamPlayer/GoogleLoginButton
+
 
 var email_regex := RegEx.new()
 

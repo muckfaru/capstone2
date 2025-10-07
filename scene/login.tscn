@@ -1,9 +1,8 @@
-[gd_scene load_steps=14 format=3 uid="uid://bhgomehtb5guv"]
+[gd_scene load_steps=13 format=3 uid="uid://bhgomehtb5guv"]
 
 [ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="1_7yur4"]
 [ext_resource type="Script" uid="uid://b2q0proc6qek6" path="res://script/login.gd" id="1_u7yg4"]
 [ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="2_xhhai"]
-[ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="3_76uxg"]
 [ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="4_7yur4"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_76uxg"]
@@ -172,14 +171,12 @@ text = "Sign up"
 position = Vector2(817, 332)
 texture = ExtResource("2_xhhai")
 
-[node name="Icons8-facebook-logo-48" type="Sprite2D" parent="VideoStreamPlayer"]
-position = Vector2(370, 484)
-scale = Vector2(0.836, 0.813)
-texture = ExtResource("3_76uxg")
-
-[node name="Icons8-google-48" type="Sprite2D" parent="VideoStreamPlayer"]
-position = Vector2(408, 484)
-scale = Vector2(0.8125, 0.812499)
-texture = ExtResource("4_7yur4")
+[node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 462.0
+offset_right = 388.0
+offset_bottom = 510.0
+texture_normal = ExtResource("4_7yur4")
 
 [connection signal="pressed" from="VideoStreamPlayer/SignUpButton" to="." method="_on_sign_up_button_pressed"]

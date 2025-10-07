@@ -1,9 +1,8 @@
-[gd_scene load_steps=15 format=3 uid="uid://hg67aoje345"]
+[gd_scene load_steps=14 format=3 uid="uid://hg67aoje345"]
 
 [ext_resource type="Script" uid="uid://dhidgtnkirpt6" path="res://script/signup.gd" id="1_db6g7"]
 [ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="2_y1epg"]
 [ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="3_ipb3t"]
-[ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="4_20qy8"]
 [ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="5_uyhdp"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_db6g7"]
@@ -151,10 +150,10 @@ caret_blink = true
 
 [node name="SignUpButton" type="Button" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 277.0
-offset_top = 448.0
-offset_right = 509.0
-offset_bottom = 492.0
+offset_left = 279.0
+offset_top = 461.0
+offset_right = 511.0
+offset_bottom = 505.0
 theme_override_font_sizes/font_size = 24
 theme_override_styles/focus = SubResource("StyleBoxFlat_20qy8")
 theme_override_styles/hover = SubResource("StyleBoxFlat_uyhdp")
@@ -184,15 +183,13 @@ text = "..."
 position = Vector2(894, 305)
 texture = ExtResource("3_ipb3t")
 
-[node name="Icons8-facebook-logo-48" type="Sprite2D" parent="VideoStreamPlayer"]
-position = Vector2(380, 515)
-scale = Vector2(0.813, 0.813)
-texture = ExtResource("4_20qy8")
-
-[node name="Icons8-google-48" type="Sprite2D" parent="VideoStreamPlayer"]
-position = Vector2(420, 516)
-scale = Vector2(0.813, 0.813)
-texture = ExtResource("5_uyhdp")
+[node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
+layout_mode = 2
+offset_left = 329.0
+offset_top = 403.0
+offset_right = 377.0
+offset_bottom = 451.0
+texture_normal = ExtResource("5_uyhdp")
 
 [node name="UsernameLabel2" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
