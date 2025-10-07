@@ -59,7 +59,7 @@ layout_mode = 2
 offset_left = 3.0
 offset_top = 2.0
 offset_right = 1151.0
-offset_bottom = 649.0
+offset_bottom = 716.0
 stream = ExtResource("2_y1epg")
 autoplay = true
 expand = true
@@ -75,35 +75,35 @@ offset_bottom = 589.0
 
 [node name="EmailLabel" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 223.0
-offset_top = 123.0
-offset_right = 392.0
-offset_bottom = 172.0
+offset_left = 226.0
+offset_top = 105.0
+offset_right = 395.0
+offset_bottom = 154.0
 text = "EMAIL
 "
 
 [node name="PasswordLabel" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 227.0
-offset_top = 205.0
-offset_right = 394.0
-offset_bottom = 238.0
+offset_left = 230.0
+offset_top = 187.0
+offset_right = 397.0
+offset_bottom = 220.0
 text = "PASSWORD"
 
 [node name="RepeatPasswordLabel" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 223.0
-offset_top = 311.0
-offset_right = 390.0
-offset_bottom = 340.0
+offset_left = 226.0
+offset_top = 293.0
+offset_right = 393.0
+offset_bottom = 322.0
 text = "REPEAT PASSWORD"
 
 [node name="EmailLineEdit" type="LineEdit" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 225.0
-offset_top = 146.0
-offset_right = 597.0
-offset_bottom = 200.0
+offset_left = 228.0
+offset_top = 128.0
+offset_right = 600.0
+offset_bottom = 182.0
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
@@ -117,10 +117,10 @@ caret_blink = true
 
 [node name="PasswordLineEdit" type="LineEdit" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 224.0
-offset_top = 243.0
-offset_right = 596.0
-offset_bottom = 297.0
+offset_left = 227.0
+offset_top = 225.0
+offset_right = 599.0
+offset_bottom = 279.0
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
@@ -134,10 +134,10 @@ caret_blink = true
 
 [node name="RepeatPasswordLineEdit" type="LineEdit" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 229.0
-offset_top = 334.0
-offset_right = 601.0
-offset_bottom = 388.0
+offset_left = 232.0
+offset_top = 316.0
+offset_right = 604.0
+offset_bottom = 370.0
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
@@ -151,10 +151,10 @@ caret_blink = true
 
 [node name="SignUpButton" type="Button" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 279.0
-offset_top = 461.0
-offset_right = 511.0
-offset_bottom = 505.0
+offset_left = 294.0
+offset_top = 407.0
+offset_right = 526.0
+offset_bottom = 451.0
 theme_override_font_sizes/font_size = 24
 theme_override_styles/focus = SubResource("StyleBoxFlat_20qy8")
 theme_override_styles/hover = SubResource("StyleBoxFlat_uyhdp")
@@ -174,10 +174,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_2qg56")
 
 [node name="status" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 220.0
-offset_top = 402.0
-offset_right = 611.0
-offset_bottom = 425.0
+offset_left = 114.0
+offset_top = 558.0
+offset_right = 505.0
+offset_bottom = 581.0
 text = "..."
 
 [node name="Logo" type="Sprite2D" parent="VideoStreamPlayer"]
@@ -185,35 +185,35 @@ position = Vector2(894, 305)
 texture = ExtResource("3_ipb3t")
 
 [node name="FacebookLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
-offset_left = 329.0
-offset_top = 402.0
-offset_right = 377.0
-offset_bottom = 450.0
+offset_left = 404.0
+offset_top = 482.0
+offset_right = 452.0
+offset_bottom = 530.0
 texture_normal = ExtResource("4_db6g7")
 
 [node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
 layout_mode = 2
-offset_left = 382.0
-offset_top = 402.0
-offset_right = 430.0
-offset_bottom = 450.0
+offset_left = 350.0
+offset_top = 481.0
+offset_right = 398.0
+offset_bottom = 529.0
 texture_normal = ExtResource("5_uyhdp")
 
 [node name="UsernameLabel2" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 263.0
-offset_top = 543.0
-offset_right = 464.0
-offset_bottom = 592.0
+offset_left = 276.0
+offset_top = 541.0
+offset_right = 477.0
+offset_bottom = 590.0
 text = "Already Have an Account?
 "
 
 [node name="ChangeToLoginButton" type="LinkButton" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 468.0
-offset_top = 542.0
-offset_right = 525.0
-offset_bottom = 582.0
+offset_left = 481.0
+offset_top = 540.0
+offset_right = 538.0
+offset_bottom = 580.0
 theme_override_colors/font_color = Color(0.961518, 4.45209e-06, 9.62615e-07, 1)
 theme_override_styles/focus = SubResource("StyleBoxFlat_07f7y")
 text = "Login"

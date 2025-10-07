@@ -80,10 +80,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_76uxg")
 
 [node name="LoginButton" type="Button" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 290.0
-offset_top = 406.0
-offset_right = 522.0
-offset_bottom = 450.0
+offset_left = 287.0
+offset_top = 392.0
+offset_right = 519.0
+offset_bottom = 436.0
 theme_override_font_sizes/font_size = 24
 theme_override_styles/focus = SubResource("StyleBoxFlat_m7twt")
 theme_override_styles/hover = SubResource("StyleBoxFlat_7qh2k")
@@ -136,9 +136,9 @@ caret_blink = true
 [node name="DontHaveAccLabel" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
 offset_left = 300.0
-offset_top = 514.0
+offset_top = 521.0
 offset_right = 462.0
-offset_bottom = 563.0
+offset_bottom = 570.0
 text = "Dont Have Account?
 "
 
@@ -161,9 +161,9 @@ text = "EMAIL"
 [node name="SignUpButton" type="LinkButton" parent="VideoStreamPlayer"]
 layout_mode = 0
 offset_left = 459.0
-offset_top = 514.0
-offset_right = 512.0
-offset_bottom = 554.0
+offset_top = 521.0
+offset_right = 516.0
+offset_bottom = 561.0
 theme_override_colors/font_color = Color(0.961518, 4.45209e-06, 9.62615e-07, 1)
 theme_override_styles/focus = SubResource("StyleBoxFlat_u7yg4")
 text = "Sign up"
@@ -174,18 +174,18 @@ texture = ExtResource("2_xhhai")
 
 [node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 411.0
-offset_top = 461.0
-offset_right = 459.0
-offset_bottom = 509.0
+offset_left = 353.0
+offset_top = 452.0
+offset_right = 401.0
+offset_bottom = 500.0
 texture_normal = ExtResource("4_7yur4")
 
 [node name="FacebookLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
 layout_mode = 2
-offset_left = 362.0
-offset_top = 460.0
-offset_right = 410.0
-offset_bottom = 508.0
+offset_left = 400.0
+offset_top = 454.0
+offset_right = 448.0
+offset_bottom = 502.0
 texture_normal = ExtResource("5_u7yg4")
 
 [connection signal="pressed" from="VideoStreamPlayer/SignUpButton" to="." method="_on_sign_up_button_pressed"]

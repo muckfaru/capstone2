@@ -6,7 +6,7 @@ extends Control
 @onready var login_button: Button = $VideoStreamPlayer/LoginButton
 @onready var google_login_btn: TextureButton = $VideoStreamPlayer/GoogleLoginButton
 
-# helper for OAuth2
+# (helper) para sa OAuth2 / Google Login
 @onready var oauth_helper = preload("res://script/auth_helper.gd").new()
 
 var email_regex := RegEx.new()
@@ -23,48 +23,48 @@ func _ready():
 
 
 # ------------------------------------------------------
-# 🔹 Email/Password Login
+# 🔹 Email/Password Login (Pag-login gamit ang email at password)
 # ------------------------------------------------------
 func _on_login_pressed():
 	var email = email_input.text.strip_edges()
 	var password = password_input.text.strip_edges()
 
 	if email == "" or password == "":
-		message_label.text = "⚠️ Please enter email and password."
+		message_label.text = "⚠️ Pakilagay ang email at password."
 		return
 
 	if not email_regex.search(email):
-		message_label.text = "⚠️ Invalid email format."
+		message_label.text = "⚠️ Mali ang format ng email."
 		return
 
-	message_label.text = "⏳ Logging in..."
+	message_label.text = "⏳ Nagla-login..."
 	Auth.login(email, password)
 
 
 # ------------------------------------------------------
-# 🔹 Google OAuth Login Flow (same as signup)
+# 🔹 Google OAuth Login Flow (pareho lang sa signup)
 # ------------------------------------------------------
 func _on_google_login_pressed():
-	message_label.text = "⏳ Opening Google Sign-In..."
+	message_label.text = "⏳ Binubuksan ang Google Sign-In..."
 	oauth_helper.start_google_login()
-	message_label.text = "🌐 Waiting for browser to redirect..."
+	message_label.text = "🌐 Naghihintay sa pag-redirect ng browser..."
 
 
 func _on_google_code_received(code: String):
-	message_label.text = "⏳ Exchanging code for tokens..."
+	message_label.text = "⏳ Pinapalit ang code para maging token..."
 	Auth.exchange_google_code(code)
-	message_label.text = "⏳ Signing in with Google..."
+	message_label.text = "⏳ Nagla-login gamit ang Google..."
 
 
 # ------------------------------------------------------
-# 🔹 Firebase Auth Response
+# 🔹 Tugon mula sa Firebase Authentication
 # ------------------------------------------------------
 func _on_auth_response(response_code: int, response: Dictionary):
 	print("Auth Response:", response_code, response)
 
 	if response_code == 200:
 		if response.has("idToken"):
-			message_label.text = "✅ Login successful!"
+			message_label.text = "✅ Matagumpay na naka-login!"
 			Auth.current_id_token = response["idToken"]
 			if response.has("localId"):
 				Auth.current_local_id = response["localId"]
@@ -72,18 +72,18 @@ func _on_auth_response(response_code: int, response: Dictionary):
 			_check_firestore_username_and_route()
 			return
 		else:
-			message_label.text = "❌ Unexpected Firebase response: " + str(response)
+			message_label.text = "❌ Hindi inaasahang tugon mula sa Firebase: " + str(response)
 	else:
-		var error_msg = response.get("error", {}).get("message", "Unknown error")
-		message_label.text = "❌ Login failed: " + error_msg
+		var error_msg = response.get("error", {}).get("message", "Hindi kilalang error")
+		message_label.text = "❌ Nabigo ang pag-login: " + error_msg
 
 
 # ------------------------------------------------------
-# 🔹 Firestore Check (Same as signup)
+# 🔹 Pag-check sa Firestore (katulad din ng sa signup)
 # ------------------------------------------------------
 func _check_firestore_username_and_route():
 	if Auth.current_local_id == "" or Auth.current_id_token == "":
-		push_error("Missing auth state after sign-in")
+		push_error("Walang auth data pagkatapos mag-sign in")
 		return
 
 	const PROJECT_ID := "capstone-823dc"
@@ -114,3 +114,11 @@ func _check_firestore_username_and_route():
 			get_tree().change_scene_to_packed(createuser)
 	)
 	http.request(url, headers, HTTPClient.METHOD_GET)
+	
+	
+# ------------------------------------------------------
+# 🔹 Button para lumipat sa Signup scene
+# ------------------------------------------------------
+func _on_sign_up_button_pressed() -> void:
+	var signupScene = "res://scene/signup.tscn"
+	get_tree().change_scene_to_file(signupScene)
