@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c45je8vas4pv8"
-path="res://.godot/imported/avatar1.png-619e2b1ace00ee01ca6801c87bddf56a.ctex"
+uid="uid://cckv7p82fksqa"
+path="res://.godot/imported/Defuse the trojan 1.png-634ec78c3a0867e3c4fe266330e36fdc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/avatars/avatar1.png"
-dest_files=["res://.godot/imported/avatar1.png-619e2b1ace00ee01ca6801c87bddf56a.ctex"]
+source_file="res://asset/icons/Defuse the trojan 1.png"
+dest_files=["res://.godot/imported/Defuse the trojan 1.png-634ec78c3a0867e3c4fe266330e36fdc.ctex"]
 
 [params]
 

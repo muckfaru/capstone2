@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c45je8vas4pv8"
-path="res://.godot/imported/avatar1.png-619e2b1ace00ee01ca6801c87bddf56a.ctex"
+uid="uid://dp4co62dijgua"
+path="res://.godot/imported/akashic tgc 1.png-382547fb8fb1dad092cadaab661fe628.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/avatars/avatar1.png"
-dest_files=["res://.godot/imported/avatar1.png-619e2b1ace00ee01ca6801c87bddf56a.ctex"]
+source_file="res://asset/icons/akashic tgc 1.png"
+dest_files=["res://.godot/imported/akashic tgc 1.png-382547fb8fb1dad092cadaab661fe628.ctex"]
 
 [params]
 

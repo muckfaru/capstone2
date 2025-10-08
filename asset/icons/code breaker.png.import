@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c45je8vas4pv8"
-path="res://.godot/imported/avatar1.png-619e2b1ace00ee01ca6801c87bddf56a.ctex"
+uid="uid://b2ehp6i2rp5rx"
+path="res://.godot/imported/code breaker.png-cddb4f4b9e6251b4166d1f2c81a98622.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/avatars/avatar1.png"
-dest_files=["res://.godot/imported/avatar1.png-619e2b1ace00ee01ca6801c87bddf56a.ctex"]
+source_file="res://asset/icons/code breaker.png"
+dest_files=["res://.godot/imported/code breaker.png-cddb4f4b9e6251b4166d1f2c81a98622.ctex"]
 
 [params]
 

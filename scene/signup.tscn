@@ -57,9 +57,9 @@ script = ExtResource("1_db6g7")
 [node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
 layout_mode = 2
 offset_left = 3.0
-offset_top = 2.0
-offset_right = 1151.0
-offset_bottom = 716.0
+offset_top = -1.0
+offset_right = 1204.0
+offset_bottom = 710.0
 stream = ExtResource("2_y1epg")
 autoplay = true
 expand = true
@@ -185,6 +185,7 @@ position = Vector2(894, 305)
 texture = ExtResource("3_ipb3t")
 
 [node name="FacebookLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
+layout_mode = 0
 offset_left = 404.0
 offset_top = 482.0
 offset_right = 452.0

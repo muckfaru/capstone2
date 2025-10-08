@@ -1,16 +1,16 @@
 extends Control
 
 # === UI References ===
-@onready var username_input: Label = $NinePatchRect/usernameInput
-@onready var level_input: Label = $NinePatchRect/levelInput
-@onready var wins_input: Label = $NinePatchRect/winsInput
-@onready var losses_input: Label = $NinePatchRect/losesInput
-@onready var status_label: Label = $NinePatchRect/StatusLabel
-@onready var profile_pic: TextureRect = $NinePatchRect/ProfilePic
-@onready var change_btn: Button = $NinePatchRect/ChangeAvatarButton
-@onready var save_btn: Button = $NinePatchRect/SaveProfile
-@onready var avatar_picker: PopupPanel = $NinePatchRect/AvatarPicker
-@onready var avatar_grid: GridContainer = $NinePatchRect/AvatarPicker/GridContainer
+@onready var username_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/usernameInput
+@onready var level_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/levelInput
+@onready var wins_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/winsInput
+@onready var losses_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/losesInput
+@onready var status_label: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/StatusLabel
+@onready var profile_pic: TextureRect = $VideoStreamPlayer/ProfilePanel/UserPanel/ProfilePic
+@onready var change_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/ChangeAvatarButton
+@onready var save_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/SaveProfile
+@onready var avatar_picker: PopupPanel = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker
+@onready var avatar_grid: GridContainer = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/GridContainer
 
 # === Avatars & User Data ===
 var avatars: Dictionary = {}
@@ -24,10 +24,16 @@ var firestore_base_url := "https://firestore.googleapis.com/v1/projects/capstone
 
 # === Lifecycle ===
 func _ready() -> void:
+	print("Setting fullscreen...")
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
 	_load_avatars()
 	change_btn.pressed.connect(_on_change_avatar_pressed)
 	save_btn.pressed.connect(_on_save_profile_pressed)
 	_load_user_data()
+
+	# === Navigation setup ===
+	_setup_navigation()
 
 
 # === Load avatars from folder ===
@@ -69,7 +75,7 @@ func _on_change_avatar_pressed() -> void:
 	avatar_picker.popup_centered()
 
 
-# === User selects avatar (UI only, not save yet) ===
+# === User selects avatar ===
 func _on_avatar_selected(file_name: String) -> void:
 	if avatars.has(file_name):
 		profile_pic.texture = avatars[file_name]
@@ -112,7 +118,6 @@ func _on_save_profile_pressed() -> void:
 			status_label.text = "✅ Profile saved!"
 			Auth.current_avatar = selected_avatar
 			Auth.current_username = username_input.text
-			# reload UI para fresh values agad
 			_load_user_data()
 		else:
 			var msg = body.size() > 0 and body.get_string_from_utf8() or "Unknown error"
@@ -123,7 +128,7 @@ func _on_save_profile_pressed() -> void:
 	http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
 
 
-# === Load avatar & user info from Firestore ===
+# === Load user data from Firestore ===
 func _load_user_data() -> void:
 	var user_id = Auth.current_local_id
 	var id_token = Auth.current_id_token
@@ -142,31 +147,25 @@ func _load_user_data() -> void:
 			if data.has("fields"):
 				var f = data["fields"]
 
-				# Avatar
 				if f.has("avatar"):
 					selected_avatar = f["avatar"]["stringValue"]
 					if avatars.has(selected_avatar):
 						profile_pic.texture = avatars[selected_avatar]
 						Auth.current_avatar = selected_avatar
 
-				# Last avatar change
 				if f.has("last_avatar_change"):
 					last_avatar_change = int(f["last_avatar_change"]["integerValue"])
 
-				# Username
 				if f.has("username"):
 					Auth.current_username = f["username"]["stringValue"]
 					username_input.text = Auth.current_username
 
-				# Level
 				if f.has("level"):
 					level_input.text = str(f["level"]["integerValue"])
 
-				# Wins
 				if f.has("wins"):
 					wins_input.text = str(f["wins"]["integerValue"])
 
-				# Losses
 				if f.has("losses"):
 					losses_input.text = str(f["losses"]["integerValue"])
 		else:
@@ -174,3 +173,42 @@ func _load_user_data() -> void:
 	)
 
 	http.request(url, headers, HTTPClient.METHOD_GET)
+
+
+# === Navigation Logic ===
+func _setup_navigation():
+	var panels = {
+		"home": $VideoStreamPlayer/HomePanel,
+		"game": $VideoStreamPlayer/GameSelectPanel,
+		"ranking": $VideoStreamPlayer/RankingPanel,
+		"profile": $VideoStreamPlayer/ProfilePanel,
+	}
+
+	$NavigationPanel/HBoxContainer/HomeNavigate.pressed.connect(func(): _show_panel(panels, "home"))
+	$NavigationPanel/HBoxContainer/GameNavigate.pressed.connect(func(): _show_panel(panels, "game"))
+	$NavigationPanel/HBoxContainer/RankingNavigate.pressed.connect(func(): _show_panel(panels, "ranking"))
+	$NavigationPanel/HBoxContainer/ProfileNavigate.pressed.connect(func(): _show_panel(panels, "profile"))
+	$NavigationPanel/HBoxContainer/LogoButton.pressed.connect(func(): _show_panel(panels, "home"))
+	$NavigationPanel/HBoxContainer/LogoutButton.pressed.connect(_on_logout_pressed)
+
+	# Default panel
+	_show_panel(panels, "home")
+
+
+func _show_panel(panels: Dictionary, name: String):
+	for p in panels.values():
+		p.visible = false
+
+	if name in panels:
+		panels[name].visible = true
+
+	# Friend list: visible everywhere except game
+	if name == "game":
+		$VideoStreamPlayer/FriendListPanel.visible = false
+	else:
+		$VideoStreamPlayer/FriendListPanel.visible = true
+
+
+func _on_logout_pressed():
+	print("Logging out...")
+	# TODO: add logout logic here
