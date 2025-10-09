@@ -107,12 +107,12 @@ expand = true
 loop = true
 buffering_msec = 800
 
-[node name="FriendList" parent="VideoStreamPlayer" instance=ExtResource("3_hlv06")]
+[node name="FriendListPanel" parent="VideoStreamPlayer" instance=ExtResource("3_hlv06")]
 layout_mode = 0
-offset_left = 969.0
-offset_top = 105.0
-offset_right = 1203.0
-offset_bottom = 622.0
+offset_left = 999.0
+offset_top = 106.0
+offset_right = 1233.0
+offset_bottom = 623.0
 
 [node name="HomePanel" type="Panel" parent="VideoStreamPlayer"]
 visible = false
