@@ -1,12 +1,16 @@
-[gd_scene load_steps=24 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=25 format=3 uid="uid://5o3qtaqdnl8s"]
 
 [ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_qr7a0"]
 [ext_resource type="VideoStream" uid="uid://copge130jsikm" path="res://asset/Cyberpunk_City_Video_Generation.ogv" id="2_qr7a0"]
 [ext_resource type="Texture2D" uid="uid://cq7k5uvykyfbt" path="res://asset/icons/code breaker 1.png" id="3_7xp6e"]
+[ext_resource type="PackedScene" uid="uid://bohnaxmk78jfw" path="res://scene/friend_list.tscn" id="3_hlv06"]
 [ext_resource type="Texture2D" uid="uid://cnxhft11givsa" path="res://asset/icons/logo 48x48.png" id="3_q33pn"]
 [ext_resource type="Texture2D" uid="uid://ca874tphfshxx" path="res://asset/avatars/default.png" id="3_qdyf0"]
 [ext_resource type="Texture2D" uid="uid://dp4co62dijgua" path="res://asset/icons/akashic tgc 1.png" id="4_hlv06"]
 [ext_resource type="Texture2D" uid="uid://cckv7p82fksqa" path="res://asset/icons/Defuse the trojan 1.png" id="5_1dlu4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irntn"]
+bg_color = Color(0.164706, 0.164706, 0.164706, 0.419608)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hlv06"]
 bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)
@@ -19,9 +23,6 @@ corner_radius_bottom_left = 20
 bg_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irntn"]
-bg_color = Color(0.164706, 0.164706, 0.164706, 0.419608)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ie1g5"]
 bg_color = Color(0.243137, 0.243137, 0.243137, 0)
@@ -106,28 +107,24 @@ expand = true
 loop = true
 buffering_msec = 800
 
-[node name="FriendListPanel" type="Panel" parent="VideoStreamPlayer"]
-offset_left = 1013.0
-offset_top = 115.0
-offset_right = 1247.0
-offset_bottom = 632.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_hlv06")
-
-[node name="Panel" type="Panel" parent="VideoStreamPlayer/FriendListPanel"]
+[node name="FriendList" parent="VideoStreamPlayer" instance=ExtResource("3_hlv06")]
 layout_mode = 0
-offset_right = 235.0
-offset_bottom = 51.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_1dlu4")
+offset_left = 969.0
+offset_top = 105.0
+offset_right = 1203.0
+offset_bottom = 622.0
 
 [node name="HomePanel" type="Panel" parent="VideoStreamPlayer"]
+visible = false
 layout_mode = 0
-offset_left = 127.0
+offset_left = 133.0
 offset_top = 22.0
-offset_right = 1286.0
+offset_right = 1292.0
 offset_bottom = 679.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_irntn")
 
 [node name="NewsPanel" type="Panel" parent="VideoStreamPlayer/HomePanel"]
+layout_mode = 0
 offset_left = 67.0
 offset_top = 120.0
 offset_right = 476.0
@@ -142,6 +139,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_1dlu4")
 
 [node name="GameSelectPanel" type="Panel" parent="VideoStreamPlayer"]
 visible = false
+layout_mode = 0
 offset_left = 148.0
 offset_top = 26.0
 offset_right = 1301.0
@@ -157,6 +155,7 @@ offset_bottom = 492.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_ie1g5")
 
 [node name="NinePatchRect3" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
+layout_mode = 0
 offset_left = 502.0
 offset_top = 20.0
 offset_right = 715.0
@@ -164,6 +163,7 @@ offset_bottom = 314.0
 texture = ExtResource("3_7xp6e")
 
 [node name="NinePatchRect2" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
+layout_mode = 0
 offset_left = 248.0
 offset_top = 10.0
 offset_right = 485.0
@@ -180,6 +180,7 @@ texture = ExtResource("5_1dlu4")
 
 [node name="RankingPanel" type="Panel" parent="VideoStreamPlayer"]
 visible = false
+layout_mode = 0
 offset_left = 139.0
 offset_top = 22.0
 offset_right = 1298.0
@@ -195,6 +196,7 @@ offset_bottom = 132.0
 text = "Akashic TGC"
 
 [node name="CodeBreakerRank" type="Button" parent="VideoStreamPlayer/RankingPanel"]
+layout_mode = 0
 offset_left = 338.0
 offset_top = 82.0
 offset_right = 505.0
@@ -202,6 +204,7 @@ offset_bottom = 132.0
 text = "Code Breaker"
 
 [node name="list" type="Panel" parent="VideoStreamPlayer/RankingPanel"]
+layout_mode = 0
 offset_left = 143.0
 offset_top = 146.0
 offset_right = 774.0
@@ -250,6 +253,7 @@ offset_bottom = 118.0
 text = "W :  "
 
 [node name="MatchPlayedLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
+layout_mode = 0
 offset_left = 46.0
 offset_top = 121.0
 offset_right = 159.0
@@ -257,6 +261,7 @@ offset_bottom = 144.0
 text = "Match Played :"
 
 [node name="WinrateLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
+layout_mode = 0
 offset_left = 146.0
 offset_top = 95.0
 offset_right = 185.0
@@ -304,6 +309,7 @@ offset_bottom = 118.0
 text = "23"
 
 [node name="winrateInput" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
+layout_mode = 0
 offset_left = 187.0
 offset_top = 95.0
 offset_right = 226.0
@@ -354,6 +360,7 @@ offset_right = 96.0
 offset_bottom = 96.0
 
 [node name="MatchPlayedInput" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
+layout_mode = 0
 offset_left = 165.0
 offset_top = 121.0
 offset_right = 204.0
@@ -379,9 +386,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_q33pn")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="NavigationPanel"]
 custom_minimum_size = Vector2(0, 46)
-offset_left = 8.0
+layout_mode = 0
+offset_left = 6.0
 offset_top = -1.0
-offset_right = 1153.0
+offset_right = 1151.0
 offset_bottom = 45.0
 theme = SubResource("Theme_qdyf0")
 

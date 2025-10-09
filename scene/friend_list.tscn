@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3 uid="uid://bohnaxmk78jfw"]
+
+[ext_resource type="Script" uid="uid://q2bbcw5bdvqc" path="res://script/friend_list.gd" id="1_30j1j"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hlv06"]
+bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[node name="FriendListPanel" type="Panel"]
+offset_left = 861.0
+offset_top = 76.0
+offset_right = 1095.0
+offset_bottom = 593.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hlv06")
+script = ExtResource("1_30j1j")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
