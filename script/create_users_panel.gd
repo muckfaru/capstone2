@@ -12,7 +12,7 @@ func _ready():
 
 func _on_save_pressed():
 	var username = username_input.text.strip_edges()
-	if username == "":
+	if username == "":     
 		message_label.text = "⚠️ Please enter a username."
 		return
 	if Auth.current_local_id == "" or Auth.current_id_token == "":
