@@ -107,13 +107,6 @@ expand = true
 loop = true
 buffering_msec = 800
 
-[node name="FriendListPanel" parent="VideoStreamPlayer" instance=ExtResource("3_hlv06")]
-layout_mode = 0
-offset_left = 999.0
-offset_top = 106.0
-offset_right = 1233.0
-offset_bottom = 623.0
-
 [node name="HomePanel" type="Panel" parent="VideoStreamPlayer"]
 visible = false
 layout_mode = 0
@@ -374,6 +367,13 @@ offset_top = 180.0
 offset_right = 753.0
 offset_bottom = 546.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_aar1m")
+
+[node name="FriendListPanel" parent="." instance=ExtResource("3_hlv06")]
+layout_mode = 0
+offset_left = 699.0
+offset_top = 80.0
+offset_right = 933.0
+offset_bottom = 597.0
 
 [node name="NavigationPanel" type="Panel" parent="."]
 custom_minimum_size = Vector2(0, 46)

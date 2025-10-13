@@ -26,8 +26,8 @@ var http: HTTPRequest
 
 # === Lifecycle ===
 func _ready() -> void:
-	print("Setting fullscreen...")
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	#print("Setting fullscreen...")
+	#DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 
 	# Create reusable HTTPRequest node
 	http = HTTPRequest.new()
