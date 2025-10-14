@@ -69,13 +69,9 @@ func _on_auth_response(response_code: int, response: Dictionary):
 			if response.has("localId"):
 				Auth.current_local_id = response["localId"]
 
+			Auth.set_user_online()  # 🟢 Mark online immediately
 			_check_firestore_username_and_route()
 			return
-		else:
-			message_label.text = "❌ Hindi inaasahang tugon mula sa Firebase: " + str(response)
-	else:
-		var error_msg = response.get("error", {}).get("message", "Hindi kilalang error")
-		message_label.text = "❌ Nabigo ang pag-login: " + error_msg
 
 
 # ------------------------------------------------------

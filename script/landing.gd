@@ -229,4 +229,5 @@ func _show_panel(panel_paths: Dictionary, panel_name: String) -> void:
 # === Logout Logic ===
 func _on_logout_pressed() -> void:
 	print("Logging out...")
-	# TODO: Add logout logic here
+	Auth.set_user_offline()  # 🔴 mark offline before exit
+	get_tree().change_scene_to_file("res://scene/login.tscn")

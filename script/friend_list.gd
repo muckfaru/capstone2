@@ -6,291 +6,231 @@ extends Panel
 @onready var add_button: Button = $AddFriendHBox/AddFriendButton
 
 # 🔹 Firebase Config
-const PROJECT_ID: String = "capstone-823dc"
-const BASE_URL: String = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents" % PROJECT_ID
-const DB_URL: String = "https://capstone-823dc-default-rtdb.firebaseio.com"  # realtime db
+const PROJECT_ID := "capstone-823dc"
+const DB_URL := "https://capstone-823dc-default-rtdb.firebaseio.com"
+const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents" % PROJECT_ID
 
+var ws_main := WebSocketPeer.new()
+var is_connected := false
 
 
 # ======================================================
-# 🔸 READY
+# 🔹 READY
 # ======================================================
 func _ready() -> void:
-	add_button.pressed.connect(func(): send_friend_request(add_input.text.strip_edges()))
-	load_friend_requests()
-	load_friend_list()
 	print("[FriendList] Ready.")
+	add_button.pressed.connect(func(): send_friend_request(add_input.text.strip_edges()))
+	start_realtime_listener()
+
 
 # ======================================================
-# 📜 LOAD FRIEND LIST
+# 🌐 START REALTIME LISTENER
 # ======================================================
-func load_friend_list() -> void:
-	for child in friend_container.get_children():
-		child.queue_free()
+func start_realtime_listener() -> void:
+	var ws_url = "wss://%s-default-rtdb.firebaseio.com/.ws?v=5&ns=%s-default-rtdb" % [PROJECT_ID, PROJECT_ID]
+	print("[Realtime] Connecting to:", ws_url)
 
-	var user_uid = Auth.current_local_id
-	var id_token = Auth.current_id_token
-	if id_token == "" or user_uid == "":
-		push_error("⚠️ Missing Auth info.")
+	ws_main = WebSocketPeer.new()
+	var err = ws_main.connect_to_url(ws_url)
+	if err != OK:
+		push_error("❌ Failed to connect main RTDB WebSocket.")
 		return
 
-	print("[FriendList] Loading friends...")
+	is_connected = true
+	print("[Realtime] ✅ Main WebSocket connected.")
 
-	var url = "%s/users/%s" % [BASE_URL, user_uid]
-	var headers = ["Authorization: Bearer %s" % id_token]
+	await get_tree().create_timer(1.0).timeout
 
-	var http := HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(func(_r, code, _h, body):
-		http.queue_free()
-
-		print("[DEBUG] FRIEND LIST CODE:", code)
-		if code != 200:
-			push_warning("⚠️ Failed to load friend list.")
-			return
-
-		var data = JSON.parse_string(body.get_string_from_utf8())
-		if not data or not data.has("fields"):
-			push_warning("⚠️ Invalid Firestore data.")
-			return
-
-		var friends: Array = []
-		if data["fields"].has("friends"):
-			var arr_val = data["fields"]["friends"].get("arrayValue", {})
-			if arr_val.has("values"):
-				for v in arr_val["values"]:
-					if v.has("stringValue"):
-						friends.append(v["stringValue"])
-
-		print("[DEBUG] Friends found:", friends)
-
-		for friend_username in friends:
-			var hbox = HBoxContainer.new()
-			hbox.custom_minimum_size = Vector2(200, 24)
-
-			var label = Label.new()
-			label.text = friend_username
-			label.custom_minimum_size = Vector2(150, 24)
-			hbox.add_child(label)
-
-			var unfriend_btn = Button.new()
-			unfriend_btn.text = "❌"
-			unfriend_btn.tooltip_text = "Unfriend"
-			unfriend_btn.focus_mode = Control.FOCUS_NONE
-			unfriend_btn.custom_minimum_size = Vector2(24, 24)
-			unfriend_btn.pressed.connect(func():
-				unfriend_user(friend_username)
-				hbox.queue_free()
-			)
-			hbox.add_child(unfriend_btn)
-
-			friend_container.add_child(hbox)
-	)
-	http.request(url, headers, HTTPClient.METHOD_GET)
-
-
-# ======================================================
-# 💔 UNFRIEND USER (bi-directional removal via arrayRemove)
-# ======================================================
-func unfriend_user(friend_username: String) -> void:
-	var current_uid = Auth.current_local_id
+	var uid = Auth.current_local_id
 	var id_token = Auth.current_id_token
-	if id_token == "" or current_uid == "":
-		push_error("⚠️ Missing Auth info.")
+	if uid == "" or id_token == "":
+		push_warning("⚠️ Missing Auth info.")
 		return
 
-	print("[FriendList] Unfriending:", friend_username)
-
-	var headers = [
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % id_token
-	]
-
-	# Step 1️⃣ - Find friend's UID from username
-	var query_url = "%s:runQuery" % BASE_URL
-	var query_body = {
-		"structuredQuery": {
-			"from": [{"collectionId": "users"}],
-			"where": {
-				"fieldFilter": {
-					"field": {"fieldPath": "username"},
-					"op": "EQUAL",
-					"value": {"stringValue": friend_username}
-				}
-			},
-			"limit": 1
+	# Step 1️⃣ Authenticate WebSocket
+	var auth_msg = {
+		"t": "d",
+		"d": {
+			"r": 1,
+			"a": "auth",
+			"b": {"cred": id_token}
 		}
 	}
+	ws_main.put_packet(JSON.stringify(auth_msg).to_utf8_buffer())
+	print("[Realtime] 🔐 Sent auth handshake")
 
-	var http_query := HTTPRequest.new()
-	add_child(http_query)
-	http_query.request_completed.connect(func(_r, code, _h, body):
-		http_query.queue_free()
-		if code != 200:
-			push_warning("⚠️ Firestore query failed.")
-			return
+	await get_tree().create_timer(0.6).timeout
 
-		var data_array = JSON.parse_string(body.get_string_from_utf8())
-		if typeof(data_array) != TYPE_ARRAY or data_array.size() == 0 or not data_array[0].has("document"):
-			push_warning("❌ Friend not found: %s" % friend_username)
-			return
-
-		var doc_path = data_array[0]["document"]["name"]
-		var friend_uid = doc_path.get_file()
-		print("[DEBUG] Found friend UID:", friend_uid)
-
-		# Step 2️⃣ - Remove each other from `friends`
-		var commit_url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit" % PROJECT_ID
-		var commit_body = {
-			"writes": [
-				# A: Remove friend from current user
-				{
-					"transform": {
-						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, current_uid],
-						"fieldTransforms": [
-							{
-								"fieldPath": "friends",
-								"removeAllFromArray": {
-									"values": [
-										{"stringValue": friend_username}
-									]
-								}
-							}
-						]
-					}
-				},
-				# B: Remove current user from friend
-				{
-					"transform": {
-						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, friend_uid],
-						"fieldTransforms": [
-							{
-								"fieldPath": "friends",
-								"removeAllFromArray": {
-									"values": [
-										{"stringValue": Auth.current_username}
-									]
-								}
-							}
-						]
-					}
-				}
-			]
+	# Step 2️⃣ Subscribe to friend_requests
+	var sub_requests = {
+		"t": "d",
+		"d": {
+			"r": 2,
+			"a": "listen", # <--- critical change here
+			"b": {
+				"p": "/friend_requests/%s" % uid,
+				"q": {},
+				"t": "once"
+			}
 		}
+	}
+	ws_main.put_packet(JSON.stringify(sub_requests).to_utf8_buffer())
+	print("[Realtime] 📡 Listening to friend_requests/%s" % uid)
 
-		var http_commit := HTTPRequest.new()
-		add_child(http_commit)
-		http_commit.request_completed.connect(func(_r2, code2, _h2, body2):
-			http_commit.queue_free()
-			print("[DEBUG] UNFRIEND CODE:", code2)
-			print("[DEBUG] UNFRIEND BODY:", body2.get_string_from_utf8())
+	await get_tree().create_timer(0.3).timeout
 
-			if code2 == 200:
-				print("💔 Unfriended successfully:", friend_username)
-				load_friend_list()  # refresh UI after removal
-			else:
-				push_warning("⚠️ Failed to unfriend user.")
-		)
-		http_commit.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
-	)
-	http_query.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+	# Step 3️⃣ Subscribe to friends
+	var sub_friends = {
+		"t": "d",
+		"d": {
+			"r": 3,
+			"a": "listen", # <--- same change here
+			"b": {
+				"p": "/friends/%s" % uid,
+				"q": {},
+				"t": "once"
+			}
+		}
+	}
+	ws_main.put_packet(JSON.stringify(sub_friends).to_utf8_buffer())
+	print("[Realtime] 📡 Listening to friends/%s" % uid)
 
 
 # ======================================================
-# 📥 LOAD FRIEND REQUESTS (for current user)
+# 🔁 PROCESS LOOP – Keep websocket alive
 # ======================================================
-func load_friend_requests() -> void:
+func _process(_delta: float) -> void:
+	if not is_connected:
+		return
+	ws_main.poll()
+
+	while ws_main.get_ready_state() == WebSocketPeer.STATE_OPEN and ws_main.get_available_packet_count() > 0:
+		var msg = ws_main.get_packet().get_string_from_utf8()
+		handle_realtime_message(msg)
+
+
+# ======================================================
+# 🧠 HANDLE REALTIME DATABASE MESSAGES
+# ======================================================
+func handle_realtime_message(message: String) -> void:
+	if message == "":
+		return
+
+	var parsed = JSON.parse_string(message)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+
+	# 🔹 Debug raw packet type
+	if parsed.has("t"):
+		print("[Realtime] 🧭 Message type:", parsed["t"])
+
+	# ==================================================
+	# Firebase 'data' packets come as t: "d"
+	# ==================================================
+	if parsed.has("t") and parsed["t"] == "d" and parsed.has("d"):
+		var d = parsed["d"]
+
+		# Case 1️⃣: 'control' messages like auth ok / ready
+		if d.has("a") and d["a"] == "c":
+			print("[Realtime] 🔌 Control message received (connected).")
+			return
+
+		# Case 2️⃣: 'put' = new or changed data
+		if d.has("a") and d["a"] == "put":
+			var path = d["b"].get("p", "")
+			var data = d["b"].get("d", {})
+			print("[Realtime] 🔔 Incoming realtime update:")
+			print(" ├ Path:", path)
+			print(" └ Data:", data)
+
+			# If it's under friend_requests/<uid>
+			if path.begins_with("/friend_requests/"):
+				for sender_name in data.keys():
+					print("[Realtime] 📨 New friend request received from:", sender_name)
+					_add_request_to_ui(sender_name)
+
+			# If it's under friends/<uid>
+			elif path.begins_with("/friends/"):
+				for friend_name in data.keys():
+					print("[Realtime] 👥 Friend list update: now includes", friend_name)
+					_add_friend_to_ui(friend_name)
+
+		# Case 3️⃣: 'listen_cancel' or 'auth_revoked'
+		if d.has("a") and d["a"] == "cancel":
+			print("[Realtime] ⚠️ Listener cancelled — reauth needed!")
+
+
+# ======================================================
+# 🧾 UPDATE FRIEND REQUESTS UI
+# ======================================================
+func update_friend_requests_ui(requests_dict: Dictionary) -> void:
 	for child in requests_container.get_children():
 		child.queue_free()
 
-	print("[DEBUG] Loading requests...")
-
-	var user_uid = Auth.current_local_id
-	var id_token = Auth.current_id_token
-	print("[DEBUG] UID:", user_uid)
-	print("[DEBUG] Token:", id_token.substr(0, 10), "...")
-
-	if id_token == "" or user_uid == "":
-		push_error("⚠️ Missing Auth info.")
-		return
-
-	var url = "%s/users/%s" % [BASE_URL, user_uid]
-	print("[DEBUG] GET:", url)
-	var headers = ["Authorization: Bearer %s" % id_token]
-
-	var http := HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(func(_r, code, _h, body):
-		http.queue_free()
-
-		print("[DEBUG] HTTP CODE:", code)
-		print("[DEBUG] BODY:", body.get_string_from_utf8())
-
-		if code != 200:
-			push_warning("⚠️ Failed to load friend requests.")
-			return
-
-		var data = JSON.parse_string(body.get_string_from_utf8())
-		if not data or not data.has("fields"):
-			push_warning("⚠️ Invalid Firestore data.")
-			return
-
-		var requests: Array = []
-		if data["fields"].has("requests_received"):
-			var arr_val = data["fields"]["requests_received"].get("arrayValue", {})
-			if arr_val.has("values"):
-				for v in arr_val["values"]:
-					if v.has("stringValue"):
-						requests.append(v["stringValue"])
-
-		print("[DEBUG] Requests found:", requests)
-
-		for sender_uid in requests:
+	for sender in requests_dict.keys():
+		if requests_dict[sender] == true:
 			var hbox = HBoxContainer.new()
-			var label = Label.new()
-			label.text = sender_uid
-			label.custom_minimum_size = Vector2(180, 24)
-			hbox.add_child(label)
+
+			var lbl = Label.new()
+			lbl.text = sender
+			lbl.custom_minimum_size = Vector2(150, 24)
+			hbox.add_child(lbl)
 
 			var accept_btn = Button.new()
-			accept_btn.text = "Accept"
-			accept_btn.pressed.connect(func():
-				accept_friend_request(sender_uid)
-				hbox.queue_free()
-			)
+			accept_btn.text = "✅"
+			accept_btn.pressed.connect(func(): accept_friend(sender))
 			hbox.add_child(accept_btn)
 
-			var decline_btn = Button.new()
-			decline_btn.text = "Decline"
-			decline_btn.pressed.connect(func():
-				decline_friend_request(sender_uid)
-				hbox.queue_free()
-			)
-			hbox.add_child(decline_btn)
-
 			requests_container.add_child(hbox)
-	)
-	http.request(url, headers, HTTPClient.METHOD_GET)
+
+	print("[UI] Friend request list updated. Requests:", requests_dict.keys())
 
 
 # ======================================================
-# 📩 SEND FRIEND REQUEST (Firestore arrayUnion version)
+# 🧾 UPDATE FRIEND LIST UI
+# ======================================================
+func update_friend_ui(friend_dict: Dictionary) -> void:
+	for child in friend_container.get_children():
+		child.queue_free()
+
+	for friend_name in friend_dict.keys():
+		if friend_dict[friend_name] == true:
+			var hbox = HBoxContainer.new()
+
+			var lbl = Label.new()
+			lbl.text = friend_name
+			lbl.custom_minimum_size = Vector2(150, 24)
+			hbox.add_child(lbl)
+
+			var btn = Button.new()
+			btn.text = "❌"
+			btn.tooltip_text = "Unfriend"
+			btn.pressed.connect(func(): unfriend_user(friend_name))
+			hbox.add_child(btn)
+
+			friend_container.add_child(hbox)
+
+	print("[UI] Friend list updated. Friends:", friend_dict.keys())
+
+
+# ======================================================
+# ➕ SEND FRIEND REQUEST
 # ======================================================
 func send_friend_request(target_username: String) -> void:
-	if target_username == "" or target_username == Auth.current_local_id:
-		push_error("⚠️ Invalid input.")
+	if target_username == "" or target_username == Auth.current_username:
+		push_warning("⚠️ Invalid target.")
 		return
 
-	var sender_uid = Auth.current_local_id
 	var id_token = Auth.current_id_token
+	var sender_uid = Auth.current_local_id
 	if id_token == "" or sender_uid == "":
-		push_error("⚠️ Missing Auth info.")
+		push_warning("⚠️ Missing Auth.")
 		return
 
-	print("[FriendRequest] Searching username:", target_username)
+	print("[Friend] Sending request to:", target_username)
 
-	# Step 1️⃣ — Find target user by username
-	var query_url = "%s:runQuery" % BASE_URL
+	# Step 1️⃣ — Query target UID by username
+	var query_url = "%s:runQuery" % FIRESTORE_URL
 	var query_body = {
 		"structuredQuery": {
 			"from": [{"collectionId": "users"}],
@@ -312,112 +252,83 @@ func send_friend_request(target_username: String) -> void:
 
 	var http_query := HTTPRequest.new()
 	add_child(http_query)
-
 	http_query.request_completed.connect(func(_r, code, _h, body):
 		http_query.queue_free()
-		print("[DEBUG] Query CODE:", code)
-		print("[DEBUG] Query BODY:", body.get_string_from_utf8())
-
 		if code != 200:
-			push_warning("⚠️ Firestore query failed.")
+			push_warning("❌ Query failed.")
 			return
 
-		var data_array = JSON.parse_string(body.get_string_from_utf8())
-		if typeof(data_array) != TYPE_ARRAY or data_array.size() == 0 or not data_array[0].has("document"):
-			push_warning("❌ Username not found: %s" % target_username)
+		var arr = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(arr) != TYPE_ARRAY or arr.size() == 0 or not arr[0].has("document"):
+			push_warning("⚠️ User not found.")
 			return
 
-		# Extract UID of receiver (target)
-		var doc_path = data_array[0]["document"]["name"]
-		var target_uid = doc_path.get_file()
-		print("[DEBUG] Found UID:", target_uid)
-
-		# Step 2️⃣ — Get sender's username (for display instead of UID)
-		var sender_url = "%s/users/%s" % [BASE_URL, sender_uid]
-		var http_sender := HTTPRequest.new()
-		add_child(http_sender)
-
-		http_sender.request_completed.connect(func(_r2, code2, _h2, body2):
-			http_sender.queue_free()
-			if code2 != 200:
-				push_warning("⚠️ Failed to get sender username.")
-				return
-
-			var sender_data = JSON.parse_string(body2.get_string_from_utf8())
-			if not sender_data.has("fields") or not sender_data["fields"].has("username"):
-				push_warning("⚠️ Sender has no username field.")
-				return
-
-			var sender_username = sender_data["fields"]["username"]["stringValue"]
-			print("[DEBUG] Sender username:", sender_username)
-
-			# Step 3️⃣ — Append sender's USERNAME into receiver’s requests_received (arrayUnion)
-			var commit_url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit" % PROJECT_ID
-			var commit_body = {
-				"writes": [
-					{
-						"transform": {
-							"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, target_uid],
-							"fieldTransforms": [
-								{
-									"fieldPath": "requests_received",
-									"appendMissingElements": {
-										"values": [
-											{"stringValue": sender_username}
-										]
-									}
-								}
-							]
-						}
-					}
-				]
-			}
-
-			var http_commit := HTTPRequest.new()
-			add_child(http_commit)
-
-			http_commit.request_completed.connect(func(_r3, code3, _h3, body3):
-				http_commit.queue_free()
-				print("[DEBUG] COMMIT CODE:", code3)
-				print("[DEBUG] COMMIT BODY:", body3.get_string_from_utf8())
-
-				if code3 == 200:
-					print("✅ Friend request sent successfully to:", target_username)
-					add_input.text = ""
-				else:
-					push_warning("⚠️ Failed to update requests_received.")
-			)
-
-			http_commit.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
-		)
-
-		http_sender.request(sender_url, headers, HTTPClient.METHOD_GET)
+		var target_uid = arr[0]["document"]["name"].get_file()
+		print("[Friend] Found UID:", target_uid)
+		update_requests_realtime(target_uid, Auth.current_username, id_token)
 	)
 
 	http_query.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
 
 
 # ======================================================
-# 🤝 ACCEPT FRIEND REQUEST (Fix: Proper bi-directional username friendship)
+# 🔁 UPDATE REQUESTS IN REALTIME DB
 # ======================================================
-func accept_friend_request(sender_username: String) -> void:
-	var receiver_uid = Auth.current_local_id
-	var receiver_username = Auth.current_username
-	var id_token = Auth.current_id_token
+func update_requests_realtime(target_uid: String, sender_username: String, id_token: String) -> void:
+	var url = "%s/friend_requests/%s/%s.json?auth=%s" % [DB_URL, target_uid, sender_username, id_token]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request(url, [], HTTPClient.METHOD_PUT, "true")
+	print("[Realtime] Sent friend request to:", target_uid)
 
-	if id_token == "" or receiver_uid == "" or receiver_username == "":
-		push_error("⚠️ Missing Auth info.")
+
+# ======================================================
+# 💔 UNFRIEND
+# ======================================================
+func unfriend_user(friend_name: String) -> void:
+	var uid = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	var url = "%s/friends/%s/%s.json?auth=%s" % [DB_URL, uid, friend_name, id_token]
+
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request(url, [], HTTPClient.METHOD_DELETE)
+	print("💔 Unfriended:", friend_name)
+
+
+# ======================================================
+# ✅ ACCEPT FRIEND REQUEST
+# ======================================================
+func accept_friend(sender_name: String) -> void:
+	var uid = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	if uid == "" or id_token == "":
+		push_warning("⚠️ Missing Auth info.")
 		return
 
-	print("[FriendRequest] Accepting request from:", sender_username)
+	print("[Realtime] Accepting friend request from:", sender_name)
 
-	var headers = [
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % id_token
-	]
+	var remove_url = "%s/friend_requests/%s/%s.json?auth=%s" % [DB_URL, uid, sender_name, id_token]
+	var http_remove := HTTPRequest.new()
+	add_child(http_remove)
 
-	# Step 1️⃣ — Get sender UID (we need this to update sender's friends)
-	var query_url = "%s:runQuery" % BASE_URL
+	http_remove.request_completed.connect(func(_r, code, _h, _b):
+		http_remove.queue_free()
+		if code == 200:
+			print("✅ Removed friend request from:", sender_name)
+			_add_each_other_as_friends(uid, sender_name, id_token)
+		else:
+			push_warning("❌ Failed to remove request (%s)" % code)
+	)
+
+	http_remove.request(remove_url, [], HTTPClient.METHOD_DELETE)
+
+
+# ======================================================
+# 🔗 ADD EACH OTHER AS FRIENDS (Realtime)
+# ======================================================
+func _add_each_other_as_friends(uid: String, sender_name: String, id_token: String) -> void:
+	var query_url = "%s:runQuery" % FIRESTORE_URL
 	var query_body = {
 		"structuredQuery": {
 			"from": [{"collectionId": "users"}],
@@ -425,156 +336,90 @@ func accept_friend_request(sender_username: String) -> void:
 				"fieldFilter": {
 					"field": {"fieldPath": "username"},
 					"op": "EQUAL",
-					"value": {"stringValue": sender_username}
+					"value": {"stringValue": sender_name}
 				}
 			},
 			"limit": 1
 		}
 	}
 
-	var http_query := HTTPRequest.new()
-	add_child(http_query)
-
-	http_query.request_completed.connect(func(_r, code, _h, body):
-		http_query.queue_free()
-		if code != 200:
-			push_warning("⚠️ Firestore query failed (username lookup).")
-			return
-
-		var data_array = JSON.parse_string(body.get_string_from_utf8())
-		if typeof(data_array) != TYPE_ARRAY or data_array.size() == 0 or not data_array[0].has("document"):
-			push_warning("❌ Username not found: %s" % sender_username)
-			return
-
-		var sender_uid = data_array[0]["document"]["name"].get_file()
-		print("[DEBUG] Found sender UID:", sender_uid)
-
-		# Step 2️⃣ — Commit (username <-> username) both ways
-		var commit_url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit" % PROJECT_ID
-		var commit_body = {
-			"writes": [
-				# A: Add sender to receiver’s friends
-				{
-					"transform": {
-						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, receiver_uid],
-						"fieldTransforms": [
-							{
-								"fieldPath": "friends",
-								"appendMissingElements": {
-									"values": [{"stringValue": sender_username}]
-								}
-							},
-							{
-								"fieldPath": "requests_received",
-								"removeAllFromArray": {
-									"values": [{"stringValue": sender_username}]
-								}
-							}
-						]
-					}
-				},
-				# B: Add receiver to sender’s friends
-				{
-					"transform": {
-						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, sender_uid],
-						"fieldTransforms": [
-							{
-								"fieldPath": "friends",
-								"appendMissingElements": {
-									"values": [{"stringValue": receiver_username}]
-								}
-							}
-						]
-					}
-				}
-			]
-		}
-
-		var http_commit := HTTPRequest.new()
-		add_child(http_commit)
-		http_commit.request_completed.connect(func(_r2, code2, _h2, body2):
-			http_commit.queue_free()
-			print("[DEBUG] ACCEPT COMMIT CODE:", code2)
-			print("[DEBUG] ACCEPT COMMIT BODY:", body2.get_string_from_utf8())
-
-			if code2 == 200:
-				print("✅ Friend request accepted between %s ↔ %s" % [receiver_username, sender_username])
-				load_friend_requests()
-				load_friend_list()  # 🔹 refresh friends instantly
-			else:
-				push_warning("⚠️ Failed to accept friend request.")
-		)
-		http_commit.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
-	)
-
-	http_query.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
-
-
-
-# ======================================================
-# 🚫 DECLINE FRIEND REQUEST (Firestore arrayRemove)
-# ======================================================
-func decline_friend_request(sender_uid: String) -> void:
-	var receiver_uid = Auth.current_local_id
-	var id_token = Auth.current_id_token
-	if id_token == "" or receiver_uid == "":
-		push_error("⚠️ Missing Auth info.")
-		return
-
-	print("[FriendRequest] Declining request from UID:", sender_uid)
-
 	var headers = [
 		"Content-Type: application/json",
 		"Authorization: Bearer %s" % id_token
 	]
 
-	# Optional: check if sender exists (for safety)
-	var sender_url = "%s/users/%s" % [BASE_URL, sender_uid]
-	var http_sender := HTTPRequest.new()
-	add_child(http_sender)
-	http_sender.request_completed.connect(func(_r, code, _h, body):
-		http_sender.queue_free()
+	var http_query := HTTPRequest.new()
+	add_child(http_query)
+	http_query.request_completed.connect(func(_r, code, _h, body):
+		http_query.queue_free()
 		if code != 200:
-			push_warning("⚠️ Failed to fetch sender info (still removing).")
+			push_warning("❌ Failed to find sender UID.")
+			return
 
-		# Step 1️⃣ - Remove sender_uid from receiver’s requests_received
-		var commit_url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit" % PROJECT_ID
-		var commit_body = {
-			"writes": [
-				{
-					"transform": {
-						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, receiver_uid],
-						"fieldTransforms": [
-							{
-								"fieldPath": "requests_received",
-								"removeAllFromArray": {
-									"values": [
-										{"stringValue": sender_uid}
-									]
-								}
-							}
-						]
-					}
-				}
-			]
-		}
+		var arr = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(arr) != TYPE_ARRAY or arr.size() == 0 or not arr[0].has("document"):
+			push_warning("⚠️ Sender UID not found.")
+			return
 
-		var http_commit := HTTPRequest.new()
-		add_child(http_commit)
-		http_commit.request_completed.connect(func(_r2, code2, _h2, body2):
-			http_commit.queue_free()
-			print("[DEBUG] DECLINE CODE:", code2)
-			print("[DEBUG] DECLINE BODY:", body2.get_string_from_utf8())
+		var sender_uid = arr[0]["document"]["name"].get_file()
+		print("[Realtime] Found sender UID:", sender_uid)
 
-			if code2 == 200:
-				print("🚫 Friend request declined successfully.")
-				load_friend_requests()
-			else:
-				push_warning("⚠️ Failed to decline friend request.")
-		)
-		http_commit.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
+		var user_name = Auth.current_username
+		var paths = [
+			["%s/friends/%s/%s.json?auth=%s" % [DB_URL, uid, sender_name, id_token], "true"],
+			["%s/friends/%s/%s.json?auth=%s" % [DB_URL, sender_uid, user_name, id_token], "true"]
+		]
+
+		for p in paths:
+			var http_add := HTTPRequest.new()
+			add_child(http_add)
+			http_add.request(p[0], [], HTTPClient.METHOD_PUT, p[1])
+
+		print("✅ Added each other as friends:", sender_name)
 	)
-	http_sender.request(sender_url, headers, HTTPClient.METHOD_GET)
+	http_query.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+	
+	# ======================================================
+# 📨 ADD REQUEST TO UI
+# ======================================================
+func _add_request_to_ui(sender_name: String) -> void:
+	var hbox = HBoxContainer.new()
 
-	
-	
+	var lbl = Label.new()
+	lbl.text = sender_name
+	lbl.custom_minimum_size = Vector2(150, 24)
+	hbox.add_child(lbl)
+
+	var accept_btn = Button.new()
+	accept_btn.text = "✅"
+	accept_btn.pressed.connect(func():
+		accept_friend(sender_name)
+		hbox.queue_free()
+	)
+	hbox.add_child(accept_btn)
+
+	requests_container.add_child(hbox)
+	print("[UI] 📨 Friend request UI updated with:", sender_name)
+
+
+# ======================================================
+# 👥 ADD FRIEND TO UI
+# ======================================================
+func _add_friend_to_ui(friend_name: String) -> void:
+	var hbox = HBoxContainer.new()
+
+	var lbl = Label.new()
+	lbl.text = friend_name
+	lbl.custom_minimum_size = Vector2(150, 24)
+	hbox.add_child(lbl)
+
+	var unfriend_btn = Button.new()
+	unfriend_btn.text = "❌"
+	unfriend_btn.pressed.connect(func():
+		unfriend_user(friend_name)
+		hbox.queue_free()
+	)
+	hbox.add_child(unfriend_btn)
+
+	friend_container.add_child(hbox)
+	print("[UI] 👥 Friend added to UI:", friend_name)

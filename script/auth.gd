@@ -175,3 +175,37 @@ func _on_request_completed(result: int, response_code: int, _h: PackedStringArra
 	print("ID Token:", current_id_token.left(25), "...\n")
 
 	emit_signal("auth_response", response_code, response)
+
+
+# ======================================================
+# 🟢 PRESENCE SYSTEM (Realtime)
+# ======================================================
+const REALTIME_DB_URL = "https://capstone-823dc-default-rtdb.firebaseio.com"
+
+func set_user_online():
+	if current_local_id == "" or current_username == "":
+		return
+
+	var url = "%s/presence/%s.json?auth=%s" % [REALTIME_DB_URL, current_username, current_id_token]
+	var body = JSON.stringify({
+		"state": "online",
+		"timestamp": Time.get_unix_time_from_system()
+	})
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request(url, [], HTTPClient.METHOD_PUT, body)
+	print("[Presence] ✅ User marked ONLINE")
+
+func set_user_offline():
+	if current_local_id == "" or current_username == "":
+		return
+
+	var url = "%s/presence/%s.json?auth=%s" % [REALTIME_DB_URL, current_username, current_id_token]
+	var body = JSON.stringify({
+		"state": "offline",
+		"timestamp": Time.get_unix_time_from_system()
+	})
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request(url, [], HTTPClient.METHOD_PATCH, body)
+	print("[Presence] 💤 User marked OFFLINE")
