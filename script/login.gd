@@ -12,6 +12,7 @@ extends Control
 var email_regex := RegEx.new()
 
 func _ready():
+
 	add_child(oauth_helper)
 	oauth_helper.token_received.connect(_on_google_code_received)
 	Auth.auth_response.connect(_on_auth_response)
@@ -69,7 +70,6 @@ func _on_auth_response(response_code: int, response: Dictionary):
 			if response.has("localId"):
 				Auth.current_local_id = response["localId"]
 
-			Auth.set_user_online()  # 🟢 Mark online immediately
 			_check_firestore_username_and_route()
 			return
 

@@ -42,6 +42,16 @@ offset_bottom = 593.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hlv06")
 script = ExtResource("1_30j1j")
 
+[node name="HTTPRequest_Main" type="HTTPRequest" parent="."]
+
+[node name="HTTPRequest_Friends" type="HTTPRequest" parent="."]
+
+[node name="HTTPRequest_Requests" type="HTTPRequest" parent="."]
+
+[node name="HTTPRequest_Status" type="HTTPRequest" parent="."]
+
+[node name="HTTPRequest_Presence" type="HTTPRequest" parent="."]
+
 [node name="FriendLabel" type="Panel" parent="."]
 layout_mode = 0
 offset_right = 234.0
@@ -117,5 +127,3 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_44a1m")
 theme_override_styles/normal = SubResource("StyleBoxFlat_2r4jo")
 text = "ADD
 "
-
-[node name="HTTPRequest" type="HTTPRequest" parent="."]

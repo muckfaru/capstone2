@@ -108,3 +108,20 @@ func _process(_delta: float) -> void:
 				emit_signal("token_received", code)  # Ipadala sa ibang script (ex: auth.gd)
 			else:
 				push_error("⚠️ No code found in redirect.")
+				
+func save_user_to_rtdb():
+	if Auth.current_local_id == "" or Auth.current_username == "":
+		push_warning("[AuthHelper] Missing UID or username, skipping RTDB save.")
+		return
+
+	var url = "https://capstone-823dc-default-rtdb.firebaseio.com/users/%s/username.json?auth=%s" % [
+		Auth.current_local_id,
+		Auth.current_id_token
+	]
+
+	var payload = JSON.stringify(Auth.current_username)
+	var http = HTTPRequest.new()
+	add_child(http)
+
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, payload)
+	print("[AuthHelper] ✅ Username saved to RTDB:", Auth.current_username)

@@ -5,7 +5,7 @@ signal auth_response(response_code: int, response: Dictionary)
 # 🔹 Firebase & Google OAuth config
 const API_KEY: String = "AIzaSyAZvW_4HWndG-Spu5eUrxSf_yRKbpswm3Q"
 const GOOGLE_OAUTH_CLIENT_ID: String = "1055956713490-tr6mh6pd994opb1hm2rmtmar1eilb3rm.apps.googleusercontent.com"
-const GOOGLE_OAUTH_CLIENT_SECRET: String = "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"
+const GOOGLE_OAUTH_CLIENT_SECRET: String = "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"
 const REDIRECT_URI: String = "http://127.0.0.1:8765"
 
 @onready var http_request: HTTPRequest = $HTTPRequest
@@ -175,37 +175,3 @@ func _on_request_completed(result: int, response_code: int, _h: PackedStringArra
 	print("ID Token:", current_id_token.left(25), "...\n")
 
 	emit_signal("auth_response", response_code, response)
-
-
-# ======================================================
-# 🟢 PRESENCE SYSTEM (Realtime)
-# ======================================================
-const REALTIME_DB_URL = "https://capstone-823dc-default-rtdb.firebaseio.com"
-
-func set_user_online():
-	if current_local_id == "" or current_username == "":
-		return
-
-	var url = "%s/presence/%s.json?auth=%s" % [REALTIME_DB_URL, current_username, current_id_token]
-	var body = JSON.stringify({
-		"state": "online",
-		"timestamp": Time.get_unix_time_from_system()
-	})
-	var http := HTTPRequest.new()
-	add_child(http)
-	http.request(url, [], HTTPClient.METHOD_PUT, body)
-	print("[Presence] ✅ User marked ONLINE")
-
-func set_user_offline():
-	if current_local_id == "" or current_username == "":
-		return
-
-	var url = "%s/presence/%s.json?auth=%s" % [REALTIME_DB_URL, current_username, current_id_token]
-	var body = JSON.stringify({
-		"state": "offline",
-		"timestamp": Time.get_unix_time_from_system()
-	})
-	var http := HTTPRequest.new()
-	add_child(http)
-	http.request(url, [], HTTPClient.METHOD_PATCH, body)
-	print("[Presence] 💤 User marked OFFLINE")
