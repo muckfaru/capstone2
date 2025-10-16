@@ -306,4 +306,9 @@ func _add_request_item(sender_uid: String):
 	decline_btn.pressed.connect(func(): _decline_friend(sender_uid))
 	hbox.add_child(decline_btn)
 
-	friend_requests_vbox.add_child(hbox)
+	friend_requests_vbox.add_child(hbox)    
+	
+	
+	
+	
+	
