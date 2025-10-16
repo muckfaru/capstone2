@@ -1,314 +1,475 @@
-extends Control
+extends Panel
 
-# === UI References ===
-@onready var http_main: HTTPRequest = $HTTPRequest_Main
-@onready var http_friend: HTTPRequest = $HTTPRequest_Friends
-@onready var http_request: HTTPRequest = $HTTPRequest_Requests
-@onready var friend_list_vbox: VBoxContainer = $FriendListVBox
-@onready var friend_requests_vbox: VBoxContainer = $FriendRequestsVBox
-@onready var friend_uid_input: LineEdit = $AddFriendHBox/FriendUIDInput
-@onready var add_friend_button: Button = $AddFriendHBox/AddFriendButton
+@onready var friend_container: VBoxContainer = $FriendListVBox
+@onready var requests_container: VBoxContainer = $FriendRequestsVBox
+@onready var add_input: LineEdit = $AddFriendHBox/FriendUIDInput
+@onready var add_button: Button = $AddFriendHBox/AddFriendButton
 
-# === Firebase Config ===
-const DB_URL := "https://capstone-823dc-default-rtdb.firebaseio.com"
+# 🔹 Firebase Config
+const PROJECT_ID: String = "capstone-823dc"
+const BASE_URL: String = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents" % PROJECT_ID
 
-# === Auth info (loaded from Auth singleton) ===
-var uid: String = ""
-var id_token: String = ""
+var refresh_timer := Timer.new()
+var last_friend_list: Array = []
+var last_request_list: Array = []
 
-# Poll interval (seconds)
-const REFRESH_INTERVAL := 3.0
-
-# Flag to avoid overlapping refresh requests
-var _is_refreshing: bool = false
-
-# ---------------------------------------------------
+# ======================================================
+# 🔸 READY
+# ======================================================
 func _ready():
-	print("[FriendSystem] 🔄 Polling mode initialized (no SDK)")
+	print("[FriendList] Ready.")
+	refresh_timer.wait_time = 5.0
+	refresh_timer.autostart = true
+	refresh_timer.timeout.connect(func():
+		load_friend_requests()
+		load_friend_list()
+	)
+	add_child(refresh_timer)
 
-	# Load Auth info (from Auth singleton)
-	if Engine.has_singleton("Auth"):
-		var auth = Engine.get_singleton("Auth")
-		uid = auth.current_local_id
-		id_token = auth.current_id_token
-		print("[FriendSystem] ✅ Auth loaded → UID:", uid)
-	else:
-		push_error("❌ Auth singleton not found.")
+	add_button.pressed.connect(func():
+		var target = add_input.text.strip_edges()
+		if target == "":
+			return
+		add_button.disabled = true
+		send_friend_request(target)
+		await get_tree().create_timer(1.0).timeout # prevent spam clicks
+		add_button.disabled = false
+	)
+
+	load_friend_requests()
+	load_friend_list()
+
+
+# ======================================================
+# 📥 LOAD FRIEND REQUESTS
+# ======================================================
+func load_friend_requests() -> void:
+	var uid = Auth.current_local_id
+	var token = Auth.current_id_token
+	if uid == "" or token == "":
+		push_warning("⚠️ Missing Auth info.")
 		return
 
-	add_friend_button.pressed.connect(_on_add_friend_pressed)
+	var url = "%s/users/%s" % [BASE_URL, uid]
+	var headers = ["Authorization: Bearer %s" % token]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		if code != 200:
+			return
 
-	# Set online status
-	_set_online_status(true)
+		var data = JSON.parse_string(body.get_string_from_utf8())
+		if not data.has("fields"):
+			return
 
-	# Start automatic polling
-	_poll_loop()
+		var new_requests: Array = []
+		if data["fields"].has("requests_received"):
+			var arr = data["fields"]["requests_received"].get("arrayValue", {})
+			if arr.has("values"):
+				for v in arr["values"]:
+					var sender = v.get("stringValue", "")
+					if sender != "":
+						new_requests.append(sender)
+
+		if new_requests != last_request_list:
+			last_request_list = new_requests.duplicate()
+			print("[UI] 🔄 Friend requests changed → refreshing UI")
+			_update_request_ui(new_requests)
+	)
+	http.request(url, headers, HTTPClient.METHOD_GET)
 
 
-# ---------------------------------------------------
-# AUTO REFRESH LOOP (runs every 3s safely)
-# ---------------------------------------------------
-func _poll_loop():
-	while is_inside_tree():
-		if not _is_refreshing:
-			await refresh_friend_lists()
-		await get_tree().create_timer(REFRESH_INTERVAL).timeout
-
-
-# ---------------------------------------------------
-# REFRESH FRIEND + REQUEST LISTS
-# ---------------------------------------------------
-func refresh_friend_lists():
-	if uid == "" or id_token == "":
+# ======================================================
+# 📜 LOAD FRIEND LIST
+# ======================================================
+func load_friend_list() -> void:
+	var uid = Auth.current_local_id
+	var token = Auth.current_id_token
+	if uid == "" or token == "":
 		return
 
-	if _is_refreshing:
-		print("[FriendSystem] ⏳ Skipping refresh — still loading...")
+	var url = "%s/users/%s" % [BASE_URL, uid]
+	var headers = ["Authorization: Bearer %s" % token]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		if code != 200:
+			return
+
+		var data = JSON.parse_string(body.get_string_from_utf8())
+		if not data.has("fields"):
+			return
+
+		var new_friends: Array = []
+		if data["fields"].has("friends"):
+			var arr = data["fields"]["friends"].get("arrayValue", {})
+			if arr.has("values"):
+				for v in arr["values"]:
+					var friend_name = v.get("stringValue", "")
+					if friend_name != "":
+						new_friends.append(friend_name)
+
+		if new_friends != last_friend_list:
+			last_friend_list = new_friends.duplicate()
+			print("[UI] 🔄 Friend list changed → refreshing UI")
+			_update_friend_ui(new_friends)
+	)
+	http.request(url, headers, HTTPClient.METHOD_GET)
+
+
+# ======================================================
+# 🧾 UPDATE FRIEND REQUESTS UI (with fade-in)
+# ======================================================
+func _update_request_ui(requests: Array) -> void:
+	for child in requests_container.get_children():
+		child.queue_free()
+
+	for sender in requests:
+		var hbox = HBoxContainer.new()
+		var lbl = Label.new()
+		lbl.text = sender
+		hbox.add_child(lbl)
+
+		var accept_btn = Button.new()
+		accept_btn.text = "✅"
+		accept_btn.pressed.connect(func():
+			accept_friend_request(sender)
+			hbox.queue_free()
+		)
+		hbox.add_child(accept_btn)
+
+		var decline_btn = Button.new()
+		decline_btn.text = "❌"
+		decline_btn.pressed.connect(func():
+			decline_friend_request(sender)
+			hbox.queue_free()
+		)
+		hbox.add_child(decline_btn)
+
+		hbox.modulate.a = 0
+		requests_container.add_child(hbox)
+		var tween = create_tween()
+		tween.tween_property(hbox, "modulate:a", 1.0, 0.25)
+
+
+# ======================================================
+# 🧾 UPDATE FRIEND LIST UI (with fade-in)
+# ======================================================
+func _update_friend_ui(friends: Array) -> void:
+	for child in friend_container.get_children():
+		child.queue_free()
+
+	for name in friends:
+		var hbox = HBoxContainer.new()
+		var lbl = Label.new()
+		lbl.text = name
+		hbox.add_child(lbl)
+
+		var unfriend_btn = Button.new()
+		unfriend_btn.text = "❌"
+		unfriend_btn.tooltip_text = "Unfriend"
+		unfriend_btn.pressed.connect(func():
+			unfriend_user(name)
+			hbox.queue_free()
+		)
+		hbox.add_child(unfriend_btn)
+
+		hbox.modulate.a = 0
+		friend_container.add_child(hbox)
+		var tween = create_tween()
+		tween.tween_property(hbox, "modulate:a", 1.0, 0.25)
+
+
+# ======================================================
+# 💔 UNFRIEND USER
+# ======================================================
+func unfriend_user(friend_name: String) -> void:
+	var uid = Auth.current_local_id
+	var token = Auth.current_id_token
+	if uid == "" or token == "":
 		return
 
-	_is_refreshing = true
-	print("[FriendSystem] Refreshing friend lists...")
+	print("[FriendList] Unfriending:", friend_name)
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
 
-	_clear_container(friend_list_vbox)
-	_clear_container(friend_requests_vbox)
+	var query_url = "%s:runQuery" % BASE_URL
+	var query_body = {
+		"structuredQuery": {
+			"from": [{"collectionId": "users"}],
+			"where": {
+				"fieldFilter": {
+					"field": {"fieldPath": "username"},
+					"op": "EQUAL",
+					"value": {"stringValue": friend_name}
+				}
+			},
+			"limit": 1
+		}
+	}
 
-	# --- FRIENDS ---
-	var friends_url = "%s/users/%s/friends.json?auth=%s" % [DB_URL, uid, id_token]
-	var err = http_friend.request(friends_url)
-	if err != OK:
-		push_error("[ERROR] Failed to request friends.")
-		_is_refreshing = false
+	var http_query := HTTPRequest.new()
+	add_child(http_query)
+	http_query.request_completed.connect(func(_r, code, _h, body):
+		http_query.queue_free()
+		if code != 200:
+			return
+
+		var arr = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(arr) != TYPE_ARRAY or arr.size() == 0:
+			return
+
+		var friend_uid = arr[0]["document"]["name"].get_file()
+		var my_name = Auth.current_username
+
+		var commit_url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit" % PROJECT_ID
+		var commit_body = {
+			"writes": [
+				{
+					"transform": {
+						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, uid],
+						"fieldTransforms": [{
+							"fieldPath": "friends",
+							"removeAllFromArray": {"values": [{"stringValue": friend_name}]}
+						}]
+					}
+				},
+				{
+					"transform": {
+						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, friend_uid],
+						"fieldTransforms": [{
+							"fieldPath": "friends",
+							"removeAllFromArray": {"values": [{"stringValue": my_name}]}
+						}]
+					}
+				}
+			]
+		}
+		var http_commit := HTTPRequest.new()
+		add_child(http_commit)
+		http_commit.request_completed.connect(func(_r2, code2, _h2, _b2):
+			http_commit.queue_free()
+			if code2 == 200:
+				print("💔 Unfriended:", friend_name)
+				await get_tree().create_timer(0.4).timeout
+				load_friend_list()
+		)
+		http_commit.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
+	)
+	http_query.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+# ======================================================
+# ➕ SEND FRIEND REQUEST
+# ======================================================
+func send_friend_request(target_username: String) -> void:
+	if target_username == "" or target_username == Auth.current_username:
+		push_error("⚠️ Invalid target.")
 		return
 
-	var result = await http_friend.request_completed
-	var friends_body = result[3].get_string_from_utf8()
-	var friends_data = JSON.parse_string(friends_body)
-
-	if typeof(friends_data) == TYPE_DICTIONARY:
-		for friend_uid in friends_data.keys():
-			_add_friend_item(friend_uid)
-	else:
-		print("[FriendSystem] No friends found.")
-
-	# --- REQUESTS ---
-	var req_url = "%s/users/%s/requests_received.json?auth=%s" % [DB_URL, uid, id_token]
-	var req_err = http_request.request(req_url)
-	if req_err != OK:
-		push_error("[ERROR] Failed to request friend requests.")
-		_is_refreshing = false
+	var token = Auth.current_id_token
+	var sender_uid = Auth.current_local_id
+	if token == "" or sender_uid == "":
 		return
 
-	var req_result = await http_request.request_completed
-	var req_body = req_result[3].get_string_from_utf8()
-	var req_data = JSON.parse_string(req_body)
+	print("[FriendRequest] Sending to:", target_username)
 
-	if typeof(req_data) == TYPE_DICTIONARY:
-		for sender_uid in req_data.keys():
-			_add_request_item(sender_uid)
-	else:
-		print("[FriendSystem] No friend requests found.")
+	var query_url = "%s:runQuery" % BASE_URL
+	var query_body = {
+		"structuredQuery": {
+			"from": [{"collectionId": "users"}],
+			"where": {
+				"fieldFilter": {
+					"field": {"fieldPath": "username"},
+					"op": "EQUAL",
+					"value": {"stringValue": target_username}
+				}
+			},
+			"limit": 1
+		}
+	}
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
 
-	_is_refreshing = false
-	print("[FriendSystem] ✅ Refresh done.")
+	var http_query := HTTPRequest.new()
+	add_child(http_query)
+	http_query.request_completed.connect(func(_r, code, _h, body):
+		http_query.queue_free()
+		if code != 200:
+			push_warning("⚠️ Query failed.")
+			return
+
+		var arr = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(arr) != TYPE_ARRAY or arr.size() == 0:
+			push_warning("⚠️ User not found.")
+			return
+
+		var target_uid = arr[0]["document"]["name"].get_file()
+		var sender_url = "%s/users/%s" % [BASE_URL, sender_uid]
+		var http_sender := HTTPRequest.new()
+		add_child(http_sender)
+		http_sender.request_completed.connect(func(_r2, code2, _h2, body2):
+			http_sender.queue_free()
+			if code2 != 200:
+				return
+			var data2 = JSON.parse_string(body2.get_string_from_utf8())
+			var sender_name = data2["fields"]["username"]["stringValue"]
+
+			var commit_url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit" % PROJECT_ID
+			var commit_body = {
+				"writes": [{
+					"transform": {
+						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, target_uid],
+						"fieldTransforms": [{
+							"fieldPath": "requests_received",
+							"appendMissingElements": {
+								"values": [{"stringValue": sender_name}]
+							}
+						}]
+					}
+				}]
+			}
+			var http_commit := HTTPRequest.new()
+			add_child(http_commit)
+			http_commit.request_completed.connect(func(_r3, code3, _h3, _b3):
+				http_commit.queue_free()
+				if code3 == 200:
+					print("✅ Friend request sent to:", target_username)
+					add_input.text = ""
+			)
+			http_commit.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
+		)
+		http_sender.request(sender_url, headers, HTTPClient.METHOD_GET)
+	)
+	http_query.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
 
 
-# ---------------------------------------------------
-# ADD FRIEND
-# ---------------------------------------------------
-func _on_add_friend_pressed():
-	var target_uid = friend_uid_input.text.strip_edges()
-	if target_uid == "" or target_uid == uid:
+# ======================================================
+# 🤝 ACCEPT FRIEND REQUEST
+# ======================================================
+func accept_friend_request(sender_name: String) -> void:
+	var uid = Auth.current_local_id
+	var token = Auth.current_id_token
+	if uid == "" or token == "":
 		return
 
-	print("[FriendSystem] Sending friend request to:", target_uid)
-	await _send_friend_request(uid, target_uid)
-	friend_uid_input.text = ""
+	print("[FriendRequest] Accepting:", sender_name)
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+
+	var query_url = "%s:runQuery" % BASE_URL
+	var query_body = {
+		"structuredQuery": {
+			"from": [{"collectionId": "users"}],
+			"where": {
+				"fieldFilter": {
+					"field": {"fieldPath": "username"},
+					"op": "EQUAL",
+					"value": {"stringValue": sender_name}
+				}
+			},
+			"limit": 1
+		}
+	}
+	var http_query := HTTPRequest.new()
+	add_child(http_query)
+	http_query.request_completed.connect(func(_r, code, _h, body):
+		http_query.queue_free()
+		if code != 200:
+			return
+
+		var arr = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(arr) != TYPE_ARRAY or arr.size() == 0:
+			return
+
+		var sender_uid = arr[0]["document"]["name"].get_file()
+		var my_name = Auth.current_username
+
+		var commit_url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit" % PROJECT_ID
+		var commit_body = {
+			"writes": [
+				{
+					"transform": {
+						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, uid],
+						"fieldTransforms": [
+							{
+								"fieldPath": "friends",
+								"appendMissingElements": {"values": [{"stringValue": sender_name}]}
+							},
+							{
+								"fieldPath": "requests_received",
+								"removeAllFromArray": {"values": [{"stringValue": sender_name}]}
+							}
+						]
+					}
+				},
+				{
+					"transform": {
+						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, sender_uid],
+						"fieldTransforms": [
+							{
+								"fieldPath": "friends",
+								"appendMissingElements": {"values": [{"stringValue": my_name}]}
+							}
+						]
+					}
+				}
+			]
+		}
+		var http_commit := HTTPRequest.new()
+		add_child(http_commit)
+		http_commit.request_completed.connect(func(_r2, code2, _h2, _b2):
+			http_commit.queue_free()
+			if code2 == 200:
+				print("✅ Accepted:", sender_name)
+				await get_tree().create_timer(0.5).timeout
+				load_friend_requests()
+				load_friend_list()
+		)
+		http_commit.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
+	)
+	http_query.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
 
 
-func _send_friend_request(from_uid: String, to_uid: String):
-	print("[FriendSystem] Sending friend request...")
-
-	# Fetch usernames
-	var from_name = await _get_username(from_uid)
-	var to_name = await _get_username(to_uid)
-
-	if from_name == "" or to_name == "":
-		push_warning("[FriendSystem] Missing usernames! Aborting request.")
+# ======================================================
+# 🚫 DECLINE FRIEND REQUEST
+# ======================================================
+func decline_friend_request(sender_name: String) -> void:
+	var uid = Auth.current_local_id
+	var token = Auth.current_id_token
+	if uid == "" or token == "":
 		return
 
-	var payload = JSON.stringify(true)
+	print("[FriendRequest] Declining:", sender_name)
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+	var commit_url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit" % PROJECT_ID
+	var commit_body = {
+		"writes": [ {
+			"transform": {
+				"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, uid],
+				"fieldTransforms": [ {
+					"fieldPath": "requests_received",
+					"removeAllFromArray": {"values": [{"stringValue": sender_name}]}
+				} ]
+			}
+		} ]
+	}
 
-	# Write requests using usernames as keys
-	var outgoing_url = "%s/users/%s/requests_sent/%s.json?auth=%s" % [DB_URL, from_uid, to_name, id_token]
-	var incoming_url = "%s/users/%s/requests_received/%s.json?auth=%s" % [DB_URL, to_uid, from_name, id_token]
-
-	await http_main.request(outgoing_url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, payload)
-	await http_main.request_completed
-	await http_main.request(incoming_url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, payload)
-	await http_main.request_completed
-
-	print("[FriendSystem] ✅ Friend request sent from %s → %s" % [from_name, to_name])
-
-func _get_username(target_uid: String) -> String:
-	if target_uid == "" or id_token == "":
-		return ""
-
-	var url = "%s/users/%s/username.json?auth=%s" % [DB_URL, target_uid, id_token]
-	var err = http_main.request(url, [], HTTPClient.METHOD_GET)
-	if err != OK:
-		push_error("[FriendSystem] ❌ Failed to start username request for %s" % target_uid)
-		return ""
-
-	var result = await http_main.request_completed
-	var body_bytes = result[3]
-	if body_bytes.size() == 0:
-		push_warning("[FriendSystem] ⚠ No username found for UID %s" % target_uid)
-		return ""
-
-	var username = body_bytes.get_string_from_utf8().strip_edges().replace('"', '')
-	if username == "null" or username == "":
-		push_warning("[FriendSystem] ⚠ Username is empty/null for %s" % target_uid)
-		return ""
-	print("[FriendSystem] 🔍 Username fetched:", username)
-	return username
-
-
-
-# ---------------------------------------------------
-# ACCEPT / DECLINE / UNFRIEND
-# ---------------------------------------------------
-func _accept_friend_request(sender_name: String):
-	print("[FriendSystem] Accepting friend request from:", sender_name)
-
-	var my_name = await _get_username(uid)
-	if my_name == "":
-		push_error("[FriendSystem] Can't get current username.")
-		return
-
-	var payload = JSON.stringify(true)
-
-	# Add both users to each other's friend lists
-	var my_friend_url = "%s/users/%s/friends/%s.json?auth=%s" % [DB_URL, uid, sender_name, id_token]
-	var their_friend_url = "%s/users/%s/friends/%s.json?auth=%s" % [DB_URL, sender_name, my_name, id_token]
-
-	await http_main.request(my_friend_url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, payload)
-	await http_main.request_completed
-	await http_main.request(their_friend_url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, payload)
-	await http_main.request_completed
-
-	# Delete the pending requests
-	var incoming_url = "%s/users/%s/requests_received/%s.json?auth=%s" % [DB_URL, uid, sender_name, id_token]
-	var outgoing_url = "%s/users/%s/requests_sent/%s.json?auth=%s" % [DB_URL, sender_name, my_name, id_token]
-
-	await http_main.request(incoming_url, [], HTTPClient.METHOD_DELETE)
-	await http_main.request_completed
-	await http_main.request(outgoing_url, [], HTTPClient.METHOD_DELETE)
-	await http_main.request_completed
-
-	print("[FriendSystem] ✅ Friend request accepted between %s and %s" % [my_name, sender_name])
-	refresh_friend_lists()
-
-
-
-func _decline_friend(sender_uid: String):
-	print("[FriendSystem] Declining:", sender_uid)
-	var in_url = "%s/users/%s/requests_received/%s.json?auth=%s" % [DB_URL, uid, sender_uid, id_token]
-	var out_url = "%s/users/%s/requests_sent/%s.json?auth=%s" % [DB_URL, sender_uid, uid, id_token]
-	http_main.request(in_url, [], HTTPClient.METHOD_DELETE)
-	await http_main.request_completed
-	http_main.request(out_url, [], HTTPClient.METHOD_DELETE)
-	await http_main.request_completed
-	refresh_friend_lists()
-
-
-func _unfriend(friend_name: String):
-	print("[FriendSystem] Unfriending:", friend_name)
-
-	var my_name = await _get_username(uid)
-	if my_name == "":
-		push_error("[FriendSystem] Can't get current username.")
-		return
-
-	var a_url = "%s/users/%s/friends/%s.json?auth=%s" % [DB_URL, uid, friend_name, id_token]
-	var b_url = "%s/users/%s/friends/%s.json?auth=%s" % [DB_URL, friend_name, my_name, id_token]
-
-	await http_main.request(a_url, [], HTTPClient.METHOD_DELETE)
-	await http_main.request_completed
-	await http_main.request(b_url, [], HTTPClient.METHOD_DELETE)
-	await http_main.request_completed
-
-	print("[FriendSystem] 🗑 Unfriended:", friend_name)
-	refresh_friend_lists()
-
-
-
-
-# ---------------------------------------------------
-# PRESENCE SYSTEM (simple online/offline flag)
-# ---------------------------------------------------
-func _set_online_status(is_online: bool) -> void:
-	if uid == "" or id_token == "":
-		return
-
-	var url = "%s/users/%s/status.json?auth=%s" % [DB_URL, uid, id_token]
-	var status = "offline"
-	if is_online:
-		status = "online"
-
-	var payload = JSON.stringify(status)
-	var err = http_main.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, payload)
-	if err != OK:
-		push_error("[Presence] Failed to set status: %s" % err)
-	else:
-		print("[Presence] %s → %s" % [uid, status])
-
-
-func _notification(what):
-	if what in [NOTIFICATION_WM_CLOSE_REQUEST, NOTIFICATION_EXIT_TREE]:
-		_set_online_status(false)
-
-
-# ---------------------------------------------------
-# UI HELPERS
-# ---------------------------------------------------
-func _clear_container(container: Node):
-	for c in container.get_children():
-		c.queue_free()
-
-
-func _add_friend_item(friend_uid: String):
-	var hbox = HBoxContainer.new()
-	var name_label = Label.new()
-	name_label.text = friend_uid
-	hbox.add_child(name_label)
-
-	var remove_btn = Button.new()
-	remove_btn.text = "Unfriend"
-	remove_btn.pressed.connect(func(): _unfriend(friend_uid))
-	hbox.add_child(remove_btn)
-
-	friend_list_vbox.add_child(hbox)
-
-
-func _add_request_item(sender_uid: String):
-	var hbox = HBoxContainer.new()
-	var name_label = Label.new()
-	name_label.text = sender_uid
-	hbox.add_child(name_label)
-
-	var accept_btn = Button.new()
-	accept_btn.text = "Accept"
-	accept_btn.pressed.connect(func(): _accept_friend_request(sender_uid))
-	hbox.add_child(accept_btn)
-
-	var decline_btn = Button.new()
-	decline_btn.text = "Decline"
-	decline_btn.pressed.connect(func(): _decline_friend(sender_uid))
-	hbox.add_child(decline_btn)
-
-	friend_requests_vbox.add_child(hbox)    
-	
-	
-	
-	
-	
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code == 200:
+			print("🚫 Declined friend request from:", sender_name)
+			load_friend_requests()
+	)
+	http.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))

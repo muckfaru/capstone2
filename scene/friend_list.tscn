@@ -42,7 +42,7 @@ offset_bottom = 593.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hlv06")
 script = ExtResource("1_30j1j")
 
-[node name="HTTPRequest_Main" type="HTTPRequest" parent="."]
+[node name="HTTPRequest" type="HTTPRequest" parent="."]
 
 [node name="HTTPRequest_Friends" type="HTTPRequest" parent="."]
 
