@@ -186,6 +186,14 @@ func _update_friend_ui(friends: Array) -> void:
 		lbl.text = name  # temporary; presence updater will replace text
 		hbox.add_child(lbl)
 
+
+		# chat button remains to the right of the label
+		var chat_btn = Button.new()
+		chat_btn.text = "💬"
+		chat_btn.tooltip_text = "Chat"
+		# No pressed.connect attached per request (placeholder for future behavior)
+		hbox.add_child(chat_btn)
+
 		# <-- Move unfriend button to the left side (added first)
 		var unfriend_btn = Button.new()
 		unfriend_btn.text = "❌"
@@ -196,12 +204,6 @@ func _update_friend_ui(friends: Array) -> void:
 		)
 		hbox.add_child(unfriend_btn)
 
-		# chat button remains to the right of the label
-		var chat_btn = Button.new()
-		chat_btn.text = "💬"
-		chat_btn.tooltip_text = "Chat"
-		# No pressed.connect attached per request (placeholder for future behavior)
-		hbox.add_child(chat_btn)
 
 		# store label for periodic refresh
 		friend_label_map[name] = lbl
