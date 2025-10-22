@@ -285,7 +285,7 @@ func refresh_presence_all() -> void:
 
 # -------------------------
 # Query RTDB presence path and update label
-# (now uses "status" primary, falls back to "status")
+# (restored to use "state" primary, keep last_seen untouched)
 # -------------------------
 func _fetch_presence_for_uid(uid: String, label: Label, username: String, token: String) -> void:
 	var url = "%s/presence/%s.json?auth=%s" % [RTDB_BASE, uid, token]
@@ -298,8 +298,8 @@ func _fetch_presence_for_uid(uid: String, label: Label, username: String, token:
 			return
 
 		var txt: String = body.get_string_from_utf8()
-		# RTDB may return null, a JSON object: {"status":"online","last_seen":"..."},
-		# {"status":"online", "last_seen":"..."} or a raw quoted string like: "online"
+		# RTDB may return null, a JSON object: {"state":"online", "last_seen":"..."},
+		# or a raw quoted string like: "online"
 		var parsed = null
 		if txt != "null" and txt != "":
 			var try_parse = JSON.parse_string(txt)
@@ -311,19 +311,15 @@ func _fetch_presence_for_uid(uid: String, label: Label, username: String, token:
 				if raw.begins_with("\"") and raw.ends_with("\"") and raw.length() >= 2:
 					raw = raw.substr(1, raw.length() - 2)
 				raw = raw.strip_edges()
-				parsed = {"status": raw}  # normalize raw string to status
+				parsed = {"state": raw}
 
-		var status := ""
-		if typeof(parsed) == TYPE_DICTIONARY:
-			if parsed.has("status"):
-				status = str(parsed["status"])
-			elif parsed.has("status"):
-				# backwards compatibility
-				status = str(parsed["status"])
-		if status == "":
-			status = "offline"
+		var state := ""
+		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("state"):
+			state = str(parsed["state"])
+		else:
+			state = "offline"
 
-		if status == "online":
+		if state == "online":
 			label.text = "🟢 %s" % username
 		else:
 			label.text = "🔴 %s" % username
@@ -351,14 +347,14 @@ func remove_last_seen_for_uid(uid: String) -> void:
 		if txt == "null" or txt == "":
 			return
 
-		# parse and pick status (prefer "status", fallback to "status", else raw)
+		# parse and pick status (prefer "status", fallback to "state", else raw)
 		var status_val: String = ""
 		var try_parse = JSON.parse_string(txt)
 		if typeof(try_parse) == TYPE_DICTIONARY:
 			if try_parse.has("status"):
 				status_val = str(try_parse["status"])
-			elif try_parse.has("status"):
-				status_val = str(try_parse["status"])
+			elif try_parse.has("state"):
+				status_val = str(try_parse["state"])
 		else:
 			var raw: String = txt
 			if raw.begins_with("\"") and raw.ends_with("\"") and raw.length() >= 2:
