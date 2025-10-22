@@ -13,8 +13,12 @@ const BASE_URL: String = "https://firestore.googleapis.com/v1/projects/%s/databa
 const RTDB_BASE: String = "https://capstone-823dc-default-rtdb.firebaseio.com"
 
 var refresh_timer := Timer.new()
+var presence_timer := Timer.new()           # new: periodic presence refresher
 var last_friend_list: Array = []
 var last_request_list: Array = []
+
+var username_to_uid: Dictionary = {}        # cache username -> uid
+var friend_label_map: Dictionary = {}       # map username -> Label node
 
 # ======================================================
 # 🔸 READY
@@ -28,6 +32,14 @@ func _ready():
 		load_friend_list()
 	)
 	add_child(refresh_timer)
+
+	# presence timer: refresh presence states frequently
+	presence_timer.wait_time = 3.0
+	presence_timer.autostart = true
+	presence_timer.timeout.connect(func():
+		refresh_presence_all()
+	)
+	add_child(presence_timer)
 
 	add_button.pressed.connect(func():
 		var target = add_input.text.strip_edges()
@@ -161,15 +173,20 @@ func _update_request_ui(requests: Array) -> void:
 # 🧾 UPDATE FRIEND LIST UI (with fade-in)
 # ======================================================
 func _update_friend_ui(friends: Array) -> void:
+	# clear UI and label map
 	for child in friend_container.get_children():
 		child.queue_free()
+	friend_label_map.clear()
 
 	for name in friends:
 		var hbox = HBoxContainer.new()
+
+		# friend label in the middle
 		var lbl = Label.new()
-		lbl.text = name
+		lbl.text = name  # temporary; presence updater will replace text
 		hbox.add_child(lbl)
 
+		# <-- Move unfriend button to the left side (added first)
 		var unfriend_btn = Button.new()
 		unfriend_btn.text = "❌"
 		unfriend_btn.tooltip_text = "Unfriend"
@@ -179,7 +196,17 @@ func _update_friend_ui(friends: Array) -> void:
 		)
 		hbox.add_child(unfriend_btn)
 
-		# start presence check for this friend (resolves UID -> queries RTDB)
+		# chat button remains to the right of the label
+		var chat_btn = Button.new()
+		chat_btn.text = "💬"
+		chat_btn.tooltip_text = "Chat"
+		# No pressed.connect attached per request (placeholder for future behavior)
+		hbox.add_child(chat_btn)
+
+		# store label for periodic refresh
+		friend_label_map[name] = lbl
+
+		# start presence check for this friend (uses cache)
 		_start_presence_check(name, lbl)
 
 		hbox.modulate.a = 0
@@ -189,15 +216,21 @@ func _update_friend_ui(friends: Array) -> void:
 
 
 # -------------------------
-# Resolve username -> uid (Firestore runQuery), then fetch RTDB presence
+# Resolve username -> uid (cached) and then fetch RTDB presence
 # -------------------------
 func _start_presence_check(username: String, label: Label) -> void:
 	var token = Auth.current_id_token
 	if token == "" or username == "":
-		# fallback: show offline if missing state
 		label.text = "🔴 %s" % username
 		return
 
+	# if cached uid exists, fetch presence directly
+	if username_to_uid.has(username):
+		var cached_uid: String = str(username_to_uid[username])
+		_fetch_presence_for_uid(cached_uid, label, username, token)
+		return
+
+	# else resolve uid via runQuery and cache it
 	var query_url = "%s:runQuery" % BASE_URL
 	var query_body = {
 		"structuredQuery": {
@@ -222,7 +255,6 @@ func _start_presence_check(username: String, label: Label) -> void:
 	http_q.request_completed.connect(func(_r, code, _h, body):
 		http_q.queue_free()
 		if code != 200:
-			# cannot resolve uid -> show neutral/offline
 			label.text = "🔴 %s" % username
 			return
 
@@ -232,9 +264,21 @@ func _start_presence_check(username: String, label: Label) -> void:
 			return
 
 		var friend_uid = arr[0]["document"]["name"].get_file()
+		# cache uid for future checks (store as String explicitly)
+		username_to_uid[username] = str(friend_uid)
 		_fetch_presence_for_uid(friend_uid, label, username, token)
 	)
 	http_q.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+
+
+# -------------------------
+# Refresh presence for all displayed friends
+# -------------------------
+func refresh_presence_all() -> void:
+	# iterate a shallow copy to avoid mutation issues
+	for username in friend_label_map.keys():
+		var lbl = friend_label_map[username]
+		_start_presence_check(username, lbl)
 
 
 # -------------------------
@@ -250,20 +294,30 @@ func _fetch_presence_for_uid(uid: String, label: Label, username: String, token:
 			label.text = "🔴 %s" % username
 			return
 
-		var txt = body.get_string_from_utf8()
-		# RTDB may return null or a JSON object: {"state":"online", "last_seen":"..."}
+		var txt: String = body.get_string_from_utf8()
+		# RTDB may return null, a JSON object: {"state":"online", "last_seen":"..."},
+		# or a raw quoted string like: "online"
 		var parsed = null
 		if txt != "null" and txt != "":
-			parsed = JSON.parse_string(txt)
+			var try_parse = JSON.parse_string(txt)
+			if typeof(try_parse) == TYPE_DICTIONARY:
+				parsed = try_parse
+			else:
+				# If it's not a JSON object, treat it as a raw string value possibly with quotes.
+				var raw: String = txt  # explicit type to avoid inference error
+				# Remove surrounding quotes safely if present
+				if raw.begins_with("\"") and raw.ends_with("\"") and raw.length() >= 2:
+					raw = raw.substr(1, raw.length() - 2)
+				# Trim whitespace/newlines
+				raw = raw.strip_edges()
+				parsed = {"state": raw}
 
 		var state := ""
 		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("state"):
 			state = str(parsed["state"])
 		else:
-			# fallback: if raw string "online"/"offline"
-			var raw = txt.strip_edges("\" \n\r")
-			if raw in ["online", "offline", "null"]:
-				state = raw
+			state = "offline"
+
 		if state == "online":
 			label.text = "🟢 %s" % username
 		else:
@@ -416,7 +470,7 @@ func send_friend_request(target_username: String) -> void:
 						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, target_uid],
 						"fieldTransforms": [{
 							"fieldPath": "requests_received",
-							"appendMissingElements": {
+							"appendMissingElements": {  # <-- corrected key (camelCase)
 								"values": [{"stringValue": sender_name}]
 							}
 						}]
