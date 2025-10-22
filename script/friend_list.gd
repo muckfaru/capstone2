@@ -619,3 +619,107 @@ func decline_friend_request(sender_name: String) -> void:
 			load_friend_requests()
 	)
 	http.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
+
+
+# -------------------------
+# Remove 'last_seen' from RTDB presence for a given UID while preserving 'state'
+# -------------------------
+func remove_last_seen_for_uid(uid: String) -> void:
+	var token = Auth.current_id_token
+	if token == "" or uid == "":
+		return
+
+	var get_url = "%s/presence/%s.json?auth=%s" % [RTDB_BASE, uid, token]
+	var http_get := HTTPRequest.new()
+	add_child(http_get)
+	http_get.request_completed.connect(func(_r, code, _h, body):
+		http_get.queue_free()
+		if code != 200:
+			return
+		var txt: String = body.get_string_from_utf8()
+		if txt == "null" or txt == "":
+			# nothing to preserve
+			return
+
+		# Attempt to parse presence; it may be an object or a raw string
+		var parsed = null
+		var try_parse = JSON.parse_string(txt)
+		if typeof(try_parse) == TYPE_DICTIONARY:
+			parsed = try_parse
+		else:
+			# if raw string (e.g. "online"), strip quotes and use as state
+			var raw: String = txt
+			if raw.begins_with("\"") and raw.ends_with("\"") and raw.length() >= 2:
+				raw = raw.substr(1, raw.length() - 2)
+			raw = raw.strip_edges()
+			parsed = {"state": raw}
+
+		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("state"):
+			var state_val = str(parsed["state"])
+			# Overwrite presence node with only the state key to remove last_seen
+			var put_url = "%s/presence/%s.json?auth=%s" % [RTDB_BASE, uid, token]
+			var body_dict = {"state": state_val}
+			var http_put := HTTPRequest.new()
+			add_child(http_put)
+			http_put.request_completed.connect(func(_r2, code2, _h2, body2):
+				http_put.queue_free()
+				if code2 == 200:
+					print("[Presence] Removed last_seen for uid:", uid)
+			)
+			# Use PUT to replace the node with the minimal object
+			http_put.request(put_url, [], HTTPClient.METHOD_PUT, JSON.stringify(body_dict))
+
+	)
+	http_get.request(get_url, [], HTTPClient.METHOD_GET)
+
+
+# -------------------------
+# Resolve username -> uid and remove last_seen while preserving state
+# -------------------------
+func remove_last_seen_for_username(username: String) -> void:
+	if username == "":
+		return
+	# If cached uid exists, call directly
+	if username_to_uid.has(username):
+		var cached_uid: String = str(username_to_uid[username])
+		remove_last_seen_for_uid(cached_uid)
+		return
+
+	# resolve uid via runQuery then call remover
+	var token = Auth.current_id_token
+	if token == "":
+		return
+
+	var query_url = "%s:runQuery" % BASE_URL
+	var query_body = {
+		"structuredQuery": {
+			"from": [{"collectionId": "users"}],
+			"where": {
+				"fieldFilter": {
+					"field": {"fieldPath": "username"},
+					"op": "EQUAL",
+					"value": {"stringValue": username}
+				}
+			},
+			"limit": 1
+		}
+	}
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+
+	var http_q := HTTPRequest.new()
+	add_child(http_q)
+	http_q.request_completed.connect(func(_r, code, _h, body):
+		http_q.queue_free()
+		if code != 200:
+			return
+		var arr = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(arr) != TYPE_ARRAY or arr.size() == 0:
+			return
+		var friend_uid = arr[0]["document"]["name"].get_file()
+		username_to_uid[username] = str(friend_uid)
+		remove_last_seen_for_uid(friend_uid)
+	)
+	http_q.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
