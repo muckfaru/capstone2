@@ -1,22 +1,12 @@
 [gd_scene load_steps=14 format=3 uid="uid://bhgomehtb5guv"]
 
-[ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="1_7yur4"]
-[ext_resource type="Script" uid="uid://b2q0proc6qek6" path="res://script/login.gd" id="1_u7yg4"]
+[ext_resource type="VideoStream" path="res://asset/bg video.ogv" id="1_7yur4"]
+[ext_resource type="Script" path="res://script/login.gd" id="1_u7yg4"]
 [ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="2_xhhai"]
 [ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="4_7yur4"]
 [ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="5_u7yg4"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_76uxg"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m7twt"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7qh2k"]
-bg_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xhhai"]
 bg_color = Color(0.917647, 0.0666667, 0.211765, 1)
@@ -25,7 +15,14 @@ corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ayshr"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7qh2k"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m7twt"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7yur4"]
@@ -36,6 +33,9 @@ corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 expand_margin_left = 20.0
 expand_margin_right = 20.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ayshr"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i5fi3"]
 draw_center = false
@@ -85,9 +85,9 @@ offset_top = 392.0
 offset_right = 519.0
 offset_bottom = 436.0
 theme_override_font_sizes/font_size = 24
-theme_override_styles/focus = SubResource("StyleBoxFlat_m7twt")
-theme_override_styles/hover = SubResource("StyleBoxFlat_7qh2k")
 theme_override_styles/normal = SubResource("StyleBoxFlat_xhhai")
+theme_override_styles/hover = SubResource("StyleBoxFlat_7qh2k")
+theme_override_styles/focus = SubResource("StyleBoxFlat_m7twt")
 text = "LOGIN
 "
 
@@ -105,14 +105,14 @@ offset_left = 215.0
 offset_top = 204.0
 offset_right = 587.0
 offset_bottom = 258.0
-theme_override_colors/caret_color = Color(0, 0, 0, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
 theme_override_colors/font_uneditable_color = Color(0, 0, 0, 1)
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 19
-theme_override_styles/focus = SubResource("StyleBoxFlat_ayshr")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7yur4")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ayshr")
 max_length = 50
 caret_blink = true
 
@@ -122,14 +122,14 @@ offset_left = 215.0
 offset_top = 295.0
 offset_right = 587.0
 offset_bottom = 349.0
-theme_override_colors/caret_color = Color(0, 0, 0, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
 theme_override_colors/font_uneditable_color = Color(0, 0, 0, 1)
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 19
-theme_override_styles/focus = SubResource("StyleBoxFlat_i5fi3")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7yur4")
+theme_override_styles/focus = SubResource("StyleBoxFlat_i5fi3")
 max_length = 15
 caret_blink = true
 

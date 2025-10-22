@@ -1,13 +1,10 @@
 [gd_scene load_steps=15 format=3 uid="uid://hg67aoje345"]
 
-[ext_resource type="Script" uid="uid://dhidgtnkirpt6" path="res://script/signup.gd" id="1_db6g7"]
-[ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="2_y1epg"]
+[ext_resource type="Script" path="res://script/signup.gd" id="1_db6g7"]
+[ext_resource type="VideoStream" path="res://asset/bg video.ogv" id="2_y1epg"]
 [ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="3_ipb3t"]
 [ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="4_db6g7"]
 [ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="5_uyhdp"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_db6g7"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_umdsq"]
 bg_color = Color(0.941176, 0.941176, 0.941176, 1)
@@ -18,14 +15,21 @@ corner_radius_bottom_left = 15
 expand_margin_left = 20.0
 expand_margin_right = 20.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_db6g7"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y1epg"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ipb3t"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_20qy8"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eumta"]
+bg_color = Color(0.917647, 0.0666667, 0.211765, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uyhdp"]
 bg_color = Color(0, 0, 0, 1)
@@ -34,12 +38,8 @@ corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eumta"]
-bg_color = Color(0.917647, 0.0666667, 0.211765, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_20qy8"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2qg56"]
 
@@ -104,14 +104,14 @@ offset_left = 228.0
 offset_top = 128.0
 offset_right = 600.0
 offset_bottom = 182.0
-theme_override_colors/caret_color = Color(0, 0, 0, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
 theme_override_colors/font_uneditable_color = Color(0, 0, 0, 1)
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 19
-theme_override_styles/focus = SubResource("StyleBoxFlat_db6g7")
 theme_override_styles/normal = SubResource("StyleBoxFlat_umdsq")
+theme_override_styles/focus = SubResource("StyleBoxFlat_db6g7")
 max_length = 50
 caret_blink = true
 
@@ -121,14 +121,14 @@ offset_left = 227.0
 offset_top = 225.0
 offset_right = 599.0
 offset_bottom = 279.0
-theme_override_colors/caret_color = Color(0, 0, 0, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
 theme_override_colors/font_uneditable_color = Color(0, 0, 0, 1)
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 19
-theme_override_styles/focus = SubResource("StyleBoxFlat_y1epg")
 theme_override_styles/normal = SubResource("StyleBoxFlat_umdsq")
+theme_override_styles/focus = SubResource("StyleBoxFlat_y1epg")
 max_length = 50
 caret_blink = true
 
@@ -138,14 +138,14 @@ offset_left = 232.0
 offset_top = 316.0
 offset_right = 604.0
 offset_bottom = 370.0
-theme_override_colors/caret_color = Color(0, 0, 0, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
 theme_override_colors/font_uneditable_color = Color(0, 0, 0, 1)
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 19
-theme_override_styles/focus = SubResource("StyleBoxFlat_ipb3t")
 theme_override_styles/normal = SubResource("StyleBoxFlat_umdsq")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ipb3t")
 max_length = 50
 caret_blink = true
 
@@ -156,9 +156,9 @@ offset_top = 407.0
 offset_right = 526.0
 offset_bottom = 451.0
 theme_override_font_sizes/font_size = 24
-theme_override_styles/focus = SubResource("StyleBoxFlat_20qy8")
-theme_override_styles/hover = SubResource("StyleBoxFlat_uyhdp")
 theme_override_styles/normal = SubResource("StyleBoxFlat_eumta")
+theme_override_styles/hover = SubResource("StyleBoxFlat_uyhdp")
+theme_override_styles/focus = SubResource("StyleBoxFlat_20qy8")
 text = "SIGNUP
 "
 
