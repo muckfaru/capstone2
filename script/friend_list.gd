@@ -9,6 +9,9 @@ extends Panel
 const PROJECT_ID: String = "capstone-823dc"
 const BASE_URL: String = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents" % PROJECT_ID
 
+# Realtime DB base (for presence)
+const RTDB_BASE: String = "https://capstone-823dc-default-rtdb.firebaseio.com"
+
 var refresh_timer := Timer.new()
 var last_friend_list: Array = []
 var last_request_list: Array = []
@@ -176,10 +179,97 @@ func _update_friend_ui(friends: Array) -> void:
 		)
 		hbox.add_child(unfriend_btn)
 
+		# start presence check for this friend (resolves UID -> queries RTDB)
+		_start_presence_check(name, lbl)
+
 		hbox.modulate.a = 0
 		friend_container.add_child(hbox)
 		var tween = create_tween()
 		tween.tween_property(hbox, "modulate:a", 1.0, 0.25)
+
+
+# -------------------------
+# Resolve username -> uid (Firestore runQuery), then fetch RTDB presence
+# -------------------------
+func _start_presence_check(username: String, label: Label) -> void:
+	var token = Auth.current_id_token
+	if token == "" or username == "":
+		# fallback: show offline if missing state
+		label.text = "🔴 %s" % username
+		return
+
+	var query_url = "%s:runQuery" % BASE_URL
+	var query_body = {
+		"structuredQuery": {
+			"from": [{"collectionId": "users"}],
+			"where": {
+				"fieldFilter": {
+					"field": {"fieldPath": "username"},
+					"op": "EQUAL",
+					"value": {"stringValue": username}
+				}
+			},
+			"limit": 1
+		}
+	}
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+
+	var http_q := HTTPRequest.new()
+	add_child(http_q)
+	http_q.request_completed.connect(func(_r, code, _h, body):
+		http_q.queue_free()
+		if code != 200:
+			# cannot resolve uid -> show neutral/offline
+			label.text = "🔴 %s" % username
+			return
+
+		var arr = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(arr) != TYPE_ARRAY or arr.size() == 0:
+			label.text = "🔴 %s" % username
+			return
+
+		var friend_uid = arr[0]["document"]["name"].get_file()
+		_fetch_presence_for_uid(friend_uid, label, username, token)
+	)
+	http_q.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+
+
+# -------------------------
+# Query RTDB presence path and update label
+# -------------------------
+func _fetch_presence_for_uid(uid: String, label: Label, username: String, token: String) -> void:
+	var url = "%s/presence/%s.json?auth=%s" % [RTDB_BASE, uid, token]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		if code != 200:
+			label.text = "🔴 %s" % username
+			return
+
+		var txt = body.get_string_from_utf8()
+		# RTDB may return null or a JSON object: {"state":"online", "last_seen":"..."}
+		var parsed = null
+		if txt != "null" and txt != "":
+			parsed = JSON.parse_string(txt)
+
+		var state := ""
+		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("state"):
+			state = str(parsed["state"])
+		else:
+			# fallback: if raw string "online"/"offline"
+			var raw = txt.strip_edges("\" \n\r")
+			if raw in ["online", "offline", "null"]:
+				state = raw
+		if state == "online":
+			label.text = "🟢 %s" % username
+		else:
+			label.text = "🔴 %s" % username
+	)
+	http.request(url, [], HTTPClient.METHOD_GET)
 
 
 # ======================================================

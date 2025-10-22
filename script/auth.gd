@@ -141,6 +141,45 @@ func check_email_verified(id_token: String) -> void:
 	)
 
 # -------------------------
+# 🔹 Realtime Database config for presence
+# -------------------------
+const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
+
+# -------------------------
+# 🔔 Presence helpers (online/offline)
+# -------------------------
+func set_user_online() -> void:
+	_set_presence("online")
+
+func set_user_offline() -> void:
+	_set_presence("offline")
+
+func _set_presence(state: String) -> void:
+	if current_local_id == "" or current_id_token == "":
+		push_warning("[AUTH] Missing auth state, cannot set presence.")
+		return
+
+	var url := "%s/presence/%s.json?auth=%s" % [RTDB_BASE, current_local_id, current_id_token]
+	var payload = {"state": state, "last_seen": str(Time.get_unix_time_from_system())}
+	var body := JSON.stringify(payload)
+	var headers := ["Content-Type: application/json"]
+
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(func(_r, code, _h, body_r):
+		req.queue_free()
+		if code == 200:
+			print("[AUTH] Presence updated (%s): %s" % [state, current_local_id])
+		else:
+			var txt = body_r.get_string_from_utf8() if body_r.size() > 0 else "no body"
+			push_warning("[AUTH] Failed to update presence (%s): %s" % [code, txt])
+	)
+	var err := req.request(url, headers, HTTPClient.METHOD_PUT, body)
+	if err != OK:
+		push_error("[AUTH] Failed to start presence request: %s" % err)
+		req.queue_free()
+
+# -------------------------
 # 🧰 GENERIC REQUEST HANDLER
 # -------------------------
 func _request(url: String, body: Dictionary) -> void:

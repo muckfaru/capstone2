@@ -70,6 +70,9 @@ func _on_auth_response(response_code: int, response: Dictionary):
 			if response.has("localId"):
 				Auth.current_local_id = response["localId"]
 
+			# mark presence online
+			Auth.set_user_online()
+
 			_check_firestore_username_and_route()
 			return
 

@@ -38,6 +38,9 @@ func _ready() -> void:
 	save_btn.pressed.connect(_on_save_profile_pressed)
 	_load_user_data()
 
+	# mark presence online when entering landing
+	Auth.set_user_online()
+
 	# === Navigation setup ===
 	_setup_navigation()
 

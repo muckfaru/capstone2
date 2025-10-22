@@ -99,6 +99,10 @@ func _on_auth_response(response_code: int, response: Dictionary):
 				Auth.current_id_token = response["idToken"]
 				if response.has("localId"):
 					Auth.current_local_id = response["localId"]
+
+				# mark presence online
+				Auth.set_user_online()
+
 				# Pagkatapos ng matagumpay na Firebase sign-in, i-check sa Firestore kung may document na
 				_check_firestore_username_and_route()
 				return
