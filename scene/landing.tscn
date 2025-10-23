@@ -378,6 +378,10 @@ offset_bottom = 599.0
 
 [node name="ChatPanel" parent="." instance=ExtResource("9_1dlu4")]
 layout_mode = 0
+offset_left = 3.0
+offset_top = 45.0
+offset_right = 329.0
+offset_bottom = 269.0
 
 [node name="NavigationPanel" type="Panel" parent="."]
 custom_minimum_size = Vector2(0, 46)

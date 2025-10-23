@@ -175,7 +175,7 @@ func _update_request_ui(requests: Array) -> void:
 
 
 # ======================================================
-# 🧾 UPDATE FRIEND LIST UI (with fade-in)
+# 🧾 UPDATE FRIEND LIST UI (with fade-in + BADGES)
 # ======================================================
 func _update_friend_ui(friends: Array) -> void:
 	for child in friend_container.get_children():
@@ -191,10 +191,34 @@ func _update_friend_ui(friends: Array) -> void:
 		var chat_btn = Button.new()
 		chat_btn.text = "💬"
 		chat_btn.tooltip_text = "Chat"
+		chat_btn.custom_minimum_size = Vector2(40, 30)
 		chat_btn.pressed.connect(func():
 			_on_chat_button_pressed(name)
 		)
 		hbox.add_child(chat_btn)
+		
+		# 🔴 ADD BADGE TO CHAT BUTTON
+		if is_instance_valid(ChatManager):
+			# Wait for button to be added to tree and have size
+			await get_tree().process_frame
+			
+			var badge = BadgeNotification.new()
+			badge.set_user_id(name)
+			# Position badge at top-right corner of button
+			badge.position = Vector2(chat_btn.size.x - 22, -8)
+			badge.z_index = 100
+			chat_btn.add_child(badge)
+			
+			print("[FriendList] Created badge for user: ", name)
+			
+			# Initialize unread tracking for this friend
+			ChatManager.initialize_unread_for_friend(name)
+			
+			# Update badge position when button resizes
+			chat_btn.resized.connect(func():
+				if is_instance_valid(badge):
+					badge.position = Vector2(chat_btn.size.x - 22, -8)
+			)
 
 		var unfriend_btn = Button.new()
 		unfriend_btn.text = "❌"
@@ -282,7 +306,6 @@ func refresh_presence_all() -> void:
 
 # -------------------------
 # Query RTDB presence path and update label
-# (restored to use "state" primary, keep last_seen untouched)
 # -------------------------
 func _fetch_presence_for_uid(uid: String, label: Label, username: String, token: String) -> void:
 	var url = "%s/presence/%s.json?auth=%s" % [RTDB_BASE, uid, token]
@@ -295,15 +318,12 @@ func _fetch_presence_for_uid(uid: String, label: Label, username: String, token:
 			return
 
 		var txt: String = body.get_string_from_utf8()
-		# RTDB may return null, a JSON object: {"state":"online", "last_seen":"..."},
-		# or a raw quoted string like: "online"
 		var parsed = null
 		if txt != "null" and txt != "":
 			var try_parse = JSON.parse_string(txt)
 			if typeof(try_parse) == TYPE_DICTIONARY:
 				parsed = try_parse
 			else:
-				# If it's not a JSON object, treat it as a raw string value possibly with quotes.
 				var raw: String = txt
 				if raw.begins_with("\"") and raw.ends_with("\"") and raw.length() >= 2:
 					raw = raw.substr(1, raw.length() - 2)
@@ -322,111 +342,6 @@ func _fetch_presence_for_uid(uid: String, label: Label, username: String, token:
 			label.text = "🔴 %s" % username
 	)
 	http.request(url, [], HTTPClient.METHOD_GET)
-
-
-# -------------------------
-# Remove 'last_seen' from RTDB presence for a given UID while preserving 'status'
-# (overwrites presence node to only contain the "status" key)
-# -------------------------
-func remove_last_seen_for_uid(uid: String) -> void:
-	var token = Auth.current_id_token
-	if token == "" or uid == "":
-		return
-
-	var get_url = "%s/presence/%s.json?auth=%s" % [RTDB_BASE, uid, token]
-	var http_get := HTTPRequest.new()
-	add_child(http_get)
-	http_get.request_completed.connect(func(_r, code, _h, body):
-		http_get.queue_free()
-		if code != 200:
-			return
-		var txt: String = body.get_string_from_utf8()
-		if txt == "null" or txt == "":
-			return
-
-		# parse and pick status (prefer "status", fallback to "state", else raw)
-		var status_val: String = ""
-		var try_parse = JSON.parse_string(txt)
-		if typeof(try_parse) == TYPE_DICTIONARY:
-			if try_parse.has("status"):
-				status_val = str(try_parse["status"])
-			elif try_parse.has("state"):
-				status_val = str(try_parse["state"])
-		else:
-			var raw: String = txt
-			if raw.begins_with("\"") and raw.ends_with("\"") and raw.length() >= 2:
-				raw = raw.substr(1, raw.length() - 2)
-			status_val = raw.strip_edges()
-
-		if status_val == "":
-			# nothing meaningful to write
-			return
-
-		var put_url = "%s/presence/%s.json?auth=%s" % [RTDB_BASE, uid, token]
-		var body_dict = {"status": status_val}
-		var http_put := HTTPRequest.new()
-		add_child(http_put)
-		http_put.request_completed.connect(func(_r2, code2, _h2, body2):
-			http_put.queue_free()
-			if code2 == 200:
-				print("[Presence] Normalized presence for uid:", uid)
-		)
-		# Use PUT to replace the node with only the status key
-		http_put.request(put_url, [], HTTPClient.METHOD_PUT, JSON.stringify(body_dict))
-
-	)
-	http_get.request(get_url, [], HTTPClient.METHOD_GET)
-
-
-# -------------------------
-# Resolve username -> uid and remove last_seen while preserving status
-# -------------------------
-func remove_last_seen_for_username(username: String) -> void:
-	if username == "":
-		return
-	# If cached uid exists, call directly
-	if username_to_uid.has(username):
-		var cached_uid: String = str(username_to_uid[username])
-		remove_last_seen_for_uid(cached_uid)
-		return
-
-	var token = Auth.current_id_token
-	if token == "":
-		return
-
-	var query_url = "%s:runQuery" % BASE_URL
-	var query_body = {
-		"structuredQuery": {
-			"from": [{"collectionId": "users"}],
-			"where": {
-				"fieldFilter": {
-					"field": {"fieldPath": "username"},
-					"op": "EQUAL",
-					"value": {"stringValue": username}
-				}
-			},
-			"limit": 1
-		}
-	}
-	var headers = [
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % token
-	]
-
-	var http_q := HTTPRequest.new()
-	add_child(http_q)
-	http_q.request_completed.connect(func(_r, code, _h, body):
-		http_q.queue_free()
-		if code != 200:
-			return
-		var arr = JSON.parse_string(body.get_string_from_utf8())
-		if typeof(arr) != TYPE_ARRAY or arr.size() == 0:
-			return
-		var friend_uid = arr[0]["document"]["name"].get_file()
-		username_to_uid[username] = str(friend_uid)
-		remove_last_seen_for_uid(friend_uid)
-	)
-	http_q.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
 
 
 # ======================================================
@@ -724,18 +639,24 @@ func decline_friend_request(sender_name: String) -> void:
 	http.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
 
 
+# ======================================================
+# 💬 CHAT BUTTON HANDLER
+# ======================================================
 func _on_chat_button_pressed(friend_username: String) -> void:
 	print("[FriendList] Chat button pressed for: ", friend_username)
 	
 	if ChatManager.current_user_id == "":
 		ChatManager.set_current_user(Auth.current_username)
 	
+	# Mark chat as read when opening
+	ChatManager.mark_chat_as_read(friend_username)
+	
 	# Try multiple ways to find ChatPanel
 	var chat_panel = get_tree().root.find_child("ChatPanel", true, false)
 	
 	if not chat_panel:
 		print("[FriendList] ChatPanel not found with find_child, trying get_node...")
-		try_to_find_chat_panel()
+		try_to_find_chat_panel(friend_username)
 		return
 	
 	print("[FriendList] ChatPanel found!")
@@ -746,7 +667,8 @@ func _on_chat_button_pressed(friend_username: String) -> void:
 	else:
 		push_error("[FriendList] ChatPanel doesn't have 'open_chat_with' method")
 
-func try_to_find_chat_panel() -> void:
+
+func try_to_find_chat_panel(friend_username: String) -> void:
 	# Try different paths based on your scene structure
 	var possible_paths = [
 		"/root/ChatPanel",
@@ -760,7 +682,7 @@ func try_to_find_chat_panel() -> void:
 			var chat_panel = get_tree().root.get_node(path)
 			print("[FriendList] Found ChatPanel at: ", path)
 			if chat_panel.has_method("open_chat_with"):
-				chat_panel.open_chat_with(ChatManager.current_chat_user_id, ChatManager.current_chat_user_id)
+				chat_panel.open_chat_with(friend_username, friend_username)
 				chat_panel.visible = true
 				return
 			return
@@ -769,6 +691,7 @@ func try_to_find_chat_panel() -> void:
 	print("[FriendList] ChatPanel not found at any known path!")
 	print("[FriendList] Available nodes in scene tree:")
 	debug_print_tree(get_tree().root, 0)
+
 
 func debug_print_tree(node: Node, depth: int) -> void:
 	var indent = ""

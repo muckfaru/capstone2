@@ -149,6 +149,11 @@ func _on_message_received(message: Dictionary) -> void:
 	if _scroll_container:
 		await get_tree().process_frame
 		_scroll_container.scroll_vertical = int(1e9)
+	
+	# If chat is visible and this is from the other user, mark as read
+	if visible and message.get("sender") == _other_user_id:
+		if is_instance_valid(ChatManager):
+			ChatManager.mark_chat_as_read(_other_user_id)
 
 func _display_message(msg: Dictionary) -> void:
 	if not _messages_container:
@@ -160,16 +165,35 @@ func _display_message(msg: Dictionary) -> void:
 		_displayed_messages[msg_key] = true
 	
 	var is_own_message = msg.get("sender") == ChatManager.current_user_id
+	var is_seen = msg.get("seen", false)
+	
+	var msg_container = HBoxContainer.new()
+	
 	var msg_label = Label.new()
 	msg_label.text = "%s: %s" % [msg.get("sender", "Unknown"), msg.get("text", "")]
 	msg_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	msg_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
 	if is_own_message:
 		msg_label.add_theme_color_override("font_color", Color.GREEN)
 	else:
 		msg_label.add_theme_color_override("font_color", Color.WHITE)
 	
-	_messages_container.add_child(msg_label)
+	msg_container.add_child(msg_label)
+	
+	# Add "Seen" indicator for own messages
+	if is_own_message:
+		var seen_label = Label.new()
+		if is_seen:
+			seen_label.text = "✓✓"
+			seen_label.add_theme_color_override("font_color", Color.CYAN)
+		else:
+			seen_label.text = "✓"
+			seen_label.add_theme_color_override("font_color", Color.GRAY)
+		seen_label.size_flags_horizontal = Control.SIZE_SHRINK_END
+		msg_container.add_child(seen_label)
+	
+	_messages_container.add_child(msg_container)
 	print("[Chat] Message displayed: ", msg_label.text)
 
 func _on_send_pressed() -> void:
