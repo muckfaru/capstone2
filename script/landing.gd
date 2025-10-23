@@ -38,6 +38,9 @@ func _ready() -> void:
 	save_btn.pressed.connect(_on_save_profile_pressed)
 	_load_user_data()
 
+	# Load and instance ChatPanel
+	_instantiate_chat_panel()
+
 	# mark presence online when entering landing
 	Auth.set_user_online()
 
@@ -234,3 +237,13 @@ func _on_logout_pressed() -> void:
 	print("Logging out...")
 	Auth.set_user_offline()  # 🔴 mark offline before exit
 	get_tree().change_scene_to_file("res://scene/login.tscn")
+
+
+func _instantiate_chat_panel() -> void:
+	var chat_scene = load("res://scene/chat.tscn")
+	if chat_scene:
+		var chat_panel = chat_scene.instantiate()
+		add_child(chat_panel)
+		print("[Landing] ChatPanel instantiated and added to scene")
+	else:
+		push_error("[Landing] Failed to load chat.tscn")

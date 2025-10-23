@@ -376,6 +376,9 @@ offset_top = 82.0
 offset_right = 1092.0
 offset_bottom = 599.0
 
+[node name="ChatPanel" parent="." instance=ExtResource("9_1dlu4")]
+layout_mode = 0
+
 [node name="NavigationPanel" type="Panel" parent="."]
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 0
@@ -422,10 +425,3 @@ text = "Profile"
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_xoh2d")
 text = "Log out"
-
-[node name="Chat" parent="." instance=ExtResource("9_1dlu4")]
-layout_mode = 0
-offset_left = 100.0
-offset_top = 360.0
-offset_right = 473.0
-offset_bottom = 584.0

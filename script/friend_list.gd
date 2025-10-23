@@ -8,23 +8,29 @@ extends Panel
 # 🔹 Firebase Config
 const PROJECT_ID: String = "capstone-823dc"
 const BASE_URL: String = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents" % PROJECT_ID
-
-# Realtime DB base (for presence)
 const RTDB_BASE: String = "https://capstone-823dc-default-rtdb.firebaseio.com"
 
 var refresh_timer := Timer.new()
-var presence_timer := Timer.new()           # new: periodic presence refresher
+var presence_timer := Timer.new()
 var last_friend_list: Array = []
 var last_request_list: Array = []
-
-var username_to_uid: Dictionary = {}        # cache username -> uid
-var friend_label_map: Dictionary = {}       # map username -> Label node
+var username_to_uid: Dictionary = {}
+var friend_label_map: Dictionary = {}
 
 # ======================================================
 # 🔸 READY
 # ======================================================
 func _ready():
 	print("[FriendList] Ready.")
+	
+	# Wait longer for ChatManager to initialize
+	await get_tree().create_timer(3.0).timeout
+	if ChatManager and ChatManager._initialized:
+		ChatManager.set_current_user(Auth.current_username)
+		print("[FriendList] ChatManager initialized, user set")
+	else:
+		print("[FriendList] ChatManager not ready, will retry on chat open")
+
 	refresh_timer.wait_time = 5.0
 	refresh_timer.autostart = true
 	refresh_timer.timeout.connect(func():
@@ -33,7 +39,6 @@ func _ready():
 	)
 	add_child(refresh_timer)
 
-	# presence timer: refresh presence status frequently
 	presence_timer.wait_time = 3.0
 	presence_timer.autostart = true
 	presence_timer.timeout.connect(func():
@@ -47,7 +52,7 @@ func _ready():
 			return
 		add_button.disabled = true
 		send_friend_request(target)
-		await get_tree().create_timer(1.0).timeout # prevent spam clicks
+		await get_tree().create_timer(1.0).timeout
 		add_button.disabled = false
 	)
 
@@ -173,28 +178,24 @@ func _update_request_ui(requests: Array) -> void:
 # 🧾 UPDATE FRIEND LIST UI (with fade-in)
 # ======================================================
 func _update_friend_ui(friends: Array) -> void:
-	# clear UI and label map
 	for child in friend_container.get_children():
 		child.queue_free()
 	friend_label_map.clear()
 
 	for name in friends:
 		var hbox = HBoxContainer.new()
-
-		# friend label in the middle
 		var lbl = Label.new()
-		lbl.text = name  # temporary; presence updater will replace text
+		lbl.text = name
 		hbox.add_child(lbl)
 
-
-		# chat button remains to the right of the label
 		var chat_btn = Button.new()
 		chat_btn.text = "💬"
 		chat_btn.tooltip_text = "Chat"
-		# No pressed.connect attached per request (placeholder for future behavior)
+		chat_btn.pressed.connect(func():
+			_on_chat_button_pressed(name)
+		)
 		hbox.add_child(chat_btn)
 
-		# <-- Move unfriend button to the left side (added first)
 		var unfriend_btn = Button.new()
 		unfriend_btn.text = "❌"
 		unfriend_btn.tooltip_text = "Unfriend"
@@ -204,11 +205,7 @@ func _update_friend_ui(friends: Array) -> void:
 		)
 		hbox.add_child(unfriend_btn)
 
-
-		# store label for periodic refresh
 		friend_label_map[name] = lbl
-
-		# start presence check for this friend (uses cache)
 		_start_presence_check(name, lbl)
 
 		hbox.modulate.a = 0
@@ -504,19 +501,21 @@ func unfriend_user(friend_name: String) -> void:
 		http_commit.request_completed.connect(func(_r2, code2, _h2, _b2):
 			http_commit.queue_free()
 			if code2 == 200:
-				print("💔 Unfriended:", friend_name)
+				print("[FriendList] Unfriended:", friend_name)
 				await get_tree().create_timer(0.4).timeout
 				load_friend_list()
 		)
 		http_commit.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
 	)
 	http_query.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+
+
 # ======================================================
 # ➕ SEND FRIEND REQUEST
 # ======================================================
 func send_friend_request(target_username: String) -> void:
 	if target_username == "" or target_username == Auth.current_username:
-		push_error("⚠️ Invalid target.")
+		push_error("[FriendList] Invalid target.")
 		return
 
 	var token = Auth.current_id_token
@@ -525,7 +524,6 @@ func send_friend_request(target_username: String) -> void:
 		return
 
 	print("[FriendRequest] Sending to:", target_username)
-
 	var query_url = "%s:runQuery" % BASE_URL
 	var query_body = {
 		"structuredQuery": {
@@ -550,12 +548,12 @@ func send_friend_request(target_username: String) -> void:
 	http_query.request_completed.connect(func(_r, code, _h, body):
 		http_query.queue_free()
 		if code != 200:
-			push_warning("⚠️ Query failed.")
+			push_warning("[FriendRequest] Query failed.")
 			return
 
 		var arr = JSON.parse_string(body.get_string_from_utf8())
 		if typeof(arr) != TYPE_ARRAY or arr.size() == 0:
-			push_warning("⚠️ User not found.")
+			push_warning("[FriendRequest] User not found.")
 			return
 
 		var target_uid = arr[0]["document"]["name"].get_file()
@@ -566,6 +564,7 @@ func send_friend_request(target_username: String) -> void:
 			http_sender.queue_free()
 			if code2 != 200:
 				return
+
 			var data2 = JSON.parse_string(body2.get_string_from_utf8())
 			var sender_name = data2["fields"]["username"]["stringValue"]
 
@@ -576,7 +575,7 @@ func send_friend_request(target_username: String) -> void:
 						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, target_uid],
 						"fieldTransforms": [{
 							"fieldPath": "requests_received",
-							"appendMissingElements": {  # <-- corrected key (camelCase)
+							"append_missing_elements": {
 								"values": [{"stringValue": sender_name}]
 							}
 						}]
@@ -588,7 +587,7 @@ func send_friend_request(target_username: String) -> void:
 			http_commit.request_completed.connect(func(_r3, code3, _h3, _b3):
 				http_commit.queue_free()
 				if code3 == 200:
-					print("✅ Friend request sent to:", target_username)
+					print("[FriendRequest] Friend request sent to:", target_username)
 					add_input.text = ""
 			)
 			http_commit.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
@@ -627,6 +626,7 @@ func accept_friend_request(sender_name: String) -> void:
 			"limit": 1
 		}
 	}
+
 	var http_query := HTTPRequest.new()
 	add_child(http_query)
 	http_query.request_completed.connect(func(_r, code, _h, body):
@@ -662,12 +662,10 @@ func accept_friend_request(sender_name: String) -> void:
 				{
 					"transform": {
 						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, sender_uid],
-						"fieldTransforms": [
-							{
-								"fieldPath": "friends",
-								"appendMissingElements": {"values": [{"stringValue": my_name}]}
-							}
-						]
+						"fieldTransforms": [{
+							"fieldPath": "friends",
+							"appendMissingElements": {"values": [{"stringValue": my_name}]}
+						}]
 					}
 				}
 			]
@@ -677,7 +675,7 @@ func accept_friend_request(sender_name: String) -> void:
 		http_commit.request_completed.connect(func(_r2, code2, _h2, _b2):
 			http_commit.queue_free()
 			if code2 == 200:
-				print("✅ Accepted:", sender_name)
+				print("[FriendRequest] Accepted:", sender_name)
 				await get_tree().create_timer(0.5).timeout
 				load_friend_requests()
 				load_friend_list()
@@ -701,17 +699,18 @@ func decline_friend_request(sender_name: String) -> void:
 		"Content-Type: application/json",
 		"Authorization: Bearer %s" % token
 	]
+
 	var commit_url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit" % PROJECT_ID
 	var commit_body = {
-		"writes": [ {
+		"writes": [{
 			"transform": {
 				"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, uid],
-				"fieldTransforms": [ {
+				"fieldTransforms": [{
 					"fieldPath": "requests_received",
 					"removeAllFromArray": {"values": [{"stringValue": sender_name}]}
-				} ]
+				}]
 			}
-		} ]
+		}]
 	}
 
 	var http := HTTPRequest.new()
@@ -719,7 +718,62 @@ func decline_friend_request(sender_name: String) -> void:
 	http.request_completed.connect(func(_r, code, _h, _b):
 		http.queue_free()
 		if code == 200:
-			print("🚫 Declined friend request from:", sender_name)
+			print("[FriendRequest] Declined friend request from:", sender_name)
 			load_friend_requests()
 	)
 	http.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
+
+
+func _on_chat_button_pressed(friend_username: String) -> void:
+	print("[FriendList] Chat button pressed for: ", friend_username)
+	
+	if ChatManager.current_user_id == "":
+		ChatManager.set_current_user(Auth.current_username)
+	
+	# Try multiple ways to find ChatPanel
+	var chat_panel = get_tree().root.find_child("ChatPanel", true, false)
+	
+	if not chat_panel:
+		print("[FriendList] ChatPanel not found with find_child, trying get_node...")
+		try_to_find_chat_panel()
+		return
+	
+	print("[FriendList] ChatPanel found!")
+	if chat_panel.has_method("open_chat_with"):
+		chat_panel.open_chat_with(friend_username, friend_username)
+		chat_panel.visible = true
+		print("[FriendList] Chat opened with: ", friend_username)
+	else:
+		push_error("[FriendList] ChatPanel doesn't have 'open_chat_with' method")
+
+func try_to_find_chat_panel() -> void:
+	# Try different paths based on your scene structure
+	var possible_paths = [
+		"/root/ChatPanel",
+		"/root/Landing/ChatPanel",
+		"/root/MainScene/ChatPanel",
+		"/root/UI/ChatPanel",
+	]
+	
+	for path in possible_paths:
+		if get_tree().root.has_node(path):
+			var chat_panel = get_tree().root.get_node(path)
+			print("[FriendList] Found ChatPanel at: ", path)
+			if chat_panel.has_method("open_chat_with"):
+				chat_panel.open_chat_with(ChatManager.current_chat_user_id, ChatManager.current_chat_user_id)
+				chat_panel.visible = true
+				return
+			return
+	
+	# Last resort: print all nodes to debug
+	print("[FriendList] ChatPanel not found at any known path!")
+	print("[FriendList] Available nodes in scene tree:")
+	debug_print_tree(get_tree().root, 0)
+
+func debug_print_tree(node: Node, depth: int) -> void:
+	var indent = ""
+	for i in range(depth):
+		indent += "  "
+	print(indent + node.name + " (" + node.get_class() + ")")
+	for child in node.get_children():
+		debug_print_tree(child, depth + 1)

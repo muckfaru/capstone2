@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="capstone"
-run/main_scene="uid://d0infgusfi845"
+run/main_scene="uid://bhgomehtb5guv"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 Auth="*res://scene/auth.tscn"
+ChatManager="*res://script/ChatManager.gd"
 
 [display]
 
@@ -25,7 +26,7 @@ window/stretch/mode="canvas_items"
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/godot-firebase/plugin.cfg")
 
 [rendering]
 
