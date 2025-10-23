@@ -11,13 +11,17 @@ bg_color = Color(0, 0, 0, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o4l4v"]
 bg_color = Color(0, 0, 0, 0.317647)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_30j1j"]
+draw_center = false
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2r4jo"]
 bg_color = Color(0.0509804, 0.0784314, 0.109804, 0.705882)
 corner_detail = 20
 expand_margin_left = 8.0
 expand_margin_right = 8.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_30j1j"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_js1fy"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
 draw_center = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3d7hl"]
@@ -29,10 +33,6 @@ expand_margin_right = 8.0
 bg_color = Color(0.0313726, 0.054902, 0.0784314, 0.803922)
 expand_margin_left = 8.0
 expand_margin_right = 8.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_js1fy"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-draw_center = false
 
 [node name="FriendListPanel" type="Panel"]
 offset_left = 861.0
@@ -111,8 +111,8 @@ theme_override_constants/separation = 17
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.55
-theme_override_styles/normal = SubResource("StyleBoxFlat_2r4jo")
 theme_override_styles/focus = SubResource("StyleBoxFlat_30j1j")
+theme_override_styles/normal = SubResource("StyleBoxFlat_2r4jo")
 placeholder_text = "Enter Username"
 caret_blink = true
 caret_blink_interval = 1.35
@@ -121,9 +121,9 @@ caret_blink_interval = 1.35
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.35
-theme_override_styles/normal = SubResource("StyleBoxFlat_2r4jo")
+theme_override_styles/focus = SubResource("StyleBoxFlat_js1fy")
 theme_override_styles/hover = SubResource("StyleBoxFlat_3d7hl")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_44a1m")
-theme_override_styles/focus = SubResource("StyleBoxFlat_js1fy")
+theme_override_styles/normal = SubResource("StyleBoxFlat_2r4jo")
 text = "ADD
 "

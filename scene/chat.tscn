@@ -1,0 +1,40 @@
+[gd_scene load_steps=4 format=3 uid="uid://d0infgusfi845"]
+
+[ext_resource type="Script" uid="uid://d2rxkk4fy6h00" path="res://script/chat.gd" id="1_chatgd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_odng3"]
+bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x0o17"]
+bg_color = Color(0, 0, 0, 1)
+
+[node name="Chat" type="Panel"]
+offset_left = 66.0
+offset_top = 405.0
+offset_right = 392.0
+offset_bottom = 629.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_odng3")
+script = ExtResource("1_chatgd")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 325.0
+offset_bottom = 37.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_x0o17")
+
+[node name="Label" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 84.0
+offset_top = 7.0
+offset_right = 234.0
+offset_bottom = 30.0
+text = "CHAT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LineEdit" type="LineEdit" parent="."]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 193.0
+offset_right = 325.0
+offset_bottom = 224.0

@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=26 format=3 uid="uid://5o3qtaqdnl8s"]
 
 [ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_qr7a0"]
 [ext_resource type="VideoStream" uid="uid://copge130jsikm" path="res://asset/Cyberpunk_City_Video_Generation.ogv" id="2_qr7a0"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://ca874tphfshxx" path="res://asset/avatars/default.png" id="3_qdyf0"]
 [ext_resource type="Texture2D" uid="uid://dp4co62dijgua" path="res://asset/icons/akashic tgc 1.png" id="4_hlv06"]
 [ext_resource type="Texture2D" uid="uid://cckv7p82fksqa" path="res://asset/icons/Defuse the trojan 1.png" id="5_1dlu4"]
+[ext_resource type="PackedScene" uid="uid://d0infgusfi845" path="res://scene/chat.tscn" id="9_1dlu4"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irntn"]
 bg_color = Color(0.164706, 0.164706, 0.164706, 0.419608)
@@ -43,12 +44,12 @@ corner_radius_bottom_left = 20
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_08qf3"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_86hhj"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_soi4p"]
 bg_color = Color(0.117647, 0.117647, 0.117647, 0)
 border_color = Color(0.8, 0.8, 0.8, 0)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_86hhj"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aar1m"]
 bg_color = Color(0.117647, 0.117647, 0.117647, 0.619608)
@@ -340,8 +341,8 @@ offset_left = 65.0
 offset_top = 149.0
 offset_right = 171.0
 offset_bottom = 180.0
-theme_override_styles/normal = SubResource("StyleBoxFlat_soi4p")
 theme_override_styles/focus = SubResource("StyleBoxFlat_86hhj")
+theme_override_styles/normal = SubResource("StyleBoxFlat_soi4p")
 text = "Select image"
 
 [node name="AvatarPicker" type="PopupPanel" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
@@ -370,10 +371,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_aar1m")
 
 [node name="FriendListPanel" parent="." instance=ExtResource("3_hlv06")]
 layout_mode = 0
-offset_left = 699.0
-offset_top = 80.0
-offset_right = 933.0
-offset_bottom = 597.0
+offset_left = 858.0
+offset_top = 82.0
+offset_right = 1092.0
+offset_bottom = 599.0
 
 [node name="NavigationPanel" type="Panel" parent="."]
 custom_minimum_size = Vector2(0, 46)
@@ -421,3 +422,10 @@ text = "Profile"
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_xoh2d")
 text = "Log out"
+
+[node name="Chat" parent="." instance=ExtResource("9_1dlu4")]
+layout_mode = 0
+offset_left = 100.0
+offset_top = 360.0
+offset_right = 473.0
+offset_bottom = 584.0
