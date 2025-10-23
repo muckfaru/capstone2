@@ -1,7 +1,7 @@
 [gd_scene load_steps=25 format=3 uid="uid://5o3qtaqdnl8s"]
 
-[ext_resource type="Script" path="res://script/landing.gd" id="1_qr7a0"]
-[ext_resource type="VideoStream" path="res://asset/Cyberpunk_City_Video_Generation.ogv" id="2_qr7a0"]
+[ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_qr7a0"]
+[ext_resource type="VideoStream" uid="uid://copge130jsikm" path="res://asset/Cyberpunk_City_Video_Generation.ogv" id="2_qr7a0"]
 [ext_resource type="Texture2D" uid="uid://cq7k5uvykyfbt" path="res://asset/icons/code breaker 1.png" id="3_7xp6e"]
 [ext_resource type="PackedScene" uid="uid://bohnaxmk78jfw" path="res://scene/friend_list.tscn" id="3_hlv06"]
 [ext_resource type="Texture2D" uid="uid://cnxhft11givsa" path="res://asset/icons/logo 48x48.png" id="3_q33pn"]

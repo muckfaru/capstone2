@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://f75orldaceo5"]
 
 [ext_resource type="Texture2D" uid="uid://ncwfxpvc1nst" path="res://asset/create user bg .png" id="1_tblxd"]
-[ext_resource type="Script" path="res://script/create_users_panel.gd" id="1_tv1am"]
+[ext_resource type="Script" uid="uid://u476cuxb6suk" path="res://script/create_users_panel.gd" id="1_tv1am"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rlsjn"]
 bg_color = Color(0.941176, 0.941176, 0.941176, 1)

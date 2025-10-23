@@ -1,6 +1,6 @@
 [gd_scene load_steps=10 format=3 uid="uid://bohnaxmk78jfw"]
 
-[ext_resource type="Script" path="res://script/friend_list.gd" id="1_30j1j"]
+[ext_resource type="Script" uid="uid://q2bbcw5bdvqc" path="res://script/friend_list.gd" id="1_30j1j"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hlv06"]
 bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)

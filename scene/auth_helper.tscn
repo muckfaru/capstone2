@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://byytrco8sfuux"]
 
-[ext_resource type="Script" path="res://script/auth_helper.gd" id="1_gbkcc"]
+[ext_resource type="Script" uid="uid://cy6ryft2l4uye" path="res://script/auth_helper.gd" id="1_gbkcc"]
 
 [node name="auth_helper" type="Control"]
 layout_mode = 3

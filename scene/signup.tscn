@@ -1,7 +1,7 @@
 [gd_scene load_steps=15 format=3 uid="uid://hg67aoje345"]
 
-[ext_resource type="Script" path="res://script/signup.gd" id="1_db6g7"]
-[ext_resource type="VideoStream" path="res://asset/bg video.ogv" id="2_y1epg"]
+[ext_resource type="Script" uid="uid://dhidgtnkirpt6" path="res://script/signup.gd" id="1_db6g7"]
+[ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="2_y1epg"]
 [ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="3_ipb3t"]
 [ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="4_db6g7"]
 [ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="5_uyhdp"]
