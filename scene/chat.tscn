@@ -46,6 +46,15 @@ text = "CHAT"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="CloseChatButton" type="Button" parent="VBoxContainer/Panel"]
+layout_mode = 0
+offset_left = 290.0
+offset_top = 4.0
+offset_right = 319.0
+offset_bottom = 35.0
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+text = "X"
+
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3

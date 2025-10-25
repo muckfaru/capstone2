@@ -16,6 +16,7 @@ var last_friend_list: Array = []
 var last_request_list: Array = []
 var username_to_uid: Dictionary = {}
 var friend_label_map: Dictionary = {}
+var currently_open_chat: String = ""
 
 # ======================================================
 # 🔸 READY
@@ -640,11 +641,21 @@ func decline_friend_request(sender_name: String) -> void:
 
 
 # ======================================================
-# 💬 CHAT BUTTON HANDLER
+# 💬 CHAT BUTTON HANDLER (TOGGLE)
 # ======================================================
 func _on_chat_button_pressed(friend_username: String) -> void:
 	print("[FriendList] Chat button pressed for: ", friend_username)
 	
+	# If same friend, toggle close
+	if currently_open_chat == friend_username:
+		print("[FriendList] Closing chat with: ", friend_username)
+		var chat_panel = get_tree().root.find_child("ChatPanel", true, false)
+		if chat_panel:
+			chat_panel.visible = false
+		currently_open_chat = ""
+		return
+	
+	# Otherwise, open new chat
 	if ChatManager.current_user_id == "":
 		ChatManager.set_current_user(Auth.current_username)
 	
@@ -663,6 +674,7 @@ func _on_chat_button_pressed(friend_username: String) -> void:
 	if chat_panel.has_method("open_chat_with"):
 		chat_panel.open_chat_with(friend_username, friend_username)
 		chat_panel.visible = true
+		currently_open_chat = friend_username
 		print("[FriendList] Chat opened with: ", friend_username)
 	else:
 		push_error("[FriendList] ChatPanel doesn't have 'open_chat_with' method")

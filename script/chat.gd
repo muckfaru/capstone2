@@ -7,6 +7,7 @@ var _other_user_id: String = ""
 var _messages_container: VBoxContainer
 var _message_input: LineEdit
 var _send_button: Button
+var _close_button: Button
 var _username_label: Label
 var _scroll_container: ScrollContainer
 var _displayed_messages: Dictionary = {}
@@ -55,11 +56,18 @@ func _ready() -> void:
 		_scroll_container = $VBoxContainer/ScrollContainer
 		print("[Chat] Scroll container found")
 	
+	# Get close button reference
+	if has_node("VBoxContainer/Panel/CloseChatButton"):
+		_close_button = $VBoxContainer/Panel/CloseChatButton
+		print("[Chat] Close button found")
+	
 	# Connect signals
 	if _send_button:
 		_send_button.pressed.connect(_on_send_pressed)
 	if _message_input:
 		_message_input.text_submitted.connect(_on_message_submitted)
+	if _close_button:
+		_close_button.pressed.connect(_on_close_pressed)
 	
 	# Connect to ChatManager signals
 	if is_instance_valid(ChatManager):
@@ -133,6 +141,8 @@ func open_chat_with(user_id: String, user_name: String = "") -> void:
 
 func _on_chat_loaded(messages: Array) -> void:
 	print("[Chat] Chat loaded with %d messages" % messages.size())
+	# Clear previous displayed messages tracking
+	_displayed_messages.clear()
 	for msg in messages:
 		_display_message(msg)
 
@@ -161,6 +171,12 @@ func _display_message(msg: Dictionary) -> void:
 		return
 	
 	var msg_key = msg.get("key", "")
+	
+	# Check if already displayed
+	if msg_key != "" and _displayed_messages.has(msg_key):
+		print("[Chat] Message already displayed, skipping: ", msg_key)
+		return
+	
 	if msg_key != "":
 		_displayed_messages[msg_key] = true
 	
@@ -208,3 +224,8 @@ func _on_message_submitted(text: String) -> void:
 	ChatManager.send_message(text)
 	if _message_input:
 		_message_input.clear()
+
+func _on_close_pressed() -> void:
+	print("[Chat] Close button pressed")
+	visible = false
+	_other_user_id = ""
