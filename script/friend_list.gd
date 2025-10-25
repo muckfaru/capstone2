@@ -18,11 +18,22 @@ var username_to_uid: Dictionary = {}
 var friend_label_map: Dictionary = {}
 var currently_open_chat: String = ""
 
+# Make presence icon smaller (adjust as needed)
+const PRESENCE_ICON_SIZE := 10
+const PRESENCE_ICON_TOP_OFFSET := 8 # increased to align dot with username baseline
+
+# Transparent button style
+var transparent_button_style: StyleBoxFlat
+
 # ======================================================
 # 🔸 READY
 # ======================================================
 func _ready():
 	print("[FriendList] Ready.")
+	
+	# Create transparent button style
+	transparent_button_style = StyleBoxFlat.new()
+	transparent_button_style.bg_color = Color(0, 0, 0, 0)  # Fully transparent
 	
 	# Wait longer for ChatManager to initialize
 	await get_tree().create_timer(3.0).timeout
@@ -185,14 +196,42 @@ func _update_friend_ui(friends: Array) -> void:
 
 	for name in friends:
 		var hbox = HBoxContainer.new()
-		var lbl = Label.new()
-		lbl.text = name
-		hbox.add_child(lbl)
+		hbox.add_theme_constant_override("separation", 2)
+		hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+		# Small presence icon label (wrapped in a MarginContainer for top offset)
+		var icon_lbl := Label.new()
+		icon_lbl.add_theme_font_size_override("font_size", PRESENCE_ICON_SIZE)
+		icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		icon_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_set_presence_label(icon_lbl, name, "offline")
+
+		var icon_wrap := MarginContainer.new()
+		icon_wrap.add_theme_constant_override("margin_top", PRESENCE_ICON_TOP_OFFSET)
+		icon_wrap.custom_minimum_size = Vector2(16, 0) # fixed width for the dot area
+		icon_wrap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon_wrap.add_child(icon_lbl)
+		hbox.add_child(icon_wrap)
+
+		# Username label (centered vertically like buttons)
+		var name_lbl := Label.new()
+		name_lbl.text = name
+		name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hbox.add_child(name_lbl)
 
 		var view_profile_btn = Button.new()
 		view_profile_btn.text = "🎫"
 		view_profile_btn.tooltip_text = "View Profile"
-		view_profile_btn.custom_minimum_size = Vector2(40, 30)
+		view_profile_btn.custom_minimum_size = Vector2(18, 10)
+		view_profile_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		view_profile_btn.add_theme_stylebox_override("normal", transparent_button_style)
+		view_profile_btn.add_theme_stylebox_override("hover", transparent_button_style)
+		view_profile_btn.add_theme_stylebox_override("pressed", transparent_button_style)
+		view_profile_btn.add_theme_stylebox_override("focus", transparent_button_style)
 		# Capture name in closure
 		var friend_name: String = name
 		view_profile_btn.pressed.connect(func():
@@ -203,7 +242,12 @@ func _update_friend_ui(friends: Array) -> void:
 		var chat_btn = Button.new()
 		chat_btn.text = "💬"
 		chat_btn.tooltip_text = "Chat"
-		chat_btn.custom_minimum_size = Vector2(40, 30)
+		chat_btn.custom_minimum_size = Vector2(18, 10)
+		chat_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		chat_btn.add_theme_stylebox_override("normal", transparent_button_style)
+		chat_btn.add_theme_stylebox_override("hover", transparent_button_style)
+		chat_btn.add_theme_stylebox_override("pressed", transparent_button_style)
+		chat_btn.add_theme_stylebox_override("focus", transparent_button_style)
 		# Capture name in closure
 		var chat_friend_name: String = name
 		chat_btn.pressed.connect(func():
@@ -211,32 +255,21 @@ func _update_friend_ui(friends: Array) -> void:
 		)
 		hbox.add_child(chat_btn)
 		
-		# 🔴 ADD BADGE TO CHAT BUTTON
+		# Defer badge creation to next frame (don't block rendering)
 		if is_instance_valid(ChatManager):
-			# Wait for button to be added to tree and have size
+			var chat_btn_ref = chat_btn
+			var friend_name_ref = name
 			await get_tree().process_frame
-			
-			var badge = BadgeNotification.new()
-			badge.set_user_id(name)
-			# Position badge at top-right corner of button
-			badge.position = Vector2(chat_btn.size.x - 22, -8)
-			badge.z_index = 100
-			chat_btn.add_child(badge)
-			
-			print("[FriendList] Created badge for user: ", name)
-			
-			# Initialize unread tracking for this friend
-			ChatManager.initialize_unread_for_friend(name)
-			
-			# Update badge position when button resizes
-			chat_btn.resized.connect(func():
-				if is_instance_valid(badge):
-					badge.position = Vector2(chat_btn.size.x - 22, -8)
-			)
+			_create_badge_for_chat_button(chat_btn_ref, friend_name_ref)
 
 		var unfriend_btn = Button.new()
 		unfriend_btn.text = "❌"
 		unfriend_btn.tooltip_text = "Unfriend"
+		unfriend_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		unfriend_btn.add_theme_stylebox_override("normal", transparent_button_style)
+		unfriend_btn.add_theme_stylebox_override("hover", transparent_button_style)
+		unfriend_btn.add_theme_stylebox_override("pressed", transparent_button_style)
+		unfriend_btn.add_theme_stylebox_override("focus", transparent_button_style)
 		# Capture name in closure
 		var unfriend_name: String = name
 		unfriend_btn.pressed.connect(func():
@@ -245,14 +278,31 @@ func _update_friend_ui(friends: Array) -> void:
 		)
 		hbox.add_child(unfriend_btn)
 
-		# Store the label reference BEFORE adding to container
-		friend_label_map[name] = lbl
-		_start_presence_check(name, lbl)
+		# Store the ICON label for presence updates
+		friend_label_map[name] = icon_lbl
+		_start_presence_check(name, icon_lbl)
 
 		hbox.modulate.a = 0
 		friend_container.add_child(hbox)
 		var tween = create_tween()
 		tween.tween_property(hbox, "modulate:a", 1.0, 0.25)
+
+
+# -------------------------
+# Helper: Create badge on chat button after it's rendered
+# -------------------------
+func _create_badge_for_chat_button(chat_btn: Button, friend_name: String) -> void:
+	if not is_instance_valid(chat_btn):
+		return
+	
+	var badge = BadgeNotification.new()
+	badge.set_user_id(friend_name)
+	badge.position = Vector2(8, -6)
+	badge.z_index = 100
+	chat_btn.add_child(badge)
+	
+	print("[FriendList] Created badge for user: ", friend_name)
+	ChatManager.initialize_unread_for_friend(friend_name)
 
 
 # -------------------------
@@ -278,15 +328,14 @@ func refresh_presence_all() -> void:
 # -------------------------
 # Resolve username -> uid (cached) and then fetch RTDB presence
 # -------------------------
-func _start_presence_check(username: String, label: Label) -> void:
+func _start_presence_check(username: String, label: Control) -> void:
 	# Check if label is still valid before proceeding
 	if not is_instance_valid(label):
 		return
 	
 	var token = Auth.current_id_token
 	if token == "" or username == "":
-		if is_instance_valid(label):
-			label.text = "🔴 %s" % username
+		_set_presence_label(label, username, "offline")
 		return
 
 	# if cached uid exists, fetch presence directly
@@ -320,12 +369,12 @@ func _start_presence_check(username: String, label: Label) -> void:
 	http_q.request_completed.connect(func(_r, code, _h, body):
 		http_q.queue_free()
 		if code != 200:
-			label.text = "🔴 %s" % username
+			_set_presence_label(label, username, "offline")
 			return
 
 		var arr = JSON.parse_string(body.get_string_from_utf8())
 		if typeof(arr) != TYPE_ARRAY or arr.size() == 0:
-			label.text = "🔴 %s" % username
+			_set_presence_label(label, username, "offline")
 			return
 
 		var friend_uid = arr[0]["document"]["name"].get_file()
@@ -339,15 +388,14 @@ func _start_presence_check(username: String, label: Label) -> void:
 # -------------------------
 # Query RTDB presence path and update label
 # -------------------------
-func _fetch_presence_for_uid(uid: String, label: Label, username: String, token: String) -> void:
+func _fetch_presence_for_uid(uid: String, label: Control, username: String, token: String) -> void:
 	var url = "%s/presence/%s.json?auth=%s" % [RTDB_BASE, uid, token]
 	var http := HTTPRequest.new()
 	add_child(http)
 	http.request_completed.connect(func(_r, code, _h, body):
 		http.queue_free()
 		if code != 200:
-			if is_instance_valid(label):
-				label.text = "🔴 %s" % username
+			_set_presence_label(label, username, "offline")
 			return
 
 		var txt: String = body.get_string_from_utf8()
@@ -374,11 +422,22 @@ func _fetch_presence_for_uid(uid: String, label: Label, username: String, token:
 			return
 
 		if state == "online":
-			label.text = "🟢 %s" % username
+			_set_presence_label(label, username, "online")
 		else:
-			label.text = "🔴 %s" % username
+			_set_presence_label(label, username, "offline")
 	)
 	http.request(url, [], HTTPClient.METHOD_GET)
+
+
+# ======================================================
+# Helpers for presence label formatting (icon-only)
+# ======================================================
+func _format_presence(_username: String, state: String) -> String:
+	return "🟢" if state == "online" else "🔴"
+
+func _set_presence_label(label, username: String, state: String) -> void:
+	if is_instance_valid(label) and label is Label:
+		label.text = _format_presence(username, state)
 
 
 # ======================================================
