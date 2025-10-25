@@ -47,6 +47,8 @@ func _ready() -> void:
 	# === Navigation setup ===
 	_setup_navigation()
 
+	
+
 
 # === Load avatars from folder ===
 func _load_avatars() -> void:
@@ -105,7 +107,7 @@ func _on_save_profile_pressed() -> void:
 
 	last_avatar_change = Time.get_unix_time_from_system()
 
-	var url = "%s/%s" % [firestore_base_url, user_id]
+	var url = "%s/%s?updateMask.fieldPaths=username&updateMask.fieldPaths=level&updateMask.fieldPaths=wins&updateMask.fieldPaths=losses&updateMask.fieldPaths=avatar&updateMask.fieldPaths=last_avatar_change" % [firestore_base_url, user_id]
 	var body = {
 		"fields": {
 			"username": { "stringValue": username_input.text },

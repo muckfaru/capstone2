@@ -65,8 +65,7 @@ func _create_new_user(username: String) -> void:
 			"losses": {"integerValue": 0},
 			"level": {"integerValue": 1},
 			"friends": {"arrayValue": {"values": []}},
-			"requests_received": {"arrayValue": {"values": []}},
-			"status": {"stringValue": "offline"}
+			"requests_received": {"arrayValue": {"values": []}}
 		}
 	}
 

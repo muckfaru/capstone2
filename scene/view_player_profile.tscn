@@ -1,0 +1,216 @@
+[gd_scene load_steps=8 format=3 uid="uid://bsi01dt2s0qq7"]
+
+[ext_resource type="Script" uid="uid://l36u0y20vxqf" path="res://script/view_player_profile.gd" id="1_abc12"]
+[ext_resource type="Texture2D" uid="uid://ca874tphfshxx" path="res://asset/avatars/default.png" id="2_abc12"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal_bg"]
+bg_color = Color(0.160784, 0.160784, 0.160784, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q70oy"]
+bg_color = Color(0.164706, 0.164706, 0.164706, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_78s4u"]
+bg_color = Color(0, 0, 0, 0.745098)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.027451, 0.482353, 0.596078, 1)
+corner_radius_top_left = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1j7bt"]
+bg_color = Color(0.117647, 0.117647, 0.117647, 0.619608)
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.0313726, 0.47451, 0.584314, 1)
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yya42"]
+bg_color = Color(0.0177324, 0.0177324, 0.0177324, 1)
+corner_radius_top_right = 20
+
+[node name="ViewPlayerProfileModal" type="PopupPanel"]
+initial_position = 1
+size = Vector2i(750, 380)
+visible = true
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal_bg")
+script = ExtResource("1_abc12")
+
+[node name="ProfilePanel" type="Panel" parent="."]
+offset_right = 750.0
+offset_bottom = 380.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_q70oy")
+
+[node name="UserPanel" type="Panel" parent="ProfilePanel"]
+layout_mode = 0
+offset_left = 73.0
+offset_top = 5.0
+offset_right = 318.0
+offset_bottom = 375.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_78s4u")
+
+[node name="usernameLabel" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 169.0
+offset_right = 232.0
+offset_bottom = 192.0
+text = "________________________________"
+
+[node name="levelLabel" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 111.0
+offset_top = 63.0
+offset_right = 160.0
+offset_bottom = 86.0
+text = "Level: "
+
+[node name="winsLabel" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 29.0
+offset_top = 95.0
+offset_right = 62.0
+offset_bottom = 118.0
+text = "W :  "
+
+[node name="MatchPlayedLabel" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 46.0
+offset_top = 121.0
+offset_right = 159.0
+offset_bottom = 144.0
+text = "Match Played :"
+
+[node name="WinrateLabel" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 146.0
+offset_top = 95.0
+offset_right = 185.0
+offset_bottom = 118.0
+text = "WR : "
+
+[node name="losesLabel" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 91.0
+offset_top = 95.0
+offset_right = 115.0
+offset_bottom = 118.0
+text = "L : "
+
+[node name="StatusLabel" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = -123.0
+offset_top = 457.0
+offset_right = -50.0
+offset_bottom = 482.0
+text = "Status"
+
+[node name="usernameInput" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 39.0
+offset_right = 185.0
+offset_bottom = 71.0
+text = "....."
+
+[node name="levelInput" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 159.0
+offset_top = 63.0
+offset_right = 202.0
+offset_bottom = 86.0
+text = "..."
+
+[node name="winsInput" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 95.0
+offset_right = 88.0
+offset_bottom = 118.0
+text = "..."
+
+[node name="winrateInput" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 187.0
+offset_top = 95.0
+offset_right = 226.0
+offset_bottom = 118.0
+text = "...%"
+
+[node name="losesInput" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 114.0
+offset_top = 96.0
+offset_right = 137.0
+offset_bottom = 119.0
+text = "..."
+
+[node name="ProfilePic" type="TextureRect" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 55.0
+offset_top = 38.0
+offset_right = 103.0
+offset_bottom = 86.0
+texture = ExtResource("2_abc12")
+
+[node name="AvatarPicker" type="PopupPanel" parent="ProfilePanel/UserPanel"]
+auto_translate_mode = 1
+
+[node name="GridContainer" type="GridContainer" parent="ProfilePanel/UserPanel/AvatarPicker"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 96.0
+offset_bottom = 96.0
+
+[node name="MatchPlayedInput" type="Label" parent="ProfilePanel/UserPanel"]
+layout_mode = 0
+offset_left = 165.0
+offset_top = 121.0
+offset_right = 204.0
+offset_bottom = 144.0
+text = "...."
+
+[node name="MatchHistoyPanel" type="Panel" parent="ProfilePanel"]
+layout_mode = 0
+offset_left = 317.0
+offset_top = 5.0
+offset_right = 699.0
+offset_bottom = 375.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1j7bt")
+
+[node name="MatchHistoyHeader" type="Panel" parent="ProfilePanel/MatchHistoyPanel"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 3.0
+offset_right = 379.0
+offset_bottom = 69.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_yya42")
+
+[node name="Label" type="Label" parent="ProfilePanel/MatchHistoyPanel/MatchHistoyHeader"]
+layout_mode = 0
+offset_left = 58.0
+offset_top = 9.0
+offset_right = 309.0
+offset_bottom = 51.0
+theme_override_font_sizes/font_size = 25
+text = "MATCH HISTORY"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CloseViewPlayerProfile" type="Button" parent="ProfilePanel/MatchHistoyPanel/MatchHistoyHeader"]
+layout_mode = 0
+offset_left = 332.0
+offset_top = 19.0
+offset_right = 365.0
+offset_bottom = 50.0
+text = "X"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="ProfilePanel/MatchHistoyPanel"]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 75.0
+offset_right = 309.0
+offset_bottom = 51.0

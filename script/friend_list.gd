@@ -189,12 +189,25 @@ func _update_friend_ui(friends: Array) -> void:
 		lbl.text = name
 		hbox.add_child(lbl)
 
+		var view_profile_btn = Button.new()
+		view_profile_btn.text = "🎫"
+		view_profile_btn.tooltip_text = "View Profile"
+		view_profile_btn.custom_minimum_size = Vector2(40, 30)
+		# Capture name in closure
+		var friend_name: String = name
+		view_profile_btn.pressed.connect(func():
+			_on_view_profile_button_pressed(friend_name)
+		)
+		hbox.add_child(view_profile_btn)
+
 		var chat_btn = Button.new()
 		chat_btn.text = "💬"
 		chat_btn.tooltip_text = "Chat"
 		chat_btn.custom_minimum_size = Vector2(40, 30)
+		# Capture name in closure
+		var chat_friend_name: String = name
 		chat_btn.pressed.connect(func():
-			_on_chat_button_pressed(name)
+			_on_chat_button_pressed(chat_friend_name)
 		)
 		hbox.add_child(chat_btn)
 		
@@ -224,12 +237,15 @@ func _update_friend_ui(friends: Array) -> void:
 		var unfriend_btn = Button.new()
 		unfriend_btn.text = "❌"
 		unfriend_btn.tooltip_text = "Unfriend"
+		# Capture name in closure
+		var unfriend_name: String = name
 		unfriend_btn.pressed.connect(func():
-			unfriend_user(name)
+			unfriend_user(unfriend_name)
 			hbox.queue_free()
 		)
 		hbox.add_child(unfriend_btn)
 
+		# Store the label reference BEFORE adding to container
 		friend_label_map[name] = lbl
 		_start_presence_check(name, lbl)
 
@@ -240,12 +256,37 @@ func _update_friend_ui(friends: Array) -> void:
 
 
 # -------------------------
+# Refresh presence for all displayed friends
+# -------------------------
+func refresh_presence_all() -> void:
+	# Create a copy of keys to avoid issues with freed nodes
+	var usernames_to_check = friend_label_map.keys().duplicate()
+	
+	for username in usernames_to_check:
+		# Check if label still exists and is valid
+		if not friend_label_map.has(username):
+			continue
+		
+		var lbl = friend_label_map[username]
+		if not is_instance_valid(lbl):
+			friend_label_map.erase(username)
+			continue
+		
+		_start_presence_check(username, lbl)
+
+
+# -------------------------
 # Resolve username -> uid (cached) and then fetch RTDB presence
 # -------------------------
 func _start_presence_check(username: String, label: Label) -> void:
+	# Check if label is still valid before proceeding
+	if not is_instance_valid(label):
+		return
+	
 	var token = Auth.current_id_token
 	if token == "" or username == "":
-		label.text = "🔴 %s" % username
+		if is_instance_valid(label):
+			label.text = "🔴 %s" % username
 		return
 
 	# if cached uid exists, fetch presence directly
@@ -296,16 +337,6 @@ func _start_presence_check(username: String, label: Label) -> void:
 
 
 # -------------------------
-# Refresh presence for all displayed friends
-# -------------------------
-func refresh_presence_all() -> void:
-	# iterate a shallow copy to avoid mutation issues
-	for username in friend_label_map.keys():
-		var lbl = friend_label_map[username]
-		_start_presence_check(username, lbl)
-
-
-# -------------------------
 # Query RTDB presence path and update label
 # -------------------------
 func _fetch_presence_for_uid(uid: String, label: Label, username: String, token: String) -> void:
@@ -315,7 +346,8 @@ func _fetch_presence_for_uid(uid: String, label: Label, username: String, token:
 	http.request_completed.connect(func(_r, code, _h, body):
 		http.queue_free()
 		if code != 200:
-			label.text = "🔴 %s" % username
+			if is_instance_valid(label):
+				label.text = "🔴 %s" % username
 			return
 
 		var txt: String = body.get_string_from_utf8()
@@ -336,6 +368,10 @@ func _fetch_presence_for_uid(uid: String, label: Label, username: String, token:
 			state = str(parsed["state"])
 		else:
 			state = "offline"
+
+		# Check if label is still valid before updating
+		if not is_instance_valid(label):
+			return
 
 		if state == "online":
 			label.text = "🟢 %s" % username
@@ -712,3 +748,28 @@ func debug_print_tree(node: Node, depth: int) -> void:
 	print(indent + node.name + " (" + node.get_class() + ")")
 	for child in node.get_children():
 		debug_print_tree(child, depth + 1)
+
+
+# ======================================================
+# 🎫 VIEW PLAYER PROFILE BUTTON HANDLER
+# ======================================================
+func _on_view_profile_button_pressed(friend_username: String) -> void:
+	print("[FriendList] View profile pressed for: ", friend_username)
+	
+	# Try to find ViewPlayerProfileModal in the scene tree
+	var modal = get_tree().root.find_child("ViewPlayerProfileModal", true, false)
+	
+	if not modal:
+		push_error("[FriendList] ViewPlayerProfileModal not found in scene tree")
+		debug_print_tree(get_tree().root, 0)
+		return
+	
+	# Call display_player_profile on the modal
+	if modal.has_method("display_player_profile"):
+		print("[FriendList] Displaying profile for: ", friend_username)
+		modal.display_player_profile(friend_username)
+		# Wait for profile data to load before showing
+		await get_tree().create_timer(0.5).timeout
+		modal.popup_centered()
+	else:
+		push_error("[FriendList] Modal doesn't have 'display_player_profile' method")
