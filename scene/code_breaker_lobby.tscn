@@ -1,0 +1,133 @@
+[gd_scene load_steps=8 format=3 uid="uid://b14mflwcapld1"]
+
+[ext_resource type="Script" uid="uid://elvke108a8gu" path="res://script/code_breaker_lobby.gd" id="1_p5ftw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qydhr"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p5ftw"]
+bg_color = Color(0.00392157, 0.0745098, 0.160784, 0.690196)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7nkrr"]
+bg_color = Color(0.250708, 0.340676, 0.14517, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3upjy"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ol6m0"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7nkdn"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[node name="CodeBreakerLobby" type="Panel"]
+offset_left = -99.0
+offset_top = 45.0
+offset_right = 1260.0
+offset_bottom = 646.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_qydhr")
+script = ExtResource("1_p5ftw")
+
+[node name="TitleLabel" type="Label" parent="."]
+custom_minimum_size = Vector2(200, 40)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.35
+anchor_top = 0.12
+anchor_right = 0.65
+anchor_bottom = 0.12
+offset_left = -270.65
+offset_top = 15.88
+offset_right = -394.35
+offset_bottom = 65.88
+theme_override_font_sizes/font_size = 36
+text = "CODE BREAKER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LobbyPanel" type="Panel" parent="."]
+custom_minimum_size = Vector2(600, 400)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.25
+anchor_right = 0.9
+anchor_bottom = 0.9
+offset_left = 68.1
+offset_top = -4.25
+offset_right = -260.1
+offset_bottom = 5.10004
+theme_override_styles/panel = SubResource("StyleBoxFlat_p5ftw")
+
+[node name="HeaderRow" type="HBoxContainer" parent="LobbyPanel"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 0
+anchor_left = 0.05
+anchor_top = 0.05
+anchor_right = 0.95
+anchor_bottom = 0.05
+alignment = 1
+
+[node name="LabelNo" type="Label" parent="LobbyPanel/HeaderRow"]
+custom_minimum_size = Vector2(50, 30)
+layout_mode = 2
+text = "No."
+
+[node name="LabelUser" type="Label" parent="LobbyPanel/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Username"
+
+[node name="LabelPlayers" type="Label" parent="LobbyPanel/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 2
+text = "Players"
+
+[node name="LabelAction" type="Label" parent="LobbyPanel/HeaderRow"]
+custom_minimum_size = Vector2(100, 30)
+layout_mode = 2
+text = "Action"
+
+[node name="RoomListContainer" type="VBoxContainer" parent="LobbyPanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.15
+anchor_right = 0.95
+anchor_bottom = 0.75
+offset_left = -0.400002
+offset_right = 1.40002
+theme_override_constants/separation = 5
+
+[node name="CreateRoomButton" type="Button" parent="LobbyPanel"]
+custom_minimum_size = Vector2(160, 40)
+layout_mode = 0
+anchor_left = 0.75
+anchor_top = 0.82
+anchor_right = 0.95
+anchor_bottom = 0.9
+theme_override_styles/focus = SubResource("StyleBoxFlat_7nkrr")
+theme_override_styles/hover = SubResource("StyleBoxFlat_3upjy")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ol6m0")
+theme_override_styles/normal = SubResource("StyleBoxFlat_7nkdn")
+text = "CREATE ROOM"

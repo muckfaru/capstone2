@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=29 format=3 uid="uid://5o3qtaqdnl8s"]
 
 [ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_qr7a0"]
 [ext_resource type="VideoStream" uid="uid://copge130jsikm" path="res://asset/Cyberpunk_City_Video_Generation.ogv" id="2_qr7a0"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://dp4co62dijgua" path="res://asset/icons/akashic tgc 1.png" id="4_hlv06"]
 [ext_resource type="Texture2D" uid="uid://cckv7p82fksqa" path="res://asset/icons/Defuse the trojan 1.png" id="5_1dlu4"]
 [ext_resource type="PackedScene" uid="uid://d0infgusfi845" path="res://scene/chat.tscn" id="9_1dlu4"]
+[ext_resource type="PackedScene" uid="uid://b14mflwcapld1" path="res://scene/code_breaker_lobby.tscn" id="9_08qf3"]
 [ext_resource type="PackedScene" uid="uid://bsi01dt2s0qq7" path="res://scene/view_player_profile.tscn" id="10_xyz99"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irntn"]
@@ -165,6 +166,15 @@ offset_right = 715.0
 offset_bottom = 314.0
 texture = ExtResource("3_7xp6e")
 
+[node name="CodeBreakerButton" type="Button" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
+layout_mode = 0
+offset_left = 510.0
+offset_top = 260.0
+offset_right = 710.0
+offset_bottom = 300.0
+text = "Open Lobby"
+flat = true
+
 [node name="NinePatchRect2" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
 layout_mode = 0
 offset_left = 248.0
@@ -215,6 +225,7 @@ offset_bottom = 574.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hlv06")
 
 [node name="ProfilePanel" type="Panel" parent="VideoStreamPlayer"]
+visible = false
 layout_mode = 0
 offset_left = 134.0
 offset_top = 22.0
@@ -396,20 +407,12 @@ text = "MATCH HISTORY"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="FriendListPanel" parent="." instance=ExtResource("3_hlv06")]
+[node name="CodeBreakerLobby" parent="VideoStreamPlayer" instance=ExtResource("9_08qf3")]
 layout_mode = 0
-offset_left = 858.0
-offset_top = 82.0
-offset_right = 1092.0
-offset_bottom = 599.0
-
-[node name="ChatPanel" parent="." instance=ExtResource("9_1dlu4")]
-visible = false
-layout_mode = 0
-offset_left = 42.0
-offset_top = 387.0
-offset_right = 368.0
-offset_bottom = 611.0
+offset_left = 11.0
+offset_top = 20.0
+offset_right = 1360.0
+offset_bottom = 634.0
 
 [node name="NavigationPanel" type="Panel" parent="."]
 custom_minimum_size = Vector2(0, 46)
@@ -457,3 +460,17 @@ text = "Profile"
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_xoh2d")
 text = "Log out"
+
+[node name="ChatPanel" parent="." instance=ExtResource("9_1dlu4")]
+layout_mode = 0
+offset_left = 42.0
+offset_top = 387.0
+offset_right = 368.0
+offset_bottom = 611.0
+
+[node name="FriendListPanel" parent="." instance=ExtResource("3_hlv06")]
+layout_mode = 0
+offset_left = 901.0
+offset_top = 84.0
+offset_right = 1135.0
+offset_bottom = 601.0
