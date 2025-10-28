@@ -2,9 +2,9 @@ extends Panel
 
 @onready var room_list: VBoxContainer = $LobbyPanel/RoomListContainer
 @onready var create_btn: Button = $LobbyPanel/CreateRoomButton
+@onready var back_btn: Button = $LobbyPanel/BackButton  # Add this line
 
-var _rooms: Array = []  # Local lobby room list; each: {id, host, players}
-
+var _rooms: Array = []
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const POLL_INTERVAL := 5.0
 const ROOMS_PATH := "/codebreaker_rooms"
@@ -18,6 +18,12 @@ func _ready() -> void:
 	else:
 		push_warning("[CodeBreakerLobby] CreateRoomButton not found")
 
+	# Wire back button
+	if back_btn:
+		back_btn.pressed.connect(_on_back_button_pressed)
+	else:
+		push_warning("[CodeBreakerLobby] BackButton not found")
+
 	# Poll room list periodically
 	_refresh_timer = Timer.new()
 	_refresh_timer.wait_time = POLL_INTERVAL
@@ -27,6 +33,26 @@ func _ready() -> void:
 	_refresh_timer.timeout.connect(_on_refresh_timeout)
 
 	_fetch_rooms()
+
+
+# New function to handle back button
+func _on_back_button_pressed() -> void:
+	print("[CodeBreakerLobby] Back button pressed - returning to GameSelectPanel")
+	
+	# Hide this lobby
+	self.visible = false
+	
+	# Show GameSelectPanel
+	var landing = get_node_or_null("/root/Landing")
+	if landing:
+		var game_select = landing.get_node_or_null("VideoStreamPlayer/GameSelectPanel")
+		if game_select:
+			game_select.visible = true
+			print("[CodeBreakerLobby] GameSelectPanel is now visible")
+		else:
+			push_error("[CodeBreakerLobby] GameSelectPanel not found")
+	else:
+		push_error("[CodeBreakerLobby] Landing node not found")
 
 
 func _on_create_room_pressed() -> void:
@@ -39,11 +65,9 @@ func _on_create_room_pressed() -> void:
 	add_child(popup)
 	popup.popup()
 
-	# Initialize with current username when available
 	if popup.has_method("init_with_username"):
 		popup.init_with_username(Auth.current_username if Auth else "Player")
 
-	# Wait for confirmation
 	popup.confirmed.connect(func(room_name: String, anonymous: bool):
 		popup.queue_free()
 		_create_room_and_enter(room_name, anonymous)
@@ -54,14 +78,10 @@ func _on_create_room_pressed() -> void:
 
 
 func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
-	# Create room in Realtime Database via POST
 	var id_token := Auth.current_id_token if Auth else ""
 	var uid := Auth.current_local_id if Auth else ""
 	var username := Auth.current_username if Auth and Auth.current_username != "" else room_name
 	var level := 0
-	if has_node("/root/Landing"):
-		# Optional: if Landing exposes level, could pull from there; fallback to 0
-		pass
 
 	var body := {
 		"host": {
@@ -90,7 +110,6 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 			push_error("[CodeBreakerLobby] No room id returned from RTDB")
 			return
 		print("[CodeBreakerLobby] Room created in RTDB:", room_id)
-		# Navigate to room
 		var init := {
 			"room_id": room_id,
 			"host_name": str(body["host"]["username"]),
@@ -128,7 +147,6 @@ func _add_room_row(entry: Dictionary) -> void:
 	h.add_child(user_label)
 
 	var players_label := Label.new()
-	# Make the players column expand and center its content so it aligns with the header
 	players_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	players_label.custom_minimum_size = Vector2(0, 28)
 	players_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -137,7 +155,7 @@ func _add_room_row(entry: Dictionary) -> void:
 
 	var action_btn := Button.new()
 	action_btn.custom_minimum_size = Vector2(100, 28)
-	action_btn.size_flags_horizontal = 0  # fixed column width
+	action_btn.size_flags_horizontal = 0
 	action_btn.text = "JOIN"
 	action_btn.disabled = not bool(entry.get("joinable", false))
 	action_btn.pressed.connect(func():
@@ -165,7 +183,6 @@ func _fetch_rooms() -> void:
 	http.request(url, [], HTTPClient.METHOD_GET)
 
 func _populate_rooms_from_data(data) -> void:
-	# Clear list
 	for c in room_list.get_children():
 		c.queue_free()
 	_rooms.clear()
@@ -205,7 +222,6 @@ func _join_room(room_id: String) -> void:
 	var uid := Auth.current_local_id if Auth else ""
 	var username := Auth.current_username if Auth else "Player"
 	var level := 0
-	# Read current room to ensure available
 	var get_http := HTTPRequest.new()
 	add_child(get_http)
 	get_http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
@@ -220,7 +236,6 @@ func _join_room(room_id: String) -> void:
 			push_warning("[CodeBreakerLobby] Room already has a client")
 			_fetch_rooms()
 			return
-		# If host is anonymous, force client to also be Anonymous
 		var host_name_in_room := str(node.get("host", {}).get("username", ""))
 		var client_username := ("Anonymous" if host_name_in_room == "Anonymous" else username)
 		var patch_body := {
@@ -233,7 +248,6 @@ func _join_room(room_id: String) -> void:
 			if code2 != 200:
 				push_error("[CodeBreakerLobby] Join failed HTTP " + str(code2))
 				return
-			# Navigate as client
 			var init := {"room_id": room_id, "host_name": str(node.get("host", {}).get("username", "Host")), "is_host": false}
 			get_tree().set_meta("code_breaker_room_init", init)
 			var room_scene := load("res://scene/code_breaker_room.tscn")

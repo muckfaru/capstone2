@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://b14mflwcapld1"]
+[gd_scene load_steps=9 format=3 uid="uid://b14mflwcapld1"]
 
 [ext_resource type="Script" uid="uid://elvke108a8gu" path="res://script/code_breaker_lobby.gd" id="1_p5ftw"]
 
@@ -39,6 +39,8 @@ corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
+
+[sub_resource type="Theme" id="Theme_0nq88"]
 
 [node name="CodeBreakerLobby" type="Panel"]
 offset_left = -99.0
@@ -134,3 +136,14 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_3upjy")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_ol6m0")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7nkdn")
 text = "CREATE ROOM"
+
+[node name="BackButton" type="Button" parent="LobbyPanel"]
+visibility_layer = 17
+layout_mode = 0
+offset_left = 27.0
+offset_top = 343.0
+offset_right = 95.0
+offset_bottom = 374.0
+theme = SubResource("Theme_0nq88")
+theme_type_variation = &"FlatButton"
+text = " ← Back"

@@ -2,7 +2,7 @@ extends Panel
 
 @onready var room_list: VBoxContainer = $LobbyPanel/RoomListContainer
 @onready var create_btn: Button = $LobbyPanel/CreateRoomButton
-
+@onready var back_btn: Button = $LobbyPanel/BackButton  # Added back button reference
 var _rooms: Array = []  # Local lobby room list; each: {id, host, players}
 
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
@@ -18,6 +18,12 @@ func _ready() -> void:
 	else:
 		push_warning("[AkashicLobby] CreateRoomButton not found")
 
+	# Wire back button
+	if back_btn:
+		back_btn.pressed.connect(_on_back_button_pressed)
+	else:
+		push_warning("[AkashicLobby] BackButton not found")
+
 	# Poll room list periodically
 	_refresh_timer = Timer.new()
 	_refresh_timer.wait_time = POLL_INTERVAL
@@ -27,6 +33,26 @@ func _ready() -> void:
 	_refresh_timer.timeout.connect(_on_refresh_timeout)
 
 	_fetch_rooms()
+
+
+# 🔹 Back button function (copied and adapted)
+func _on_back_button_pressed() -> void:
+	print("[AkashicLobby] Back button pressed - returning to GameSelectPanel")
+	
+	# Hide this lobby
+	self.visible = false
+	
+	# Show GameSelectPanel
+	var landing = get_node_or_null("/root/Landing")
+	if landing:
+		var game_select = landing.get_node_or_null("VideoStreamPlayer/GameSelectPanel")
+		if game_select:
+			game_select.visible = true
+			print("[AkashicLobby] GameSelectPanel is now visible")
+		else:
+			push_error("[AkashicLobby] GameSelectPanel not found")
+	else:
+		push_error("[AkashicLobby] Landing node not found")
 
 
 func _on_create_room_pressed() -> void:

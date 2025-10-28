@@ -11,7 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://d0infgusfi845" path="res://scene/chat.tscn" id="9_1dlu4"]
 [ext_resource type="PackedScene" uid="uid://b14mflwcapld1" path="res://scene/code_breaker_lobby.tscn" id="9_08qf3"]
 [ext_resource type="PackedScene" uid="uid://bsi01dt2s0qq7" path="res://scene/view_player_profile.tscn" id="10_xyz99"]
-[ext_resource type="PackedScene" path="res://scene/akashic_tcg_lobby.tscn" id="11_tgc"]
+[ext_resource type="PackedScene" uid="uid://clvghcukrtua8" path="res://scene/akashic_tcg_lobby.tscn" id="11_tgc"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irntn"]
 bg_color = Color(0.164706, 0.164706, 0.164706, 0.419608)
