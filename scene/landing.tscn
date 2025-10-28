@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=30 format=3 uid="uid://5o3qtaqdnl8s"]
 
 [ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_qr7a0"]
 [ext_resource type="VideoStream" uid="uid://copge130jsikm" path="res://asset/Cyberpunk_City_Video_Generation.ogv" id="2_qr7a0"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://d0infgusfi845" path="res://scene/chat.tscn" id="9_1dlu4"]
 [ext_resource type="PackedScene" uid="uid://b14mflwcapld1" path="res://scene/code_breaker_lobby.tscn" id="9_08qf3"]
 [ext_resource type="PackedScene" uid="uid://bsi01dt2s0qq7" path="res://scene/view_player_profile.tscn" id="10_xyz99"]
+[ext_resource type="PackedScene" path="res://scene/akashic_tcg_lobby.tscn" id="11_tgc"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irntn"]
 bg_color = Color(0.164706, 0.164706, 0.164706, 0.419608)
@@ -142,7 +143,6 @@ offset_bottom = 51.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_1dlu4")
 
 [node name="GameSelectPanel" type="Panel" parent="VideoStreamPlayer"]
-visible = false
 layout_mode = 0
 offset_left = 148.0
 offset_top = 26.0
@@ -158,38 +158,32 @@ offset_right = 798.0
 offset_bottom = 492.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_ie1g5")
 
-[node name="NinePatchRect3" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
-layout_mode = 0
-offset_left = 502.0
-offset_top = 20.0
-offset_right = 715.0
-offset_bottom = 314.0
-texture = ExtResource("3_7xp6e")
-
-[node name="CodeBreakerButton" type="Button" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
-layout_mode = 0
-offset_left = 510.0
-offset_top = 260.0
-offset_right = 710.0
-offset_bottom = 300.0
-text = "Open Lobby"
-flat = true
-
-[node name="NinePatchRect2" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
-layout_mode = 0
-offset_left = 248.0
-offset_top = 10.0
-offset_right = 485.0
-offset_bottom = 330.0
-texture = ExtResource("4_hlv06")
-
-[node name="NinePatchRect" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
+[node name="DefuseTheTrojan" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
 layout_mode = 0
 offset_left = 17.0
 offset_top = 26.0
 offset_right = 220.0
 offset_bottom = 313.0
+mouse_filter = 0
 texture = ExtResource("5_1dlu4")
+
+[node name="AkashicTCG" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
+layout_mode = 0
+offset_left = 248.0
+offset_top = 10.0
+offset_right = 485.0
+offset_bottom = 330.0
+mouse_filter = 0
+texture = ExtResource("4_hlv06")
+
+[node name="CodeBreaker" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
+layout_mode = 0
+offset_left = 522.0
+offset_top = 25.0
+offset_right = 737.0
+offset_bottom = 316.0
+mouse_filter = 0
+texture = ExtResource("3_7xp6e")
 
 [node name="RankingPanel" type="Panel" parent="VideoStreamPlayer"]
 visible = false
@@ -408,6 +402,15 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="CodeBreakerLobby" parent="VideoStreamPlayer" instance=ExtResource("9_08qf3")]
+visible = false
+layout_mode = 0
+offset_left = 11.0
+offset_top = 20.0
+offset_right = 1360.0
+offset_bottom = 634.0
+
+[node name="AkashicLobby" parent="VideoStreamPlayer" instance=ExtResource("11_tgc")]
+visible = false
 layout_mode = 0
 offset_left = 11.0
 offset_top = 20.0

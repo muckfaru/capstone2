@@ -209,6 +209,22 @@ func _setup_navigation() -> void:
 	$NavigationPanel/HBoxContainer/LogoButton.pressed.connect(func(): _show_panel(panel_paths, "home"))
 	$NavigationPanel/HBoxContainer/LogoutButton.pressed.connect(_on_logout_pressed)
 
+	# Connect game icons (NinePatchRect - need gui_input)
+	var defuse_trojan = $VideoStreamPlayer/GameSelectPanel/allgame/DefuseTheTrojan
+	if defuse_trojan:
+		defuse_trojan.gui_input.connect(_on_defuse_trojan_gui_input)
+		defuse_trojan.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+	var akashic_tcg = $VideoStreamPlayer/GameSelectPanel/allgame/AkashicTCG
+	if akashic_tcg:
+		akashic_tcg.gui_input.connect(_on_akashic_tcg_gui_input)
+		akashic_tcg.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+	var code_breaker_icon = $VideoStreamPlayer/GameSelectPanel/allgame/CodeBreaker
+	if code_breaker_icon:
+		code_breaker_icon.gui_input.connect(_on_code_breaker_gui_input)
+		code_breaker_icon.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
 	_show_panel(panel_paths, "home")
 
 
@@ -220,6 +236,16 @@ func _show_panel(panel_paths: Dictionary, panel_name: String) -> void:
 			node.visible = false
 		else:
 			push_warning("Panel node missing (hide): %s" % panel_paths[key])
+
+	# Also hide CodeBreakerLobby when navigating with buttons
+	var code_breaker_lobby = $VideoStreamPlayer.get_node_or_null("CodeBreakerLobby")
+	if code_breaker_lobby:
+		code_breaker_lobby.visible = false
+
+	# Hide AkashicLobby as well when navigating
+	var akashic_lobby = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
+	if akashic_lobby:
+		akashic_lobby.visible = false
 
 	# Show target panel
 	var node_to_show = $VideoStreamPlayer.get_node_or_null(panel_paths.get(panel_name, ""))
@@ -249,3 +275,57 @@ func _instantiate_chat_panel() -> void:
 		print("[Landing] ChatPanel instantiated and added to scene")
 	else:
 		push_error("[Landing] Failed to load chat.tscn")
+
+
+# === Defuse The Trojan Handler ===
+func _on_defuse_trojan_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		print("[Landing] Defuse The Trojan clicked")
+		# TODO: Add logic to show Defuse The Trojan game/lobby
+
+
+# === Akashic TCG Handler ===
+func _on_akashic_tcg_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		print("[Landing] Akashic TCG clicked - showing lobby")
+		# Hide GameSelectPanel
+		var game_select_panel = $VideoStreamPlayer/GameSelectPanel
+		if game_select_panel:
+			game_select_panel.visible = false
+
+		# Hide CodeBreakerLobby if visible
+		var code_breaker_lobby = $VideoStreamPlayer.get_node_or_null("CodeBreakerLobby")
+		if code_breaker_lobby:
+			code_breaker_lobby.visible = false
+
+		# Show AkashicLobby
+		var akashic_lobby = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
+		if akashic_lobby:
+			akashic_lobby.visible = true
+			print("[Landing] AkashicLobby is now visible")
+		else:
+			push_error("[Landing] Akashic Lobby node not found")
+
+
+# === Code Breaker NinePatchRect Handler ===
+func _on_code_breaker_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		print("[Landing] Code Breaker clicked - showing lobby")
+		
+		# Hide GameSelectPanel
+		var game_select_panel = $VideoStreamPlayer/GameSelectPanel
+		if game_select_panel:
+			game_select_panel.visible = false
+		
+		# Hide AkashicLobby if visible
+		var akashic_lobby2 = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
+		if akashic_lobby2:
+			akashic_lobby2.visible = false
+		
+		# Show CodeBreakerLobby
+		var code_breaker_lobby = $VideoStreamPlayer/CodeBreakerLobby
+		if code_breaker_lobby:
+			code_breaker_lobby.visible = true
+			print("[Landing] CodeBreakerLobby is now visible")
+		else:
+			push_error("[Landing] Code Breaker Lobby node not found")

@@ -1,0 +1,181 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://script/akashic_tcg_room.gd" id="1_tgc_room"]
+
+[node name="room" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_tgc_room")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -172.0
+offset_top = -47.0
+offset_right = 212.0
+offset_bottom = 329.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RoomHeader" type="HBoxContainer" parent="."]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.05
+anchor_right = 0.5
+anchor_bottom = 0.05
+offset_left = -250.0
+offset_right = 250.0
+offset_bottom = 40.0
+alignment = 1
+
+[node name="RoomIDLabel" type="Label" parent="RoomHeader"]
+layout_mode = 2
+text = "ROOM: #12345"
+horizontal_alignment = 1
+
+[node name="RoomStateLabel" type="Label" parent="RoomHeader"]
+layout_mode = 2
+text = "WAITING"
+horizontal_alignment = 1
+
+[node name="CardsContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.35
+anchor_right = 0.5
+anchor_bottom = 0.35
+offset_left = -500.0
+offset_top = -100.0
+offset_right = 500.0
+offset_bottom = 200.0
+alignment = 1
+
+[node name="HostCard" type="Panel" parent="CardsContainer"]
+modulate = Color(0.1, 0.6, 0.9, 0.8)
+custom_minimum_size = Vector2(300, 400)
+layout_mode = 2
+
+[node name="Username" type="Label" parent="CardsContainer/HostCard"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.1
+anchor_right = 0.5
+anchor_bottom = 0.1
+offset_left = -100.0
+offset_right = 100.0
+offset_bottom = 40.0
+text = "..."
+horizontal_alignment = 1
+
+[node name="Level" type="Label" parent="CardsContainer/HostCard"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.18
+anchor_right = 0.5
+anchor_bottom = 0.18
+offset_left = -50.0
+offset_right = 50.0
+offset_bottom = 30.0
+text = "..."
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="CardsContainer/HostCard"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.85
+anchor_right = 0.5
+anchor_bottom = 0.85
+offset_left = -60.0
+offset_right = 60.0
+offset_bottom = 30.0
+text = "READY"
+horizontal_alignment = 1
+
+[node name="VSLabel" type="Label" parent="CardsContainer"]
+custom_minimum_size = Vector2(100, 400)
+layout_mode = 2
+text = "VS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ClientCard" type="Panel" parent="CardsContainer"]
+modulate = Color(1, 0.3, 0.7, 0.8)
+custom_minimum_size = Vector2(300, 400)
+layout_mode = 2
+
+[node name="Username" type="Label" parent="CardsContainer/ClientCard"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.1
+anchor_right = 0.5
+anchor_bottom = 0.1
+offset_left = -100.0
+offset_right = 100.0
+offset_bottom = 40.0
+text = "."
+horizontal_alignment = 1
+
+[node name="Level" type="Label" parent="CardsContainer/ClientCard"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.18
+anchor_right = 0.5
+anchor_bottom = 0.18
+offset_left = -50.0
+offset_right = 50.0
+offset_bottom = 30.0
+text = "."
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="CardsContainer/ClientCard"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.85
+anchor_right = 0.5
+anchor_bottom = 0.85
+offset_left = -60.0
+offset_right = 60.0
+offset_bottom = 30.0
+text = "Searching.."
+horizontal_alignment = 1
+
+[node name="ButtonPanel" type="HBoxContainer" parent="."]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.85
+anchor_right = 0.5
+anchor_bottom = 0.85
+offset_left = -200.0
+offset_right = 200.0
+offset_bottom = 50.0
+theme_override_constants/separation = 25
+alignment = 1
+
+[node name="StartButton" type="Button" parent="ButtonPanel"]
+layout_mode = 2
+text = "START MATCH"
+
+[node name="LeaveButton" type="Button" parent="ButtonPanel"]
+layout_mode = 2
+text = "LEAVE ROOM"
+
+[node name="MessageLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.93
+anchor_right = 0.5
+anchor_bottom = 0.93
+offset_left = -200.0
+offset_top = 5.0
+offset_right = 200.0
+offset_bottom = 45.0
+text = "Waiting for player to join..."
+horizontal_alignment = 1

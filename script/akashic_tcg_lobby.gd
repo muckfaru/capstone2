@@ -7,7 +7,7 @@ var _rooms: Array = []  # Local lobby room list; each: {id, host, players}
 
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const POLL_INTERVAL := 5.0
-const ROOMS_PATH := "/codebreaker_rooms"
+const ROOMS_PATH := "/tgc_rooms"
 
 var _refresh_timer: Timer
 
@@ -16,7 +16,7 @@ func _ready() -> void:
 	if create_btn:
 		create_btn.pressed.connect(_on_create_room_pressed)
 	else:
-		push_warning("[CodeBreakerLobby] CreateRoomButton not found")
+		push_warning("[AkashicLobby] CreateRoomButton not found")
 
 	# Poll room list periodically
 	_refresh_timer = Timer.new()
@@ -30,10 +30,10 @@ func _ready() -> void:
 
 
 func _on_create_room_pressed() -> void:
-	print("[CodeBreakerLobby] Create Room clicked")
+	print("[AkashicLobby] Create Room clicked")
 	var popup_scene := load("res://scene/CreateRoomPopup.tscn")
 	if not popup_scene:
-		push_error("[CodeBreakerLobby] CreateRoomPopup.tscn not found")
+		push_error("[AkashicLobby] CreateRoomPopup.tscn not found")
 		return
 	var popup: Window = popup_scene.instantiate()
 	add_child(popup)
@@ -59,9 +59,6 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	var uid := Auth.current_local_id if Auth else ""
 	var username := Auth.current_username if Auth and Auth.current_username != "" else room_name
 	var level := 0
-	if has_node("/root/Landing"):
-		# Optional: if Landing exposes level, could pull from there; fallback to 0
-		pass
 
 	var body := {
 		"host": {
@@ -82,26 +79,26 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	http.request_completed.connect(func(_r, code, _h, resp_body: PackedByteArray):
 		http.queue_free()
 		if code != 200:
-			push_error("[CodeBreakerLobby] Failed to create room. HTTP " + str(code))
+			push_error("[AkashicLobby] Failed to create room. HTTP " + str(code))
 			return
 		var resp = JSON.parse_string(resp_body.get_string_from_utf8())
 		var room_id: String = str(resp.get("name", ""))
 		if room_id == "":
-			push_error("[CodeBreakerLobby] No room id returned from RTDB")
+			push_error("[AkashicLobby] No room id returned from RTDB")
 			return
-		print("[CodeBreakerLobby] Room created in RTDB:", room_id)
+		print("[AkashicLobby] Room created in RTDB:", room_id)
 		# Navigate to room
 		var init := {
 			"room_id": room_id,
 			"host_name": str(body["host"]["username"]),
 			"is_host": true,
 		}
-		get_tree().set_meta("code_breaker_room_init", init)
-		var room_scene := load("res://scene/code_breaker_room.tscn")
+		get_tree().set_meta("tgc_room_init", init)
+		var room_scene := load("res://scene/akashic_tcg_room.tscn")
 		if room_scene:
 			get_tree().change_scene_to_packed(room_scene)
 		else:
-			push_error("[CodeBreakerLobby] code_breaker_room.tscn not found")
+			push_error("[AkashicLobby] akashic_tcg_room.tscn not found")
 	)
 
 	var url := RTDB_BASE + ROOMS_PATH + ".json" + ("?auth=" + id_token if id_token != "" else "")
@@ -128,7 +125,6 @@ func _add_room_row(entry: Dictionary) -> void:
 	h.add_child(user_label)
 
 	var players_label := Label.new()
-	# Make the players column expand and center its content so it aligns with the header
 	players_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	players_label.custom_minimum_size = Vector2(0, 28)
 	players_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -137,7 +133,7 @@ func _add_room_row(entry: Dictionary) -> void:
 
 	var action_btn := Button.new()
 	action_btn.custom_minimum_size = Vector2(100, 28)
-	action_btn.size_flags_horizontal = 0  # fixed column width
+	action_btn.size_flags_horizontal = 0
 	action_btn.text = "JOIN"
 	action_btn.disabled = not bool(entry.get("joinable", false))
 	action_btn.pressed.connect(func():
@@ -157,7 +153,7 @@ func _fetch_rooms() -> void:
 	http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
 		http.queue_free()
 		if code != 200:
-			push_warning("[CodeBreakerLobby] Fetch rooms failed HTTP " + str(code))
+			push_warning("[AkashicLobby] Fetch rooms failed HTTP " + str(code))
 			return
 		var data = JSON.parse_string(body.get_string_from_utf8())
 		_populate_rooms_from_data(data)
@@ -211,13 +207,13 @@ func _join_room(room_id: String) -> void:
 	get_http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
 		get_http.queue_free()
 		if code != 200:
-			push_warning("[CodeBreakerLobby] Failed to read room before join " + str(code))
+			push_warning("[AkashicLobby] Failed to read room before join " + str(code))
 			return
 		var node = JSON.parse_string(body.get_string_from_utf8())
 		if not node or typeof(node) != TYPE_DICTIONARY:
 			return
 		if node.get("client", null) != null:
-			push_warning("[CodeBreakerLobby] Room already has a client")
+			push_warning("[AkashicLobby] Room already has a client")
 			_fetch_rooms()
 			return
 		# If host is anonymous, force client to also be Anonymous
@@ -231,16 +227,16 @@ func _join_room(room_id: String) -> void:
 		patch_http.request_completed.connect(func(_r2, code2, _h2, _b2):
 			patch_http.queue_free()
 			if code2 != 200:
-				push_error("[CodeBreakerLobby] Join failed HTTP " + str(code2))
+				push_error("[AkashicLobby] Join failed HTTP " + str(code2))
 				return
 			# Navigate as client
 			var init := {"room_id": room_id, "host_name": str(node.get("host", {}).get("username", "Host")), "is_host": false}
-			get_tree().set_meta("code_breaker_room_init", init)
-			var room_scene := load("res://scene/code_breaker_room.tscn")
+			get_tree().set_meta("tgc_room_init", init)
+			var room_scene := load("res://scene/akashic_tcg_room.tscn")
 			if room_scene:
 				get_tree().change_scene_to_packed(room_scene)
 			else:
-				push_error("[CodeBreakerLobby] code_breaker_room.tscn not found")
+				push_error("[AkashicLobby] akashic_tcg_room.tscn not found")
 		)
 		var patch_url := RTDB_BASE + ROOMS_PATH + "/" + room_id + ".json" + ("?auth=" + id_token if id_token != "" else "")
 		patch_http.request(patch_url, ["Content-Type: application/json"], HTTPClient.METHOD_PATCH, JSON.stringify(patch_body))

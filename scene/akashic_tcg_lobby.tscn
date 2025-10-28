@@ -1,52 +1,52 @@
-[gd_scene load_steps=8 format=3 uid="uid://b14mflwcapld1"]
+[gd_scene load_steps=8 format=3 uid="uid://clvghcukrtua8"]
 
-[ext_resource type="Script" uid="uid://elvke108a8gu" path="res://script/code_breaker_lobby.gd" id="1_p5ftw"]
+[ext_resource type="Script" uid="uid://cd7kr0oyf5nsp" path="res://script/akashic_tcg_lobby.gd" id="1_tgc"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qydhr"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p5ftw"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.00392157, 0.0745098, 0.160784, 0.690196)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7nkrr"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_focus"]
 bg_color = Color(0.250708, 0.340676, 0.14517, 1)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3upjy"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
 bg_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ol6m0"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_pressed"]
 bg_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7nkdn"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
 bg_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 
-[node name="CodeBreakerLobby" type="Panel"]
+[node name="AkashicLobby" type="Panel"]
 offset_left = -99.0
 offset_top = 45.0
 offset_right = 1260.0
 offset_bottom = 646.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_qydhr")
-script = ExtResource("1_p5ftw")
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+script = ExtResource("1_tgc")
 
 [node name="TitleLabel" type="Label" parent="."]
 custom_minimum_size = Vector2(200, 40)
@@ -61,7 +61,7 @@ offset_top = 14.88
 offset_right = -384.35
 offset_bottom = 64.88
 theme_override_font_sizes/font_size = 36
-text = "CODE BREAKER"
+text = "AKASHIC TGC"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -77,7 +77,7 @@ offset_left = 68.1
 offset_top = -4.25
 offset_right = -260.1
 offset_bottom = 5.10004
-theme_override_styles/panel = SubResource("StyleBoxFlat_p5ftw")
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="HeaderRow" type="HBoxContainer" parent="LobbyPanel"]
 custom_minimum_size = Vector2(0, 30)
@@ -129,8 +129,8 @@ anchor_left = 0.75
 anchor_top = 0.82
 anchor_right = 0.95
 anchor_bottom = 0.9
-theme_override_styles/focus = SubResource("StyleBoxFlat_7nkrr")
-theme_override_styles/hover = SubResource("StyleBoxFlat_3upjy")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_ol6m0")
-theme_override_styles/normal = SubResource("StyleBoxFlat_7nkdn")
+theme_override_styles/focus = SubResource("StyleBoxFlat_btn_focus")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 text = "CREATE ROOM"
