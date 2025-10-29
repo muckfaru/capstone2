@@ -43,7 +43,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -59.0
 offset_top = -2.0
-offset_right = 330.0
+offset_right = 174.0
 offset_bottom = 69.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -224,7 +224,7 @@ horizontal_alignment = 1
 
 [node name="RoomChat" parent="." instance=ExtResource("2_room_chat")]
 layout_mode = 0
-offset_left = 47.0
-offset_top = 381.0
-offset_right = 373.0
-offset_bottom = 605.0
+offset_left = -2.0
+offset_top = 488.0
+offset_right = 249.0
+offset_bottom = 680.0
