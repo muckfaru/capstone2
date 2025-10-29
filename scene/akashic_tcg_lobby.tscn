@@ -1,7 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://clvghcukrtua8"]
+[gd_scene load_steps=4 format=3 uid="uid://clvghcukrtua8"]
 
 [ext_resource type="Script" uid="uid://cd7kr0oyf5nsp" path="res://script/akashic_tcg_lobby.gd" id="1_tgc"]
-[ext_resource type="Theme" path="res://theme/app_theme.tres" id="2_theme"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -18,7 +17,6 @@ offset_left = -99.0
 offset_top = 45.0
 offset_right = 1260.0
 offset_bottom = 646.0
-theme = ExtResource("2_theme")
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 script = ExtResource("1_tgc")
 

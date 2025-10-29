@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://duwhmbek552p0"]
+[gd_scene load_steps=3 format=3 uid="uid://duwhmbek552p0"]
 
 [ext_resource type="Script" uid="uid://b5sd78sk5nlci" path="res://script/create_room_popup.gd" id="1_2oyh8"]
+[ext_resource type="Texture2D" uid="uid://b0hqp1oabg1l3" path="res://asset/background/background tv .png" id="2_wjyrl"]
 
 [node name="CreateRoomPopup" type="Window"]
 title = "Create Room"
@@ -9,67 +10,63 @@ size = Vector2i(480, 300)
 always_on_top = true
 script = ExtResource("1_2oyh8")
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="TextureRect" type="TextureRect" parent="."]
+offset_right = 478.0
+offset_bottom = 301.0
+texture = ExtResource("2_wjyrl")
+expand_mode = 1
+
+[node name="VBox" type="VBoxContainer" parent="TextureRect"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
+offset_left = 36.0
+offset_top = 15.0
+offset_right = -22.0
+offset_bottom = -19.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 15
 alignment = 1
 
-[node name="HeaderLabel" type="Label" parent="VBox"]
+[node name="HeaderLabel" type="Label" parent="TextureRect/VBox"]
 layout_mode = 2
 text = "CREATE ROOM"
 horizontal_alignment = 1
 
-[node name="RoomNameContainer" type="VBoxContainer" parent="VBox"]
+[node name="RoomNameContainer" type="VBoxContainer" parent="TextureRect/VBox"]
 layout_mode = 2
 
-[node name="RoomNameLabel" type="Label" parent="VBox/RoomNameContainer"]
+[node name="RoomNameLabel" type="Label" parent="TextureRect/VBox/RoomNameContainer"]
 layout_mode = 2
 text = "Room Name:"
 
-[node name="RoomNameEdit" type="LineEdit" parent="VBox/RoomNameContainer"]
+[node name="RoomNameEdit" type="LineEdit" parent="TextureRect/VBox/RoomNameContainer"]
 layout_mode = 2
 text = "Mark"
 placeholder_text = "Room Name"
 editable = false
 
-[node name="AnonymousContainer" type="HBoxContainer" parent="VBox"]
+[node name="AnonymousContainer" type="HBoxContainer" parent="TextureRect/VBox"]
 layout_mode = 2
 
-[node name="AnonymousCheckInsideRoom" type="CheckBox" parent="VBox/AnonymousContainer"]
+[node name="AnonymousCheckInsideRoom" type="CheckBox" parent="TextureRect/VBox/AnonymousContainer"]
 layout_mode = 2
 tooltip_text = "Hide your username and use 'Anonymous' as room name"
 text = "Anonymous inside the room?"
 
-[node name="PasswordContainer" type="VBoxContainer" parent="VBox"]
-visible = false
-layout_mode = 2
-
-[node name="PasswordLabel" type="Label" parent="VBox/PasswordContainer"]
-layout_mode = 2
-text = "Room Password:"
-
-[node name="PasswordEdit" type="LineEdit" parent="VBox/PasswordContainer"]
-layout_mode = 2
-placeholder_text = "Enter password..."
-secret = true
-
-[node name="Buttons" type="HBoxContainer" parent="VBox"]
+[node name="Buttons" type="HBoxContainer" parent="TextureRect/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 30
 alignment = 1
 
-[node name="CreateButton" type="Button" parent="VBox/Buttons"]
+[node name="CreateButton" type="Button" parent="TextureRect/VBox/Buttons"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
 text = "CREATE ROOM"
 
-[node name="CancelButton" type="Button" parent="VBox/Buttons"]
+[node name="CancelButton" type="Button" parent="TextureRect/VBox/Buttons"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
 text = "CANCEL"

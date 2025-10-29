@@ -1,9 +1,8 @@
-[gd_scene load_steps=9 format=3 uid="uid://ciyy0xxjwf4tv"]
+[gd_scene load_steps=8 format=3 uid="uid://ciyy0xxjwf4tv"]
 
 [ext_resource type="Script" uid="uid://c8n2h01dc8bvy" path="res://script/akashic_tcg_room.gd" id="1_tgc_room"]
 [ext_resource type="PackedScene" path="res://scene/room_chat.tscn" id="2_room_chat"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="3_hu3fe"]
-[ext_resource type="Theme" path="res://theme/app_theme.tres" id="3_theme"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q6g3i"]
 
@@ -44,7 +43,6 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme = ExtResource("3_theme")
 script = ExtResource("1_tgc_room")
 
 [node name="Background" type="TextureRect" parent="."]

@@ -412,7 +412,6 @@ offset_left = 11.0
 offset_top = 20.0
 offset_right = 1360.0
 offset_bottom = 634.0
-theme = null
 
 [node name="AkashicLobby" parent="VideoStreamPlayer" instance=ExtResource("11_tgc")]
 visible = false
@@ -421,7 +420,6 @@ offset_left = 11.0
 offset_top = 20.0
 offset_right = 1360.0
 offset_bottom = 634.0
-theme = null
 
 [node name="NavigationPanel" type="Panel" parent="."]
 custom_minimum_size = Vector2(0, 46)
