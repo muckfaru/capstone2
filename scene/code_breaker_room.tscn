@@ -1,7 +1,30 @@
-[gd_scene load_steps=3 format=3 uid="uid://cvvag1ig1w2l2"]
+[gd_scene load_steps=7 format=3 uid="uid://cvvag1ig1w2l2"]
 
 [ext_resource type="Script" uid="uid://bfl7x4bgwwx3k" path="res://script/code_breaker_room.gd" id="1_w0by1"]
 [ext_resource type="PackedScene" path="res://scene/room_chat.tscn" id="2_room_chat"]
+[ext_resource type="Texture2D" uid="uid://ct0fcceas6r5c" path="res://asset/background/room backround.png" id="3_fpe01"]
+[ext_resource type="Theme" path="res://theme/app_theme.tres" id="3_theme"]
+
+[sub_resource type="StyleBoxFlat" id="2_btn_hover"]
+bg_color = Color(0.678431, 0.984314, 0.396078, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.678431, 0.984314, 0.396078, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.678431, 0.984314, 0.396078, 0.733333)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="1_btn_normal"]
+bg_color = Color(0.678431, 0.984314, 0.396078, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="room" type="Control"]
 layout_mode = 3
@@ -12,6 +35,7 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme = ExtResource("3_theme")
 script = ExtResource("1_w0by1")
 
 [node name="Background" type="TextureRect" parent="."]
@@ -19,12 +43,14 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -172.0
-offset_top = -47.0
-offset_right = 212.0
-offset_bottom = 329.0
+offset_left = -59.0
+offset_top = -2.0
+offset_right = 330.0
+offset_bottom = 69.0
 grow_horizontal = 2
 grow_vertical = 2
+texture = ExtResource("3_fpe01")
+expand_mode = 1
 
 [node name="RoomHeader" type="HBoxContainer" parent="."]
 layout_mode = 0
@@ -61,7 +87,8 @@ offset_bottom = 200.0
 alignment = 1
 
 [node name="HostCard" type="Panel" parent="CardsContainer"]
-modulate = Color(0.1, 0.6, 0.9, 0.8)
+modulate = Color(0.101961, 0.6, 0.901961, 0.996078)
+self_modulate = Color(0.615686, 0.615686, 0.615686, 1)
 custom_minimum_size = Vector2(300, 400)
 layout_mode = 2
 
@@ -109,7 +136,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ClientCard" type="Panel" parent="CardsContainer"]
-modulate = Color(1, 0.3, 0.7, 0.8)
+self_modulate = Color(0.617455, 0.617455, 0.617455, 1)
 custom_minimum_size = Vector2(300, 400)
 layout_mode = 2
 
@@ -155,18 +182,32 @@ anchor_left = 0.5
 anchor_top = 0.85
 anchor_right = 0.5
 anchor_bottom = 0.85
-offset_left = -200.0
-offset_right = 200.0
+offset_left = -260.0
+offset_right = 260.0
 offset_bottom = 50.0
 theme_override_constants/separation = 25
 alignment = 1
 
 [node name="StartButton" type="Button" parent="ButtonPanel"]
+custom_minimum_size = Vector2(220, 48)
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_type_variation = &"PrimaryButton"
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_styles/hover = SubResource("2_btn_hover")
+theme_override_styles/normal = SubResource("1_btn_normal")
 text = "START MATCH"
 
 [node name="LeaveButton" type="Button" parent="ButtonPanel"]
+custom_minimum_size = Vector2(220, 48)
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_type_variation = &"DangerButton"
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_styles/hover = SubResource("2_btn_hover")
+theme_override_styles/normal = SubResource("1_btn_normal")
 text = "LEAVE ROOM"
 
 [node name="MessageLabel" type="Label" parent="."]
@@ -184,3 +225,8 @@ text = "Waiting for player to join..."
 horizontal_alignment = 1
 
 [node name="RoomChat" parent="." instance=ExtResource("2_room_chat")]
+layout_mode = 0
+offset_left = 47.0
+offset_top = 381.0
+offset_right = 373.0
+offset_bottom = 605.0

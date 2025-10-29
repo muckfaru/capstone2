@@ -163,6 +163,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_uyhdp")
 theme_override_styles/normal = SubResource("StyleBoxFlat_eumta")
 text = "SIGNUP
 "
+mouse_default_cursor_shape = 2
 
 [node name="logo" type="PanelContainer" parent="VideoStreamPlayer"]
 modulate = Color(0, 0, 0, 1)
@@ -193,6 +194,7 @@ offset_top = 482.0
 offset_right = 452.0
 offset_bottom = 530.0
 texture_normal = ExtResource("4_db6g7")
+mouse_default_cursor_shape = 2
 
 [node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
 layout_mode = 2
@@ -201,6 +203,7 @@ offset_top = 481.0
 offset_right = 398.0
 offset_bottom = 529.0
 texture_normal = ExtResource("5_uyhdp")
+mouse_default_cursor_shape = 2
 
 [node name="UsernameLabel2" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
@@ -220,6 +223,7 @@ offset_bottom = 580.0
 theme_override_colors/font_color = Color(0.961518, 4.45209e-06, 9.62615e-07, 1)
 theme_override_styles/focus = SubResource("StyleBoxFlat_07f7y")
 text = "Login"
+mouse_default_cursor_shape = 2
 
 [connection signal="pressed" from="VideoStreamPlayer/SignUpButton" to="." method="_on_register_button_pressed"]
 [connection signal="pressed" from="VideoStreamPlayer/ChangeToLoginButton" to="." method="_on_change_to_login_button_pressed"]

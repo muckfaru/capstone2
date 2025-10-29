@@ -200,6 +200,7 @@ offset_left = 160.0
 offset_top = 80.0
 offset_right = 321.0
 offset_bottom = 132.0
+mouse_default_cursor_shape = 2
 text = "Akashic TGC"
 
 [node name="CodeBreakerRank" type="Button" parent="VideoStreamPlayer/RankingPanel"]
@@ -208,6 +209,7 @@ offset_left = 338.0
 offset_top = 82.0
 offset_right = 505.0
 offset_bottom = 132.0
+mouse_default_cursor_shape = 2
 text = "Code Breaker"
 
 [node name="list" type="Panel" parent="VideoStreamPlayer/RankingPanel"]
@@ -345,6 +347,7 @@ offset_left = 70.0
 offset_top = 327.0
 offset_right = 169.0
 offset_bottom = 358.0
+mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_08qf3")
 text = "Save Profile"
 
@@ -354,6 +357,7 @@ offset_left = 65.0
 offset_top = 149.0
 offset_right = 171.0
 offset_bottom = 180.0
+mouse_default_cursor_shape = 2
 theme_override_styles/focus = SubResource("StyleBoxFlat_86hhj")
 theme_override_styles/normal = SubResource("StyleBoxFlat_soi4p")
 text = "Select image"
@@ -408,6 +412,7 @@ offset_left = 11.0
 offset_top = 20.0
 offset_right = 1360.0
 offset_bottom = 634.0
+theme = null
 
 [node name="AkashicLobby" parent="VideoStreamPlayer" instance=ExtResource("11_tgc")]
 visible = false
@@ -416,6 +421,7 @@ offset_left = 11.0
 offset_top = 20.0
 offset_right = 1360.0
 offset_bottom = 634.0
+theme = null
 
 [node name="NavigationPanel" type="Panel" parent="."]
 custom_minimum_size = Vector2(0, 46)
@@ -437,30 +443,36 @@ theme = SubResource("Theme_qdyf0")
 
 [node name="LogoButton" type="TextureButton" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
+mouse_default_cursor_shape = 2
 texture_normal = ExtResource("3_q33pn")
 
 [node name="HomeNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_uxtpd")
 text = "Home"
 
 [node name="GameNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_bafi2")
 text = "Game"
 
 [node name="RankingNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Ranking"
 
 [node name="ProfileNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Profile"
 
 [node name="LogoutButton" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_xoh2d")
 text = "Log out"
 

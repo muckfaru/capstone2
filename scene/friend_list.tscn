@@ -124,6 +124,7 @@ caret_blink_interval = 1.35
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.35
+mouse_default_cursor_shape = 2
 theme_override_styles/focus = SubResource("StyleBoxFlat_js1fy")
 theme_override_styles/hover = SubResource("StyleBoxFlat_3d7hl")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_44a1m")

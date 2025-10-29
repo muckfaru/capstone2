@@ -16,6 +16,11 @@ const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const POLL_INTERVAL := 2.0
 const ROOMS_PATH := "/codebreaker_rooms"
 
+# Theme colors (Cyber Neon)
+const COLOR_ACCENT := Color(0, 0.819608, 1, 1) # cyan
+const COLOR_DANGER := Color(1, 0.356863, 0.431373, 1) # pink-red
+const COLOR_MUTED := Color(0.560784, 0.639216, 0.678431, 1) # muted gray-blue
+
 var _room_id: String = ""
 var _is_host: bool = false
 var _last_client_present: bool = false
@@ -133,10 +138,12 @@ func _apply_room_snapshot(node: Dictionary) -> void:
 		var host_lvl_val = host_val.get("level", 0)
 		_host_level.text = "Level: " + str(int(host_lvl_val))
 		_host_status.text = str(host_val.get("status", "READY")).to_upper()
+		_host_status.add_theme_color_override("font_color", COLOR_ACCENT)
 	else:
 		_host_username.text = "."
 		_host_level.text = ""
 		_host_status.text = "LEFT"
+		_host_status.add_theme_color_override("font_color", COLOR_DANGER)
 
 	# Client UI
 	if client_present:
@@ -145,6 +152,7 @@ func _apply_room_snapshot(node: Dictionary) -> void:
 		_client_level.text = "Level: " + str(int(client_lvl_val))
 		var c_status := str(client_val.get("status", "not_ready"))
 		_client_status.text = ("READY" if c_status == "ready" else "NOT READY")
+		_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if c_status == "ready" else COLOR_DANGER))
 		if not _last_client_present:
 			_message_label.text = "Player joined!"
 
@@ -162,6 +170,7 @@ func _apply_room_snapshot(node: Dictionary) -> void:
 		_client_username.text = "."
 		_client_level.text = "."
 		_client_status.text = "Searching.."
+		_client_status.add_theme_color_override("font_color", COLOR_MUTED)
 		if _last_client_present:
 			_message_label.text = "Player left."
 	_last_client_present = client_present
@@ -169,6 +178,7 @@ func _apply_room_snapshot(node: Dictionary) -> void:
 	# State + Start/Ready button enablement
 	var players := (1 if host_present else 0) + (1 if client_present else 0)
 	_room_state_label.text = ("READY" if players == 2 else "WAITING")
+	_room_state_label.add_theme_color_override("font_color", (COLOR_ACCENT if players == 2 else COLOR_MUTED))
 	# If we see host now equals our uid, flip _is_host
 	if host_present:
 		var host_uid := str(host_val.get("uid", ""))
@@ -224,6 +234,7 @@ func _on_ready_toggled(pressed: bool) -> void:
 	# Status displays the current state; button shows the action to switch
 	_client_status.text = ("READY" if pressed else "NOT READY")
 	_start_btn.text = ("NOT READY" if pressed else "READY")
+	_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if pressed else COLOR_DANGER))
 	# Patch RTDB at client node
 	if _room_id == "":
 		return

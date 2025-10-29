@@ -1,6 +1,7 @@
-[gd_scene load_steps=9 format=3 uid="uid://clvghcukrtua8"]
+[gd_scene load_steps=5 format=3 uid="uid://clvghcukrtua8"]
 
 [ext_resource type="Script" uid="uid://cd7kr0oyf5nsp" path="res://script/akashic_tcg_lobby.gd" id="1_tgc"]
+[ext_resource type="Theme" path="res://theme/app_theme.tres" id="2_theme"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -12,41 +13,12 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_focus"]
-bg_color = Color(0.250708, 0.340676, 0.14517, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
-bg_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_pressed"]
-bg_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
-bg_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
-
-[sub_resource type="Theme" id="Theme_orstx"]
-
 [node name="AkashicLobby" type="Panel"]
 offset_left = -99.0
 offset_top = 45.0
 offset_right = 1260.0
 offset_bottom = 646.0
+theme = ExtResource("2_theme")
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 script = ExtResource("1_tgc")
 
@@ -131,10 +103,8 @@ anchor_left = 0.75
 anchor_top = 0.82
 anchor_right = 0.95
 anchor_bottom = 0.9
-theme_override_styles/focus = SubResource("StyleBoxFlat_btn_focus")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+mouse_default_cursor_shape = 2
+theme_type_variation = &"PrimaryButton"
 text = "CREATE ROOM"
 
 [node name="BackButton" type="Button" parent="LobbyPanel"]
@@ -143,6 +113,6 @@ offset_left = 33.0
 offset_top = 334.0
 offset_right = 96.0
 offset_bottom = 365.0
-theme = SubResource("Theme_orstx")
-theme_type_variation = &"FlatButton"
+mouse_default_cursor_shape = 2
+theme_type_variation = &"GhostButton"
 text = "← Back"

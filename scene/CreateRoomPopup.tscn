@@ -34,8 +34,9 @@ text = "Room Name:"
 
 [node name="RoomNameEdit" type="LineEdit" parent="VBox/RoomNameContainer"]
 layout_mode = 2
+text = "Mark"
 placeholder_text = "Room Name"
-editable = true
+editable = false
 
 [node name="AnonymousContainer" type="HBoxContainer" parent="VBox"]
 layout_mode = 2
@@ -65,8 +66,10 @@ alignment = 1
 
 [node name="CreateButton" type="Button" parent="VBox/Buttons"]
 layout_mode = 2
+mouse_default_cursor_shape = 2
 text = "CREATE ROOM"
 
 [node name="CancelButton" type="Button" parent="VBox/Buttons"]
 layout_mode = 2
+mouse_default_cursor_shape = 2
 text = "CANCEL"

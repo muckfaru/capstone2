@@ -70,6 +70,7 @@ offset_left = 419.0
 offset_top = 466.0
 offset_right = 704.0
 offset_bottom = 539.0
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 24
 theme_override_styles/focus = SubResource("StyleBoxFlat_pcrkf")
 theme_override_styles/hover = SubResource("StyleBoxFlat_fwo4p")
