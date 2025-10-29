@@ -98,7 +98,7 @@ horizontal_alignment = 1
 [node name="LabelUser" type="Label" parent="LobbyPanel/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Username"
+text = "Room name"
 horizontal_alignment = 1
 
 [node name="LabelPlayers" type="Label" parent="LobbyPanel/HeaderRow"]

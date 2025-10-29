@@ -15,6 +15,7 @@ var current_id_token: String = ""
 var current_local_id: String = ""
 var current_username: String = ""
 var current_avatar: String = ""
+var current_level: int = 0
 
 func _ready() -> void:
 	# Connect signal for request
@@ -195,7 +196,7 @@ func _request(url: String, body: Dictionary) -> void:
 # -------------------------
 # 📬 RESPONSE HANDLER
 # -------------------------
-func _on_request_completed(result: int, response_code: int, _h: PackedStringArray, body: PackedByteArray) -> void:
+func _on_request_completed(_result: int, response_code: int, _h: PackedStringArray, body: PackedByteArray) -> void:
 	var response := {}
 	if body.size() > 0:
 		var text := body.get_string_from_utf8()

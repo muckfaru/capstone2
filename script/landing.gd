@@ -184,7 +184,10 @@ func _on_user_data_response(result, response_code, _headers, body) -> void:
 		username_input.text = Auth.current_username
 
 	if f.has("level"):
-		level_input.text = str(f["level"]["integerValue"])
+		var lvl := int(f["level"]["integerValue"])
+		level_input.text = str(lvl)
+		if Auth:
+			Auth.current_level = lvl
 
 	if f.has("wins"):
 		wins_input.text = str(f["wins"]["integerValue"])

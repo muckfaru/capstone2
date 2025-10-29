@@ -84,7 +84,10 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	var id_token := Auth.current_id_token if Auth else ""
 	var uid := Auth.current_local_id if Auth else ""
 	var username := Auth.current_username if Auth and Auth.current_username != "" else room_name
-	var level := 0
+	var level := (Auth.current_level if Auth else 0)
+	var final_room_name := room_name.strip_edges()
+	if final_room_name == "":
+		final_room_name = ("Anonymous" if anonymous else username)
 
 	var body := {
 		"host": {
@@ -93,6 +96,7 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 			"level": level,
 			"status": "ready"
 		},
+		"room_name": final_room_name,
 		"client": null,
 		"state": "waiting",
 		"max_players": 2,
@@ -144,11 +148,11 @@ func _add_room_row(entry: Dictionary) -> void:
 	idx_label.text = str(_rooms.size())
 	h.add_child(idx_label)
 
-	var user_label := Label.new()
-	user_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	user_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	user_label.text = str(entry.get("host", "?"))
-	h.add_child(user_label)
+	var name_label := Label.new()
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.text = str(entry.get("room_name", "?"))
+	h.add_child(name_label)
 
 	var players_label := Label.new()
 	players_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -207,13 +211,14 @@ func _populate_rooms_from_data(data) -> void:
 		var client_present: bool = client_val != null and typeof(client_val) == TYPE_DICTIONARY and client_val.size() > 0
 		var host_dict: Dictionary = (host_val if host_present else {})
 		var host_name := str(host_dict.get("username", "?"))
+		var room_name := str(node.get("room_name", host_name))
 		var players_count := (1 if host_present else 0) + (1 if client_present else 0)
 		var players_text := str(players_count) + "/2"
 		var current_uid := Auth.current_local_id if Auth else ""
 		var joinable: bool = (players_count < 2) and host_present and (str(host_dict.get("uid", "")) != current_uid)
 		var entry := {
 			"id": room_id,
-			"host": host_name,
+			"room_name": room_name,
 			"players_text": players_text,
 			"joinable": joinable
 		}
@@ -226,7 +231,7 @@ func _join_room(room_id: String) -> void:
 	var id_token := Auth.current_id_token if Auth else ""
 	var uid := Auth.current_local_id if Auth else ""
 	var username := Auth.current_username if Auth else "Player"
-	var level := 0
+	var level := (Auth.current_level if Auth else 0)
 	# Read current room to ensure available
 	var get_http := HTTPRequest.new()
 	add_child(get_http)

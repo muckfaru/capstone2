@@ -34,9 +34,8 @@ text = "Room Name:"
 
 [node name="RoomNameEdit" type="LineEdit" parent="VBox/RoomNameContainer"]
 layout_mode = 2
-text = "Mark"
 placeholder_text = "Room Name"
-editable = false
+editable = true
 
 [node name="AnonymousContainer" type="HBoxContainer" parent="VBox"]
 layout_mode = 2

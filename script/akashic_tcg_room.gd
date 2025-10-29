@@ -35,7 +35,8 @@ func _ready() -> void:
 	_room_id = room_id
 	_is_host = is_host
 
-	_room_id_label.text = "ROOM: #" + room_id
+	# Initially hide the randomized room id; will set actual room name after first fetch
+	_room_id_label.text = ""
 	_room_state_label.text = "WAITING"
 
 	# Populate host card
@@ -68,6 +69,11 @@ func _ready() -> void:
 	# Configure action button based on role
 	_configure_buttons()
 
+	# Initialize embedded room chat with this room context
+	var chat := get_node_or_null("RoomChat")
+	if chat and chat.has_method("initialize"):
+		chat.initialize(RTDB_BASE, ROOMS_PATH, _room_id)
+
 func _on_poll_timeout() -> void:
 	_fetch_room()
 
@@ -97,6 +103,16 @@ func _apply_room_snapshot(node: Dictionary) -> void:
 	var host_present: bool = host_val != null and typeof(host_val) == TYPE_DICTIONARY and host_val.size() > 0
 	var client_present: bool = client_val != null and typeof(client_val) == TYPE_DICTIONARY and client_val.size() > 0
 
+	# Update header with room name (fallback to host username)
+	var host_name_for_room := "Host"
+	if host_present:
+		host_name_for_room = str(host_val.get("username", "Host"))
+	var room_name := str(node.get("room_name", host_name_for_room))
+	if room_name.strip_edges() == "":
+		room_name = host_name_for_room
+	# Show only the actual room name provided by the host, with prefix
+	_room_id_label.text = "ROOM: " + room_name
+
 	var current_uid := Auth.current_local_id if Auth else ""
 
 	# If host is absent but client exists and it's us, promote self to host
@@ -114,17 +130,19 @@ func _apply_room_snapshot(node: Dictionary) -> void:
 	# Host UI
 	if host_present:
 		_host_username.text = str(host_val.get("username", "Host"))
-		_host_level.text = str(host_val.get("level", ""))
+		var host_lvl_val = host_val.get("level", 0)
+		_host_level.text = "Level: " + str(int(host_lvl_val))
 		_host_status.text = str(host_val.get("status", "READY")).to_upper()
 	else:
 		_host_username.text = "."
-		_host_level.text = "."
+		_host_level.text = ""
 		_host_status.text = "LEFT"
 
 	# Client UI
 	if client_present:
 		_client_username.text = str(client_val.get("username", "."))
-		_client_level.text = str(client_val.get("level", "."))
+		var client_lvl_val = client_val.get("level", 0)
+		_client_level.text = "Level: " + str(int(client_lvl_val))
 		var c_status := str(client_val.get("status", "not_ready"))
 		_client_status.text = ("READY" if c_status == "ready" else "NOT READY")
 		if not _last_client_present:

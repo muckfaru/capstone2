@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://cvvag1ig1w2l2"]
+[gd_scene load_steps=3 format=3 uid="uid://cvvag1ig1w2l2"]
 
 [ext_resource type="Script" uid="uid://bfl7x4bgwwx3k" path="res://script/code_breaker_room.gd" id="1_w0by1"]
+[ext_resource type="PackedScene" path="res://scene/room_chat.tscn" id="2_room_chat"]
 
 [node name="room" type="Control"]
 layout_mode = 3
@@ -181,3 +182,5 @@ offset_right = 200.0
 offset_bottom = 45.0
 text = "Waiting for player to join..."
 horizontal_alignment = 1
+
+[node name="RoomChat" parent="." instance=ExtResource("2_room_chat")]

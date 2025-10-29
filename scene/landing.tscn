@@ -466,10 +466,10 @@ text = "Log out"
 
 [node name="ChatPanel" parent="." instance=ExtResource("9_1dlu4")]
 layout_mode = 0
-offset_left = 42.0
-offset_top = 387.0
-offset_right = 368.0
-offset_bottom = 611.0
+offset_left = 36.0
+offset_top = 401.0
+offset_right = 362.0
+offset_bottom = 625.0
 
 [node name="FriendListPanel" parent="." instance=ExtResource("3_hlv06")]
 layout_mode = 0
