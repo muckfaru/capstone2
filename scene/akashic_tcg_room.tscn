@@ -1,12 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://ciyy0xxjwf4tv"]
+[gd_scene load_steps=6 format=3 uid="uid://ciyy0xxjwf4tv"]
 
 [ext_resource type="Script" uid="uid://c8n2h01dc8bvy" path="res://script/akashic_tcg_room.gd" id="1_tgc_room"]
 [ext_resource type="PackedScene" path="res://scene/room_chat.tscn" id="2_room_chat"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="3_hu3fe"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q6g3i"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l61ti"]
 
 [sub_resource type="StyleBoxFlat" id="2_btn_hover"]
 bg_color = Color(0.494089, 0, 0.00481471, 1)
@@ -97,7 +93,6 @@ alignment = 1
 modulate = Color(0.00345016, 0.158111, 0.258427, 0.8)
 custom_minimum_size = Vector2(300, 400)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_q6g3i")
 
 [node name="Username" type="Label" parent="CardsContainer/HostCard"]
 layout_mode = 0
@@ -146,7 +141,6 @@ vertical_alignment = 1
 modulate = Color(0.4674, 3.08037e-06, 0.303094, 1)
 custom_minimum_size = Vector2(300, 400)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_l61ti")
 
 [node name="Username" type="Label" parent="CardsContainer/ClientCard"]
 layout_mode = 0
@@ -230,7 +224,7 @@ horizontal_alignment = 1
 
 [node name="RoomChat" parent="." instance=ExtResource("2_room_chat")]
 layout_mode = 0
-offset_left = 58.0
-offset_top = 383.0
-offset_right = 384.0
-offset_bottom = 607.0
+offset_left = 20.0
+offset_top = 430.0
+offset_right = 254.0
+offset_bottom = 621.0
