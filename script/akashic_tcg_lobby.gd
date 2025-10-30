@@ -81,10 +81,10 @@ func _on_create_room_pressed() -> void:
 
 func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	# Create room in Realtime Database via POST
-	var id_token := Auth.current_id_token if Auth else ""
-	var uid := Auth.current_local_id if Auth else ""
-	var username := Auth.current_username if Auth and Auth.current_username != "" else room_name
-	var level := (Auth.current_level if Auth else 0)
+	var id_token: String = Auth.current_id_token if Auth else ""
+	var uid: String = Auth.current_local_id if Auth else ""
+	var username: String = Auth.current_username if Auth and Auth.current_username != "" else room_name
+	var level: int = (Auth.current_level if Auth else 0)
 	var final_room_name := room_name.strip_edges()
 	if final_room_name == "":
 		final_room_name = ("Anonymous" if anonymous else username)
@@ -212,9 +212,9 @@ func _populate_rooms_from_data(data) -> void:
 		var host_dict: Dictionary = (host_val if host_present else {})
 		var host_name := str(host_dict.get("username", "?"))
 		var room_name := str(node.get("room_name", host_name))
-		var players_count := (1 if host_present else 0) + (1 if client_present else 0)
+		var players_count: int = (1 if host_present else 0) + (1 if client_present else 0)
 		var players_text := str(players_count) + "/2"
-		var current_uid := Auth.current_local_id if Auth else ""
+		var current_uid: String = Auth.current_local_id if Auth else ""
 		var joinable: bool = (players_count < 2) and host_present and (str(host_dict.get("uid", "")) != current_uid)
 		var entry := {
 			"id": room_id,
@@ -228,10 +228,10 @@ func _populate_rooms_from_data(data) -> void:
 func _join_room(room_id: String) -> void:
 	if room_id == "":
 		return
-	var id_token := Auth.current_id_token if Auth else ""
-	var uid := Auth.current_local_id if Auth else ""
-	var username := Auth.current_username if Auth else "Player"
-	var level := (Auth.current_level if Auth else 0)
+	var id_token: String = Auth.current_id_token if Auth else ""
+	var uid: String = Auth.current_local_id if Auth else ""
+	var username: String = Auth.current_username if Auth else "Player"
+	var level: int = (Auth.current_level if Auth else 0)
 	# Read current room to ensure available
 	var get_http := HTTPRequest.new()
 	add_child(get_http)
@@ -249,7 +249,7 @@ func _join_room(room_id: String) -> void:
 			return
 		# If host is anonymous, force client to also be Anonymous
 		var host_name_in_room := str(node.get("host", {}).get("username", ""))
-		var client_username := ("Anonymous" if host_name_in_room == "Anonymous" else username)
+		var client_username: String = ("Anonymous" if host_name_in_room == "Anonymous" else username)
 		var patch_body := {
 			"client": {"uid": uid, "username": client_username, "level": level, "status": "not_ready"}
 		}

@@ -30,7 +30,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="room" type="Control"]
+[node name="room2" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -195,7 +195,13 @@ custom_minimum_size = Vector2(220, 48)
 layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_type_variation = &"PrimaryButton"
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_styles/focus = SubResource("2_btn_hover")
 theme_override_styles/hover = SubResource("2_btn_hover")
+theme_override_styles/pressed = SubResource("2_btn_hover")
 theme_override_styles/normal = SubResource("1_btn_normal")
 text = "START MATCH"
 
@@ -204,7 +210,13 @@ custom_minimum_size = Vector2(220, 48)
 layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_type_variation = &"DangerButton"
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_styles/focus = SubResource("2_btn_hover")
 theme_override_styles/hover = SubResource("2_btn_hover")
+theme_override_styles/pressed = SubResource("2_btn_hover")
 theme_override_styles/normal = SubResource("1_btn_normal")
 text = "LEAVE ROOM"
 

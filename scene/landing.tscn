@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=32 format=3 uid="uid://5o3qtaqdnl8s"]
 
 [ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_qr7a0"]
 [ext_resource type="VideoStream" uid="uid://copge130jsikm" path="res://asset/Cyberpunk_City_Video_Generation.ogv" id="2_qr7a0"]
@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://b14mflwcapld1" path="res://scene/code_breaker_lobby.tscn" id="9_08qf3"]
 [ext_resource type="PackedScene" uid="uid://bsi01dt2s0qq7" path="res://scene/view_player_profile.tscn" id="10_xyz99"]
 [ext_resource type="PackedScene" uid="uid://clvghcukrtua8" path="res://scene/akashic_tcg_lobby.tscn" id="11_tgc"]
+[ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="13_aar1m"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irntn"]
 bg_color = Color(0.164706, 0.164706, 0.164706, 0.419608)
@@ -72,25 +73,30 @@ bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)
 
 [sub_resource type="Theme" id="Theme_qdyf0"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qjbfm"]
+bg_color = Color(0, 0, 0, 1)
+border_color = Color(0.8, 0.8, 0.8, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jpfeh"]
+bg_color = Color(0, 0, 0, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uxtpd"]
 content_margin_left = 20.0
 content_margin_right = 20.0
 bg_color = Color(0, 0, 0, 0)
+border_color = Color(0.8, 0.8, 0.8, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bafi2"]
 content_margin_left = 20.0
 content_margin_right = 20.0
 bg_color = Color(0, 0, 0, 0)
+border_color = Color(0.8, 0.8, 0.8, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7xp6e"]
 content_margin_left = 20.0
 content_margin_right = 20.0
 bg_color = Color(0.00784314, 0.0666667, 0.137255, 0)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xoh2d"]
-content_margin_left = 20.0
-content_margin_right = 20.0
-bg_color = Color(0.6, 0.6, 0.6, 0)
+border_color = Color(0.8, 0.8, 0.8, 0)
 
 [node name="Landing" type="Control"]
 layout_mode = 3
@@ -143,10 +149,11 @@ offset_bottom = 51.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_1dlu4")
 
 [node name="GameSelectPanel" type="Panel" parent="VideoStreamPlayer"]
+visible = false
 layout_mode = 0
-offset_left = 148.0
+offset_left = 127.0
 offset_top = 26.0
-offset_right = 1301.0
+offset_right = 1308.0
 offset_bottom = 674.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_irntn")
 
@@ -223,10 +230,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_hlv06")
 [node name="ProfilePanel" type="Panel" parent="VideoStreamPlayer"]
 visible = false
 layout_mode = 0
-offset_left = 134.0
-offset_top = 22.0
-offset_right = 1293.0
-offset_bottom = 670.0
+offset_left = 107.0
+offset_top = 14.0
+offset_right = 1360.0
+offset_bottom = 711.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_qdyf0")
 
 [node name="UserPanel" type="Panel" parent="VideoStreamPlayer/ProfilePanel"]
@@ -287,10 +294,10 @@ text = "L : "
 
 [node name="StatusLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 layout_mode = 0
-offset_left = -123.0
-offset_top = 457.0
-offset_right = -50.0
-offset_bottom = 482.0
+offset_left = -70.0
+offset_top = 445.0
+offset_right = 3.0
+offset_bottom = 470.0
 text = "Status"
 
 [node name="usernameInput" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
@@ -447,32 +454,48 @@ texture_normal = ExtResource("3_q33pn")
 [node name="HomeNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
 theme_override_styles/normal = SubResource("StyleBoxFlat_uxtpd")
 text = "Home"
 
 [node name="GameNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
 theme_override_styles/normal = SubResource("StyleBoxFlat_bafi2")
 text = "Game"
 
 [node name="RankingNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Ranking"
 
 [node name="ProfileNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Profile"
 
-[node name="LogoutButton" type="Button" parent="NavigationPanel/HBoxContainer"]
+[node name="Spacer" type="Control" parent="NavigationPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MenuButton" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_xoh2d")
-text = "Log out"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 25
+theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
+theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
+text = "☰"
 
 [node name="ChatPanel" parent="." instance=ExtResource("9_1dlu4")]
 layout_mode = 0
@@ -487,3 +510,6 @@ offset_left = 901.0
 offset_top = 84.0
 offset_right = 1135.0
 offset_bottom = 601.0
+
+[node name="MenuPanel" parent="." instance=ExtResource("13_aar1m")]
+visible = false

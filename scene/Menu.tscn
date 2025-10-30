@@ -1,0 +1,142 @@
+[gd_scene load_steps=12 format=3 uid="uid://bg6xg78gkf4ts"]
+
+[ext_resource type="Texture2D" uid="uid://dljva5sp25va2" path="res://asset/icons/icons8-cog-50.png" id="1_3cqhr"]
+[ext_resource type="Script" uid="uid://cnea62i11tvqm" path="res://script/menu.gd" id="1_rgvae"]
+[ext_resource type="Texture2D" uid="uid://crx363moo8klg" path="res://asset/icons/icons8-open-door-30.png" id="2_rgvae"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_odng3"]
+bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x0o17"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n5gji"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sd5c8"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8moqm"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7j22f"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jnaq1"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ulot2"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[node name="MenuPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_rgvae")
+
+[node name="Overlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1165.0
+offset_bottom = 650.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.35)
+
+[node name="Window" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 456.0
+offset_top = 258.0
+offset_right = 636.0
+offset_bottom = 410.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_odng3")
+
+[node name="Panel" type="Panel" parent="Window"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+offset_top = 1.0
+offset_right = 179.0
+offset_bottom = 41.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_x0o17")
+
+[node name="UsernameLabel" type="Label" parent="Window/Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -70.5
+offset_top = -14.0
+offset_right = 39.5
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "MENU"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CloseMenuButton" type="Button" parent="Window/Panel"]
+layout_mode = 0
+offset_left = 133.0
+offset_top = 5.0
+offset_right = 177.0
+offset_bottom = 36.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_n5gji")
+text = "X"
+
+[node name="Body" type="Panel" parent="Window"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 41.0
+offset_right = 179.0
+offset_bottom = 139.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_sd5c8")
+
+[node name="SettingsButton" type="Button" parent="Window/Body"]
+layout_mode = 0
+offset_left = -1.0
+offset_top = 10.0
+offset_right = 178.0
+offset_bottom = 41.0
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_8moqm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_7j22f")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_jnaq1")
+theme_override_styles/normal = SubResource("StyleBoxFlat_ulot2")
+text = "Settings         "
+alignment = 2
+
+[node name="Body_Button4#NinePatchRect" type="NinePatchRect" parent="Window/Body/SettingsButton"]
+layout_mode = 0
+offset_left = 41.0
+offset_top = 3.0
+offset_right = 67.0
+offset_bottom = 28.0
+texture = ExtResource("1_3cqhr")
+
+[node name="LogoutButton" type="Button" parent="Window/Body"]
+layout_mode = 0
+offset_left = -1.0
+offset_top = 45.0
+offset_right = 179.0
+offset_bottom = 76.0
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_8moqm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_7j22f")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_jnaq1")
+theme_override_styles/normal = SubResource("StyleBoxFlat_ulot2")
+text = "Logout          "
+alignment = 2
+
+[node name="Body_Button#NinePatchRect2" type="NinePatchRect" parent="Window/Body/LogoutButton"]
+layout_mode = 0
+offset_left = 41.0
+offset_top = 3.0
+offset_right = 69.0
+offset_bottom = 28.0
+texture = ExtResource("2_rgvae")

@@ -11,6 +11,7 @@ extends Control
 @onready var save_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/SaveProfile
 @onready var avatar_picker: PopupPanel = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker
 @onready var avatar_grid: GridContainer = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/GridContainer
+@onready var menu_panel: Control = $MenuPanel
 
 # === Avatars & User Data ===
 var avatars: Dictionary = {}
@@ -105,7 +106,7 @@ func _on_save_profile_pressed() -> void:
 		push_error("⚠️ User not logged in, cannot save profile")
 		return
 
-	last_avatar_change = Time.get_unix_time_from_system()
+	last_avatar_change = int(Time.get_unix_time_from_system())
 
 	var url = "%s/%s?updateMask.fieldPaths=username&updateMask.fieldPaths=level&updateMask.fieldPaths=wins&updateMask.fieldPaths=losses&updateMask.fieldPaths=avatar&updateMask.fieldPaths=last_avatar_change" % [firestore_base_url, user_id]
 	var body = {
@@ -130,7 +131,7 @@ func _on_save_profile_pressed() -> void:
 	http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
 
 
-func _on_save_profile_response(result, response_code, _headers, body) -> void:
+func _on_save_profile_response(_result, response_code, _headers, body) -> void:
 	if response_code == 200:
 		status_label.text = "✅ Profile saved!"
 		Auth.current_avatar = selected_avatar
@@ -159,7 +160,7 @@ func _load_user_data() -> void:
 	http.request(url, headers, HTTPClient.METHOD_GET)
 
 
-func _on_user_data_response(result, response_code, _headers, body) -> void:
+func _on_user_data_response(_result, response_code, _headers, body) -> void:
 	if response_code != 200:
 		push_error("⚠️ Failed to load user data: %s" % response_code)
 		return
@@ -210,7 +211,7 @@ func _setup_navigation() -> void:
 	$NavigationPanel/HBoxContainer/RankingNavigate.pressed.connect(func(): _show_panel(panel_paths, "ranking"))
 	$NavigationPanel/HBoxContainer/ProfileNavigate.pressed.connect(func(): _show_panel(panel_paths, "profile"))
 	$NavigationPanel/HBoxContainer/LogoButton.pressed.connect(func(): _show_panel(panel_paths, "home"))
-	$NavigationPanel/HBoxContainer/LogoutButton.pressed.connect(_on_logout_pressed)
+	$NavigationPanel/HBoxContainer/MenuButton.pressed.connect(_on_menu_button_pressed)
 
 	# Connect game icons (NinePatchRect - need gui_input)
 	var defuse_trojan = $VideoStreamPlayer/GameSelectPanel/allgame/DefuseTheTrojan
@@ -229,6 +230,13 @@ func _setup_navigation() -> void:
 		code_breaker_icon.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 	_show_panel(panel_paths, "home")
+
+
+func _on_menu_button_pressed() -> void:
+	if menu_panel:
+		menu_panel.visible = true
+		# Ensure it appears above other controls if overlapped
+		menu_panel.move_to_front()
 
 
 func _show_panel(panel_paths: Dictionary, panel_name: String) -> void:

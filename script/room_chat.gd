@@ -78,9 +78,9 @@ func _send_text(text: String) -> void:
 func _send_message(text: String) -> void:
 	if _chat_url == "":
 		return
-	var id_token := Auth.current_id_token if Auth else ""
-	var uid := Auth.current_local_id if Auth else ""
-	var username := (Auth.current_username if Auth else "Player")
+	var id_token: String = Auth.current_id_token if Auth else ""
+	var uid: String = Auth.current_local_id if Auth else ""
+	var username: String = (Auth.current_username if Auth else "Player")
 	var payload := {
 		"uid": uid,
 		"username": username,
