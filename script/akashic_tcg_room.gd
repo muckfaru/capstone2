@@ -118,14 +118,14 @@ func _apply_room_snapshot(node: Dictionary) -> void:
 	# Show only the actual room name provided by the host, with prefix
 	_room_id_label.text = "ROOM: " + room_name
 
-	var current_uid: String = Auth.current_local_id if Auth else ""
+	var current_uid := Auth.current_local_id if Auth else ""
 
 	# If host is absent but client exists and it's us, promote self to host
 	if not host_present and client_present and not _is_host:
 		var client_uid := str(client_val.get("uid", ""))
 		if client_uid == current_uid and current_uid != "":
 			_message_label.text = "Host left. Promoting you to host..."
-			var id_token: String = Auth.current_id_token if Auth else ""
+			var id_token := Auth.current_id_token if Auth else ""
 			if id_token != "":
 				_promote_self_to_host(client_val, id_token)
 				return
@@ -160,7 +160,7 @@ func _apply_room_snapshot(node: Dictionary) -> void:
 		# If we are the client, mirror ready state into toggle button
 		if not _is_host:
 			var client_uid2 := str(client_val.get("uid", ""))
-			var my_uid: String = Auth.current_local_id if Auth else ""
+			var my_uid := Auth.current_local_id if Auth else ""
 			if client_uid2 == my_uid and _start_btn.toggle_mode:
 				var is_ready := str(client_val.get("status", "not_ready")) == "ready"
 				if _start_btn.button_pressed != is_ready:
@@ -177,7 +177,7 @@ func _apply_room_snapshot(node: Dictionary) -> void:
 	_last_client_present = client_present
 
 	# State + Start/Ready button enablement
-	var players: int = (1 if host_present else 0) + (1 if client_present else 0)
+	var players := (1 if host_present else 0) + (1 if client_present else 0)
 	_room_state_label.text = ("READY" if players == 2 else "WAITING")
 	_room_state_label.add_theme_color_override("font_color", (COLOR_ACCENT if players == 2 else COLOR_MUTED))
 	# If we see host now equals our uid, flip _is_host
@@ -239,7 +239,7 @@ func _on_ready_toggled(pressed: bool) -> void:
 	# Patch RTDB at client node
 	if _room_id == "":
 		return
-	var id_token: String = Auth.current_id_token if Auth else ""
+	var id_token := Auth.current_id_token if Auth else ""
 	if id_token == "":
 		return
 	var http := HTTPRequest.new()
@@ -253,7 +253,7 @@ func _on_ready_toggled(pressed: bool) -> void:
 
 func _leave_room() -> void:
 	print("[TGC Room] Leave Room pressed")
-	var id_token: String = Auth.current_id_token if Auth else ""
+	var id_token := Auth.current_id_token if Auth else ""
 	if _room_id == "":
 		_go_to_landing()
 		return
