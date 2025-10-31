@@ -206,8 +206,8 @@ offset_left = 332.0
 offset_top = 19.0
 offset_right = 365.0
 offset_bottom = 50.0
-text = "X"
 mouse_default_cursor_shape = 2
+text = "X"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="ProfilePanel/MatchHistoyPanel"]
 layout_mode = 0

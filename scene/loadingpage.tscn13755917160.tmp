@@ -1,0 +1,63 @@
+[gd_scene load_steps=5 format=3 uid="uid://bhpsb68sn2m3u"]
+
+[ext_resource type="Script" uid="uid://bj3njxa2ocr8b" path="res://scene/loadingpage.gd" id="1_yspop"]
+[ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="2_sww5g"]
+[ext_resource type="Texture2D" uid="uid://c8baba1346kmr" path="res://asset/icons/loadingpglogo.png" id="3_orul3"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_xyxa2"]
+
+[node name="Loadingpage" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_yspop")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
+layout_mode = 0
+offset_left = -441.0
+offset_top = -202.0
+offset_right = 839.0
+offset_bottom = 518.0
+stream = ExtResource("2_sww5g")
+autoplay = true
+expand = true
+loop = true
+
+[node name="Logo" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -230.0
+offset_top = -216.0
+offset_right = 235.0
+offset_bottom = 245.0
+texture = ExtResource("3_orul3")
+stretch_mode = 5
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = -281.0
+offset_top = 110.0
+offset_right = 291.0
+offset_bottom = 209.0
+theme_override_fonts/font = ExtResource("4_xyxa2")
+theme_override_font_sizes/font_size = 72
+text = "Cyber Arena"
+horizontal_alignment = 1
+
+[node name="FadeOverlay" type="ColorRect" parent="."]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="TransitionPlayer" type="AnimationPlayer" parent="."]

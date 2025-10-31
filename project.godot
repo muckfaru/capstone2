@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="capstone"
-run/main_scene="uid://5o3qtaqdnl8s"
+run/main_scene="uid://c226tv5ytxxmi"
 config/features=PackedStringArray("4.4", "Forward Plus")
 config/icon="res://icon.svg"
 
