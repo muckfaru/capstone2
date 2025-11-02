@@ -24,6 +24,10 @@ ChatManager="*res://script/ChatManager.gd"
 
 window/stretch/mode="canvas_items"
 
+[dotnet]
+
+project/assembly_name="capstone"
+
 [editor_plugins]
 
 enabled=PackedStringArray()

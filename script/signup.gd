@@ -158,3 +158,6 @@ func _check_firestore_username_and_route():
 func _on_change_to_login_button_pressed() -> void:
 	var loginScene = "res://scene/login.tscn"
 	get_tree().change_scene_to_file(loginScene)
+func _on_back_button_pressed() -> void:
+	var loginScene = "res://scene/login.tscn"
+	get_tree().change_scene_to_file(loginScene)

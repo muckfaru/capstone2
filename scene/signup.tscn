@@ -1,10 +1,32 @@
-[gd_scene load_steps=15 format=3 uid="uid://hg67aoje345"]
+[gd_scene load_steps=22 format=3 uid="uid://hg67aoje345"]
 
 [ext_resource type="Script" uid="uid://dhidgtnkirpt6" path="res://script/signup.gd" id="1_db6g7"]
 [ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="2_y1epg"]
 [ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="3_ipb3t"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_y1epg"]
 [ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="4_db6g7"]
 [ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="5_uyhdp"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="7_ipb3t"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5kr2c"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_backhover"]
+bg_color = Color(0.2, 0.2, 0.2, 0.3)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="FontVariation" id="FontVariation_ipb3t"]
+base_font = ExtResource("3_y1epg")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_db6g7"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -24,6 +46,8 @@ bg_color = Color(0.6, 0.6, 0.6, 0)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ipb3t"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tos"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_20qy8"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
@@ -36,12 +60,16 @@ corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eumta"]
 bg_color = Color(0.917647, 0.0666667, 0.211765, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2qg56"]
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_07f7y"]
 
@@ -56,54 +84,85 @@ script = ExtResource("1_db6g7")
 
 [node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
 layout_mode = 2
-offset_left = 3.0
-offset_top = -1.0
-offset_right = 1204.0
-offset_bottom = 710.0
+offset_left = -8.0
+offset_top = -10.0
+offset_right = 1239.0
+offset_bottom = 713.0
 stream = ExtResource("2_y1epg")
 autoplay = true
 expand = true
 loop = true
 
 [node name="FillUpForm" type="PanelContainer" parent="VideoStreamPlayer"]
-self_modulate = Color(0, 0, 0, 0.956863)
+modulate = Color(0, 0, 0, 0.588235)
 layout_mode = 0
-offset_left = 96.0
-offset_top = 84.0
-offset_right = 723.0
-offset_bottom = 589.0
+offset_left = 238.0
+offset_top = 62.0
+offset_right = 783.0
+offset_bottom = 610.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_5kr2c")
+
+[node name="BackButton" type="Button" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 255.0
+offset_top = 58.0
+offset_right = 305.0
+offset_bottom = 98.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_y1epg")
+theme_override_font_sizes/font_size = 28
+theme_override_styles/focus = SubResource("StyleBoxFlat_back")
+theme_override_styles/hover = SubResource("StyleBoxFlat_backhover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_back")
+text = "←"
+
+[node name="EmailLabel2" type="Label" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 456.0
+offset_top = 70.0
+offset_right = 631.0
+offset_bottom = 118.0
+theme_override_fonts/font = ExtResource("3_y1epg")
+theme_override_font_sizes/font_size = 20
+text = "Sign in
+"
+vertical_alignment = 1
 
 [node name="EmailLabel" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 226.0
-offset_top = 105.0
-offset_right = 395.0
-offset_bottom = 154.0
-text = "EMAIL
+offset_left = 308.0
+offset_top = 135.0
+offset_right = 477.0
+offset_bottom = 184.0
+theme_override_fonts/font = SubResource("FontVariation_ipb3t")
+text = "Email
 "
 
 [node name="PasswordLabel" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 230.0
-offset_top = 187.0
-offset_right = 397.0
-offset_bottom = 220.0
-text = "PASSWORD"
+offset_left = 307.0
+offset_top = 220.0
+offset_right = 474.0
+offset_bottom = 253.0
+theme_override_fonts/font = ExtResource("3_y1epg")
+text = "Password"
 
 [node name="RepeatPasswordLabel" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 226.0
-offset_top = 293.0
-offset_right = 393.0
-offset_bottom = 322.0
-text = "REPEAT PASSWORD"
+offset_left = 309.0
+offset_top = 304.0
+offset_right = 495.0
+offset_bottom = 333.0
+theme_override_fonts/font = ExtResource("3_y1epg")
+text = "Confirm password"
 
 [node name="EmailLineEdit" type="LineEdit" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 228.0
-offset_top = 128.0
-offset_right = 600.0
-offset_bottom = 182.0
+offset_left = 315.0
+offset_top = 159.0
+offset_right = 725.0
+offset_bottom = 202.0
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
@@ -117,10 +176,10 @@ caret_blink = true
 
 [node name="PasswordLineEdit" type="LineEdit" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 227.0
-offset_top = 225.0
-offset_right = 599.0
-offset_bottom = 279.0
+offset_left = 315.0
+offset_top = 242.0
+offset_right = 725.0
+offset_bottom = 285.0
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
@@ -135,10 +194,10 @@ secret = true
 
 [node name="RepeatPasswordLineEdit" type="LineEdit" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 232.0
-offset_top = 316.0
-offset_right = 604.0
-offset_bottom = 370.0
+offset_left = 320.0
+offset_top = 326.0
+offset_right = 724.0
+offset_bottom = 369.0
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
@@ -151,78 +210,167 @@ max_length = 50
 caret_blink = true
 secret = true
 
+[node name="TermsCheckBox" type="CheckBox" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 328.0
+offset_top = 376.0
+offset_right = 352.0
+offset_bottom = 400.0
+mouse_default_cursor_shape = 2
+
+[node name="TermsLabel" type="Label" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 354.0
+offset_top = 380.0
+offset_right = 512.0
+offset_bottom = 403.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_ipb3t")
+theme_override_font_sizes/font_size = 14
+text = "I Agree to the "
+
+[node name="TermsLink" type="LinkButton" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 452.0
+offset_top = 379.0
+offset_right = 559.0
+offset_bottom = 402.0
+theme_override_colors/font_color = Color(0.961518, 4.45209e-06, 9.62615e-07, 1)
+theme_override_fonts/font = ExtResource("7_ipb3t")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxFlat_tos")
+text = "Terms of Service"
+
+[node name="PrivacyLabel" type="Label" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 566.0
+offset_top = 380.0
+offset_right = 604.0
+offset_bottom = 403.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_ipb3t")
+theme_override_font_sizes/font_size = 14
+text = " and "
+
+[node name="PrivacyLink" type="LinkButton" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 604.0
+offset_top = 380.0
+offset_right = 701.0
+offset_bottom = 403.0
+theme_override_colors/font_color = Color(0.961518, 4.45209e-06, 9.62615e-07, 1)
+theme_override_fonts/font = ExtResource("7_ipb3t")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxFlat_tos")
+text = "Privacy Policy"
+
 [node name="SignUpButton" type="Button" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 294.0
-offset_top = 407.0
-offset_right = 526.0
-offset_bottom = 451.0
+offset_left = 379.0
+offset_top = 415.0
+offset_right = 642.0
+offset_bottom = 459.0
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 24
+theme_override_fonts/font = ExtResource("3_y1epg")
+theme_override_font_sizes/font_size = 19
 theme_override_styles/focus = SubResource("StyleBoxFlat_20qy8")
 theme_override_styles/hover = SubResource("StyleBoxFlat_uyhdp")
 theme_override_styles/normal = SubResource("StyleBoxFlat_eumta")
-text = "SIGNUP
+text = "Sign in
 "
+
+[node name="OrDividerLeft" type="Panel" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 316.0
+offset_top = 475.0
+offset_right = 494.0
+offset_bottom = 477.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_2qg56")
+
+[node name="OrLabel" type="Label" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 502.0
+offset_top = 467.0
+offset_right = 528.0
+offset_bottom = 487.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_ipb3t")
+theme_override_font_sizes/font_size = 14
+text = "or"
+horizontal_alignment = 1
+
+[node name="OrDividerRight" type="Panel" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 539.0
+offset_top = 476.0
+offset_right = 705.0
+offset_bottom = 478.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_2qg56")
 
 [node name="logo" type="PanelContainer" parent="VideoStreamPlayer"]
 modulate = Color(0, 0, 0, 1)
 self_modulate = Color(0, 0, 0, 1)
 layout_mode = 0
-offset_left = 720.0
-offset_top = 83.0
-offset_right = 1092.0
-offset_bottom = 589.0
+offset_left = 753.0
+offset_top = 61.0
+offset_right = 995.0
+offset_bottom = 610.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_2qg56")
 
 [node name="status" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 114.0
-offset_top = 558.0
-offset_right = 505.0
-offset_bottom = 581.0
-text = "..."
+offset_left = 405.0
+offset_top = 580.0
+offset_right = 796.0
+offset_bottom = 603.0
 
 [node name="Logo" type="Sprite2D" parent="VideoStreamPlayer"]
-position = Vector2(894, 305)
+position = Vector2(880.656, 316.938)
+scale = Vector2(0.591124, 0.565583)
 texture = ExtResource("3_ipb3t")
-
-[node name="FacebookLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
-layout_mode = 0
-offset_left = 404.0
-offset_top = 482.0
-offset_right = 452.0
-offset_bottom = 530.0
-mouse_default_cursor_shape = 2
-texture_normal = ExtResource("4_db6g7")
 
 [node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
 layout_mode = 2
-offset_left = 350.0
-offset_top = 481.0
-offset_right = 398.0
-offset_bottom = 529.0
+offset_left = 466.0
+offset_top = 493.0
+offset_right = 514.0
+offset_bottom = 541.0
 mouse_default_cursor_shape = 2
 texture_normal = ExtResource("5_uyhdp")
 
+[node name="FacebookLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 525.0
+offset_top = 493.0
+offset_right = 573.0
+offset_bottom = 541.0
+mouse_default_cursor_shape = 2
+texture_normal = ExtResource("4_db6g7")
+
 [node name="UsernameLabel2" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 276.0
-offset_top = 541.0
-offset_right = 477.0
-offset_bottom = 590.0
+offset_left = 380.0
+offset_top = 554.0
+offset_right = 581.0
+offset_bottom = 603.0
+theme_override_fonts/font = ExtResource("7_ipb3t")
 text = "Already Have an Account?
 "
 
 [node name="ChangeToLoginButton" type="LinkButton" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 481.0
-offset_top = 540.0
-offset_right = 538.0
-offset_bottom = 580.0
+offset_left = 585.0
+offset_top = 552.0
+offset_right = 642.0
+offset_bottom = 592.0
 theme_override_colors/font_color = Color(0.961518, 4.45209e-06, 9.62615e-07, 1)
+theme_override_fonts/font = ExtResource("7_ipb3t")
 theme_override_styles/focus = SubResource("StyleBoxFlat_07f7y")
 text = "Login"
 
+[connection signal="pressed" from="VideoStreamPlayer/BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="toggled" from="VideoStreamPlayer/TermsCheckBox" to="." method="_on_terms_check_box_toggled"]
+[connection signal="pressed" from="VideoStreamPlayer/TermsLink" to="." method="_on_terms_link_pressed"]
+[connection signal="pressed" from="VideoStreamPlayer/PrivacyLink" to="." method="_on_privacy_link_pressed"]
 [connection signal="pressed" from="VideoStreamPlayer/SignUpButton" to="." method="_on_register_button_pressed"]
 [connection signal="pressed" from="VideoStreamPlayer/ChangeToLoginButton" to="." method="_on_change_to_login_button_pressed"]

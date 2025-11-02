@@ -33,10 +33,10 @@ corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xhhai"]
 bg_color = Color(0.917647, 0.0666667, 0.211765, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ayshr"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -67,10 +67,10 @@ script = ExtResource("1_u7yg4")
 
 [node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
 layout_mode = 0
-offset_left = 4.0
+offset_left = -7.0
 offset_top = -2.0
-offset_right = 1157.0
-offset_bottom = 713.0
+offset_right = 1370.0
+offset_bottom = 652.0
 stream = ExtResource("1_7yur4")
 autoplay = true
 expand = true
@@ -94,7 +94,7 @@ layout_mode = 2
 offset_left = 734.0
 offset_top = 110.0
 offset_right = 945.0
-offset_bottom = 557.0
+offset_bottom = 556.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_76uxg")
 
 [node name="LoginButton" type="Button" parent="VideoStreamPlayer"]
@@ -105,11 +105,11 @@ offset_right = 548.0
 offset_bottom = 433.0
 mouse_default_cursor_shape = 2
 theme_override_fonts/font = ExtResource("3_i5fi3")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 theme_override_styles/focus = SubResource("StyleBoxFlat_m7twt")
 theme_override_styles/hover = SubResource("StyleBoxFlat_7qh2k")
 theme_override_styles/normal = SubResource("StyleBoxFlat_xhhai")
-text = "LOGIN
+text = "Log in
 "
 
 [node name="PasswordLabel" type="Label" parent="VideoStreamPlayer"]
@@ -119,7 +119,7 @@ offset_top = 268.0
 offset_right = 304.0
 offset_bottom = 292.0
 theme_override_fonts/font = ExtResource("3_i5fi3")
-text = "PASSWORD"
+text = "Password"
 
 [node name="EmailLineEdit" type="LineEdit" parent="VideoStreamPlayer"]
 layout_mode = 2
@@ -190,6 +190,7 @@ offset_top = 137.0
 offset_right = 455.0
 offset_bottom = 163.0
 theme_override_fonts/font = ExtResource("3_i5fi3")
+theme_override_font_sizes/font_size = 20
 text = "Login"
 
 [node name="EmailLabel" type="Label" parent="VideoStreamPlayer"]
@@ -199,7 +200,7 @@ offset_top = 174.0
 offset_right = 271.0
 offset_bottom = 200.0
 theme_override_fonts/font = ExtResource("3_i5fi3")
-text = "EMAIL"
+text = "Username"
 
 [node name="SignUpButton" type="LinkButton" parent="VideoStreamPlayer"]
 layout_mode = 0

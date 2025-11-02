@@ -1,36 +1,93 @@
-[gd_scene load_steps=8 format=3 uid="uid://f75orldaceo5"]
+[gd_scene load_steps=13 format=3 uid="uid://f75orldaceo5"]
 
 [ext_resource type="Texture2D" uid="uid://ncwfxpvc1nst" path="res://asset/create user bg .png" id="1_tblxd"]
 [ext_resource type="Script" uid="uid://u476cuxb6suk" path="res://script/create_users_panel.gd" id="1_tv1am"]
+[ext_resource type="FontFile" uid="uid://cc2vcvusnujt7" path="res://asset/fonts/Anton-Regular.ttf" id="3_tv1am"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font = ExtResource("3_tv1am")
+font_size = 48
+font_color = Color(0.407843, 0.941176, 0.988235, 1)
+outline_size = 8
+outline_color = Color(0.356863, 0.694118, 0.72549, 1)
+shadow_size = 4
+shadow_color = Color(0.356863, 0.694118, 0.72549, 1)
+shadow_offset = Vector2(0, 0)
+
+[sub_resource type="LabelSettings" id="LabelSettings_subtitle"]
+font = ExtResource("3_tv1am")
+font_size = 36
+font_color = Color(0.407843, 0.941176, 0.988235, 1)
+outline_size = 6
+outline_color = Color(0.356863, 0.694118, 0.72549, 1)
+shadow_size = 4
+shadow_color = Color(0.356863, 0.694118, 0.72549, 0.776471)
+shadow_offset = Vector2(0, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tv1am"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rlsjn"]
-bg_color = Color(0.941176, 0.941176, 0.941176, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
+bg_color = Color(0.00392157, 0.101961, 0.180392, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.8, 0.8, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+corner_detail = 6
 expand_margin_left = 20.0
 expand_margin_right = 20.0
+shadow_color = Color(0, 0.8, 0.8, 0.5)
+shadow_size = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pcrkf"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fwo4p"]
 bg_color = Color(0, 0, 0, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.2, 0.5, 1)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
+shadow_color = Color(1, 0.2, 0.5, 0.5)
+shadow_size = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shsn4"]
-bg_color = Color(0.917647, 0.0666667, 0.211765, 1)
+bg_color = Color(0.00392157, 0.101961, 0.180392, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.2, 0.5, 1)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
+shadow_color = Color(1, 0.2, 0.5, 0.6)
+shadow_size = 12
+
+[sub_resource type="LabelSettings" id="LabelSettings_warning"]
+font_size = 14
+font_color = Color(1, 1, 0, 1)
+outline_size = 3
+outline_color = Color(0.5, 0.3, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_message"]
+font_color = Color(1, 0.8, 0, 1)
+outline_size = 4
+outline_color = Color(0.5, 0.3, 0, 1)
+shadow_size = 3
+shadow_color = Color(1, 0.8, 0, 0.4)
+shadow_offset = Vector2(0, 0)
 
 [node name="CreateUsersPanel" type="Control"]
 layout_mode = 3
@@ -47,41 +104,80 @@ offset_right = 1154.0
 offset_bottom = 708.0
 texture = ExtResource("1_tblxd")
 
+[node name="TitleLabel" type="Label" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 325.0
+offset_top = 168.0
+offset_right = 819.0
+offset_bottom = 241.0
+text = "CREATE YOUR"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 362.0
+offset_top = 245.0
+offset_right = 796.0
+offset_bottom = 301.0
+text = "USERNAME"
+label_settings = SubResource("LabelSettings_subtitle")
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="UsernameLineEdit" type="LineEdit" parent="NinePatchRect"]
 layout_mode = 0
-offset_left = 288.0
-offset_top = 341.0
-offset_right = 867.0
-offset_bottom = 429.0
+offset_left = 372.0
+offset_top = 320.0
+offset_right = 782.0
+offset_bottom = 370.0
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
 theme_override_colors/font_uneditable_color = Color(0, 0, 0, 1)
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 19
+theme_override_font_sizes/font_size = 20
 theme_override_styles/focus = SubResource("StyleBoxFlat_tv1am")
 theme_override_styles/normal = SubResource("StyleBoxFlat_rlsjn")
-max_length = 10
+placeholder_text = "Enter your name"
+max_length = 16
 caret_blink = true
 
 [node name="ConfirmButton" type="Button" parent="NinePatchRect"]
 layout_mode = 0
-offset_left = 419.0
-offset_top = 466.0
-offset_right = 704.0
-offset_bottom = 539.0
+offset_left = 436.0
+offset_top = 401.0
+offset_right = 746.0
+offset_bottom = 461.0
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_tv1am")
+theme_override_font_sizes/font_size = 28
 theme_override_styles/focus = SubResource("StyleBoxFlat_pcrkf")
 theme_override_styles/hover = SubResource("StyleBoxFlat_fwo4p")
 theme_override_styles/normal = SubResource("StyleBoxFlat_shsn4")
-text = "Confirm
-"
+text = "CONFIRM"
 
 [node name="MessageLabel" type="Label" parent="NinePatchRect"]
 layout_mode = 0
-offset_left = 293.0
-offset_top = 585.0
-offset_right = 473.0
-offset_bottom = 616.0
-theme_override_colors/font_color = Color(1, 0, 0, 1)
+offset_left = 348.0
+offset_top = 480.0
+offset_right = 842.0
+offset_bottom = 516.0
+text = "⚠ Username must unique, at least 4-16 characters"
+label_settings = SubResource("LabelSettings_warning")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="NinePatchRect"]
+layout_mode = 0
+offset_left = 330.0
+offset_top = 530.0
+offset_right = 824.0
+offset_bottom = 566.0
+label_settings = SubResource("LabelSettings_message")
+horizontal_alignment = 1
+vertical_alignment = 1
