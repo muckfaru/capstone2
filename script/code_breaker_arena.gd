@@ -264,4 +264,3 @@ func _leave_arena() -> void:
 	var room_scene := load("res://scene/code_breaker_room.tscn")
 	if room_scene:
 		get_tree().change_scene_to_packed(room_scene)
-
