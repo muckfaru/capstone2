@@ -25,7 +25,7 @@ var _game_start_time: float = 0.0
 
 # WebSocket P2P client
 var _p2p_client: Node = null
-var _use_production_server: bool = false
+var _use_production_server: bool = true
 
 # Local game state
 var _local_score: int = 0
