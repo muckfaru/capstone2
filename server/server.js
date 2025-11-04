@@ -314,6 +314,22 @@ function getClientIp(ws) {
 }
 
 /**
+ * Root endpoint
+ */
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Code Breaker P2P Signaling Server',
+    status: 'running',
+    version: '1.0.0',
+    websocket: 'Connect to wss://code-breaker-p2p-signaling.onrender.com/ws/game',
+    endpoints: {
+      health: '/health',
+      stats: '/stats'
+    }
+  });
+});
+
+/**
  * Health check endpoint
  */
 app.get('/health', (req, res) => {

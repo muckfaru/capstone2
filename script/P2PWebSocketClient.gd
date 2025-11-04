@@ -82,7 +82,7 @@ func connect_to_game(room_id: String, player_id: String, username: String, is_ho
 
 func _process_signaling_messages() -> void:
 	while _signaling_ws.get_available_packet_count() > 0:
-		var message = _signaling_ws.get_text()
+		var message = _signaling_ws.get_packet().get_string_from_utf8()
 		if message:
 			var data = JSON.parse_string(message)
 			if data:
@@ -151,7 +151,7 @@ func _process_p2p_messages() -> void:
 		return
 	
 	while _direct_p2p_ws.get_available_packet_count() > 0:
-		var message = _direct_p2p_ws.get_text()
+		var message = _direct_p2p_ws.get_packet().get_string_from_utf8()
 		if message:
 			var data = JSON.parse_string(message)
 			if data:
