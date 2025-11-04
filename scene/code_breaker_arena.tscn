@@ -1,0 +1,285 @@
+[gd_scene load_steps=8 format=3 uid="uid://b1ngbpq5ojqqk"]
+
+[ext_resource type="Script" uid="uid://dw7agivap55un" path="res://script/code_breaker_arena.gd" id="1_18ytm"]
+
+[sub_resource type="StyleBoxFlat" id="1"]
+bg_color = Color(0.05, 0.1, 0.15, 0.6)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.82, 1, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="2"]
+bg_color = Color(0.04, 0.08, 0.12, 0.65)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.82, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="3"]
+bg_color = Color(0.02, 0.05, 0.08, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.82, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="4"]
+bg_color = Color(0, 0.82, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="5"]
+bg_color = Color(0.09, 0.02, 0.05, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.35, 0.43, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="6"]
+bg_color = Color(1, 0.35, 0.43, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="CodeBreakerArena" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_18ytm")
+
+[node name="HeaderPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.09
+anchor_right = 0.95
+anchor_bottom = 0.16
+offset_left = -7.6
+offset_top = 27.68
+offset_right = -7.59998
+offset_bottom = 27.68
+theme_override_styles/panel = SubResource("1")
+
+[node name="HostNameLabel" type="Label" parent="HeaderPanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.1
+anchor_right = 0.32
+anchor_bottom = 0.9
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+text = "Player 1"
+vertical_alignment = 1
+
+[node name="TimerLabel" type="Label" parent="HeaderPanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.4
+anchor_top = 0.1
+anchor_right = 0.6
+anchor_bottom = 0.9
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
+text = "00:00"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ClientNameLabel" type="Label" parent="HeaderPanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.68
+anchor_top = 0.1
+anchor_right = 0.98
+anchor_bottom = 0.9
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.35, 0.43, 1)
+text = "Player 2"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="WSIndicator" type="ColorRect" parent="HeaderPanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.615
+anchor_top = 0.26
+anchor_right = 0.63
+anchor_bottom = 0.74
+tooltip_text = "WebSocket status"
+mouse_filter = 1
+color = Color(1, 0.75, 0, 1)
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_right = 0.95
+anchor_bottom = 0.08
+offset_left = -1.6
+offset_top = 30.0
+offset_right = -1.59998
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+text = "CODE BREAKER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VBox" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.375
+anchor_right = 0.9
+anchor_bottom = 0.9
+offset_left = -0.200005
+offset_top = 186.0
+offset_right = 0.200073
+offset_bottom = -0.200012
+theme_override_styles/panel = SubResource("2")
+
+[node name="ScorePanel" type="Panel" parent="VBox"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.121
+anchor_right = 0.95
+anchor_bottom = 0.9
+offset_left = -0.100002
+offset_top = 26.366
+offset_right = 0.0999756
+offset_bottom = 0.400009
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("1")
+
+[node name="Player1Title" type="Label" parent="VBox/ScorePanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.5
+anchor_bottom = 0.4
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+text = "PLAYER 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="P1HealthBar" type="ProgressBar" parent="VBox/ScorePanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.42
+anchor_right = 0.45
+anchor_bottom = 0.68
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("3")
+theme_override_styles/fill = SubResource("4")
+value = 100.0
+
+[node name="ScoreP1" type="Label" parent="VBox/ScorePanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 273.0
+offset_top = 66.953
+offset_right = -42.0
+offset_bottom = -4.04698
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+text = "P1: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Player2Title" type="Label" parent="VBox/ScorePanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.4
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.35, 0.43, 1)
+text = "PLAYER 2"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="P2HealthBar" type="ProgressBar" parent="VBox/ScorePanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.55
+anchor_top = 0.42
+anchor_right = 0.95
+anchor_bottom = 0.68
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("5")
+theme_override_styles/fill = SubResource("6")
+value = 100.0
+
+[node name="ScoreP2" type="Label" parent="VBox/ScorePanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.18
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 45.0
+offset_top = 50.6834
+offset_right = -270.0
+offset_bottom = -3.39656
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.35, 0.43, 1)
+text = "P2: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.42
+anchor_right = 0.95
+anchor_bottom = 0.52
+offset_left = -158.1
+offset_top = 129.32
+offset_right = -871.9
+offset_bottom = 136.92
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
+text = "Connecting..."
+horizontal_alignment = 1
+vertical_alignment = 1

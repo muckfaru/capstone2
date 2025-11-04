@@ -25,6 +25,7 @@ var _room_id: String = ""
 var _is_host: bool = false
 var _last_client_present: bool = false
 var _poll_timer: Timer
+var _transitioning_to_arena: bool = false
 
 func _ready() -> void:
 	var init: Dictionary = {}
@@ -57,9 +58,7 @@ func _ready() -> void:
 	_message_label.text = "Waiting for player to join..."
 
 	# Buttons
-	_start_btn.pressed.connect(func():
-		print("[CodeBreakerRoom] Start Match pressed")
-	)
+	_start_btn.pressed.connect(_on_start_pressed)
 	_leave_btn.pressed.connect(_leave_room)
 
 	# Start polling room state
@@ -102,7 +101,43 @@ func _fetch_room() -> void:
 	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json"
 	http.request(url, [], HTTPClient.METHOD_GET)
 
+func _transition_to_arena_from_poll(room_data: Dictionary) -> void:
+	# Called by polling client when it detects state: "in_game"
+	if _transitioning_to_arena:
+		return  # Already transitioning, ignore duplicate calls
+	
+	_transitioning_to_arena = true
+	print("[CodeBreakerRoom] Client detected game start, transitioning to arena")
+	
+	# Prepare arena init data
+	var arena_init := {
+		"room_id": _room_id,
+		"is_host": _is_host,
+		"host_name": str(Auth.current_username if Auth else "Host"),
+		"room_data": room_data
+	}
+	
+	# Store meta data safely
+	if get_tree():
+		get_tree().set_meta("code_breaker_arena_init", arena_init)
+	
+	# Load and transition to arena
+	var arena_scene := load("res://scene/code_breaker_arena.tscn")
+	if arena_scene and get_tree():
+		get_tree().change_scene_to_packed(arena_scene)
+	else:
+		push_error("[CodeBreakerRoom] Failed to transition to arena - scene or tree invalid")
+		_transitioning_to_arena = false
+
 func _apply_room_snapshot(node: Dictionary) -> void:
+	# Check if game has started
+	if not _transitioning_to_arena:
+		var room_state := str(node.get("state", "waiting"))
+		if room_state == "in_game":
+			# Transition to arena if not already there
+			_transition_to_arena_from_poll(node)
+			return
+	
 	var host_val = node.get("host", null)
 	var client_val = node.get("client", null)
 	var host_present: bool = host_val != null and typeof(host_val) == TYPE_DICTIONARY and host_val.size() > 0
@@ -323,3 +358,69 @@ func _go_to_landing() -> void:
 	var landing := load("res://scene/landing.tscn")
 	if landing:
 		get_tree().change_scene_to_packed(landing)
+
+func _on_start_pressed() -> void:
+	print("[CodeBreakerRoom] Start Match pressed by host")
+	if not _is_host:
+		push_warning("[CodeBreakerRoom] Only host can start match")
+		return
+	if _room_id == "":
+		return
+	
+	var id_token := Auth.current_id_token if Auth else ""
+	if id_token == "":
+		push_warning("[CodeBreakerRoom] No id_token to start match")
+		return
+	
+	# Update room state to "in_game" and initialize game countdown
+	var patch_obj := {
+		"state": "in_game",
+		"game_start_time": int(Time.get_unix_time_from_system())
+	}
+	
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code != 200:
+			push_warning("[CodeBreakerRoom] Failed to update room state: HTTP " + str(code))
+			return
+		# Transition to arena
+		_transition_to_arena()
+	)
+	
+	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json?auth=" + id_token
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PATCH, JSON.stringify(patch_obj))
+
+func _transition_to_arena() -> void:
+	# Fetch current room data to pass to arena
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		http.queue_free()
+		if code != 200:
+			push_warning("[CodeBreakerRoom] Failed to fetch room before arena transition: HTTP " + str(code))
+			return
+		
+		var room_data = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(room_data) != TYPE_DICTIONARY:
+			push_warning("[CodeBreakerRoom] Invalid room data before transition")
+			return
+		
+		# Prepare arena init data
+		var arena_init := {
+			"room_id": _room_id,
+			"is_host": _is_host,
+			"host_name": str(Auth.current_username if Auth else "Host"),
+			"room_data": room_data
+		}
+		
+		get_tree().set_meta("code_breaker_arena_init", arena_init)
+		
+		var arena_scene := load("res://scene/code_breaker_arena.tscn")
+		if arena_scene:
+			get_tree().change_scene_to_packed(arena_scene)
+	)
+	
+	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json"
+	http.request(url, [], HTTPClient.METHOD_GET)
