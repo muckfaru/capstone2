@@ -438,17 +438,23 @@ func _setup_multiplayer_peer(_room_data: Dictionary) -> void:
 	"""Initialize WebSocketMultiplayerPeer for the game"""
 	print("[CodeBreakerRoom] Setting up multiplayer peer...")
 	
-	# TEMPORARY: Skip multiplayer setup for now (use ENetMultiplayerPeer for localhost testing)
-	# This is a simpler alternative that works better for local testing
+	# MULTIPLAYER SETUP: ENet peer-to-peer over LAN
 	var peer = ENetMultiplayerPeer.new()
 	
 	if _is_host:
+		# Get host's LAN IP address
+		var host_ip = _get_local_ip()
+		print("[CodeBreakerRoom] Host IP: %s" % host_ip)
+		
 		print("[CodeBreakerRoom] Creating ENet host on port 9999...")
 		var error = peer.create_server(9999, 1)  # Max 1 client
 		if error != OK:
 			push_error("[CodeBreakerRoom] Failed to create ENet server: %d" % error)
 			return
 		print("[CodeBreakerRoom] ENet server created successfully")
+		
+		# Store host IP in RTDB so client can find it
+		_store_host_ip_in_rtdb(host_ip)
 		
 		# Set the multiplayer peer
 		get_tree().get_multiplayer().multiplayer_peer = peer
@@ -472,10 +478,22 @@ func _setup_multiplayer_peer(_room_data: Dictionary) -> void:
 		else:
 			print("[CodeBreakerRoom] Client connected! Peer ID: %d" % multiplayer.get_peers()[0])
 	else:
-		print("[CodeBreakerRoom] Connecting to ENet host at 127.0.0.1:9999...")
-		var error = peer.create_client("127.0.0.1", 9999)
+		# Client: Get host IP from RTDB
+		var host_ip = await _get_host_ip_from_rtdb()
+		if host_ip.is_empty():
+			push_error("[CodeBreakerRoom] Failed to get host IP from RTDB!")
+			_message_label.text = "Cannot find host. Returning to lobby..."
+			await get_tree().create_timer(3.0).timeout
+			_go_to_landing()
+			return
+		
+		print("[CodeBreakerRoom] Connecting to ENet host at %s:9999..." % host_ip)
+		var error = peer.create_client(host_ip, 9999)
 		if error != OK:
 			push_error("[CodeBreakerRoom] Failed to create ENet client: %d" % error)
+			_message_label.text = "Connection failed. Returning to lobby..."
+			await get_tree().create_timer(3.0).timeout
+			_go_to_landing()
 			return
 		
 		# Set the multiplayer peer
@@ -565,21 +583,86 @@ func _setup_multiplayer_peer_websocket(_room_data: Dictionary) -> void:
 		elapsed += 0.1
 		if elapsed > 0 and int(elapsed) % 2 == 0:
 			print("[CodeBreakerRoom] Still waiting for connection... %.1fs" % elapsed)
+
+# =============================================================================
+# NETWORK DISCOVERY - Get Local IP for LAN Multiplayer
+# =============================================================================
+
+func _get_local_ip() -> String:
+	"""Get the host machine's LAN IP address"""
+	var ip_addresses = IP.get_local_addresses()
 	
-	if not status["ready"]:
-		push_error("[CodeBreakerRoom] Multiplayer connection timeout after %.1fs" % timeout)
-		_message_label.text = "Connection failed. Returning to lobby..."
-		await get_tree().create_timer(3.0).timeout
-		_go_to_landing()
-		return
+	# Find the LAN IP (usually starts with 192.168 or 10.)
+	for ip in ip_addresses:
+		if ip.begins_with("192.168.") or ip.begins_with("10.") or ip.begins_with("172."):
+			print("[CodeBreakerRoom] Found LAN IP: %s" % ip)
+			return ip
 	
-	print("[CodeBreakerRoom] Multiplayer peer connected! Peer ID: %d" % multiplayer.get_unique_id())
+	# Fallback to first non-localhost IP
+	for ip in ip_addresses:
+		if ip != "127.0.0.1" and not ip.begins_with("::"):
+			print("[CodeBreakerRoom] Using fallback IP: %s" % ip)
+			return ip
 	
-	# Verify connection is active
-	if multiplayer.multiplayer_peer == null:
-		push_error("[CodeBreakerRoom] Multiplayer peer is null after setup!")
-		return
+	# Last resort: localhost
+	print("[CodeBreakerRoom] WARNING: Using localhost (same-device only!)")
+	return "127.0.0.1"
+
+func _store_host_ip_in_rtdb(host_ip: String) -> void:
+	"""Store host IP in RTDB so client can discover it"""
+	var url = RTDB_BASE + ROOMS_PATH + "/" + _room_id + "/host_ip.json?auth=" + Auth.current_id_token
 	
-	# Keep the manager alive for the arena
-	mp_manager.name = "MultiplayerManager"
-	mp_manager.reparent(get_tree().root)
+	var http = HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_result, code, _headers, _body):
+		http.queue_free()
+		if code == 200:
+			print("[CodeBreakerRoom] ✅ Host IP stored in RTDB: %s" % host_ip)
+		else:
+			push_error("[CodeBreakerRoom] Failed to store host IP: %d" % code)
+	)
+	
+	var json = JSON.stringify(host_ip)
+	var headers = ["Content-Type: application/json"]
+	http.request(url, headers, HTTPClient.METHOD_PUT, json)
+
+func _get_host_ip_from_rtdb() -> String:
+	"""Client retrieves host IP from RTDB"""
+	var url = RTDB_BASE + ROOMS_PATH + "/" + _room_id + "/host_ip.json?auth=" + Auth.current_id_token
+	
+	print("[CodeBreakerRoom] Fetching host IP from RTDB...")
+	
+	var http = HTTPRequest.new()
+	add_child(http)
+	
+	var result = await _make_http_request_async(http, url)
+	http.queue_free()
+	
+	if result["code"] != 200:
+		push_error("[CodeBreakerRoom] Failed to get host IP: %d" % result["code"])
+		return ""
+	
+	var data = JSON.parse_string(result["body"])
+	if data == null or data is not String:
+		push_error("[CodeBreakerRoom] Invalid host IP data!")
+		return ""
+	
+	print("[CodeBreakerRoom] ✅ Got host IP from RTDB: %s" % data)
+	return data
+
+func _make_http_request_async(http: HTTPRequest, url: String) -> Dictionary:
+	"""Helper to make async HTTP request"""
+	var response = {"code": 0, "body": ""}
+	
+	http.request_completed.connect(func(_result, code, _headers, body):
+		response["code"] = code
+		response["body"] = body.get_string_from_utf8()
+	)
+	
+	http.request(url)
+	
+	# Wait for response
+	while response["code"] == 0:
+		await get_tree().create_timer(0.1).timeout
+	
+	return response
