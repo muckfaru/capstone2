@@ -10,6 +10,7 @@ extends Control
 @onready var _p2_score: Label = $VBox/ScorePanel/ScoreP2
 @onready var _p1_health: ProgressBar = $VBox/ScorePanel/P1HealthBar
 @onready var _p2_health: ProgressBar = $VBox/ScorePanel/P2HealthBar
+@onready var _type_area: Node = $TypeCodeArea  # TextEdit/LineEdit for typing input (guarded)
 
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const ROOMS_PATH := "/codebreaker_rooms"
@@ -35,6 +36,18 @@ var _opponent_health: int = 100
 
 # Sync timer
 var _sync_timer: Timer
+
+# Typing battle state
+var _snippets: Array = [
+	"for i in range(5):\n\tprint(i)",
+	"func add(a:int, b:int) -> int:\n\treturn a + b",
+	"if x < 10 and y != 0:\n\tprint(\"ok\")",
+	"var total := 0\nfor n in [1,2,3]:\n\ttotal += n",
+]
+var _current_snippet: String = ""
+var _snippet_seq: int = 0
+var _typed_text: String = ""
+var _updating_input: bool = false
 
 func _ready() -> void:
 	print("[CodeBreakerArena] Arena started")
@@ -75,6 +88,19 @@ func _ready() -> void:
 	if _ws_indicator:
 		_ws_indicator.color = Color.YELLOW
 
+	# Wire typing input changes (TextEdit/LineEdit compatible)
+	if _type_area and _type_area.has_signal("text_changed"):
+		# Some nodes emit text_changed(new_text), some emit without args; support both
+		_type_area.text_changed.connect(func(new_text := ""):
+			_on_input_text_changed(new_text)
+		)
+	# Prepare round if host (will broadcast snippet)
+	if _is_host:
+		_status_label.text = "Preparing round..."
+		_start_round()
+	else:
+		_status_label.text = "Waiting for host to send snippet..."
+
 func _setup_p2p_connection() -> void:
 	"""Initialize P2P WebSocket connection"""
 	# Load P2P client
@@ -101,22 +127,38 @@ func _on_p2p_connected() -> void:
 	_status_label.text = "Connected! Game starting..."
 	if _ws_indicator:
 		_ws_indicator.color = Color.GREEN
-	
-	# If host, initialize game state and send to opponent
+
+	# If host, initialize game state and (re)send snippet to guarantee sync
 	if _is_host:
 		_initialize_game_state()
+		if _current_snippet == "":
+			_start_round()
+		else:
+			_broadcast_snippet()
 
 func _on_opponent_action(action: Dictionary) -> void:
 	"""Called when opponent sends game action"""
 	print("[Arena] Received opponent action: %s" % action)
-	
-	# Update opponent's displayed values
-	if action.has("score"):
-		_opponent_score = action.get("score", 0)
-	if action.has("health"):
-		_opponent_health = action.get("health", 100)
-	
-	_update_ui_display()
+	# Handle new protocol kinds first
+	var kind := str(action.get("kind", ""))
+	match kind:
+		"snippet":
+			_apply_new_snippet(str(action.get("snippet", "")), int(action.get("seq", 0)))
+		"progress":
+			_opponent_score = int(action.get("score", _opponent_score))
+			_opponent_health = int(action.get("health", _opponent_health))
+			_update_ui_display()
+		"completed":
+			# Host advances to next snippet when a client completes
+			if _is_host:
+				_start_round()
+		_:
+			# Back-compat for older messages
+			if action.has("score"):
+				_opponent_score = action.get("score", 0)
+			if action.has("health"):
+				_opponent_health = action.get("health", 100)
+			_update_ui_display()
 
 func _on_opponent_disconnected() -> void:
 	"""Called when opponent disconnects"""
@@ -145,7 +187,7 @@ func _on_display_timer_timeout() -> void:
 	var remaining = max(0.0, GAME_DURATION - elapsed)
 	
 	var total_secs = int(remaining)
-	var mins: int = total_secs / 60
+	var mins: int = floori(total_secs / 60.0)
 	var secs: int = total_secs % 60
 	_timer_label.text = "%02d:%02d" % [mins, secs]
 	
@@ -180,6 +222,126 @@ func _initialize_game_state() -> void:
 	
 	_status_label.text = "Match in progress..."
 	_update_ui_display()
+
+# =============================
+# Typing battle mechanics
+# =============================
+
+func _start_round() -> void:
+	"""Host chooses a snippet and broadcasts it; both reset progress."""
+	if not _is_host:
+		return
+	if _snippets.is_empty():
+		return
+	var idx := randi() % _snippets.size()
+	_current_snippet = str(_snippets[idx])
+	_snippet_seq += 1
+	_reset_progress_local()
+	_broadcast_snippet()
+
+func _broadcast_snippet() -> void:
+	_status_label.text = "Type the snippet shown below."
+	_show_snippet_in_status()
+	_send_game_action({
+		"kind": "snippet",
+		"seq": _snippet_seq,
+		"snippet": _current_snippet
+	})
+
+func _apply_new_snippet(snippet: String, seq: int) -> void:
+	if snippet == "":
+		return
+	_current_snippet = snippet
+	_snippet_seq = seq
+	_reset_progress_local()
+	_status_label.text = "New snippet received. Go!"
+	_show_snippet_in_status()
+
+func _reset_progress_local() -> void:
+	_typed_text = ""
+	_set_input_text("")
+	_update_ui_display()
+
+func _show_snippet_in_status() -> void:
+	if _status_label:
+		var preview := _current_snippet
+		if preview.length() > 200:
+			preview = preview.substr(0, 200) + "…"
+		_status_label.text = "Type this:\n" + preview
+
+func _on_input_text_changed(new_text: String = "") -> void:
+	if _updating_input:
+		return
+	if _current_snippet == "":
+		return
+	var text := new_text
+	if text == "":
+		text = _get_input_text()
+
+	# Compute how much of the prefix is correct
+	var correct_len := _common_prefix_len(text, _current_snippet)
+
+	# Penalize on mistakes (trim back to correct prefix)
+	if correct_len < text.length():
+		_local_health = max(0, _local_health - 1)
+		text = _current_snippet.substr(0, correct_len)
+		_set_input_text(text)
+
+	# Reward correct new characters
+	var delta: int = int(max(0, correct_len - _typed_text.length()))
+	if delta > 0:
+		_local_score += delta
+		_typed_text = text
+		_update_ui_display()
+
+	# Broadcast progress (score/health)
+	_send_game_action({
+		"kind": "progress",
+		"score": _local_score,
+		"health": _local_health
+	})
+
+	# Completed the snippet?
+	if _typed_text == _current_snippet:
+		_local_score += 10  # completion bonus
+		_update_ui_display()
+		_send_game_action({
+			"kind": "progress",
+			"score": _local_score,
+			"health": _local_health
+		})
+		_send_game_action({
+			"kind": "completed",
+			"seq": _snippet_seq
+		})
+		if _is_host:
+			await get_tree().create_timer(0.5).timeout
+			_start_round()
+
+func _common_prefix_len(a: String, b: String) -> int:
+	var n: int = int(min(a.length(), b.length()))
+	var i := 0
+	while i < n and a[i] == b[i]:
+		i += 1
+	return i
+
+func _set_input_text(text: String) -> void:
+	if not _type_area:
+		return
+	_updating_input = true
+	if _type_area.has_method("set_text"):
+		_type_area.call("set_text", text)
+	else:
+		_type_area.set("text", text)
+	_updating_input = false
+
+func _get_input_text() -> String:
+	if not _type_area:
+		return _typed_text
+	if _type_area.has_method("get_text"):
+		return str(_type_area.call("get_text"))
+	var val = _type_area.get("text")
+	return str(val) if typeof(val) == TYPE_STRING else _typed_text
 
 func send_player_action(score: int, health: int) -> void:
 	"""Called by game logic to send player action"""
