@@ -1,8 +1,8 @@
-[gd_scene load_steps=10 format=3 uid="uid://b1ngbpq5ojqqk"]
+[gd_scene load_steps=10 format=3 uid="uid://27b4pfftbx4g"]
 
-[ext_resource type="Script" uid="uid://dw7agivap55un" path="res://script/code_breaker_arena.gd" id="1_18ytm"]
+[ext_resource type="Script" path="res://script/code_breaker_arena_multiplayer.gd" id="1_multiplayer"]
 
-[sub_resource type="SceneReplicationConfig" id="replication_config"]
+[sub_resource type="SceneReplicationConfig" id="8"]
 properties/0/path = NodePath(".:player_score")
 properties/0/spawn = true
 properties/0/replication_mode = 1
@@ -81,8 +81,8 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="code_panel_style"]
-bg_color = Color(0, 0, 0, 0.85)
+[sub_resource type="StyleBoxFlat" id="7"]
+bg_color = Color(0, 0, 0, 0.8)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -100,22 +100,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_18ytm")
+script = ExtResource("1_multiplayer")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
-replication_config = SubResource("replication_config")
+replication_config = SubResource("8")
 
 [node name="HeaderPanel" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.05
-anchor_top = 0.09
+anchor_top = 0.05
 anchor_right = 0.95
-anchor_bottom = 0.16
-offset_left = -7.6
-offset_top = 27.68
-offset_right = -7.59998
-offset_bottom = 27.68
+anchor_bottom = 0.12
 theme_override_styles/panel = SubResource("1")
 
 [node name="HostNameLabel" type="Label" parent="HeaderPanel"]
@@ -123,38 +119,35 @@ layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.02
 anchor_top = 0.1
-anchor_right = 0.32
+anchor_right = 0.3
 anchor_bottom = 0.9
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+theme_override_font_sizes/font_size = 18
 text = "Player 1"
 vertical_alignment = 1
 
 [node name="TimerLabel" type="Label" parent="HeaderPanel"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.4
+anchor_left = 0.42
 anchor_top = 0.1
-anchor_right = 0.6
+anchor_right = 0.58
 anchor_bottom = 0.9
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
-text = "00:00"
+theme_override_font_sizes/font_size = 24
+text = "03:00"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ClientNameLabel" type="Label" parent="HeaderPanel"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.68
+anchor_left = 0.7
 anchor_top = 0.1
 anchor_right = 0.98
 anchor_bottom = 0.9
-grow_horizontal = 2
-grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.35, 0.43, 1)
+theme_override_font_sizes/font_size = 18
 text = "Player 2"
 horizontal_alignment = 2
 vertical_alignment = 1
@@ -162,11 +155,11 @@ vertical_alignment = 1
 [node name="WSIndicator" type="ColorRect" parent="HeaderPanel"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.615
-anchor_top = 0.26
-anchor_right = 0.63
-anchor_bottom = 0.74
-tooltip_text = "WebSocket status"
+anchor_left = 0.62
+anchor_top = 0.3
+anchor_right = 0.64
+anchor_bottom = 0.7
+tooltip_text = "Connection status"
 mouse_filter = 1
 color = Color(1, 0.75, 0, 1)
 
@@ -174,55 +167,40 @@ color = Color(1, 0.75, 0, 1)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.05
+anchor_top = 0.01
 anchor_right = 0.95
-anchor_bottom = 0.08
-offset_left = -1.6
-offset_top = 30.0
-offset_right = -1.59998
-offset_bottom = 30.0
+anchor_bottom = 0.05
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
-text = "CODE BREAKER"
+theme_override_font_sizes/font_size = 28
+text = "CODE BREAKER - TYPING BATTLE"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="VBox" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.1
-anchor_top = 0.375
-anchor_right = 0.9
-anchor_bottom = 0.9
-offset_left = -0.200005
-offset_top = 186.0
-offset_right = 0.200073
-offset_bottom = -0.200012
+anchor_left = 0.05
+anchor_top = 0.14
+anchor_right = 0.95
+anchor_bottom = 0.95
 theme_override_styles/panel = SubResource("2")
 
 [node name="ScorePanel" type="Panel" parent="VBox"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.05
-anchor_top = 0.121
+anchor_top = 0.03
 anchor_right = 0.95
-anchor_bottom = 0.9
-offset_left = 0.899998
-offset_top = 26.366
-offset_right = 1.09998
-offset_bottom = 0.400009
-grow_horizontal = 2
-grow_vertical = 2
+anchor_bottom = 0.22
 theme_override_styles/panel = SubResource("1")
 
 [node name="Player1Title" type="Label" parent="VBox/ScorePanel"]
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 0.5
-anchor_bottom = 0.4
-offset_right = -254.0
-offset_bottom = 0.399998
-grow_horizontal = 2
-grow_vertical = 2
+anchor_bottom = 0.25
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+theme_override_font_sizes/font_size = 16
 text = "PLAYER 1"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -233,30 +211,32 @@ anchors_preset = -1
 anchor_left = 0.05
 anchor_top = 0.3
 anchor_right = 0.45
-anchor_bottom = 0.45
-offset_left = -0.499996
-offset_top = 5.8
-offset_right = -0.499969
-offset_bottom = 19.7
-grow_horizontal = 2
-grow_vertical = 2
+anchor_bottom = 0.5
 theme_override_styles/background = SubResource("3")
 theme_override_styles/fill = SubResource("4")
 value = 100.0
 show_percentage = false
 
+[node name="P1Progress" type="ProgressBar" parent="VBox/ScorePanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.55
+anchor_right = 0.45
+anchor_bottom = 0.7
+theme_override_styles/background = SubResource("3")
+theme_override_styles/fill = SubResource("4")
+show_percentage = false
+
 [node name="ScoreP1" type="Label" parent="VBox/ScorePanel"]
 layout_mode = 1
 anchors_preset = -1
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = 273.0
-offset_top = 66.953
-offset_right = -42.0
-offset_bottom = -4.04698
-grow_horizontal = 2
-grow_vertical = 2
+anchor_left = 0.05
+anchor_top = 0.75
+anchor_right = 0.45
+anchor_bottom = 0.95
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+theme_override_font_sizes/font_size = 20
 text = "P1: 0"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -266,13 +246,9 @@ layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
 anchor_right = 1.0
-anchor_bottom = 0.4
-offset_left = 247.0
-offset_right = 6.10352e-05
-offset_bottom = 0.399998
-grow_horizontal = 2
-grow_vertical = 2
+anchor_bottom = 0.25
 theme_override_colors/font_color = Color(1, 0.35, 0.43, 1)
+theme_override_font_sizes/font_size = 16
 text = "PLAYER 2"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -283,32 +259,32 @@ anchors_preset = -1
 anchor_left = 0.55
 anchor_top = 0.3
 anchor_right = 0.95
-anchor_bottom = 0.45
-offset_left = -0.499969
-offset_top = 3.8
-offset_right = -0.499939
-offset_bottom = 17.7
-grow_horizontal = 2
-grow_vertical = 2
+anchor_bottom = 0.5
 theme_override_styles/background = SubResource("5")
 theme_override_styles/fill = SubResource("6")
 value = 100.0
 show_percentage = false
 
+[node name="P2Progress" type="ProgressBar" parent="VBox/ScorePanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.55
+anchor_top = 0.55
+anchor_right = 0.95
+anchor_bottom = 0.7
+theme_override_styles/background = SubResource("5")
+theme_override_styles/fill = SubResource("6")
+show_percentage = false
+
 [node name="ScoreP2" type="Label" parent="VBox/ScorePanel"]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.18
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 45.0
-offset_top = 50.6834
-offset_right = -270.0
-offset_bottom = -3.39656
-grow_horizontal = 2
-grow_vertical = 2
+anchor_left = 0.55
+anchor_top = 0.75
+anchor_right = 0.95
+anchor_bottom = 0.95
 theme_override_colors/font_color = Color(1, 0.35, 0.43, 1)
+theme_override_font_sizes/font_size = 20
 text = "P2: 0"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -320,21 +296,17 @@ anchor_left = 0.05
 anchor_top = 0.25
 anchor_right = 0.95
 anchor_bottom = 0.65
-offset_left = -21.1
-offset_top = -314.5
-offset_right = -20.9
-offset_bottom = -159.1
-theme_override_styles/panel = SubResource("code_panel_style")
+theme_override_styles/panel = SubResource("7")
 
 [node name="CodeDisplay" type="RichTextLabel" parent="VBox/CodeDisplayPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 8.0
+offset_top = 7.0
+offset_right = -9.12
+offset_bottom = -9.952
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/default_color = Color(0, 1, 0.5, 1)
@@ -342,7 +314,6 @@ theme_override_font_sizes/normal_font_size = 18
 bbcode_enabled = true
 text = "Waiting for code snippet..."
 fit_content = true
-scroll_active = false
 
 [node name="InputField" type="LineEdit" parent="VBox"]
 layout_mode = 1
@@ -351,14 +322,10 @@ anchor_left = 0.05
 anchor_top = 0.68
 anchor_right = 0.95
 anchor_bottom = 0.75
-offset_left = -11.1
-offset_top = -168.72
-offset_right = -11.1
-offset_bottom = -143.5
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 20
 placeholder_text = "Type the code here..."
-alignment = 1
+max_length = 1
 editable = false
 
 [node name="StatusLabel" type="Label" parent="VBox"]
@@ -368,12 +335,8 @@ anchor_left = 0.05
 anchor_top = 0.8
 anchor_right = 0.95
 anchor_bottom = 0.9
-offset_left = -134.1
-offset_top = 50.8
-offset_right = -133.9
-offset_bottom = 63.4
 theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 22
 text = "Waiting for opponent..."
 horizontal_alignment = 1
 vertical_alignment = 1

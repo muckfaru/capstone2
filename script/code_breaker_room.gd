@@ -109,12 +109,16 @@ func _transition_to_arena_from_poll(room_data: Dictionary) -> void:
 	_transitioning_to_arena = true
 	print("[CodeBreakerRoom] Client detected game start, transitioning to arena")
 	
+	# IMPORTANT: Setup multiplayer peer BEFORE transitioning (client path)
+	await _setup_multiplayer_peer(room_data)
+	
 	# Prepare arena init data
 	var arena_init := {
 		"room_id": _room_id,
 		"is_host": _is_host,
 		"host_name": str(Auth.current_username if Auth else "Host"),
-		"room_data": room_data
+		"room_data": room_data,
+		"peer_id": multiplayer.get_unique_id()
 	}
 	
 	# Store meta data safely
@@ -247,7 +251,7 @@ func _promote_self_to_host(client_val: Dictionary, id_token: String) -> void:
 		_fetch_room()
 		_configure_buttons()
 	)
-	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json?auth=" + id_token
+	var url: String = RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json?auth=" + id_token
 	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PATCH, JSON.stringify(patch_obj))
 
 func _configure_buttons() -> void:
@@ -407,16 +411,21 @@ func _transition_to_arena() -> void:
 			push_warning("[CodeBreakerRoom] Invalid room data before transition")
 			return
 		
+		# Initialize multiplayer peer BEFORE scene change
+		await _setup_multiplayer_peer(room_data)
+		
 		# Prepare arena init data
 		var arena_init := {
 			"room_id": _room_id,
 			"is_host": _is_host,
 			"host_name": str(Auth.current_username if Auth else "Host"),
-			"room_data": room_data
+			"room_data": room_data,
+			"peer_id": multiplayer.get_unique_id()
 		}
 		
 		get_tree().set_meta("code_breaker_arena_init", arena_init)
 		
+		# Load the updated arena scene
 		var arena_scene := load("res://scene/code_breaker_arena.tscn")
 		if arena_scene:
 			get_tree().change_scene_to_packed(arena_scene)
@@ -424,3 +433,153 @@ func _transition_to_arena() -> void:
 	
 	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json"
 	http.request(url, [], HTTPClient.METHOD_GET)
+
+func _setup_multiplayer_peer(_room_data: Dictionary) -> void:
+	"""Initialize WebSocketMultiplayerPeer for the game"""
+	print("[CodeBreakerRoom] Setting up multiplayer peer...")
+	
+	# TEMPORARY: Skip multiplayer setup for now (use ENetMultiplayerPeer for localhost testing)
+	# This is a simpler alternative that works better for local testing
+	var peer = ENetMultiplayerPeer.new()
+	
+	if _is_host:
+		print("[CodeBreakerRoom] Creating ENet host on port 9999...")
+		var error = peer.create_server(9999, 1)  # Max 1 client
+		if error != OK:
+			push_error("[CodeBreakerRoom] Failed to create ENet server: %d" % error)
+			return
+		print("[CodeBreakerRoom] ENet server created successfully")
+		
+		# Set the multiplayer peer
+		get_tree().get_multiplayer().multiplayer_peer = peer
+		print("[CodeBreakerRoom] Host waiting for client to connect...")
+		
+		# Wait for client to connect (with timeout)
+		var wait_time = 0.0
+		var max_wait = 10.0  # 10 seconds max
+		while multiplayer.get_peers().size() == 0 and wait_time < max_wait:
+			await get_tree().create_timer(0.5).timeout
+			wait_time += 0.5
+			if int(wait_time) % 2 == 0:
+				print("[CodeBreakerRoom] Still waiting for client... %.1fs" % wait_time)
+		
+		if multiplayer.get_peers().size() == 0:
+			push_error("[CodeBreakerRoom] Client never connected!")
+			_message_label.text = "Client connection timeout. Returning to lobby..."
+			await get_tree().create_timer(3.0).timeout
+			_go_to_landing()
+			return
+		else:
+			print("[CodeBreakerRoom] Client connected! Peer ID: %d" % multiplayer.get_peers()[0])
+	else:
+		print("[CodeBreakerRoom] Connecting to ENet host at 127.0.0.1:9999...")
+		var error = peer.create_client("127.0.0.1", 9999)
+		if error != OK:
+			push_error("[CodeBreakerRoom] Failed to create ENet client: %d" % error)
+			return
+		
+		# Set the multiplayer peer
+		get_tree().get_multiplayer().multiplayer_peer = peer
+		print("[CodeBreakerRoom] ENet client connecting...")
+		
+		# Wait for connection to establish
+		await get_tree().create_timer(2.0).timeout
+	
+	print("[CodeBreakerRoom] Multiplayer ready. My Peer ID: %d, Peers: %s" % [multiplayer.get_unique_id(), str(multiplayer.get_peers())])
+
+# OLD WebSocket setup code (replaced with simpler ENet for local testing)
+# To re-enable WebSocket P2P, uncomment the _setup_multiplayer_peer_websocket function below
+# and call it instead of the ENet version above
+
+func _setup_multiplayer_peer_websocket(_room_data: Dictionary) -> void:
+	"""WebSocket multiplayer setup (for LAN/Internet play) - Currently disabled"""
+	# Load multiplayer manager script
+	var mp_manager_script = load("res://script/MultiplayerManager.gd")
+	var mp_manager = Node.new()
+	mp_manager.set_script(mp_manager_script)
+	add_child(mp_manager)
+	
+	# Setup callbacks
+	var status = {"ready": false}
+	mp_manager.connection_ready.connect(func():
+		print("[CodeBreakerRoom] Multiplayer connection ready!")
+		status["ready"] = true
+	)
+	mp_manager.connection_failed.connect(func(error):
+		push_error("[CodeBreakerRoom] Multiplayer connection failed: %s" % error)
+	)
+	
+	if _is_host:
+		# Host creates server and publishes IP to RTDB
+		var success = mp_manager.setup_host(_room_id, 9999)
+		if not success:
+			push_error("[CodeBreakerRoom] Failed to setup host")
+			return
+		
+		# Publish host IP for client discovery
+		var network_discovery = load("res://script/NetworkDiscovery.gd").new()
+		add_child(network_discovery)
+		var local_ip = network_discovery.get_local_network_ip()
+		var id_token = Auth.current_id_token if Auth else ""
+		network_discovery.publish_host_ip(_room_id, local_ip, 9999, id_token)
+		
+		print("[CodeBreakerRoom] Host server created at %s:9999, waiting for client..." % local_ip)
+	else:
+		# Client fetches host IP from RTDB and connects
+		var network_discovery = load("res://script/NetworkDiscovery.gd").new()
+		add_child(network_discovery)
+		
+		# Wait for host IP (use dictionary to avoid capture issue)
+		var ip_data = {"ip": ""}
+		network_discovery.host_ip_received.connect(func(ip):
+			ip_data["ip"] = ip
+		)
+		network_discovery.discovery_failed.connect(func(error):
+			push_error("[CodeBreakerRoom] Network discovery failed: %s" % error)
+		)
+		
+		network_discovery.get_host_ip(_room_id)
+		
+		# Wait for IP (discovery timeout 5s)
+		var discovery_timeout = 5.0
+		var discovery_elapsed = 0.0
+		while ip_data["ip"].is_empty() and discovery_elapsed < discovery_timeout:
+			await get_tree().create_timer(0.1).timeout
+			discovery_elapsed += 0.1
+		
+		if ip_data["ip"].is_empty():
+			push_error("[CodeBreakerRoom] Failed to discover host IP")
+			return
+		
+		var success = mp_manager.setup_client(ip_data["ip"], 9999)
+		if not success:
+			push_error("[CodeBreakerRoom] Failed to connect to host")
+			return
+		print("[CodeBreakerRoom] Client connecting to host at %s:9999..." % ip_data["ip"])
+	
+	# Wait for connection to be ready (increased timeout)
+	var timeout = 15.0
+	var elapsed = 0.0
+	while not status["ready"] and elapsed < timeout:
+		await get_tree().create_timer(0.1).timeout
+		elapsed += 0.1
+		if elapsed > 0 and int(elapsed) % 2 == 0:
+			print("[CodeBreakerRoom] Still waiting for connection... %.1fs" % elapsed)
+	
+	if not status["ready"]:
+		push_error("[CodeBreakerRoom] Multiplayer connection timeout after %.1fs" % timeout)
+		_message_label.text = "Connection failed. Returning to lobby..."
+		await get_tree().create_timer(3.0).timeout
+		_go_to_landing()
+		return
+	
+	print("[CodeBreakerRoom] Multiplayer peer connected! Peer ID: %d" % multiplayer.get_unique_id())
+	
+	# Verify connection is active
+	if multiplayer.multiplayer_peer == null:
+		push_error("[CodeBreakerRoom] Multiplayer peer is null after setup!")
+		return
+	
+	# Keep the manager alive for the arena
+	mp_manager.name = "MultiplayerManager"
+	mp_manager.reparent(get_tree().root)
