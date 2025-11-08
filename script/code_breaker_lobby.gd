@@ -468,19 +468,21 @@ func _join_room_via_lobby(room_id: String) -> void:
 
 func _initialize_multiplayer_config() -> void:
 	"""Initialize MultiplayerConfig for lobby server URL"""
-	var MultiplayerConfigScript = load("res://script/MultiplayerConfig.gd")
-	if not MultiplayerConfigScript:
-		push_error("[CodeBreakerLobby] MultiplayerConfig.gd not found!")
-		return
-	
-	_multiplayer_config = MultiplayerConfigScript.new()
-	add_child(_multiplayer_config)
-	
-	# Don't override mode here - let ForceNetworkMode autoload control it
-	# Mode is already set by ForceNetworkMode in project autoload
-	
-	# Get lobby server URL
-	_lobby_server_url = _multiplayer_config.get_lobby_url()
+	# Use the autoload instance (configured by ForceNetworkMode)
+	if has_node("/root/MultiplayerConfig"):
+		_multiplayer_config = get_node("/root/MultiplayerConfig")
+		_lobby_server_url = _multiplayer_config.get_lobby_url()
+		print("[CodeBreakerLobby] Using MultiplayerConfig autoload")
+		print("[CodeBreakerLobby] Lobby URL: ", _lobby_server_url)
+	else:
+		push_error("[CodeBreakerLobby] MultiplayerConfig autoload not found!")
+		# Fallback: create new instance
+		var MultiplayerConfigScript = load("res://script/MultiplayerConfig.gd")
+		if MultiplayerConfigScript:
+			_multiplayer_config = MultiplayerConfigScript.new()
+			add_child(_multiplayer_config)
+			_lobby_server_url = _multiplayer_config.get_lobby_url()
+			push_warning("[CodeBreakerLobby] Using fallback MultiplayerConfig instance")
 	
 	print("[CodeBreakerLobby] Multiplayer config initialized")
 	print("[CodeBreakerLobby] Lobby server: %s" % _lobby_server_url)
