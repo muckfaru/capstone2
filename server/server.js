@@ -423,19 +423,38 @@ app.get('/stats', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+// Bind to 0.0.0.0 to accept connections from any network interface
+app.listen(PORT, '0.0.0.0', () => {
+  const os = require('os');
+  const networkInterfaces = os.networkInterfaces();
+  let localIP = 'localhost';
+  
+  // Find local IP address
+  for (const name of Object.keys(networkInterfaces)) {
+    for (const net of networkInterfaces[name]) {
+      // Skip internal and non-IPv4 addresses
+      if (net.family === 'IPv4' && !net.internal) {
+        localIP = net.address;
+        break;
+      }
+    }
+  }
+  
   console.log(`\n🎮 Code Breaker Lobby Server v2.0`);
   console.log(`   Architecture: Pure Direct P2P (ENet)`);
   console.log(`   Port: ${PORT}`);
+  console.log(`   Local Network: http://${localIP}:${PORT}`);
   console.log(`\n📡 API Endpoints:`);
-  console.log(`   POST   http://localhost:${PORT}/api/rooms/create`);
-  console.log(`   GET    http://localhost:${PORT}/api/rooms/list`);
-  console.log(`   GET    http://localhost:${PORT}/api/rooms/:id`);
-  console.log(`   POST   http://localhost:${PORT}/api/rooms/:id/join`);
-  console.log(`   POST   http://localhost:${PORT}/api/rooms/:id/heartbeat`);
-  console.log(`   DELETE http://localhost:${PORT}/api/rooms/:id`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/rooms/create`);
+  console.log(`   GET    http://${localIP}:${PORT}/api/rooms/list`);
+  console.log(`   GET    http://${localIP}:${PORT}/api/rooms/:id`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/rooms/:id/join`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/rooms/:id/heartbeat`);
+  console.log(`   DELETE http://${localIP}:${PORT}/api/rooms/:id`);
   console.log(`\n🔍 Monitoring:`);
-  console.log(`   GET    http://localhost:${PORT}/health`);
-  console.log(`   GET    http://localhost:${PORT}/stats`);
+  console.log(`   GET    http://${localIP}:${PORT}/health`);
+  console.log(`   GET    http://${localIP}:${PORT}/stats`);
+  console.log(`\n💡 Access from other devices on same WiFi:`);
+  console.log(`   Use: http://${localIP}:${PORT}`);
   console.log(`\n✅ Server ready!\n`);
 });

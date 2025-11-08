@@ -7,13 +7,15 @@ Option A: Pure Direct P2P Architecture
 """
 
 enum Mode {
-	LOCALHOST,   # Development: localhost
+	LOCALHOST,   # Development: localhost (PC only)
+	LAN,         # LAN Testing: Local network IP (same WiFi)
 	TUNNEL,      # Testing: NodeTunnel or ngrok
 	PRODUCTION   # Deployed: Cloud server (Render, Railway, etc.)
 }
 
 const LOBBY_URLS = {
 	Mode.LOCALHOST: "http://localhost:8080",
+	Mode.LAN: "http://192.168.100.49:8080",  # PC's local IP (update if needed)
 	Mode.TUNNEL: "https://your-tunnel-url.onrender.com",  # Update with actual tunnel URL
 	Mode.PRODUCTION: "https://codebreaker-lobby.onrender.com"  # Update when deployed
 }
@@ -21,7 +23,7 @@ const LOBBY_URLS = {
 const DEFAULT_PORT := 7777
 const HEARTBEAT_INTERVAL := 30.0  # seconds
 
-var current_mode: Mode = Mode.LOCALHOST
+var current_mode: Mode = Mode.LAN  # Changed default to LAN for testing
 var custom_tunnel_url: String = ""
 
 ## Get the lobby server base URL
