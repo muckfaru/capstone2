@@ -168,9 +168,11 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	}
 	
 	var http := HTTPRequest.new()
+	http.timeout = 10.0  # 10 second timeout
 	add_child(http)
 	
 	http.request_completed.connect(func(_r: int, code: int, _h: PackedStringArray, resp_body: PackedByteArray):
+		print("🔍 [DEBUG] HTTP Response - Code: ", code, " Body: ", resp_body.get_string_from_utf8())
 		http.queue_free()
 		
 		if code != 200:
@@ -214,6 +216,9 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	
 	# Make API request
 	var api_url = _multiplayer_config.get_api_endpoint("/api/rooms/create")
+	print("🔍 [DEBUG] API URL: ", api_url)
+	print("🔍 [DEBUG] Request body: ", JSON.stringify(body))
+	
 	var request_headers := ["Content-Type: application/json"]
 	var request_error = http.request(api_url, request_headers, HTTPClient.METHOD_POST, JSON.stringify(body))
 	
