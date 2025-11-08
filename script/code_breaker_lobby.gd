@@ -471,8 +471,8 @@ func _initialize_multiplayer_config() -> void:
 	_multiplayer_config = MultiplayerConfigScript.new()
 	add_child(_multiplayer_config)
 	
-	# Set mode: LAN for same WiFi testing, LOCALHOST for PC-only dev
-	_multiplayer_config.set_mode(_multiplayer_config.Mode.LAN)
+	# Don't override mode here - let ForceNetworkMode autoload control it
+	# Mode is already set by ForceNetworkMode in project autoload
 	
 	# Get lobby server URL
 	_lobby_server_url = _multiplayer_config.get_lobby_url()
