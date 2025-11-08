@@ -27,6 +27,17 @@ var _last_client_present: bool = false
 var _poll_timer: Timer
 var _transitioning_to_arena: bool = false
 
+# Option A: Direct P2P Connection Info
+var _host_ip: String = ""
+var _host_port: int = 7777
+var _enet_peer: ENetMultiplayerPeer = null
+var _connection_timeout: float = 10.0  # 10 seconds timeout for connection
+
+# Heartbeat system (Task 7)
+var _heartbeat_timer: Timer = null
+var _lobby_server_url: String = ""
+const HEARTBEAT_INTERVAL := 30.0  # Send heartbeat every 30 seconds
+
 func _ready() -> void:
 	var init: Dictionary = {}
 	if get_tree().has_meta("code_breaker_room_init"):
@@ -40,6 +51,17 @@ func _ready() -> void:
 
 	_room_id = room_id
 	_is_host = is_host
+	
+	# Option A: Store host connection info from lobby server
+	_host_ip = str(init.get("host_ip", ""))
+	_host_port = int(init.get("host_port", 7777))
+	
+	print("[CodeBreakerRoom] Initialized - Room: %s, Host: %s, Is Host: %s" % [_room_id, host_name, _is_host])
+	if not _is_host:
+		print("[CodeBreakerRoom] Client will connect to: %s:%d" % [_host_ip, _host_port])
+	
+	# Initialize lobby server URL for heartbeat
+	_initialize_lobby_config()
 
 	# Initially hide the randomized room id; will set actual room name after first fetch
 	_room_id_label.text = ""
@@ -69,6 +91,10 @@ func _ready() -> void:
 	add_child(_poll_timer)
 	_poll_timer.timeout.connect(_on_poll_timeout)
 	_fetch_room()
+	
+	# Start heartbeat system (host only)
+	if _is_host:
+		_start_heartbeat()
 
 	# Configure action button based on role
 	_configure_buttons()
@@ -120,6 +146,10 @@ func _transition_to_arena_from_poll(room_data: Dictionary) -> void:
 		"room_data": room_data,
 		"peer_id": multiplayer.get_unique_id()
 	}
+	
+	# Stop heartbeat before arena transition
+	if _is_host:
+		_stop_heartbeat()
 	
 	# Store meta data safely
 	if get_tree():
@@ -291,6 +321,11 @@ func _on_ready_toggled(pressed: bool) -> void:
 
 func _leave_room() -> void:
 	print("[CodeBreakerRoom] Leave Room pressed")
+	
+	# Stop heartbeat if host
+	if _is_host:
+		_stop_heartbeat()
+	
 	var id_token := Auth.current_id_token if Auth else ""
 	if _room_id == "":
 		_go_to_landing()
@@ -359,6 +394,10 @@ func _delete_room(id_token: String) -> void:
 	http.request(url, [], HTTPClient.METHOD_DELETE)
 
 func _go_to_landing() -> void:
+	# Stop heartbeat before leaving
+	if _is_host:
+		_stop_heartbeat()
+	
 	var landing := load("res://scene/landing.tscn")
 	if landing:
 		get_tree().change_scene_to_packed(landing)
@@ -423,6 +462,10 @@ func _transition_to_arena() -> void:
 			"peer_id": multiplayer.get_unique_id()
 		}
 		
+		# Stop heartbeat before arena transition
+		if _is_host:
+			_stop_heartbeat()
+		
 		get_tree().set_meta("code_breaker_arena_init", arena_init)
 		
 		# Load the updated arena scene
@@ -435,234 +478,185 @@ func _transition_to_arena() -> void:
 	http.request(url, [], HTTPClient.METHOD_GET)
 
 func _setup_multiplayer_peer(_room_data: Dictionary) -> void:
-	"""Initialize WebSocketMultiplayerPeer for the game"""
-	print("[CodeBreakerRoom] Setting up multiplayer peer...")
+	"""Setup Direct P2P ENet Connection (Option A)"""
+	print("[CodeBreakerRoom] Setting up direct P2P multiplayer connection...")
 	
-	# MULTIPLAYER SETUP: ENet peer-to-peer over LAN
-	var peer = ENetMultiplayerPeer.new()
+	_enet_peer = ENetMultiplayerPeer.new()
 	
 	if _is_host:
-		# Get host's LAN IP address
-		var host_ip = _get_local_ip()
-		print("[CodeBreakerRoom] Host IP: %s" % host_ip)
+		# Host: ENet server is already running from lobby (port 7777)
+		# We need to reuse the existing server from code_breaker_lobby.gd
+		print("[CodeBreakerRoom] Host: ENet server already running on port %d" % _host_port)
 		
-		print("[CodeBreakerRoom] Creating ENet host on port 9999...")
-		var error = peer.create_server(9999, 1)  # Max 1 client
-		if error != OK:
-			push_error("[CodeBreakerRoom] Failed to create ENet server: %d" % error)
-			return
-		print("[CodeBreakerRoom] ENet server created successfully")
+		# Check if we have an existing multiplayer peer (from lobby)
+		var existing_peer = get_tree().get_multiplayer().multiplayer_peer
+		if existing_peer and existing_peer is ENetMultiplayerPeer:
+			_enet_peer = existing_peer
+			print("[CodeBreakerRoom] Reusing existing ENet server from lobby")
+		else:
+			# Fallback: create new server (shouldn't happen in normal flow)
+			print("[CodeBreakerRoom] WARNING: No existing ENet server, creating new one")
+			var error = _enet_peer.create_server(_host_port, 1)  # Max 1 client
+			if error != OK:
+				push_error("[CodeBreakerRoom] Failed to create ENet server: %d" % error)
+				_show_connection_error("Failed to create server")
+				return
+			get_tree().get_multiplayer().multiplayer_peer = _enet_peer
 		
-		# Store host IP in RTDB so client can find it
-		_store_host_ip_in_rtdb(host_ip)
-		
-		# Set the multiplayer peer
-		get_tree().get_multiplayer().multiplayer_peer = peer
 		print("[CodeBreakerRoom] Host waiting for client to connect...")
 		
 		# Wait for client to connect (with timeout)
 		var wait_time = 0.0
-		var max_wait = 10.0  # 10 seconds max
-		while multiplayer.get_peers().size() == 0 and wait_time < max_wait:
+		while multiplayer.get_peers().size() == 0 and wait_time < _connection_timeout:
 			await get_tree().create_timer(0.5).timeout
 			wait_time += 0.5
 			if int(wait_time) % 2 == 0:
-				print("[CodeBreakerRoom] Still waiting for client... %.1fs" % wait_time)
+				print("[CodeBreakerRoom] Waiting for client... %.1fs" % wait_time)
 		
 		if multiplayer.get_peers().size() == 0:
-			push_error("[CodeBreakerRoom] Client never connected!")
-			_message_label.text = "Client connection timeout. Returning to lobby..."
-			await get_tree().create_timer(3.0).timeout
-			_go_to_landing()
+			push_error("[CodeBreakerRoom] Client connection timeout!")
+			_show_connection_error("Client never connected. They may need to enable port forwarding.")
 			return
 		else:
 			print("[CodeBreakerRoom] Client connected! Peer ID: %d" % multiplayer.get_peers()[0])
+	
 	else:
-		# Client: Get host IP from RTDB
-		var host_ip = await _get_host_ip_from_rtdb()
-		if host_ip.is_empty():
-			push_error("[CodeBreakerRoom] Failed to get host IP from RTDB!")
-			_message_label.text = "Cannot find host. Returning to lobby..."
-			await get_tree().create_timer(3.0).timeout
-			_go_to_landing()
+		# Client: Connect to host's IP + port
+		if _host_ip.is_empty():
+			push_error("[CodeBreakerRoom] No host IP provided!")
+			_show_connection_error("Invalid host IP")
 			return
 		
-		print("[CodeBreakerRoom] Connecting to ENet host at %s:9999..." % host_ip)
-		var error = peer.create_client(host_ip, 9999)
+		print("[CodeBreakerRoom] Client connecting to host at %s:%d..." % [_host_ip, _host_port])
+		
+		var error = _enet_peer.create_client(_host_ip, _host_port)
 		if error != OK:
 			push_error("[CodeBreakerRoom] Failed to create ENet client: %d" % error)
-			_message_label.text = "Connection failed. Returning to lobby..."
-			await get_tree().create_timer(3.0).timeout
-			_go_to_landing()
+			_show_connection_error("Connection failed - Host may need port forwarding")
 			return
 		
 		# Set the multiplayer peer
-		get_tree().get_multiplayer().multiplayer_peer = peer
-		print("[CodeBreakerRoom] ENet client connecting...")
+		get_tree().get_multiplayer().multiplayer_peer = _enet_peer
 		
-		# Wait for connection to establish
-		await get_tree().create_timer(2.0).timeout
+		print("[CodeBreakerRoom] ENet client created, waiting for connection...")
+		
+		# Wait for connection to establish (check connection state)
+		var connected = false
+		var wait_time = 0.0
+		
+		while wait_time < _connection_timeout:
+			await get_tree().create_timer(0.5).timeout
+			wait_time += 0.5
+			
+			# Check if we're connected (we should have a server peer ID of 1)
+			if multiplayer.get_unique_id() != 1 and multiplayer.get_peers().size() > 0:
+				connected = true
+				break
+			
+			if int(wait_time) % 2 == 0:
+				print("[CodeBreakerRoom] Connection attempt... %.1fs" % wait_time)
+		
+		if not connected:
+			push_error("[CodeBreakerRoom] Connection timeout!")
+			_show_connection_error("Connection failed - Host may need port forwarding.\nCheck router settings or try LAN connection.")
+			return
+		
+		print("[CodeBreakerRoom] Client connected successfully!")
 	
 	print("[CodeBreakerRoom] Multiplayer ready. My Peer ID: %d, Peers: %s" % [multiplayer.get_unique_id(), str(multiplayer.get_peers())])
 
-# OLD WebSocket setup code (replaced with simpler ENet for local testing)
-# To re-enable WebSocket P2P, uncomment the _setup_multiplayer_peer_websocket function below
-# and call it instead of the ENet version above
 
-func _setup_multiplayer_peer_websocket(_room_data: Dictionary) -> void:
-	"""WebSocket multiplayer setup (for LAN/Internet play) - Currently disabled"""
-	# Load multiplayer manager script
-	var mp_manager_script = load("res://script/MultiplayerManager.gd")
-	var mp_manager = Node.new()
-	mp_manager.set_script(mp_manager_script)
-	add_child(mp_manager)
-	
-	# Setup callbacks
-	var status = {"ready": false}
-	mp_manager.connection_ready.connect(func():
-		print("[CodeBreakerRoom] Multiplayer connection ready!")
-		status["ready"] = true
-	)
-	mp_manager.connection_failed.connect(func(error):
-		push_error("[CodeBreakerRoom] Multiplayer connection failed: %s" % error)
-	)
-	
-	if _is_host:
-		# Host creates server and publishes IP to RTDB
-		var success = mp_manager.setup_host(_room_id, 9999)
-		if not success:
-			push_error("[CodeBreakerRoom] Failed to setup host")
-			return
-		
-		# Publish host IP for client discovery
-		var network_discovery = load("res://script/NetworkDiscovery.gd").new()
-		add_child(network_discovery)
-		var local_ip = network_discovery.get_local_network_ip()
-		var id_token = Auth.current_id_token if Auth else ""
-		network_discovery.publish_host_ip(_room_id, local_ip, 9999, id_token)
-		
-		print("[CodeBreakerRoom] Host server created at %s:9999, waiting for client..." % local_ip)
-	else:
-		# Client fetches host IP from RTDB and connects
-		var network_discovery = load("res://script/NetworkDiscovery.gd").new()
-		add_child(network_discovery)
-		
-		# Wait for host IP (use dictionary to avoid capture issue)
-		var ip_data = {"ip": ""}
-		network_discovery.host_ip_received.connect(func(ip):
-			ip_data["ip"] = ip
-		)
-		network_discovery.discovery_failed.connect(func(error):
-			push_error("[CodeBreakerRoom] Network discovery failed: %s" % error)
-		)
-		
-		network_discovery.get_host_ip(_room_id)
-		
-		# Wait for IP (discovery timeout 5s)
-		var discovery_timeout = 5.0
-		var discovery_elapsed = 0.0
-		while ip_data["ip"].is_empty() and discovery_elapsed < discovery_timeout:
-			await get_tree().create_timer(0.1).timeout
-			discovery_elapsed += 0.1
-		
-		if ip_data["ip"].is_empty():
-			push_error("[CodeBreakerRoom] Failed to discover host IP")
-			return
-		
-		var success = mp_manager.setup_client(ip_data["ip"], 9999)
-		if not success:
-			push_error("[CodeBreakerRoom] Failed to connect to host")
-			return
-		print("[CodeBreakerRoom] Client connecting to host at %s:9999..." % ip_data["ip"])
-	
-	# Wait for connection to be ready (increased timeout)
-	var timeout = 15.0
-	var elapsed = 0.0
-	while not status["ready"] and elapsed < timeout:
-		await get_tree().create_timer(0.1).timeout
-		elapsed += 0.1
-		if elapsed > 0 and int(elapsed) % 2 == 0:
-			print("[CodeBreakerRoom] Still waiting for connection... %.1fs" % elapsed)
+func _show_connection_error(message: String) -> void:
+	"""Show connection error and return to lobby after delay"""
+	_message_label.text = message
+	await get_tree().create_timer(5.0).timeout
+	_go_to_landing()
+
 
 # =============================================================================
-# NETWORK DISCOVERY - Get Local IP for LAN Multiplayer
+# HEARTBEAT SYSTEM (Task 7) - Keep room alive in lobby server
 # =============================================================================
 
-func _get_local_ip() -> String:
-	"""Get the host machine's LAN IP address"""
-	var ip_addresses = IP.get_local_addresses()
+func _initialize_lobby_config() -> void:
+	"""Initialize MultiplayerConfig to get lobby server URL"""
+	var MultiplayerConfigScript = load("res://script/MultiplayerConfig.gd")
+	if not MultiplayerConfigScript:
+		push_error("[CodeBreakerRoom] MultiplayerConfig.gd not found!")
+		return
 	
-	# Find the LAN IP (usually starts with 192.168 or 10.)
-	for ip in ip_addresses:
-		if ip.begins_with("192.168.") or ip.begins_with("10.") or ip.begins_with("172."):
-			print("[CodeBreakerRoom] Found LAN IP: %s" % ip)
-			return ip
+	var config = Node.new()
+	config.set_script(MultiplayerConfigScript)
+	add_child(config)
 	
-	# Fallback to first non-localhost IP
-	for ip in ip_addresses:
-		if ip != "127.0.0.1" and not ip.begins_with("::"):
-			print("[CodeBreakerRoom] Using fallback IP: %s" % ip)
-			return ip
+	_lobby_server_url = config.get_lobby_url()
+	print("[CodeBreakerRoom] Lobby server URL: ", _lobby_server_url)
 	
-	# Last resort: localhost
-	print("[CodeBreakerRoom] WARNING: Using localhost (same-device only!)")
-	return "127.0.0.1"
+	config.queue_free()
 
-func _store_host_ip_in_rtdb(host_ip: String) -> void:
-	"""Store host IP in RTDB so client can discover it"""
-	var url = RTDB_BASE + ROOMS_PATH + "/" + _room_id + "/host_ip.json?auth=" + Auth.current_id_token
+
+func _start_heartbeat() -> void:
+	"""Start sending heartbeats to lobby server (host only)"""
+	if not _is_host:
+		return
 	
-	var http = HTTPRequest.new()
+	if _lobby_server_url == "":
+		push_warning("[CodeBreakerRoom] Cannot start heartbeat - lobby server URL not set")
+		return
+	
+	if _room_id == "":
+		push_warning("[CodeBreakerRoom] Cannot start heartbeat - no room ID")
+		return
+	
+	# Create heartbeat timer
+	_heartbeat_timer = Timer.new()
+	_heartbeat_timer.wait_time = HEARTBEAT_INTERVAL
+	_heartbeat_timer.autostart = true
+	_heartbeat_timer.timeout.connect(_on_heartbeat_timeout)
+	add_child(_heartbeat_timer)
+	
+	print("[CodeBreakerRoom] Heartbeat started - interval: %.0fs" % HEARTBEAT_INTERVAL)
+	
+	# Send initial heartbeat immediately
+	_send_heartbeat()
+
+
+func _on_heartbeat_timeout() -> void:
+	"""Timer callback - send heartbeat"""
+	_send_heartbeat()
+
+
+func _send_heartbeat() -> void:
+	"""POST /api/rooms/{id}/heartbeat to keep room alive"""
+	if _lobby_server_url == "" or _room_id == "":
+		return
+	
+	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/heartbeat"
+	var http := HTTPRequest.new()
 	add_child(http)
+	
 	http.request_completed.connect(func(_result, code, _headers, _body):
 		http.queue_free()
+		
 		if code == 200:
-			print("[CodeBreakerRoom] ✅ Host IP stored in RTDB: %s" % host_ip)
+			print("[CodeBreakerRoom] Heartbeat sent successfully")
+		elif code == 404:
+			push_warning("[CodeBreakerRoom] Room not found in lobby server - may have expired")
 		else:
-			push_error("[CodeBreakerRoom] Failed to store host IP: %d" % code)
+			push_warning("[CodeBreakerRoom] Heartbeat failed HTTP ", code)
 	)
 	
-	var json = JSON.stringify(host_ip)
-	var headers = ["Content-Type: application/json"]
-	http.request(url, headers, HTTPClient.METHOD_PUT, json)
+	var headers := ["Content-Type: application/json"]
+	var error := http.request(url, headers, HTTPClient.METHOD_POST, "{}")
+	
+	if error != OK:
+		http.queue_free()
+		push_error("[CodeBreakerRoom] Failed to send heartbeat request: ", error)
 
-func _get_host_ip_from_rtdb() -> String:
-	"""Client retrieves host IP from RTDB"""
-	var url = RTDB_BASE + ROOMS_PATH + "/" + _room_id + "/host_ip.json?auth=" + Auth.current_id_token
-	
-	print("[CodeBreakerRoom] Fetching host IP from RTDB...")
-	
-	var http = HTTPRequest.new()
-	add_child(http)
-	
-	var result = await _make_http_request_async(http, url)
-	http.queue_free()
-	
-	if result["code"] != 200:
-		push_error("[CodeBreakerRoom] Failed to get host IP: %d" % result["code"])
-		return ""
-	
-	var data = JSON.parse_string(result["body"])
-	if data == null or data is not String:
-		push_error("[CodeBreakerRoom] Invalid host IP data!")
-		return ""
-	
-	print("[CodeBreakerRoom] ✅ Got host IP from RTDB: %s" % data)
-	return data
 
-func _make_http_request_async(http: HTTPRequest, url: String) -> Dictionary:
-	"""Helper to make async HTTP request"""
-	var response = {"code": 0, "body": ""}
-	
-	http.request_completed.connect(func(_result, code, _headers, body):
-		response["code"] = code
-		response["body"] = body.get_string_from_utf8()
-	)
-	
-	http.request(url)
-	
-	# Wait for response
-	while response["code"] == 0:
-		await get_tree().create_timer(0.1).timeout
-	
-	return response
+func _stop_heartbeat() -> void:
+	"""Stop heartbeat timer (called on room exit)"""
+	if _heartbeat_timer and is_instance_valid(_heartbeat_timer):
+		_heartbeat_timer.stop()
+		_heartbeat_timer.queue_free()
+		_heartbeat_timer = null
+		print("[CodeBreakerRoom] Heartbeat stopped")
