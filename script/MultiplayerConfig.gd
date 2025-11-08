@@ -17,7 +17,7 @@ const LOBBY_URLS = {
 	Mode.LOCALHOST: "http://localhost:8080",
 	Mode.LAN: "http://192.168.100.49:8080",  # PC's local IP (update if needed)
 	Mode.TUNNEL: "https://your-tunnel-url.onrender.com",  # Update with actual tunnel URL
-	Mode.PRODUCTION: "https://codebreaker-lobby.onrender.com"  # Update when deployed
+	Mode.PRODUCTION: "https://codebreaker-lobby.onrender.com"  # ✅ Render.com deployed!
 }
 
 const DEFAULT_PORT := 7777
