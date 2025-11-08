@@ -12,6 +12,11 @@ extends Control
 @onready var _start_btn: Button = $ButtonPanel/StartButton
 @onready var _leave_btn: Button = $ButtonPanel/LeaveButton
 
+# =============================================================================
+# DUAL SYSTEM ARCHITECTURE:
+# - RTDB: Room state, player info, ready status, chat (UI coordination)
+# - ENet P2P: Direct connection for actual gameplay (arena)
+# =============================================================================
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const POLL_INTERVAL := 2.0
 const ROOMS_PATH := "/codebreaker_rooms"
@@ -103,6 +108,11 @@ func _ready() -> void:
 	var chat := get_node_or_null("RoomChat")
 	if chat and chat.has_method("initialize"):
 		chat.initialize(RTDB_BASE, ROOMS_PATH, _room_id)
+
+
+# =============================================================================
+# RTDB POLLING - Room State & Player Info (UI Coordination)
+# =============================================================================
 
 func _on_poll_timeout() -> void:
 	_fetch_room()
@@ -319,6 +329,11 @@ func _on_ready_toggled(pressed: bool) -> void:
 	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + "/client.json?auth=" + id_token
 	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PATCH, JSON.stringify(patch))
 
+
+# =============================================================================
+# ROOM MANAGEMENT - Leave, Delete, Patch (RTDB)
+# =============================================================================
+
 func _leave_room() -> void:
 	print("[CodeBreakerRoom] Leave Room pressed")
 	
@@ -393,6 +408,11 @@ func _delete_room(id_token: String) -> void:
 	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json?auth=" + id_token
 	http.request(url, [], HTTPClient.METHOD_DELETE)
 
+
+# =============================================================================
+# NAVIGATION
+# =============================================================================
+
 func _go_to_landing() -> void:
 	# Stop heartbeat before leaving
 	if _is_host:
@@ -401,6 +421,11 @@ func _go_to_landing() -> void:
 	var landing := load("res://scene/landing.tscn")
 	if landing:
 		get_tree().change_scene_to_packed(landing)
+
+
+# =============================================================================
+# GAME START - Host triggers arena transition (RTDB state + ENet P2P)
+# =============================================================================
 
 func _on_start_pressed() -> void:
 	print("[CodeBreakerRoom] Start Match pressed by host")
@@ -476,6 +501,11 @@ func _transition_to_arena() -> void:
 	
 	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json"
 	http.request(url, [], HTTPClient.METHOD_GET)
+
+
+# =============================================================================
+# DIRECT P2P CONNECTION - ENet Multiplayer (Option A Architecture)
+# =============================================================================
 
 func _setup_multiplayer_peer(_room_data: Dictionary) -> void:
 	"""Setup Direct P2P ENet Connection (Option A)"""
