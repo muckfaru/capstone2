@@ -166,6 +166,52 @@ app.get('/api/rooms/list', (req, res) => {
 });
 
 /**
+ * GET /api/rooms/:room_id
+ * Get detailed information about a specific room
+ * Used for polling room state from within the room scene
+ * 
+ * Response: {
+ *   room_id: "...",
+ *   room_name: "...",
+ *   game_type: "code_breaker",
+ *   host: { uid, username, avatar, level, status, public_ip, port, is_lan },
+ *   client: { uid, username, avatar, level, status } | null,
+ *   status: "waiting",
+ *   current_players: 1,
+ *   max_players: 2,
+ *   created_at: <timestamp>,
+ *   last_heartbeat: <timestamp>
+ * }
+ * OR 404: { error: "Room not found" }
+ */
+app.get('/api/rooms/:room_id', (req, res) => {
+  const { room_id } = req.params;
+
+  // Check if room exists
+  const room = rooms.get(room_id);
+  if (!room) {
+    return res.status(404).json({
+      error: 'Room not found',
+      room_id
+    });
+  }
+
+  // Return full room data
+  res.json({
+    room_id: room.room_id,
+    room_name: room.room_name,
+    game_type: room.game_type,
+    host: room.host,
+    client: room.client,
+    status: room.status,
+    current_players: room.current_players,
+    max_players: room.max_players,
+    created_at: room.created_at,
+    last_heartbeat: room.last_heartbeat
+  });
+});
+
+/**
  * POST /api/rooms/:room_id/join
  * Client joins a room and gets host connection info
  * 
@@ -384,6 +430,7 @@ app.listen(PORT, () => {
   console.log(`\n📡 API Endpoints:`);
   console.log(`   POST   http://localhost:${PORT}/api/rooms/create`);
   console.log(`   GET    http://localhost:${PORT}/api/rooms/list`);
+  console.log(`   GET    http://localhost:${PORT}/api/rooms/:id`);
   console.log(`   POST   http://localhost:${PORT}/api/rooms/:id/join`);
   console.log(`   POST   http://localhost:${PORT}/api/rooms/:id/heartbeat`);
   console.log(`   DELETE http://localhost:${PORT}/api/rooms/:id`);

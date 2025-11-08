@@ -394,10 +394,14 @@ func _join_room_via_lobby(room_id: String) -> void:
 	
 	var uid: String = Auth.current_local_id if Auth else ""
 	var username: String = Auth.current_username if Auth else "Player"
+	var avatar: String = Auth.current_avatar if Auth else "avatar1.png"
+	var level: int = Auth.current_level if Auth else 1
 	
 	var body := {
-		"player_id": uid,
-		"username": username
+		"client_id": uid,
+		"client_username": username,
+		"client_avatar": avatar,
+		"client_level": level
 	}
 	
 	http.request_completed.connect(func(_result, code, _headers, response_body: PackedByteArray):

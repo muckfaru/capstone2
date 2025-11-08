@@ -12,6 +12,8 @@ signal port_check_complete(is_open: bool)
 signal upnp_completed(success: bool, message: String)
 
 const PUBLIC_IP_API := "https://api.ipify.org?format=json"
+const PUBLIC_IP_API_FALLBACK := "https://api64.ipify.org?format=json"  # IPv4 fallback
+const PUBLIC_IP_API_FALLBACK2 := "https://icanhazip.com"  # Second fallback
 const PORT_CHECK_API := "https://portchecker.io/api/check"
 const DEFAULT_PORT := 7777
 
@@ -23,7 +25,10 @@ var _upnp_mapped: bool = false
 ## Get public IP address (WAN IP visible to internet)
 func detect_public_ip() -> void:
 	print("[NetworkHelper] Detecting public IP...")
-	
+	_try_detect_public_ip(PUBLIC_IP_API, 0)
+
+
+func _try_detect_public_ip(api_url: String, attempt: int) -> void:
 	var http := HTTPRequest.new()
 	add_child(http)
 	
@@ -31,31 +36,56 @@ func detect_public_ip() -> void:
 		http.queue_free()
 		
 		if response_code != 200:
-			var error_msg = "Failed to detect public IP: HTTP %d" % response_code
-			print("[NetworkHelper] %s" % error_msg)
-			public_ip_failed.emit(error_msg)
+			print("[NetworkHelper] Failed to detect public IP (attempt %d): HTTP %d" % [attempt + 1, response_code])
+			
+			# Try fallbacks
+			if attempt == 0:
+				print("[NetworkHelper] Trying fallback API...")
+				_try_detect_public_ip(PUBLIC_IP_API_FALLBACK, 1)
+			elif attempt == 1:
+				print("[NetworkHelper] Trying second fallback API...")
+				_try_detect_public_ip(PUBLIC_IP_API_FALLBACK2, 2)
+			else:
+				# All APIs failed, use local IP as fallback
+				print("[NetworkHelper] ⚠️ All IP detection APIs failed")
+				print("[NetworkHelper] Using local IP as fallback for LAN-only play")
+				_public_ip = get_local_ip()
+				print("[NetworkHelper] Fallback IP: %s (LAN only)" % _public_ip)
+				public_ip_detected.emit(_public_ip)
 			return
 		
-		var json_str := body.get_string_from_utf8()
-		var parsed = JSON.parse_string(json_str)
+		var json_str := body.get_string_from_utf8().strip_edges()
 		
-		if parsed == null or not parsed.has("ip"):
-			var error_msg = "Invalid response from IP detection service"
-			print("[NetworkHelper] %s" % error_msg)
-			public_ip_failed.emit(error_msg)
-			return
+		# Handle different response formats
+		if api_url.contains("icanhazip"):
+			# Plain text response
+			_public_ip = json_str
+		else:
+			# JSON response
+			var parsed = JSON.parse_string(json_str)
+			if parsed == null or not parsed.has("ip"):
+				print("[NetworkHelper] Invalid response format from %s" % api_url)
+				if attempt < 2:
+					_try_detect_public_ip(PUBLIC_IP_API_FALLBACK if attempt == 0 else PUBLIC_IP_API_FALLBACK2, attempt + 1)
+				else:
+					_public_ip = get_local_ip()
+					public_ip_detected.emit(_public_ip)
+				return
+			_public_ip = str(parsed["ip"])
 		
-		_public_ip = str(parsed["ip"])
 		print("[NetworkHelper] ✅ Public IP detected: %s" % _public_ip)
 		public_ip_detected.emit(_public_ip)
 	)
 	
-	var error = http.request(PUBLIC_IP_API)
+	var error := http.request(api_url)
 	if error != OK:
-		var error_msg = "HTTP request failed: error %d" % error
-		print("[NetworkHelper] %s" % error_msg)
-		public_ip_failed.emit(error_msg)
 		http.queue_free()
+		print("[NetworkHelper] Failed to send request to %s: %d" % [api_url, error])
+		if attempt < 2:
+			_try_detect_public_ip(PUBLIC_IP_API_FALLBACK if attempt == 0 else PUBLIC_IP_API_FALLBACK2, attempt + 1)
+		else:
+			_public_ip = get_local_ip()
+			public_ip_detected.emit(_public_ip)
 
 
 ## Get local IP address (LAN IP, e.g., 192.168.x.x)

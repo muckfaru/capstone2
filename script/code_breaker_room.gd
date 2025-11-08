@@ -100,6 +100,11 @@ func _ready() -> void:
 	# Start heartbeat system (host only)
 	if _is_host:
 		_start_heartbeat()
+	
+	# Option A: Client connects to host's ENet server immediately
+	if not _is_host:
+		print("[CodeBreakerRoom] Client joining - connecting to host's ENet server...")
+		await _setup_client_connection()
 
 	# Configure action button based on role
 	_configure_buttons()
@@ -120,22 +125,129 @@ func _on_poll_timeout() -> void:
 func _fetch_room() -> void:
 	if _room_id == "":
 		return
+	
+	# Option A: Poll LOBBY SERVER for room state (not RTDB)
 	var http := HTTPRequest.new()
 	add_child(http)
 	http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
 		http.queue_free()
 		if code != 200:
-			push_warning("[CodeBreakerRoom] Poll failed HTTP " + str(code))
+			push_warning("[CodeBreakerRoom] Lobby poll failed HTTP " + str(code))
+			# Don't auto-leave on HTTP errors (server might be restarting)
 			return
-		var node = JSON.parse_string(body.get_string_from_utf8())
-		if node == null or typeof(node) != TYPE_DICTIONARY:
+		var response = JSON.parse_string(body.get_string_from_utf8())
+		if response == null or typeof(response) != TYPE_DICTIONARY:
+			push_warning("[CodeBreakerRoom] Invalid lobby response")
+			return
+		
+		# Check if room still exists in lobby
+		if response.has("error"):
+			print("[CodeBreakerRoom] Room closed by lobby server: ", response.get("error"))
 			_message_label.text = "Room has been closed."
 			_go_to_landing()
 			return
-		_apply_room_snapshot(node)
+		
+		# Apply room state from lobby server
+		_apply_lobby_room_snapshot(response)
 	)
-	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json"
+	
+	# GET /api/rooms/{room_id} endpoint
+	var url := _lobby_server_url + "/api/rooms/" + _room_id
 	http.request(url, [], HTTPClient.METHOD_GET)
+
+func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
+	"""
+	Apply room state from lobby server polling.
+	Lobby server format:
+	{
+		room_id, room_name, game_type,
+		host: { uid, username, avatar, level, status, public_ip, port, is_lan },
+		client: { uid, username, avatar, level, status } | null,
+		status: "waiting" | "in_game" | "finished",
+		current_players, max_players, created_at, last_heartbeat
+	}
+	"""
+	
+	# Check if game has started
+	if not _transitioning_to_arena:
+		var room_status := str(room_data.get("status", "waiting"))
+		if room_status == "in_game":
+			# Transition to arena if not already there
+			_transition_to_arena_from_poll(room_data)
+			return
+	
+	var host_val = room_data.get("host", null)
+	var client_val = room_data.get("client", null)
+	var host_present: bool = host_val != null and typeof(host_val) == TYPE_DICTIONARY
+	var client_present: bool = client_val != null and typeof(client_val) == TYPE_DICTIONARY
+
+	# Update header with room name
+	var room_name := str(room_data.get("room_name", ""))
+	if room_name.strip_edges() == "":
+		if host_present:
+			room_name = str(host_val.get("username", "Room"))
+		else:
+			room_name = "Room"
+	_room_id_label.text = "ROOM: " + room_name
+
+	var current_uid := Auth.current_local_id if Auth else ""
+
+	# Host UI
+	if host_present:
+		_host_username.text = str(host_val.get("username", "Host"))
+		var host_lvl_val = host_val.get("level", 0)
+		_host_level.text = "Level: " + str(int(host_lvl_val))
+		var host_status_str := str(host_val.get("status", "ready"))
+		_host_status.text = host_status_str.to_upper()
+		_host_status.add_theme_color_override("font_color", COLOR_ACCENT)
+	else:
+		_host_username.text = "."
+		_host_level.text = ""
+		_host_status.text = "LEFT"
+		_host_status.add_theme_color_override("font_color", COLOR_DANGER)
+
+	# Client UI
+	if client_present:
+		_client_username.text = str(client_val.get("username", "."))
+		var client_lvl_val = client_val.get("level", 0)
+		_client_level.text = "Level: " + str(int(client_lvl_val))
+		var c_status := str(client_val.get("status", "not_ready"))
+		_client_status.text = ("READY" if c_status == "ready" else "NOT READY")
+		_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if c_status == "ready" else COLOR_DANGER))
+		if not _last_client_present:
+			_message_label.text = "Player joined!"
+
+		# If we are the client, mirror ready state into toggle button
+		if not _is_host:
+			var client_uid := str(client_val.get("uid", ""))
+			var my_uid := Auth.current_local_id if Auth else ""
+			if client_uid == my_uid and _start_btn.toggle_mode:
+				var is_ready := str(client_val.get("status", "not_ready")) == "ready"
+				if _start_btn.button_pressed != is_ready:
+					_start_btn.button_pressed = is_ready
+				# Button shows the ACTION (opposite of current state)
+				_start_btn.text = ("NOT READY" if _start_btn.button_pressed else "READY")
+	else:
+		_client_username.text = "."
+		_client_level.text = "."
+		_client_status.text = "Searching.."
+		_client_status.add_theme_color_override("font_color", COLOR_MUTED)
+		if _last_client_present:
+			_message_label.text = "Player left."
+	_last_client_present = client_present
+
+	# State + Start/Ready button enablement
+	var players := (1 if host_present else 0) + (1 if client_present else 0)
+	_room_state_label.text = ("READY" if players == 2 else "WAITING")
+	_room_state_label.add_theme_color_override("font_color", (COLOR_ACCENT if players == 2 else COLOR_MUTED))
+	
+	# If we see host now equals our uid, flip _is_host (promoted)
+	if host_present:
+		var host_uid := str(host_val.get("uid", ""))
+		if host_uid == current_uid and not _is_host:
+			_is_host = true
+			_message_label.text = "You are the host now."
+			_configure_buttons()
 
 func _transition_to_arena_from_poll(room_data: Dictionary) -> void:
 	# Called by polling client when it detects state: "in_game"
@@ -145,8 +257,8 @@ func _transition_to_arena_from_poll(room_data: Dictionary) -> void:
 	_transitioning_to_arena = true
 	print("[CodeBreakerRoom] Client detected game start, transitioning to arena")
 	
-	# IMPORTANT: Setup multiplayer peer BEFORE transitioning (client path)
-	await _setup_multiplayer_peer(room_data)
+	# IMPORTANT: Verify multiplayer peer BEFORE transitioning (client path)
+	_setup_multiplayer_peer(room_data)
 	
 	# Prepare arena init data
 	var arena_init := {
@@ -476,7 +588,7 @@ func _transition_to_arena() -> void:
 			return
 		
 		# Initialize multiplayer peer BEFORE scene change
-		await _setup_multiplayer_peer(room_data)
+		_setup_multiplayer_peer(room_data)
 		
 		# Prepare arena init data
 		var arena_init := {
@@ -507,93 +619,93 @@ func _transition_to_arena() -> void:
 # DIRECT P2P CONNECTION - ENet Multiplayer (Option A Architecture)
 # =============================================================================
 
-func _setup_multiplayer_peer(_room_data: Dictionary) -> void:
-	"""Setup Direct P2P ENet Connection (Option A)"""
-	print("[CodeBreakerRoom] Setting up direct P2P multiplayer connection...")
+func _setup_client_connection() -> void:
+	"""Client connects to host's ENet server when entering room scene"""
+	if _host_ip.is_empty():
+		push_error("[CodeBreakerRoom] No host IP provided!")
+		_show_connection_error("Invalid host IP")
+		return
+	
+	print("[CodeBreakerRoom] Client connecting to host at %s:%d..." % [_host_ip, _host_port])
 	
 	_enet_peer = ENetMultiplayerPeer.new()
+	var error = _enet_peer.create_client(_host_ip, _host_port)
+	if error != OK:
+		push_error("[CodeBreakerRoom] Failed to create ENet client: %d" % error)
+		_show_connection_error("Connection failed - Host may need port forwarding")
+		return
+	
+	# Set the multiplayer peer
+	get_tree().get_multiplayer().multiplayer_peer = _enet_peer
+	
+	print("[CodeBreakerRoom] ENet client created, waiting for connection...")
+	
+	# Wait for connection to establish
+	var connected = false
+	var wait_time = 0.0
+	
+	while wait_time < _connection_timeout:
+		await get_tree().create_timer(0.5).timeout
+		wait_time += 0.5
+		
+		# Check if we're connected (we should have a server peer ID of 1)
+		if multiplayer.get_unique_id() != 1 and multiplayer.get_peers().size() > 0:
+			connected = true
+			break
+		
+		if int(wait_time) % 2 == 0:
+			print("[CodeBreakerRoom] Connection attempt... %.1fs" % wait_time)
+	
+	if not connected:
+		push_error("[CodeBreakerRoom] Connection timeout!")
+		_show_connection_error("Connection failed - Host may need port forwarding.\nCheck router settings or try LAN connection.")
+		return
+	
+	print("[CodeBreakerRoom] ✅ Client connected successfully! Peer ID: %d" % multiplayer.get_unique_id())
+	_message_label.text = "Connected! Waiting for host to start..."
+
+func _setup_multiplayer_peer(_room_data: Dictionary) -> void:
+	"""Setup Direct P2P ENet Connection (Option A) - Called before arena transition"""
+	print("[CodeBreakerRoom] Verifying multiplayer peer for arena transition...")
+	
+	# For clients, connection is already established in _ready()
+	# For hosts, ENet server is already running from lobby
+	# This function just verifies everything is ready
 	
 	if _is_host:
-		# Host: ENet server is already running from lobby (port 7777)
-		# We need to reuse the existing server from code_breaker_lobby.gd
-		print("[CodeBreakerRoom] Host: ENet server already running on port %d" % _host_port)
-		
-		# Check if we have an existing multiplayer peer (from lobby)
+		# Host: Verify ENet server is running and client is connected
 		var existing_peer = get_tree().get_multiplayer().multiplayer_peer
-		if existing_peer and existing_peer is ENetMultiplayerPeer:
-			_enet_peer = existing_peer
-			print("[CodeBreakerRoom] Reusing existing ENet server from lobby")
-		else:
-			# Fallback: create new server (shouldn't happen in normal flow)
-			print("[CodeBreakerRoom] WARNING: No existing ENet server, creating new one")
-			var error = _enet_peer.create_server(_host_port, 1)  # Max 1 client
-			if error != OK:
-				push_error("[CodeBreakerRoom] Failed to create ENet server: %d" % error)
-				_show_connection_error("Failed to create server")
-				return
-			get_tree().get_multiplayer().multiplayer_peer = _enet_peer
-		
-		print("[CodeBreakerRoom] Host waiting for client to connect...")
-		
-		# Wait for client to connect (with timeout)
-		var wait_time = 0.0
-		while multiplayer.get_peers().size() == 0 and wait_time < _connection_timeout:
-			await get_tree().create_timer(0.5).timeout
-			wait_time += 0.5
-			if int(wait_time) % 2 == 0:
-				print("[CodeBreakerRoom] Waiting for client... %.1fs" % wait_time)
-		
-		if multiplayer.get_peers().size() == 0:
-			push_error("[CodeBreakerRoom] Client connection timeout!")
-			_show_connection_error("Client never connected. They may need to enable port forwarding.")
+		if not existing_peer or not existing_peer is ENetMultiplayerPeer:
+			push_error("[CodeBreakerRoom] Host: No ENet server found!")
+			_show_connection_error("Server error")
 			return
-		else:
-			print("[CodeBreakerRoom] Client connected! Peer ID: %d" % multiplayer.get_peers()[0])
+		
+		_enet_peer = existing_peer
+		
+		# Verify client is still connected
+		if multiplayer.get_peers().size() == 0:
+			push_error("[CodeBreakerRoom] Client disconnected before arena transition!")
+			_show_connection_error("Client disconnected")
+			return
+		
+		print("[CodeBreakerRoom] Host ready. Client peer ID: %d" % multiplayer.get_peers()[0])
 	
 	else:
-		# Client: Connect to host's IP + port
-		if _host_ip.is_empty():
-			push_error("[CodeBreakerRoom] No host IP provided!")
-			_show_connection_error("Invalid host IP")
+		# Client: Verify connection is still alive
+		if not _enet_peer or not multiplayer.has_multiplayer_peer():
+			push_error("[CodeBreakerRoom] Client: Connection lost!")
+			_show_connection_error("Connection lost")
 			return
 		
-		print("[CodeBreakerRoom] Client connecting to host at %s:%d..." % [_host_ip, _host_port])
-		
-		var error = _enet_peer.create_client(_host_ip, _host_port)
-		if error != OK:
-			push_error("[CodeBreakerRoom] Failed to create ENet client: %d" % error)
-			_show_connection_error("Connection failed - Host may need port forwarding")
+		# Verify we're still connected to host
+		if multiplayer.get_peers().size() == 0:
+			push_error("[CodeBreakerRoom] Lost connection to host!")
+			_show_connection_error("Connection lost")
 			return
 		
-		# Set the multiplayer peer
-		get_tree().get_multiplayer().multiplayer_peer = _enet_peer
-		
-		print("[CodeBreakerRoom] ENet client created, waiting for connection...")
-		
-		# Wait for connection to establish (check connection state)
-		var connected = false
-		var wait_time = 0.0
-		
-		while wait_time < _connection_timeout:
-			await get_tree().create_timer(0.5).timeout
-			wait_time += 0.5
-			
-			# Check if we're connected (we should have a server peer ID of 1)
-			if multiplayer.get_unique_id() != 1 and multiplayer.get_peers().size() > 0:
-				connected = true
-				break
-			
-			if int(wait_time) % 2 == 0:
-				print("[CodeBreakerRoom] Connection attempt... %.1fs" % wait_time)
-		
-		if not connected:
-			push_error("[CodeBreakerRoom] Connection timeout!")
-			_show_connection_error("Connection failed - Host may need port forwarding.\nCheck router settings or try LAN connection.")
-			return
-		
-		print("[CodeBreakerRoom] Client connected successfully!")
+		print("[CodeBreakerRoom] Client ready. Connected to host (peer ID: 1)")
 	
-	print("[CodeBreakerRoom] Multiplayer ready. My Peer ID: %d, Peers: %s" % [multiplayer.get_unique_id(), str(multiplayer.get_peers())])
+	print("[CodeBreakerRoom] ✅ Multiplayer ready for arena. My Peer ID: %d, Peers: %s" % [multiplayer.get_unique_id(), str(multiplayer.get_peers())])
 
 
 func _show_connection_error(message: String) -> void:
