@@ -721,19 +721,23 @@ func _show_connection_error(message: String) -> void:
 
 func _initialize_lobby_config() -> void:
 	"""Initialize MultiplayerConfig to get lobby server URL"""
-	var MultiplayerConfigScript = load("res://script/MultiplayerConfig.gd")
-	if not MultiplayerConfigScript:
-		push_error("[CodeBreakerRoom] MultiplayerConfig.gd not found!")
-		return
-	
-	var config = Node.new()
-	config.set_script(MultiplayerConfigScript)
-	add_child(config)
-	
-	_lobby_server_url = config.get_lobby_url()
-	print("[CodeBreakerRoom] Lobby server URL: ", _lobby_server_url)
-	
-	config.queue_free()
+	# Use the autoload instance (configured by ForceNetworkMode)
+	if has_node("/root/MultiplayerConfig"):
+		var config = get_node("/root/MultiplayerConfig")
+		_lobby_server_url = config.get_lobby_url()
+		print("[CodeBreakerRoom] Using MultiplayerConfig autoload")
+		print("[CodeBreakerRoom] Lobby server URL: ", _lobby_server_url)
+	else:
+		push_error("[CodeBreakerRoom] MultiplayerConfig autoload not found!")
+		# Fallback: create new instance
+		var MultiplayerConfigScript = load("res://script/MultiplayerConfig.gd")
+		if MultiplayerConfigScript:
+			var config = Node.new()
+			config.set_script(MultiplayerConfigScript)
+			add_child(config)
+			_lobby_server_url = config.get_lobby_url()
+			config.queue_free()
+			push_warning("[CodeBreakerRoom] Using fallback MultiplayerConfig instance")
 
 
 func _start_heartbeat() -> void:
