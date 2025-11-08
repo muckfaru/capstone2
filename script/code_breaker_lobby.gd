@@ -27,6 +27,9 @@ func _ready() -> void:
 	# Initialize multiplayer config
 	_initialize_multiplayer_config()
 	
+	# FORCE DEBUG: Print actual URL being used
+	print("🔍 [DEBUG] Lobby URL after init: ", _lobby_server_url)
+	
 	# Initialize network helper
 	_initialize_network_helper()
 	
