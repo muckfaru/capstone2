@@ -448,6 +448,128 @@ app.get('/stats', (req, res) => {
   });
 });
 
+/**
+ * =============================================================================
+ * WEBSOCKET RELAY FOR MULTIPLAYER GAMEPLAY (Option B Architecture)
+ * =============================================================================
+ * 
+ * WebSocket endpoint: /ws/relay/:room_id
+ * 
+ * Flow:
+ * 1. Both players connect to ws://server/ws/relay/<room_id>
+ * 2. Server tracks connections per room
+ * 3. When player sends message, relay to other player in same room
+ * 4. Supports: game_action, ready_state, chat, etc.
+ */
+
+// Store WebSocket connections per room
+// wsConnections = Map<room_id, Set<{ws, player_id, username}>>
+const wsConnections = new Map();
+
+app.ws('/ws/relay/:room_id', (ws, req) => {
+  const { room_id } = req.params;
+  const player_id = req.query.player_id || 'unknown';
+  const username = req.query.username || 'Player';
+  
+  console.log(`[WebSocket] ${username} (${player_id}) connecting to room ${room_id}`);
+  
+  // Get or create connection set for this room
+  if (!wsConnections.has(room_id)) {
+    wsConnections.set(room_id, new Set());
+  }
+  
+  const roomConnections = wsConnections.get(room_id);
+  
+  // Check if room is full (max 2 players)
+  if (roomConnections.size >= 2) {
+    console.log(`[WebSocket] Room ${room_id} is full, rejecting connection`);
+    ws.send(JSON.stringify({
+      type: 'error',
+      message: 'Room is full'
+    }));
+    ws.close();
+    return;
+  }
+  
+  // Add connection to room
+  const connection = { ws, player_id, username };
+  roomConnections.add(connection);
+  
+  console.log(`[WebSocket] ${username} joined room ${room_id}. Players in room: ${roomConnections.size}/2`);
+  
+  // Notify all players in room about connection
+  broadcastToRoom(room_id, {
+    type: 'player_connected',
+    player_id: player_id,
+    username: username,
+    players_count: roomConnections.size
+  }, connection);
+  
+  // Handle incoming messages
+  ws.on('message', (message) => {
+    try {
+      const data = JSON.parse(message);
+      console.log(`[WebSocket] ${username}: ${data.type}`);
+      
+      // Relay message to other player(s) in the same room
+      broadcastToRoom(room_id, data, connection);
+      
+    } catch (error) {
+      console.error(`[WebSocket] Invalid message from ${username}:`, error);
+    }
+  });
+  
+  // Handle disconnect
+  ws.on('close', () => {
+    console.log(`[WebSocket] ${username} disconnected from room ${room_id}`);
+    roomConnections.delete(connection);
+    
+    // Notify other players
+    broadcastToRoom(room_id, {
+      type: 'player_disconnected',
+      player_id: player_id,
+      username: username,
+      players_count: roomConnections.size
+    });
+    
+    // Clean up empty rooms
+    if (roomConnections.size === 0) {
+      console.log(`[WebSocket] Room ${room_id} is empty, removing`);
+      wsConnections.delete(room_id);
+    }
+  });
+  
+  // Send welcome message
+  ws.send(JSON.stringify({
+    type: 'connected',
+    room_id: room_id,
+    player_id: player_id,
+    players_count: roomConnections.size
+  }));
+});
+
+/**
+ * Broadcast message to all players in a room except sender
+ */
+function broadcastToRoom(room_id, message, excludeConnection = null) {
+  const roomConnections = wsConnections.get(room_id);
+  if (!roomConnections) return;
+  
+  const messageStr = JSON.stringify(message);
+  
+  for (const connection of roomConnections) {
+    if (connection !== excludeConnection && connection.ws.readyState === 1) { // 1 = OPEN
+      connection.ws.send(messageStr);
+    }
+  }
+}
+
+/**
+ * =============================================================================
+ * SERVER START
+ * =============================================================================
+ */
+
 // Start server
 // Bind to 0.0.0.0 to accept connections from any network interface
 app.listen(PORT, '0.0.0.0', () => {
@@ -466,21 +588,25 @@ app.listen(PORT, '0.0.0.0', () => {
     }
   }
   
-  console.log(`\n🎮 Code Breaker Lobby Server v2.0`);
-  console.log(`   Architecture: Pure Direct P2P (ENet)`);
+  console.log(`\n🎮 Code Breaker Lobby Server v2.1`);
+  console.log(`   Architecture: WebSocket Relay (Option B)`);
   console.log(`   Port: ${PORT}`);
   console.log(`   Local Network: http://${localIP}:${PORT}`);
-  console.log(`\n📡 API Endpoints:`);
+  console.log(`\n📡 HTTP API Endpoints:`);
   console.log(`   POST   http://${localIP}:${PORT}/api/rooms/create`);
   console.log(`   GET    http://${localIP}:${PORT}/api/rooms/list`);
   console.log(`   GET    http://${localIP}:${PORT}/api/rooms/:id`);
   console.log(`   POST   http://${localIP}:${PORT}/api/rooms/:id/join`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/rooms/:id/leave`);
   console.log(`   POST   http://${localIP}:${PORT}/api/rooms/:id/heartbeat`);
   console.log(`   DELETE http://${localIP}:${PORT}/api/rooms/:id`);
+  console.log(`\n🔌 WebSocket Relay:`);
+  console.log(`   WS     ws://${localIP}:${PORT}/ws/relay/:room_id`);
   console.log(`\n🔍 Monitoring:`);
   console.log(`   GET    http://${localIP}:${PORT}/health`);
   console.log(`   GET    http://${localIP}:${PORT}/stats`);
   console.log(`\n💡 Access from other devices on same WiFi:`);
   console.log(`   Use: http://${localIP}:${PORT}`);
-  console.log(`\n✅ Server ready!\n`);
+  console.log(`   WebSocket: ws://${localIP}:${PORT}`);
+  console.log(`\n✅ Server ready with WebSocket relay!\n`);
 });
