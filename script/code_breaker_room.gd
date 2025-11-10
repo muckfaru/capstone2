@@ -658,9 +658,12 @@ func _setup_client_connection() -> void:
 	
 	if not connected:
 		push_error("[CodeBreakerRoom] Connection timeout!")
+		_message_label.text = "Connection failed - Host may need port forwarding.\nCheck router settings or try LAN connection."
 		# Remove client from server room since connection failed
-		_notify_server_client_left()
-		_show_connection_error("Connection failed - Host may need port forwarding.\nCheck router settings or try LAN connection.")
+		await _notify_server_client_left()
+		# Wait 3 seconds before returning to lobby
+		await get_tree().create_timer(3.0).timeout
+		_go_to_landing()
 		return
 	
 	print("[CodeBreakerRoom] ✅ Client connected successfully! Peer ID: %d" % multiplayer.get_unique_id())
@@ -818,17 +821,11 @@ func _notify_server_client_left() -> void:
 	if _is_host:
 		return  # Only clients call this
 	
+	print("[CodeBreakerRoom] Notifying server that client is leaving...")
+	
 	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/leave"
 	var http := HTTPRequest.new()
 	add_child(http)
-	
-	http.request_completed.connect(func(_result, code, _headers, _body):
-		http.queue_free()
-		if code == 200:
-			print("[CodeBreakerRoom] Notified server that client left")
-		else:
-			push_warning("[CodeBreakerRoom] Failed to notify server of client leave: HTTP ", code)
-	)
 	
 	var headers := ["Content-Type: application/json"]
 	var error := http.request(url, headers, HTTPClient.METHOD_POST, "{}")
@@ -836,3 +833,14 @@ func _notify_server_client_left() -> void:
 	if error != OK:
 		http.queue_free()
 		push_error("[CodeBreakerRoom] Failed to send leave notification: ", error)
+		return
+	
+	# Wait for response
+	var response = await http.request_completed
+	http.queue_free()
+	
+	var code = response[1]
+	if code == 200:
+		print("[CodeBreakerRoom] ✅ Notified server that client left")
+	else:
+		push_warning("[CodeBreakerRoom] Failed to notify server of client leave: HTTP ", code)
