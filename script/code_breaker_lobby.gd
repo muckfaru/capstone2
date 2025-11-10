@@ -263,10 +263,10 @@ func _add_room_row(entry: Dictionary) -> void:
 	action_btn.pressed.connect(func():
 		var room_id := str(entry.get("id", ""))
 		if room_id != "":
+			print("[CodeBreakerLobby] JOIN button clicked for room: ", room_id)
 			_join_room_via_lobby(room_id)
 	)
-	h.add_child(action_btn)
-	h.add_child(action_btn)
+	h.add_child(action_btn)  # Fixed: removed duplicate add_child
 
 	room_list.add_child(h)
 
