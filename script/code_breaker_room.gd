@@ -205,9 +205,19 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 		_client_level.text = "Level: " + str(int(client_lvl_val))
 		var c_status := str(client_val.get("status", "not_ready"))
 		
-		# Only update status label if we're the HOST viewing the client
-		# If we're the client ourselves, don't overwrite (relay handles it)
-		if _is_host:
+		# Check if this client is me
+		var client_uid := str(client_val.get("uid", ""))
+		var my_uid := Auth.current_local_id if Auth else ""
+		var is_me := (client_uid == my_uid)
+		
+		# If I'm the client viewing myself, show status based on button state (relay source)
+		# If I'm the host viewing the client, show status from RTDB/relay messages
+		if is_me and not _is_host:
+			# Client viewing own status - sync from button
+			_client_status.text = ("READY" if _start_btn.button_pressed else "NOT READY")
+			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if _start_btn.button_pressed else COLOR_DANGER))
+		else:
+			# Host viewing client status - sync from RTDB
 			_client_status.text = ("READY" if c_status == "ready" else "NOT READY")
 			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if c_status == "ready" else COLOR_DANGER))
 		
