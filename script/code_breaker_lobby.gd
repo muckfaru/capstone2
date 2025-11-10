@@ -11,13 +11,8 @@ var _multiplayer_config: Node = null
 var _lobby_server_url: String = ""
 var _created_room_id: String = ""  # Store room ID when host creates room
 
-# Network helper for IP detection & UPnP
-var _network_helper: Node = null
-var _public_ip: String = ""
-var _local_ip: String = ""
-
-# ENet server for hosting
-var _enet_peer: ENetMultiplayerPeer = null
+# Option B: Relay architecture - no ENet/IP detection needed
+# Players connect directly to relay server
 
 # Room polling timer
 var _poll_timer: Timer = null
@@ -30,8 +25,7 @@ func _ready() -> void:
 	# FORCE DEBUG: Print actual URL being used
 	print("🔍 [DEBUG] Lobby URL after init: ", _lobby_server_url)
 	
-	# Initialize network helper
-	_initialize_network_helper()
+	# Option B: No network helper needed for relay architecture
 	
 	# Wire create room button
 	if create_btn:
@@ -93,15 +87,13 @@ func _on_create_room_pressed() -> void:
 
 func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	"""
-	Option A: Pure Direct P2P Room Creation
+	Option B: Relay Server Architecture
 	Steps:
-	1. Wait for public IP (if not ready yet)
-	2. Setup UPnP port forwarding
-	3. Create ENet server on port 7777
-	4. POST to lobby server with host IP + port
-	5. Enter room scene with room_id
+	1. Register room with lobby server (no IP/port needed)
+	2. Enter room scene with room_id
+	3. Room scene connects both players to relay server
 	"""
-	print("[CodeBreakerLobby] Creating room (Option A: Direct P2P)...")
+	print("[CodeBreakerLobby] Creating room (Option B: Relay)...")
 	
 	# Get user info
 	var uid: String = Auth.current_local_id if Auth else "anonymous"
@@ -113,62 +105,21 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	if final_room_name == "":
 		final_room_name = ("Anonymous" if anonymous else username)
 	
-	# Step 1: Wait for public IP detection (max 3s)
-	if _public_ip.is_empty():
-		print("[CodeBreakerLobby] Waiting for public IP detection...")
-		var wait_time = 0.0
-		while _public_ip.is_empty() and wait_time < 3.0:
-			await get_tree().create_timer(0.5).timeout
-			wait_time += 0.5
+	print("[CodeBreakerLobby] Registering room with lobby server...")
 	
-	# Use best available IP (public or local fallback)
-	var host_ip = get_host_ip()
-	if host_ip.is_empty():
-		push_error("[CodeBreakerLobby] Cannot determine host IP!")
-		return
-	
-	var port = 7777
-	var is_lan = is_lan_only()
-	
-	print("[CodeBreakerLobby] Host IP: %s (LAN only: %s)" % [host_ip, is_lan])
-	
-	# Step 2: Setup UPnP port forwarding (async, non-blocking)
-	if not is_lan:
-		print("[CodeBreakerLobby] Attempting UPnP port forwarding...")
-		try_setup_upnp(port)
-		# Don't wait for UPnP - it will complete in background
-		# Game will work even if UPnP fails (if user did manual port forwarding)
-	
-	# Step 3: Create ENet server
-	print("[CodeBreakerLobby] Creating ENet server on port %d..." % port)
-	_enet_peer = ENetMultiplayerPeer.new()
-	var error = _enet_peer.create_server(port, 1)  # Max 1 client
-	
-	if error != OK:
-		push_error("[CodeBreakerLobby] Failed to create ENet server: %d" % error)
-		_enet_peer = null
-		return
-	
-	get_tree().get_multiplayer().multiplayer_peer = _enet_peer
-	print("[CodeBreakerLobby] ✅ ENet server created successfully")
-	
-	# Step 4: POST to lobby server
-	print("[CodeBreakerLobby] Registering with lobby server...")
-	
+	# Register room (relay architecture - no IP/port needed)
 	var body := {
 		"host_id": uid,
 		"host_username": ("Anonymous" if anonymous else username),
 		"host_avatar": avatar,
 		"host_level": level,
 		"room_name": final_room_name,
-		"game_type": "code_breaker",
-		"public_ip": host_ip,
-		"port": port,
-		"is_lan": is_lan
+		"game_type": "code_breaker"
+		# No public_ip, port, or is_lan needed for relay
 	}
 	
 	var http := HTTPRequest.new()
-	http.timeout = 10.0  # 10 second timeout
+	http.timeout = 10.0
 	add_child(http)
 	
 	http.request_completed.connect(func(_r: int, code: int, _h: PackedStringArray, resp_body: PackedByteArray):
@@ -177,10 +128,6 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 		
 		if code != 200:
 			push_error("[CodeBreakerLobby] Failed to register room with lobby server. HTTP %d" % code)
-			# Cleanup
-			if _enet_peer:
-				_enet_peer.close()
-				_enet_peer = null
 			return
 		
 		var resp = JSON.parse_string(resp_body.get_string_from_utf8())
@@ -195,14 +142,11 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 		
 		print("[CodeBreakerLobby] ✅ Room registered: %s" % _created_room_id)
 		
-		# Step 5: Enter room scene
+		# Enter room scene (relay will connect in room scene)
 		var init := {
 			"room_id": _created_room_id,
 			"host_name": str(body["host_username"]),
 			"is_host": true,
-			"host_ip": host_ip,
-			"port": port,
-			"is_lan": is_lan,
 			"lobby_server_url": _lobby_server_url
 		}
 		get_tree().set_meta("code_breaker_room_init", init)
@@ -225,9 +169,6 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	if request_error != OK:
 		push_error("[CodeBreakerLobby] HTTP request failed: %d" % request_error)
 		http.queue_free()
-		if _enet_peer:
-			_enet_peer.close()
-			_enet_peer = null
 
 
 func _add_room_row(entry: Dictionary) -> void:
@@ -505,108 +446,8 @@ func _initialize_multiplayer_config() -> void:
 	print("[CodeBreakerLobby] Lobby server: %s" % _lobby_server_url)
 
 
-func _initialize_network_helper() -> void:
-	"""Initialize NetworkHelper for public IP detection"""
-	var NetworkHelperScript = load("res://script/NetworkHelper.gd")
-	if not NetworkHelperScript:
-		push_error("[CodeBreakerLobby] NetworkHelper.gd not found!")
-		return
-	
-	_network_helper = NetworkHelperScript.new()
-	add_child(_network_helper)
-	
-	# Connect signals
-	_network_helper.public_ip_detected.connect(_on_public_ip_detected)
-	_network_helper.public_ip_failed.connect(_on_public_ip_failed)
-	_network_helper.upnp_completed.connect(_on_upnp_completed)
-	
-	# Start detection immediately (async, non-blocking)
-	_network_helper.detect_public_ip()
-	
-	# Also get local IP (synchronous)
-	_local_ip = _network_helper.get_local_ip()
-	
-	print("[CodeBreakerLobby] Network helper initialized")
-	print("[CodeBreakerLobby] Local IP: %s" % _local_ip)
+# Option B: No network helper needed for relay architecture
+# All network complexity handled by relay server
+# No port forwarding, UPnP, or IP detection needed
 
-
-func _on_public_ip_detected(ip: String) -> void:
-	"""Called when public IP is successfully detected"""
-	_public_ip = ip
-	print("[CodeBreakerLobby] ✅ Public IP detected: %s" % ip)
-	
-	# You can show a notification to user here
-	# e.g., "Ready to host - IP: xxx.xxx"
-
-
-func _on_public_ip_failed(error: String) -> void:
-	"""Called when public IP detection fails"""
-	push_warning("[CodeBreakerLobby] ⚠️ Public IP detection failed: %s" % error)
-	push_warning("[CodeBreakerLobby] Will use local IP as fallback: %s" % _local_ip)
-	
-	# Fallback: use local IP (works for LAN only)
-	_public_ip = _local_ip
-
-
-func get_host_ip() -> String:
-	"""Get the best IP to use for hosting (public or local)"""
-	# If we have public IP, use it
-	if _public_ip != "":
-		return _public_ip
-	
-	# Fallback to local IP (LAN only)
-	if _local_ip != "":
-		return _local_ip
-	
-	# Last resort: try to detect local IP again
-	if _network_helper:
-		return _network_helper.get_local_ip()
-	
-	return ""
-
-
-func is_lan_only() -> bool:
-	"""Check if we're in LAN-only mode (no public IP)"""
-	return _public_ip.is_empty() or _public_ip.begins_with("192.168.") or _public_ip.begins_with("10.")
-
-
-func _on_upnp_completed(success: bool, message: String) -> void:
-	"""Called when UPnP port forwarding completes (success or failure)"""
-	if success:
-		print("[CodeBreakerLobby] ✅ UPnP: %s" % message)
-		# You can show a success notification here
-		# e.g., "Port opened automatically!"
-	else:
-		print("[CodeBreakerLobby] ⚠️ UPnP: %s" % message)
-		# Show manual port forwarding instructions
-		_show_manual_port_forwarding_info()
-
-
-func _show_manual_port_forwarding_info() -> void:
-	"""Show instructions for manual port forwarding"""
-	print("[CodeBreakerLobby] Manual port forwarding required:")
-	print("  1. Open your router admin page (usually 192.168.1.1 or 192.168.0.1)")
-	print("  2. Find 'Port Forwarding' or 'Virtual Server' settings")
-	print("  3. Add rule: External Port 7777 → Internal IP %s → Internal Port 7777" % _local_ip)
-	print("  4. Protocol: TCP")
-	print("  5. Save and restart router if needed")
-	
-	# TODO: Show in-game UI popup with instructions
-	# For now, just print to console
-
-
-func try_setup_upnp(port: int = 7777) -> void:
-	"""Attempt to setup UPnP port forwarding"""
-	if not _network_helper:
-		push_error("[CodeBreakerLobby] Network helper not initialized!")
-		return
-	
-	print("[CodeBreakerLobby] Attempting UPnP port forwarding for port %d..." % port)
-	_network_helper.setup_upnp_port_forwarding(port)
-
-
-func cleanup_upnp(port: int = 7777) -> void:
-	"""Clean up UPnP port mapping when leaving"""
-	if _network_helper:
-		_network_helper.cleanup_upnp_port_forwarding(port)
 
