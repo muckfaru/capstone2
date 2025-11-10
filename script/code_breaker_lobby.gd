@@ -411,12 +411,19 @@ func _join_room_via_lobby(room_id: String) -> void:
 		"client_avatar": avatar,
 		"client_level": level
 	}
-	
+
+	# Debug: print join request details
+	print("🔍 [DEBUG] JOIN API URL: ", url)
+	print("🔍 [DEBUG] JOIN Request body: ", JSON.stringify(body))
+
 	http.request_completed.connect(func(_result, code, _headers, response_body: PackedByteArray):
 		http.queue_free()
 		
+		var raw := response_body.get_string_from_utf8()
+		print("🔍 [DEBUG] JOIN HTTP Response code:", code, " body:", raw)
+
 		if code != 200:
-			push_error("[CodeBreakerLobby] Join room failed HTTP ", code)
+			push_error("[CodeBreakerLobby] Join room failed HTTP ", code, " response:", raw)
 			return
 		
 		var json_str := response_body.get_string_from_utf8()
