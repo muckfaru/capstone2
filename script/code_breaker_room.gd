@@ -418,7 +418,19 @@ func _on_ready_toggled(pressed: bool) -> void:
 	_client_status.text = ("READY" if pressed else "NOT READY")
 	_start_btn.text = ("NOT READY" if pressed else "READY")
 	_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if pressed else COLOR_DANGER))
-	# Patch RTDB at client node
+	
+	# Option B: Send ready status via WebSocket relay (not RTDB)
+	if _relay_client and _relay_connected:
+		var message := {
+			"type": "player_status",
+			"status": ("ready" if pressed else "not_ready")
+		}
+		_relay_client.send_message(message)
+		print("[CodeBreakerRoom] Ready status sent via relay: ", message["status"])
+	else:
+		push_warning("[CodeBreakerRoom] Relay not connected, cannot send ready status")
+	
+	# Also update RTDB for backward compatibility (lobby list)
 	if _room_id == "":
 		return
 	var id_token := Auth.current_id_token if Auth else ""
@@ -689,11 +701,30 @@ func _on_relay_message_received(data: Dictionary) -> void:
 			var players_count = data.get("players_count", 0)
 			print("[CodeBreakerRoom] %s joined the room (%d/2)" % [other_username, players_count])
 			_message_label.text = "Player joined! Ready to start."
+			# Trigger UI update
+			_fetch_room()
 		
 		"player_disconnected":
 			var other_username = data.get("username", "Player")
 			print("[CodeBreakerRoom] %s left the room" % other_username)
 			_message_label.text = "Other player disconnected."
+			# Trigger UI update
+			_fetch_room()
+		
+		"player_status":
+			# Client ready/not ready status update
+			var status = data.get("status", "not_ready")
+			print("[CodeBreakerRoom] Player status updated: ", status)
+			if _is_host:
+				# Host receives client's ready status
+				_client_status.text = ("READY" if status == "ready" else "NOT READY")
+				_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if status == "ready" else COLOR_DANGER))
+				# Enable/disable start button
+				_start_btn.disabled = (status != "ready")
+				if status == "ready":
+					_message_label.text = "Client is ready! You can start the match."
+				else:
+					_message_label.text = "Waiting for client to be ready..."
 		
 		"game_action":
 			# Forward to arena (if in arena)
