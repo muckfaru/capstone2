@@ -215,12 +215,15 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 		# Otherwise use RTDB status
 		if is_me and not _is_host and _client_ready_via_relay:
 			# Client viewing own status - sync from button (relay source of truth)
-			_client_status.text = ("READY" if _start_btn.button_pressed else "NOT READY")
-			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if _start_btn.button_pressed else COLOR_DANGER))
+			var btn_state = _start_btn.button_pressed
+			_client_status.text = ("READY" if btn_state else "NOT READY")
+			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if btn_state else COLOR_DANGER))
+			print("[CodeBreakerRoom] Client status from button: ", btn_state, " flag: ", _client_ready_via_relay)
 		else:
 			# Host viewing client status OR client initial state - sync from RTDB
 			_client_status.text = ("READY" if c_status == "ready" else "NOT READY")
 			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if c_status == "ready" else COLOR_DANGER))
+			print("[CodeBreakerRoom] Client status from RTDB: ", c_status, " is_me: ", is_me, " is_host: ", _is_host)
 		
 		if not _last_client_present:
 			_message_label.text = "Player joined!"
@@ -457,6 +460,7 @@ func _on_ready_toggled(pressed: bool) -> void:
 	var patch := {"status": ("ready" if pressed else "not_ready")}
 	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + "/client.json?auth=" + id_token
 	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PATCH, JSON.stringify(patch))
+	print("[CodeBreakerRoom] RTDB update sent: ", patch)
 
 
 # =============================================================================
