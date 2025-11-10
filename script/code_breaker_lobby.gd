@@ -333,10 +333,11 @@ func _fetch_rooms_from_lobby() -> void:
 
 
 func _populate_rooms_from_lobby(rooms_data) -> void:
-	"""Populate room list from lobby server response"""
-	# Clear existing room list UI
-	for child in room_list.get_children():
-		child.queue_free()
+	"""Process room list from lobby server and populate UI"""
+	# Clear existing rooms
+	if room_list:
+		for child in room_list.get_children():
+			child.queue_free()
 	
 	_rooms.clear()
 	
@@ -344,31 +345,40 @@ func _populate_rooms_from_lobby(rooms_data) -> void:
 		print("[CodeBreakerLobby] No rooms available")
 		return
 	
+	print("🔍 [DEBUG] Processing ", rooms_data.size(), " rooms from server")
+	
 	var current_uid: String = Auth.current_local_id if Auth else ""
+	print("🔍 [DEBUG] Current user UID: ", current_uid)
 	
 	for room in rooms_data:
 		if typeof(room) != TYPE_DICTIONARY:
 			continue
 		
-		var room_id: String = room.get("id", "")
+		var room_id: String = room.get("room_id", "")  # Fixed: server returns "room_id", not "id"
 		var room_name: String = room.get("room_name", "Unnamed Room")
 		var host_info = room.get("host", {})
 		var host_username: String = host_info.get("username", "Unknown") if typeof(host_info) == TYPE_DICTIONARY else "Unknown"
 		var host_uid: String = host_info.get("uid", "") if typeof(host_info) == TYPE_DICTIONARY else ""
-		var player_count: int = room.get("player_count", 1)
-		var max_players: int = 2
+		var player_count: int = room.get("current_players", 1)  # Fixed: server returns "current_players", not "player_count"
+		var max_players: int = room.get("max_players", 2)  # Also read from server response
 		var status: String = room.get("status", "waiting")
+		
+		print("🔍 [DEBUG] Room: ", room_id, " | Host: ", host_username, " (uid:", host_uid, ") | Players: ", player_count, "/", max_players, " | Status: ", status)
 		
 		# Only show rooms that are waiting for players
 		if status != "waiting":
+			print("🔍 [DEBUG] Skipping room (not waiting): ", room_id)
 			continue
 		
 		# Don't show rooms created by current user
-		if host_uid == current_uid:
+		if host_uid == current_uid and host_uid != "":
+			print("🔍 [DEBUG] Skipping own room: ", room_id)
 			continue
 		
 		var players_text := str(player_count) + "/" + str(max_players)
 		var joinable: bool = (player_count < max_players)
+		
+		print("🔍 [DEBUG] Adding room to list - Joinable: ", joinable)
 		
 		var entry := {
 			"id": room_id,
