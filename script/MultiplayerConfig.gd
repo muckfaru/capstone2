@@ -23,7 +23,7 @@ const LOBBY_URLS = {
 const DEFAULT_PORT := 7777
 const HEARTBEAT_INTERVAL := 30.0  # seconds
 
-var current_mode: Mode = Mode.LAN  # Changed default to LAN for testing
+var current_mode: Mode = Mode.LOCALHOST  # Use localhost for testing updated server
 var custom_tunnel_url: String = ""
 
 ## Get the lobby server base URL
