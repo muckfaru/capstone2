@@ -384,23 +384,17 @@ func _join_room_via_lobby(room_id: String) -> void:
 			push_error("[CodeBreakerLobby] Invalid join response")
 			return
 		
-		var host_ip: String = data.get("host_ip", "")
-		var host_port: int = data.get("host_port", 7777)
+		# Option B: Relay architecture - no IP/port needed
 		var host_name: String = data.get("host_username", "Host")
 		
-		if host_ip == "":
-			push_error("[CodeBreakerLobby] No host IP received")
-			return
-		
-		print("[CodeBreakerLobby] Joining room - Host: ", host_name, " at ", host_ip, ":", host_port)
+		print("[CodeBreakerLobby] Joining room - Host: ", host_name, " (relay mode)")
 		
 		# Store connection info and transition to room scene
 		var init := {
 			"room_id": room_id,
 			"host_name": host_name,
-			"host_ip": host_ip,
-			"host_port": host_port,
-			"is_host": false
+			"is_host": false,
+			"lobby_server_url": _lobby_server_url
 		}
 		get_tree().set_meta("code_breaker_room_init", init)
 		
