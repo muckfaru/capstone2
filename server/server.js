@@ -376,11 +376,17 @@ app.post('/api/rooms/:room_id/ready', (req, res) => {
 
 /**
  * POST /api/rooms/:room_id/leave
- * Client leaves the room (removes client from room)
- * Used when client connection fails or client leaves before game starts
+ * Player leaves the room (with host promotion logic)
+ * Request body: { player_id: string }
+ * 
+ * Scenarios:
+ * 1. Host leaves + client exists → Promote client to host
+ * 2. Host leaves + no client → Delete room
+ * 3. Client leaves → Remove client
  */
 app.post('/api/rooms/:room_id/leave', (req, res) => {
   const { room_id } = req.params;
+  const { player_id } = req.body;
 
   const room = rooms.get(room_id);
   if (!room) {
@@ -389,15 +395,72 @@ app.post('/api/rooms/:room_id/leave', (req, res) => {
     });
   }
 
-  // Remove client from room
-  if (room.client) {
+  const is_host = room.host && room.host.player_id === player_id;
+  const is_client = room.client && room.client.player_id === player_id;
+
+  if (is_host) {
+    console.log(`[Lobby] Host ${room.host.username} leaving room ${room_id}`);
+    
+    if (room.client) {
+      // SCENARIO 1: Promote client to host
+      console.log(`[Lobby] Promoting ${room.client.username} to host`);
+      const new_host = room.client;
+      room.host = new_host;
+      room.client = null;
+      room.current_players = 1;
+      room.last_heartbeat = Date.now();
+      
+      // Send relay notification to new host about promotion
+      broadcastToRoom(room_id, {
+        type: 'host_promotion',
+        new_host_id: new_host.player_id,
+        new_host_username: new_host.username,
+        old_host_id: player_id,
+        message: 'You are now the host!'
+      });
+      
+      res.json({ 
+        ok: true, 
+        promoted_to_host: true,
+        new_host_id: new_host.player_id,
+        message: 'You are now the host'
+      });
+    } else {
+      // SCENARIO 2: Host is only player, delete room
+      rooms.delete(room_id);
+      console.log(`[Lobby] Room deleted (host left, no client): ${room_id}`);
+      
+      res.json({ 
+        ok: true, 
+        room_deleted: true,
+        message: 'Room closed'
+      });
+    }
+  } else if (is_client) {
+    // SCENARIO 3: Client leaves
     console.log(`[Lobby] Client ${room.client.username} left room ${room_id}`);
+    const client_username = room.client.username;
     room.client = null;
     room.current_players = 1;
     room.last_heartbeat = Date.now();
+    
+    // Notify host via relay
+    broadcastToRoom(room_id, {
+      type: 'player_left',
+      player_id: player_id,
+      username: client_username,
+      message: 'Client has left the room'
+    });
+    
+    res.json({ 
+      ok: true,
+      message: 'Left room successfully'
+    });
+  } else {
+    res.status(404).json({
+      error: 'Player not found in room'
+    });
   }
-
-  res.json({ ok: true });
 });
 
 /**

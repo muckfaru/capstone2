@@ -491,72 +491,54 @@ func _leave_room() -> void:
 	if _is_host:
 		_stop_heartbeat()
 	
-	var id_token := Auth.current_id_token if Auth else ""
-	if _room_id == "":
-		_go_to_landing()
-		return
-	if id_token == "":
-		push_warning("[CodeBreakerRoom] No id_token; leaving without RTDB cleanup")
+	# Disconnect from relay
+	if _relay_client and _relay_client.is_relay_connected():
+		_relay_client.disconnect_from_relay()
+	
+	var player_id := Auth.current_local_id if Auth else ""
+	if _room_id == "" or player_id == "":
+		push_warning("[CodeBreakerRoom] No room_id or player_id; going to landing")
 		_go_to_landing()
 		return
 
-	# Read room to decide whether to delete or just clear our slot
-	var get_http := HTTPRequest.new()
-	add_child(get_http)
-	get_http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
-		get_http.queue_free()
+	# Call lobby server leave endpoint
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		http.queue_free()
 		if code != 200:
-			push_warning("[CodeBreakerRoom] Could not read room before leave: HTTP " + str(code))
+			push_warning("[CodeBreakerRoom] Leave request failed: HTTP " + str(code))
 			_go_to_landing()
 			return
-		var node = JSON.parse_string(body.get_string_from_utf8())
-		if typeof(node) != TYPE_DICTIONARY:
+		
+		var response = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(response) != TYPE_DICTIONARY:
 			_go_to_landing()
 			return
-
-		var host_val = node.get("host", null)
-		var client_val = node.get("client", null)
-		var host_present: bool = host_val != null and typeof(host_val) == TYPE_DICTIONARY and host_val.size() > 0
-		var client_present: bool = client_val != null and typeof(client_val) == TYPE_DICTIONARY and client_val.size() > 0
-
-		# Decide on operation
-		if _is_host:
-			if not client_present:
-				_delete_room(id_token)
-			else:
-				_patch_room({"host": null, "state": "waiting"}, id_token)
+		
+		# Handle promotion to host
+		if response.get("promoted_to_host", false):
+			print("[CodeBreakerRoom] You have been promoted to host!")
+			_message_label.text = "Previous host left. You are now the host!"
+			_is_host = true
+			_configure_buttons()
+			# Relay message was already sent by server
+		
+		# Handle room deletion
+		elif response.get("room_deleted", false):
+			print("[CodeBreakerRoom] Room has been deleted")
+			_message_label.text = "Room closed"
+		
+		# Normal leave
 		else:
-			if not host_present:
-				_delete_room(id_token)
-			else:
-				_patch_room({"client": null, "state": "waiting"}, id_token)
-	)
-	var get_url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json"
-	get_http.request(get_url, [], HTTPClient.METHOD_GET)
-
-func _patch_room(patch_obj: Dictionary, id_token: String) -> void:
-	var http := HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(func(_r, code, _h, _b):
-		http.queue_free()
-		if code != 200:
-			push_warning("[CodeBreakerRoom] Leave PATCH failed HTTP " + str(code))
+			print("[CodeBreakerRoom] Left room successfully")
+		
 		_go_to_landing()
 	)
-	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json?auth=" + id_token
-	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PATCH, JSON.stringify(patch_obj))
-
-func _delete_room(id_token: String) -> void:
-	var http := HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(func(_r, code, _h, _b):
-		http.queue_free()
-		if code != 200:
-			push_warning("[CodeBreakerRoom] Leave DELETE failed HTTP " + str(code))
-		_go_to_landing()
-	)
-	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json?auth=" + id_token
-	http.request(url, [], HTTPClient.METHOD_DELETE)
+	
+	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/leave"
+	var body := JSON.stringify({"player_id": player_id})
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
 
 
 # =============================================================================
@@ -743,6 +725,32 @@ func _on_relay_message_received(data: Dictionary) -> void:
 			print("[CodeBreakerRoom] %s left the room" % other_username)
 			_message_label.text = "Other player disconnected."
 			# Trigger UI update
+			_fetch_room()
+		
+		"host_promotion":
+			# Server promoted us to host after previous host left
+			var new_host_id = data.get("new_host_id", "")
+			var old_host_id = data.get("old_host_id", "")
+			var my_id = Auth.current_local_id if Auth else ""
+			
+			if new_host_id == my_id:
+				print("[CodeBreakerRoom] 🎖️ You have been promoted to host!")
+				_is_host = true
+				_message_label.text = "Previous host left. You are now the host!"
+				_configure_buttons()
+				# Refresh room data to update UI
+				_fetch_room()
+			else:
+				print("[CodeBreakerRoom] Host changed: %s → %s" % [old_host_id, new_host_id])
+				_fetch_room()
+		
+		"player_left":
+			# Other player left the room
+			var left_player_id = data.get("player_id", "")
+			var left_username = data.get("username", "Player")
+			print("[CodeBreakerRoom] %s left the room" % left_username)
+			_message_label.text = "%s has left the room." % left_username
+			# Refresh room data
 			_fetch_room()
 		
 		"player_status":
