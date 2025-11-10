@@ -28,6 +28,7 @@ const COLOR_MUTED := Color(0.560784, 0.639216, 0.678431, 1) # muted gray-blue
 
 var _room_id: String = ""
 var _is_host: bool = false
+var _client_ready_via_relay: bool = false  # Track client ready status from relay (not RTDB)
 var _last_client_present: bool = false
 var _poll_timer: Timer
 var _transitioning_to_arena: bool = false
@@ -210,14 +211,14 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 		var my_uid := Auth.current_local_id if Auth else ""
 		var is_me := (client_uid == my_uid)
 		
-		# If I'm the client viewing myself, show status based on button state (relay source)
-		# If I'm the host viewing the client, show status from RTDB/relay messages
-		if is_me and not _is_host:
-			# Client viewing own status - sync from button
+		# If I'm the client viewing myself AND I've already set ready via relay, use button state
+		# Otherwise use RTDB status
+		if is_me and not _is_host and _client_ready_via_relay:
+			# Client viewing own status - sync from button (relay source of truth)
 			_client_status.text = ("READY" if _start_btn.button_pressed else "NOT READY")
 			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if _start_btn.button_pressed else COLOR_DANGER))
 		else:
-			# Host viewing client status - sync from RTDB
+			# Host viewing client status OR client initial state - sync from RTDB
 			_client_status.text = ("READY" if c_status == "ready" else "NOT READY")
 			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if c_status == "ready" else COLOR_DANGER))
 		
@@ -427,6 +428,9 @@ func _on_ready_toggled(pressed: bool) -> void:
 	_client_status.text = ("READY" if pressed else "NOT READY")
 	_start_btn.text = ("NOT READY" if pressed else "READY")
 	_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if pressed else COLOR_DANGER))
+	
+	# Set flag to prevent RTDB polling from overwriting
+	_client_ready_via_relay = true
 	
 	# Option B: Send ready status via WebSocket relay (not RTDB)
 	if _relay_client and _relay_connected:
