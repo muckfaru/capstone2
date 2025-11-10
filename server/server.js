@@ -341,6 +341,40 @@ app.post('/api/rooms/:room_id/status', (req, res) => {
 });
 
 /**
+ * POST /api/rooms/:room_id/ready
+ * Update player ready status
+ * Body: { player_id: "uid", ready: true/false }
+ */
+app.post('/api/rooms/:room_id/ready', (req, res) => {
+  const { room_id } = req.params;
+  const { player_id, ready } = req.body;
+
+  const room = rooms.get(room_id);
+  if (!room) {
+    return res.status(404).json({
+      error: 'Room not found'
+    });
+  }
+
+  // Update ready status for host or client
+  if (room.host && room.host.player_id === player_id) {
+    room.host.ready = ready;
+    console.log(`[Lobby] Host ${room.host.username} ready: ${ready}`);
+  } else if (room.client && room.client.player_id === player_id) {
+    room.client.ready = ready;
+    console.log(`[Lobby] Client ${room.client.username} ready: ${ready}`);
+  } else {
+    return res.status(404).json({
+      error: 'Player not found in room'
+    });
+  }
+
+  room.last_heartbeat = Date.now();
+
+  res.json({ ok: true });
+});
+
+/**
  * POST /api/rooms/:room_id/leave
  * Client leaves the room (removes client from room)
  * Used when client connection fails or client leaves before game starts

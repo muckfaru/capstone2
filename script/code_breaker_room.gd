@@ -204,32 +204,34 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 		_client_username.text = str(client_val.get("username", "."))
 		var client_lvl_val = client_val.get("level", 0)
 		_client_level.text = "Level: " + str(int(client_lvl_val))
-		var c_status := str(client_val.get("status", "not_ready"))
+		
+		# Check ready status from lobby server (not RTDB)
+		var client_ready = client_val.get("ready", false)
 		
 		# Check if this client is me
-		var client_uid := str(client_val.get("uid", ""))
+		var client_uid := str(client_val.get("player_id", ""))
 		var my_uid := Auth.current_local_id if Auth else ""
 		var is_me := (client_uid == my_uid)
 		
-		# If I'm the client viewing myself AND I've already set ready via relay, use button state
-		# Otherwise use RTDB status
+		# If I'm the client viewing myself AND I've toggled ready, use button state
+		# Otherwise use lobby server status
 		if is_me and not _is_host and _client_ready_via_relay:
-			# Client viewing own status - sync from button (relay source of truth)
+			# Client viewing own status - sync from button (relay + lobby server)
 			var btn_state = _start_btn.button_pressed
 			_client_status.text = ("READY" if btn_state else "NOT READY")
 			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if btn_state else COLOR_DANGER))
-			print("[CodeBreakerRoom] Client status from button: ", btn_state, " flag: ", _client_ready_via_relay)
+			print("[CodeBreakerRoom] Client status from button: ", btn_state)
 		else:
-			# Host viewing client status OR client initial state - sync from RTDB
-			_client_status.text = ("READY" if c_status == "ready" else "NOT READY")
-			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if c_status == "ready" else COLOR_DANGER))
-			print("[CodeBreakerRoom] Client status from RTDB: ", c_status, " is_me: ", is_me, " is_host: ", _is_host)
+			# Host viewing client status - sync from lobby server
+			_client_status.text = ("READY" if client_ready else "NOT READY")
+			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if client_ready else COLOR_DANGER))
+			print("[CodeBreakerRoom] Client ready from lobby: ", client_ready, " is_me: ", is_me)
 		
 		if not _last_client_present:
 			_message_label.text = "Player joined!"
 
-		# Don't sync RTDB back to button - relay is source of truth now
-		# (Removed RTDB → button sync to prevent overwriting relay status)
+		# Lobby server is source of truth
+		# (No RTDB sync needed)
 	else:
 		_client_username.text = "."
 		_client_level.text = "."
@@ -446,21 +448,30 @@ func _on_ready_toggled(pressed: bool) -> void:
 	else:
 		push_warning("[CodeBreakerRoom] Relay not connected, cannot send ready status")
 	
-	# Also update RTDB for backward compatibility (lobby list)
+	# Update lobby server (replaces RTDB)
 	if _room_id == "":
 		return
-	var id_token := Auth.current_id_token if Auth else ""
-	if id_token == "":
+	var player_id := Auth.current_local_id if Auth else ""
+	if player_id == "":
 		return
+	
 	var http := HTTPRequest.new()
 	add_child(http)
-	http.request_completed.connect(func(_r, _code, _h, _b):
+	http.request_completed.connect(func(_r, code, _h, _b):
 		http.queue_free()
+		if code == 200:
+			print("[CodeBreakerRoom] ✅ Ready status updated on server")
+		else:
+			push_warning("[CodeBreakerRoom] Failed to update ready status on server: ", code)
 	)
-	var patch := {"status": ("ready" if pressed else "not_ready")}
-	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + "/client.json?auth=" + id_token
-	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PATCH, JSON.stringify(patch))
-	print("[CodeBreakerRoom] RTDB update sent: ", patch)
+	
+	var body := {
+		"player_id": player_id,
+		"ready": pressed
+	}
+	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/ready"
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(body))
+	print("[CodeBreakerRoom] Sending ready status to lobby server: ", pressed)
 
 
 # =============================================================================
