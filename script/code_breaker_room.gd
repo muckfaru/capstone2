@@ -13,9 +13,9 @@ extends Control
 @onready var _leave_btn: Button = $ButtonPanel/LeaveButton
 
 # =============================================================================
-# DUAL SYSTEM ARCHITECTURE:
-# - RTDB: Room state, player info, ready status, chat (UI coordination)
-# - ENet P2P: Direct connection for actual gameplay (arena)
+# ARCHITECTURE: WebSocket Relay (Option B - No Port Forwarding Required)
+# - RTDB: Room state, player info, ready status (UI coordination) - Legacy
+# - WebSocket Relay: Both players connect to relay server for gameplay
 # =============================================================================
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const POLL_INTERVAL := 2.0
@@ -32,13 +32,12 @@ var _last_client_present: bool = false
 var _poll_timer: Timer
 var _transitioning_to_arena: bool = false
 
-# Option A: Direct P2P Connection Info
-var _host_ip: String = ""
-var _host_port: int = 7777
-var _enet_peer: ENetMultiplayerPeer = null
+# Option B: WebSocket Relay Connection
+var _relay_client: Node = null
+var _relay_connected: bool = false
 var _connection_timeout: float = 10.0  # 10 seconds timeout for connection
 
-# Heartbeat system (Task 7)
+# Heartbeat system
 var _heartbeat_timer: Timer = null
 var _lobby_server_url: String = ""
 const HEARTBEAT_INTERVAL := 30.0  # Send heartbeat every 30 seconds
@@ -57,13 +56,8 @@ func _ready() -> void:
 	_room_id = room_id
 	_is_host = is_host
 	
-	# Option A: Store host connection info from lobby server
-	_host_ip = str(init.get("host_ip", ""))
-	_host_port = int(init.get("host_port", 7777))
-	
 	print("[CodeBreakerRoom] Initialized - Room: %s, Host: %s, Is Host: %s" % [_room_id, host_name, _is_host])
-	if not _is_host:
-		print("[CodeBreakerRoom] Client will connect to: %s:%d" % [_host_ip, _host_port])
+	print("[CodeBreakerRoom] Using WebSocket Relay (Option B - No Port Forwarding)")
 	
 	# Initialize lobby server URL for heartbeat
 	_initialize_lobby_config()
@@ -101,10 +95,8 @@ func _ready() -> void:
 	if _is_host:
 		_start_heartbeat()
 	
-	# Option A: Client connects to host's ENet server immediately
-	if not _is_host:
-		print("[CodeBreakerRoom] Client joining - connecting to host's ENet server...")
-		await _setup_client_connection()
+	# Option B: Both host and client connect to WebSocket relay
+	await _setup_relay_connection()
 
 	# Configure action button based on role
 	_configure_buttons()
@@ -616,101 +608,117 @@ func _transition_to_arena() -> void:
 
 
 # =============================================================================
-# DIRECT P2P CONNECTION - ENet Multiplayer (Option A Architecture)
+# WEBSOCKET RELAY CONNECTION (Option B Architecture - No Port Forwarding)
 # =============================================================================
 
-func _setup_client_connection() -> void:
-	"""Client connects to host's ENet server when entering room scene"""
-	if _host_ip.is_empty():
-		push_error("[CodeBreakerRoom] No host IP provided!")
-		_show_connection_error("Invalid host IP")
+func _setup_relay_connection() -> void:
+	"""Both host and client connect to WebSocket relay server"""
+	print("[CodeBreakerRoom] Connecting to WebSocket relay...")
+	
+	# Get player info
+	var player_id: String = Auth.current_local_id if Auth else "unknown"
+	var username: String = Auth.current_username if Auth else "Player"
+	
+	# Create relay client
+	var RelayClientScript = load("res://script/WebSocketRelayClient.gd")
+	if not RelayClientScript:
+		push_error("[CodeBreakerRoom] WebSocketRelayClient.gd not found!")
+		_show_connection_error("Relay client error")
 		return
 	
-	print("[CodeBreakerRoom] Client connecting to host at %s:%d..." % [_host_ip, _host_port])
+	_relay_client = RelayClientScript.new()
+	add_child(_relay_client)
 	
-	_enet_peer = ENetMultiplayerPeer.new()
-	var error = _enet_peer.create_client(_host_ip, _host_port)
-	if error != OK:
-		push_error("[CodeBreakerRoom] Failed to create ENet client: %d" % error)
-		_show_connection_error("Connection failed - Host may need port forwarding")
-		return
+	# Connect signals
+	_relay_client.connected_to_relay.connect(_on_relay_connected)
+	_relay_client.disconnected_from_relay.connect(_on_relay_disconnected)
+	_relay_client.message_received.connect(_on_relay_message_received)
+	_relay_client.error_occurred.connect(_on_relay_error)
 	
-	# Set the multiplayer peer
-	get_tree().get_multiplayer().multiplayer_peer = _enet_peer
+	# Connect to relay
+	_relay_client.connect_to_relay(_lobby_server_url, _room_id, player_id, username)
 	
-	print("[CodeBreakerRoom] ENet client created, waiting for connection...")
-	
-	# Wait for connection to establish
-	var connected = false
+	# Wait for connection (max 10 seconds)
 	var wait_time = 0.0
-	
-	while wait_time < _connection_timeout:
+	while wait_time < _connection_timeout and not _relay_connected:
 		await get_tree().create_timer(0.5).timeout
 		wait_time += 0.5
 		
-		# Check if we're connected (we should have a server peer ID of 1)
-		if multiplayer.get_unique_id() != 1 and multiplayer.get_peers().size() > 0:
-			connected = true
-			break
-		
 		if int(wait_time) % 2 == 0:
-			print("[CodeBreakerRoom] Connection attempt... %.1fs" % wait_time)
+			print("[CodeBreakerRoom] Waiting for relay connection... %.1fs" % wait_time)
 	
-	if not connected:
-		push_error("[CodeBreakerRoom] Connection timeout!")
-		_message_label.text = "Connection failed - Host may need port forwarding.\nCheck router settings or try LAN connection."
+	if not _relay_connected:
+		push_error("[CodeBreakerRoom] Relay connection timeout!")
+		_message_label.text = "Connection failed - Could not reach relay server."
 		# Remove client from server room since connection failed
-		await _notify_server_client_left()
+		if not _is_host:
+			await _notify_server_client_left()
 		# Wait 3 seconds before returning to lobby
 		await get_tree().create_timer(3.0).timeout
 		_go_to_landing()
 		return
 	
-	print("[CodeBreakerRoom] ✅ Client connected successfully! Peer ID: %d" % multiplayer.get_unique_id())
-	_message_label.text = "Connected! Waiting for host to start..."
+	print("[CodeBreakerRoom] ✅ Connected to relay!")
+	_message_label.text = "Connected! Waiting for other player..." if _is_host else "Connected! Waiting for host to start..."
+
+
+func _on_relay_connected() -> void:
+	"""Called when relay connection is established"""
+	_relay_connected = true
+	print("[CodeBreakerRoom] Relay connection established")
+
+
+func _on_relay_disconnected() -> void:
+	"""Called when relay connection is lost"""
+	_relay_connected = false
+	print("[CodeBreakerRoom] Relay connection lost")
+	
+	if not _transitioning_to_arena:
+		_show_connection_error("Connection to relay lost")
+
+
+func _on_relay_message_received(data: Dictionary) -> void:
+	"""Handle messages from relay server"""
+	var msg_type = data.get("type", "")
+	print("[CodeBreakerRoom] Received relay message: ", msg_type)
+	
+	# Handle different message types
+	match msg_type:
+		"player_connected":
+			var other_username = data.get("username", "Player")
+			var players_count = data.get("players_count", 0)
+			print("[CodeBreakerRoom] %s joined the room (%d/2)" % [other_username, players_count])
+			_message_label.text = "Player joined! Ready to start."
+		
+		"player_disconnected":
+			var other_username = data.get("username", "Player")
+			print("[CodeBreakerRoom] %s left the room" % other_username)
+			_message_label.text = "Other player disconnected."
+		
+		"game_action":
+			# Forward to arena (if in arena)
+			pass
+		
+		_:
+			print("[CodeBreakerRoom] Unknown message type: ", msg_type)
+
+
+func _on_relay_error(error_message: String) -> void:
+	"""Called when relay error occurs"""
+	push_error("[CodeBreakerRoom] Relay error: ", error_message)
+	_show_connection_error("Relay error: " + error_message)
+
 
 func _setup_multiplayer_peer(_room_data: Dictionary) -> void:
-	"""Setup Direct P2P ENet Connection (Option A) - Called before arena transition"""
-	print("[CodeBreakerRoom] Verifying multiplayer peer for arena transition...")
+	"""Verify relay connection before arena transition (Option B)"""
+	print("[CodeBreakerRoom] Verifying relay connection for arena transition...")
 	
-	# For clients, connection is already established in _ready()
-	# For hosts, ENet server is already running from lobby
-	# This function just verifies everything is ready
+	if not _relay_client or not _relay_connected:
+		push_error("[CodeBreakerRoom] Relay not connected!")
+		_show_connection_error("Relay connection lost")
+		return
 	
-	if _is_host:
-		# Host: Verify ENet server is running and client is connected
-		var existing_peer = get_tree().get_multiplayer().multiplayer_peer
-		if not existing_peer or not existing_peer is ENetMultiplayerPeer:
-			push_error("[CodeBreakerRoom] Host: No ENet server found!")
-			_show_connection_error("Server error")
-			return
-		
-		_enet_peer = existing_peer
-		
-		# Verify client is still connected
-		if multiplayer.get_peers().size() == 0:
-			push_error("[CodeBreakerRoom] Client disconnected before arena transition!")
-			_show_connection_error("Client disconnected")
-			return
-		
-		print("[CodeBreakerRoom] Host ready. Client peer ID: %d" % multiplayer.get_peers()[0])
-	
-	else:
-		# Client: Verify connection is still alive
-		if not _enet_peer or not multiplayer.has_multiplayer_peer():
-			push_error("[CodeBreakerRoom] Client: Connection lost!")
-			_show_connection_error("Connection lost")
-			return
-		
-		# Verify we're still connected to host
-		if multiplayer.get_peers().size() == 0:
-			push_error("[CodeBreakerRoom] Lost connection to host!")
-			_show_connection_error("Connection lost")
-			return
-		
-		print("[CodeBreakerRoom] Client ready. Connected to host (peer ID: 1)")
-	
-	print("[CodeBreakerRoom] ✅ Multiplayer ready for arena. My Peer ID: %d, Peers: %s" % [multiplayer.get_unique_id(), str(multiplayer.get_peers())])
+	print("[CodeBreakerRoom] ✅ Relay ready for arena")
 
 
 func _show_connection_error(message: String) -> void:
