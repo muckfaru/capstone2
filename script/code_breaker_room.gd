@@ -204,21 +204,18 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 		var client_lvl_val = client_val.get("level", 0)
 		_client_level.text = "Level: " + str(int(client_lvl_val))
 		var c_status := str(client_val.get("status", "not_ready"))
-		_client_status.text = ("READY" if c_status == "ready" else "NOT READY")
-		_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if c_status == "ready" else COLOR_DANGER))
+		
+		# Only update status label if we're the HOST viewing the client
+		# If we're the client ourselves, don't overwrite (relay handles it)
+		if _is_host:
+			_client_status.text = ("READY" if c_status == "ready" else "NOT READY")
+			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if c_status == "ready" else COLOR_DANGER))
+		
 		if not _last_client_present:
 			_message_label.text = "Player joined!"
 
-		# If we are the client, mirror ready state into toggle button
-		if not _is_host:
-			var client_uid := str(client_val.get("uid", ""))
-			var my_uid := Auth.current_local_id if Auth else ""
-			if client_uid == my_uid and _start_btn.toggle_mode:
-				var is_ready := str(client_val.get("status", "not_ready")) == "ready"
-				if _start_btn.button_pressed != is_ready:
-					_start_btn.button_pressed = is_ready
-				# Button shows the ACTION (opposite of current state)
-				_start_btn.text = ("NOT READY" if _start_btn.button_pressed else "READY")
+		# Don't sync RTDB back to button - relay is source of truth now
+		# (Removed RTDB → button sync to prevent overwriting relay status)
 	else:
 		_client_username.text = "."
 		_client_level.text = "."
