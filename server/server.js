@@ -340,6 +340,32 @@ app.post('/api/rooms/:room_id/status', (req, res) => {
 });
 
 /**
+ * POST /api/rooms/:room_id/leave
+ * Client leaves the room (removes client from room)
+ * Used when client connection fails or client leaves before game starts
+ */
+app.post('/api/rooms/:room_id/leave', (req, res) => {
+  const { room_id } = req.params;
+
+  const room = rooms.get(room_id);
+  if (!room) {
+    return res.status(404).json({
+      error: 'Room not found'
+    });
+  }
+
+  // Remove client from room
+  if (room.client) {
+    console.log(`[Lobby] Client ${room.client.username} left room ${room_id}`);
+    room.client = null;
+    room.current_players = 1;
+    room.last_heartbeat = Date.now();
+  }
+
+  res.json({ ok: true });
+});
+
+/**
  * DELETE /api/rooms/:room_id
  * Host closes/deletes the room
  */

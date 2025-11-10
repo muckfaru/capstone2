@@ -658,6 +658,8 @@ func _setup_client_connection() -> void:
 	
 	if not connected:
 		push_error("[CodeBreakerRoom] Connection timeout!")
+		# Remove client from server room since connection failed
+		_notify_server_client_left()
 		_show_connection_error("Connection failed - Host may need port forwarding.\nCheck router settings or try LAN connection.")
 		return
 	
@@ -806,3 +808,31 @@ func _stop_heartbeat() -> void:
 		_heartbeat_timer.queue_free()
 		_heartbeat_timer = null
 		print("[CodeBreakerRoom] Heartbeat stopped")
+
+
+func _notify_server_client_left() -> void:
+	"""Notify lobby server that client left (failed to connect)"""
+	if _lobby_server_url == "" or _room_id == "":
+		return
+	
+	if _is_host:
+		return  # Only clients call this
+	
+	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/leave"
+	var http := HTTPRequest.new()
+	add_child(http)
+	
+	http.request_completed.connect(func(_result, code, _headers, _body):
+		http.queue_free()
+		if code == 200:
+			print("[CodeBreakerRoom] Notified server that client left")
+		else:
+			push_warning("[CodeBreakerRoom] Failed to notify server of client leave: HTTP ", code)
+	)
+	
+	var headers := ["Content-Type: application/json"]
+	var error := http.request(url, headers, HTTPClient.METHOD_POST, "{}")
+	
+	if error != OK:
+		http.queue_free()
+		push_error("[CodeBreakerRoom] Failed to send leave notification: ", error)
