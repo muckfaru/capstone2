@@ -43,18 +43,18 @@ setInterval(() => {
 
 /**
  * POST /api/rooms/create
- * Host creates a new room and registers their public IP
+ * Create a new game room
  * 
  * Body: {
- *   host_id: "firebase_uid",
+ *   host_id: "uid123",
  *   host_username: "PlayerName",
  *   host_avatar: "avatar1.png",
  *   host_level: 5,
  *   room_name: "My Room",
  *   game_type: "code_breaker",
- *   public_ip: "203.x.x.x",   // Host's public IP
- *   port: 7777,                 // Host's ENet server port
- *   is_lan: false               // true if LAN only (192.168.x.x)
+ *   public_ip: "203.x.x.x",   // OPTIONAL: For Option A (Direct P2P)
+ *   port: 7777,                // OPTIONAL: For Option A (Direct P2P)
+ *   is_lan: false              // OPTIONAL: true if LAN only
  * }
  * 
  * Response: {
@@ -75,11 +75,11 @@ app.post('/api/rooms/create', (req, res) => {
     is_lan
   } = req.body;
 
-  // Validate required fields
-  if (!host_id || !host_username || !room_name || !public_ip || !port) {
+  // Validate required fields (Option B: Relay - no IP/port needed)
+  if (!host_id || !host_username || !room_name) {
     return res.status(400).json({
       error: 'Missing required fields',
-      required: ['host_id', 'host_username', 'room_name', 'public_ip', 'port']
+      required: ['host_id', 'host_username', 'room_name']
     });
   }
 
@@ -87,7 +87,7 @@ app.post('/api/rooms/create', (req, res) => {
   const room_id = `room_${uuidv4().substring(0, 8)}`;
   const now = Date.now();
 
-  // Create room data
+  // Create room data (Option B: public_ip/port optional)
   const room_data = {
     room_id,
     room_name,
@@ -97,8 +97,8 @@ app.post('/api/rooms/create', (req, res) => {
       username: host_username,
       avatar: host_avatar || 'default.png',
       level: host_level || 1,
-      public_ip,
-      port,
+      public_ip: public_ip || null,       // Optional for relay
+      port: port || null,                 // Optional for relay
       is_lan: is_lan || false
     },
     client: null,              // No client yet
@@ -111,7 +111,8 @@ app.post('/api/rooms/create', (req, res) => {
 
   rooms.set(room_id, room_data);
 
-  console.log(`[Lobby] Room created: ${room_id} by ${host_username} at ${public_ip}:${port}`);
+  const connection_info = public_ip && port ? `at ${public_ip}:${port}` : '(relay mode)';
+  console.log(`[Lobby] Room created: ${room_id} by ${host_username} ${connection_info}`);
 
   res.json({
     room_id,
