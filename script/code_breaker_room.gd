@@ -29,6 +29,7 @@ const COLOR_MUTED := Color(0.560784, 0.639216, 0.678431, 1) # muted gray-blue
 var _room_id: String = ""
 var _is_host: bool = false
 var _client_ready_via_relay: bool = false  # Track client ready status from relay (not RTDB)
+var _client_ready_relay_value: bool = false  # Store the relay value for host
 var _last_client_present: bool = false
 var _poll_timer: Timer
 var _transitioning_to_arena: bool = false
@@ -221,8 +222,13 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 			_client_status.text = ("READY" if btn_state else "NOT READY")
 			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if btn_state else COLOR_DANGER))
 			print("[CodeBreakerRoom] Client status from button: ", btn_state)
+		elif _is_host and _client_ready_via_relay:
+			# Host viewing client - use relay value (source of truth for real-time)
+			_client_status.text = ("READY" if _client_ready_relay_value else "NOT READY")
+			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if _client_ready_relay_value else COLOR_DANGER))
+			print("[CodeBreakerRoom] Client ready from relay (host): ", _client_ready_relay_value)
 		else:
-			# Host viewing client status - sync from lobby server
+			# Initial state - sync from lobby server
 			_client_status.text = ("READY" if client_ready else "NOT READY")
 			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if client_ready else COLOR_DANGER))
 			print("[CodeBreakerRoom] Client ready from lobby: ", client_ready, " is_me: ", is_me)
@@ -744,7 +750,9 @@ func _on_relay_message_received(data: Dictionary) -> void:
 			var status = data.get("status", "not_ready")
 			print("[CodeBreakerRoom] Player status updated: ", status)
 			if _is_host:
-				# Host receives client's ready status
+				# Host receives client's ready status via relay
+				_client_ready_via_relay = true
+				_client_ready_relay_value = (status == "ready")
 				_client_status.text = ("READY" if status == "ready" else "NOT READY")
 				_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if status == "ready" else COLOR_DANGER))
 				# Enable/disable start button
