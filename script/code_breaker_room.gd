@@ -405,7 +405,9 @@ func _configure_buttons() -> void:
 		_start_btn.disabled = true  # until client present and ready
 	else:
 		_start_btn.toggle_mode = true
-		# Maintain current pressed state; update label accordingly
+		# Initialize status label for client
+		_client_status.text = ("READY" if _start_btn.button_pressed else "NOT READY")
+		_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if _start_btn.button_pressed else COLOR_DANGER))
 		# Button shows the ACTION (opposite of current state)
 		_start_btn.text = ("NOT READY" if _start_btn.button_pressed else "READY")
 		_start_btn.disabled = false
