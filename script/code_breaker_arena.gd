@@ -130,6 +130,14 @@ func _ready() -> void:
 	add_child(_sync_timer)
 	_sync_timer.start()
 	
+	# Setup stats sync timer (send stats every 0.5s during gameplay)
+	var stats_sync_timer = Timer.new()
+	stats_sync_timer.wait_time = 0.5
+	stats_sync_timer.autostart = false
+	stats_sync_timer.timeout.connect(_send_stats_update)
+	add_child(stats_sync_timer)
+	stats_sync_timer.start()
+	
 	# Connect input field signals ONCE in _ready()
 	if _input_field:
 		_input_field.text_submitted.connect(_on_input_submitted)
@@ -205,6 +213,7 @@ func _on_relay_message(data: Dictionary) -> void:
 			# Opponent sent their current stats
 			_opponent_score = int(data.get("score", 0))
 			_opponent_health = int(data.get("health", 0))
+			print("[Arena] 📥 Received opponent stats: Score=%d HP=%d" % [_opponent_score, _opponent_health])
 			_update_opponent_display()
 		
 		"player_died":
@@ -322,9 +331,11 @@ func _send_stats_update() -> void:
 		"health": player_health,
 		"player_id": _player_id
 	})
+	print("[Arena] 📤 Sent stats: Score=%d HP=%d" % [player_score, player_health])
 
 func _update_opponent_display() -> void:
 	"""Update opponent's stats display"""
+	print("[Arena] 📊 Updating opponent display: Score=%d HP=%d" % [_opponent_score, _opponent_health])
 	if _is_host:
 		# Host displays opponent (client) on right side
 		_p2_score.text = "P2: %d" % _opponent_score
@@ -603,6 +614,9 @@ func _on_input_submitted(submitted_text: String) -> void:
 		# Update MY health display immediately
 		_update_my_health_display()
 		_update_my_score_display()
+		
+		# Send stats update to opponent (they need to see my health dropped)
+		_send_stats_update()
 		
 		# Check if I died
 		if player_health <= 0:
