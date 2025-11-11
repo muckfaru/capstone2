@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://code_breaker_loading"]
+[gd_scene load_steps=2 format=3 uid="uid://d0405qariamf0"]
 
-[ext_resource type="Script" path="res://script/code_breaker_loading.gd" id="1"]
+[ext_resource type="Script" uid="uid://b1qqx7epir20j" path="res://script/code_breaker_loading.gd" id="1"]
 
 [node name="CodeBreakerLoading" type="Control"]
 layout_mode = 3
@@ -32,7 +32,7 @@ offset_bottom = 100.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
 theme_override_font_sizes/font_size = 32
-text = "⚔️ ENTERING ARENA ⚔️"
+text = "CODE BREAKER"
 horizontal_alignment = 1
 
 [node name="HostCard" type="Panel" parent="."]
@@ -109,7 +109,6 @@ offset_right = 120.0
 offset_bottom = -5.0
 grow_horizontal = 2
 grow_vertical = 0
-value = 0.0
 show_percentage = false
 
 [node name="VSLabel" type="Label" parent="."]
@@ -208,7 +207,6 @@ offset_right = 120.0
 offset_bottom = -5.0
 grow_horizontal = 2
 grow_vertical = 0
-value = 0.0
 show_percentage = false
 
 [node name="StatusMessage" type="Label" parent="."]
@@ -226,5 +224,5 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
 theme_override_font_sizes/font_size = 20
-text = "Waiting for both players..."
+text = "Waiting "
 horizontal_alignment = 1

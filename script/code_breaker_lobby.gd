@@ -443,5 +443,3 @@ func _initialize_multiplayer_config() -> void:
 # Option B: No network helper needed for relay architecture
 # All network complexity handled by relay server
 # No port forwarding, UPnP, or IP detection needed
-
-
