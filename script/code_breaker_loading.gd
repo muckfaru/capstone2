@@ -38,7 +38,7 @@ var _progress_timer: Timer
 var _timeout_timer: Timer
 var _transition_timer: Timer
 
-const LOADING_TIMEOUT := 15.0  # 15 seconds max
+const LOADING_TIMEOUT := 30.0  # 30 seconds max (increased for debugging)
 const TRANSITION_DELAY := 2.0  # Wait 2s after both ready
 
 func _ready() -> void:
@@ -74,6 +74,14 @@ func _ready() -> void:
 	if _relay_client and _relay_client.get_parent() == get_tree().root:
 		_relay_client.get_parent().remove_child(_relay_client)
 		add_child(_relay_client)
+		print("[Loading] ✅ Adopted relay client from root")
+	
+	# Check if relay is actually connected
+	if _relay_client and _relay_client.has_method("is_relay_connected"):
+		var relay_connected = _relay_client.is_relay_connected()
+		print("[Loading] Relay connection status: %s" % ("CONNECTED" if relay_connected else "DISCONNECTED"))
+		if not relay_connected:
+			push_warning("[Loading] ⚠️ Relay not connected! This may cause sync issues.")
 	
 	print("[Loading] Room: %s | Player: %s | Is Host: %s" % [_room_id, _player_id, _is_host])
 	
@@ -152,23 +160,29 @@ func _setup_timers() -> void:
 
 func _simulate_loading() -> void:
 	"""Simulate loading progress with progress bar animation"""
+	print("[Loading] 🔄 Starting loading simulation...")
 	_loading_progress = 0.0
 	_progress_timer.start()
 	
 	# Simulate loading tasks
 	await get_tree().create_timer(0.5).timeout
 	_loading_progress = 30.0  # "Loading assets..."
+	print("[Loading] Progress: 30%")
 	
 	await get_tree().create_timer(0.5).timeout
 	_loading_progress = 60.0  # "Initializing game..."
+	print("[Loading] Progress: 60%")
 	
 	await get_tree().create_timer(0.5).timeout
 	_loading_progress = 100.0  # "Ready!"
+	print("[Loading] Progress: 100%")
 	
 	# Mark self as loaded
 	_self_loaded = true
+	print("[Loading] ✅ Self loaded! Sending ready status...")
 	_send_loading_status("ready")
 	_update_self_status()
+	_check_both_ready()  # Check if opponent is already ready
 	
 	print("[Loading] Self loading complete!")
 
@@ -198,6 +212,7 @@ func _send_loading_status(status: String) -> void:
 func _on_relay_message(data: Dictionary) -> void:
 	"""Handle relay messages from opponent"""
 	var msg_type = data.get("type", "")
+	print("[Loading] 📨 Received relay message: %s" % msg_type)
 	
 	match msg_type:
 		"loading_status":
@@ -208,6 +223,7 @@ func _on_relay_message(data: Dictionary) -> void:
 			
 			if status == "ready":
 				_opponent_loaded = true
+				print("[Loading] ✅ Opponent is ready!")
 				_update_opponent_status()
 				_check_both_ready()
 		
