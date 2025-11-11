@@ -59,10 +59,21 @@ func _ready() -> void:
 	_game_start_time = int(init.get("game_start_time", 0))
 	_lobby_server_url = str(init.get("lobby_server_url", ""))
 	
+	print("[Loading] 🎮 Init data:")
+	print("  Player ID: %s" % _player_id)
+	print("  Is Host: %s" % _is_host)
+	print("  Host Data: %s" % _host_data)
+	print("  Client Data: %s" % _client_data)
+	
 	if _relay_client == null:
 		push_error("[Loading] No relay client! Returning to room...")
 		_return_to_room()
 		return
+	
+	# Adopt relay_client if it's attached to root
+	if _relay_client and _relay_client.get_parent() == get_tree().root:
+		_relay_client.get_parent().remove_child(_relay_client)
+		add_child(_relay_client)
 	
 	print("[Loading] Room: %s | Player: %s | Is Host: %s" % [_room_id, _player_id, _is_host])
 	
@@ -83,20 +94,33 @@ func _ready() -> void:
 	_send_loading_status("loading")
 
 func _setup_ui() -> void:
-	"""Setup player cards"""
-	# Host card
-	_host_username.text = str(_host_data.get("username", "Host"))
-	_host_avatar.text = "👤"  # TODO: Use actual avatar
-	_host_status.text = "⏳ Loading..."
-	_host_status.add_theme_color_override("font_color", COLOR_LOADING)
-	_host_progress.value = 0.0
-	
-	# Client card
-	_client_username.text = str(_client_data.get("username", "Client"))
-	_client_avatar.text = "👤"  # TODO: Use actual avatar
-	_client_status.text = "⏳ Loading..."
-	_client_status.add_theme_color_override("font_color", COLOR_LOADING)
-	_client_progress.value = 0.0
+	"""Setup player cards - Left is YOU, Right is OPPONENT"""
+	if _is_host:
+		# I am host - show myself on left, client on right
+		_host_username.text = str(_host_data.get("username", "Host"))
+		_host_avatar.text = "👤"
+		_host_status.text = "⏳ Loading..."
+		_host_status.add_theme_color_override("font_color", COLOR_LOADING)
+		_host_progress.value = 0.0
+		
+		_client_username.text = str(_client_data.get("username", "Client"))
+		_client_avatar.text = "👤"
+		_client_status.text = "⏳ Loading..."
+		_client_status.add_theme_color_override("font_color", COLOR_LOADING)
+		_client_progress.value = 0.0
+	else:
+		# I am client - show myself on left, host on right
+		_host_username.text = str(_client_data.get("username", "Client"))
+		_host_avatar.text = "👤"
+		_host_status.text = "⏳ Loading..."
+		_host_status.add_theme_color_override("font_color", COLOR_LOADING)
+		_host_progress.value = 0.0
+		
+		_client_username.text = str(_host_data.get("username", "Host"))
+		_client_avatar.text = "👤"
+		_client_status.text = "⏳ Loading..."
+		_client_status.add_theme_color_override("font_color", COLOR_LOADING)
+		_client_progress.value = 0.0
 	
 	_status_message.text = "Preparing arena..."
 
@@ -246,6 +270,11 @@ func _transition_to_arena() -> void:
 	# Disconnect relay signals
 	if _relay_client and _relay_client.message_received.is_connected(_on_relay_message):
 		_relay_client.message_received.disconnect(_on_relay_message)
+	
+	# IMPORTANT: Reparent relay_client to root so it doesn't get freed with the loading scene
+	if _relay_client and _relay_client.get_parent():
+		_relay_client.get_parent().remove_child(_relay_client)
+		get_tree().root.add_child(_relay_client)
 	
 	# Pass data to arena
 	var arena_init := {

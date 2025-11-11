@@ -47,6 +47,10 @@ const HEARTBEAT_INTERVAL := 30.0  # Send heartbeat every 30 seconds
 # Game start time (passed to loading screen)
 var _game_start_time: int = 0
 
+# Store latest room snapshot for passing to loading screen
+var _latest_host_data: Dictionary = {}
+var _latest_client_data: Dictionary = {}
+
 func _ready() -> void:
 	var init: Dictionary = {}
 	if get_tree().has_meta("code_breaker_room_init"):
@@ -177,6 +181,12 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 	var client_val = room_data.get("client", null)
 	var host_present: bool = host_val != null and typeof(host_val) == TYPE_DICTIONARY
 	var client_present: bool = client_val != null and typeof(client_val) == TYPE_DICTIONARY
+	
+	# Store latest player data for passing to loading screen
+	if host_present:
+		_latest_host_data = host_val
+	if client_present:
+		_latest_client_data = client_val
 
 	# Update header with room name
 	var room_name := str(room_data.get("room_name", ""))
@@ -626,9 +636,23 @@ func _transition_to_loading() -> void:
 	"""Transition to loading screen (not directly to arena)"""
 	print("[CodeBreakerRoom] Transitioning to loading screen...")
 	
-	# Get player info
-	var host_username := Auth.current_username if Auth else "Host"
-	var client_username := _client_username.text if _client_username.text != "." else "Client"
+	# IMPORTANT: Reparent relay_client to root so it doesn't get freed with the room scene
+	if _relay_client and _relay_client.get_parent():
+		_relay_client.get_parent().remove_child(_relay_client)
+		get_tree().root.add_child(_relay_client)
+	
+	# Use stored room data (from latest lobby server snapshot)
+	var host_data := {
+		"username": str(_latest_host_data.get("username", "Host")),
+		"level": int(_latest_host_data.get("level", 1))
+	}
+	
+	var client_data := {
+		"username": str(_latest_client_data.get("username", "Client")),
+		"level": int(_latest_client_data.get("level", 1))
+	}
+	
+	print("[CodeBreakerRoom] 📦 Loading init - Host: %s, Client: %s" % [host_data.username, client_data.username])
 	
 	# Prepare loading init data
 	var loading_init := {
@@ -636,14 +660,8 @@ func _transition_to_loading() -> void:
 		"relay_client": _relay_client,  # Pass relay connection
 		"player_id": Auth.current_local_id if Auth else "unknown",
 		"is_host": _is_host,
-		"host_data": {
-			"username": host_username,
-			"level": Auth.current_level if Auth else 1
-		},
-		"client_data": {
-			"username": client_username,
-			"level": 1  # TODO: Get from room data
-		},
+		"host_data": host_data,
+		"client_data": client_data,
 		"game_start_time": _game_start_time,
 		"lobby_server_url": _lobby_server_url
 	}
