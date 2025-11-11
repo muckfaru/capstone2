@@ -178,7 +178,7 @@ func _on_relay_message(data: Dictionary) -> void:
 	match msg_type:
 		"loading_status":
 			var status = data.get("status", "")
-			var sender_id = data.get("player_id", "")
+			var _sender_id = data.get("player_id", "")
 			
 			print("[Loading] Opponent status: %s" % status)
 			

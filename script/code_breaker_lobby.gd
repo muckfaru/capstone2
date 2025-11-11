@@ -145,7 +145,7 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 		# Enter room scene (relay will connect in room scene)
 		var init := {
 			"room_id": _created_room_id,
-			"host_name": str(body["host_username"]),
+			"host_name": str(username if not anonymous else "Anonymous"),
 			"is_host": true,
 			"lobby_server_url": _lobby_server_url
 		}

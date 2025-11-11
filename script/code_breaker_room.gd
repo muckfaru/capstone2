@@ -507,14 +507,14 @@ func _leave_room() -> void:
 	# Call lobby server leave endpoint
 	var http := HTTPRequest.new()
 	add_child(http)
-	http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+	http.request_completed.connect(func(_r, code, _h, _body: PackedByteArray):
 		http.queue_free()
 		if code != 200:
 			push_warning("[CodeBreakerRoom] Leave request failed: HTTP " + str(code))
 			_go_to_landing()
 			return
 		
-		var response = JSON.parse_string(body.get_string_from_utf8())
+		var response = JSON.parse_string(_body.get_string_from_utf8())
 		if typeof(response) != TYPE_DICTIONARY:
 			_go_to_landing()
 			return
@@ -588,7 +588,7 @@ func _on_start_pressed() -> void:
 	# Update room status to "in_game" on lobby server
 	var http := HTTPRequest.new()
 	add_child(http)
-	http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+	http.request_completed.connect(func(_r, code, _h, _body: PackedByteArray):
 		http.queue_free()
 		if code != 200:
 			push_warning("[CodeBreakerRoom] Failed to update room status: HTTP %d" % code)
@@ -812,7 +812,7 @@ func _on_relay_message_received(data: Dictionary) -> void:
 		
 		"player_left":
 			# Other player left the room
-			var left_player_id = data.get("player_id", "")
+			var _left_player_id = data.get("player_id", "")
 			var left_username = data.get("username", "Player")
 			print("[CodeBreakerRoom] %s left the room" % left_username)
 			_message_label.text = "%s has left the room." % left_username
