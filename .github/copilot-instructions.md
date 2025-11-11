@@ -180,26 +180,94 @@ _relay_client.message_received.connect(_on_relay_message)
 
 ## 🌐 Code Breaker Multiplayer Flow
 
-### Lobby → Room → Arena
+### Lobby → Room → Loading → Arena (Complete Flow)
+
 1. **Lobby Scene** (`code_breaker_lobby.gd`)
    - Polls `GET /api/rooms/list` every 5s
-   - Host: `POST /api/rooms/create` (no IP/port needed!)
-   - Client: `POST /api/rooms/:id/join`
-   - Both transition to room scene
+   - Host: `POST /api/rooms/create` → receives `room_id`
+   - Client: Sees room in list → `POST /api/rooms/:id/join`
+   - Both transition to room scene with `room_id`
+   - **NO IP/PORT needed** - all REST operations
 
 2. **Room Scene** (`code_breaker_room.gd`)
-   - Polls `GET /api/rooms/:id` every 2s
-   - Both connect to `WS /ws/relay/:room_id`
-   - Client clicks READY → sends relay message
+   - Polls `GET /api/rooms/:id` every 2s for room state
+   - **Both connect to** `WS /ws/relay/:room_id` via `WebSocketRelayClient`
+   - Displays player cards (host left, client right)
+   - Client toggles READY → updates server + sends relay message
    - Host sees ready → clicks START MATCH
-   - Host sends `game_start` relay message
-   - Both transition to arena
+   - Host sends `game_start` relay message with `game_start_time`
+   - **Relay client reparented to root** before scene change
+   - Both transition to **loading screen**
 
-3. **Arena Scene** (`code_breaker_arena.gd`)
-   - Receives relay_client from room (preserved!)
-   - WebSocket relays gameplay actions
-   - Type code → damage opponent
-   - Game ends → returns to room (NOT landing)
+3. **Loading Screen** (`code_breaker_loading.gd`) **[NEW!]**
+   - Receives `relay_client` from room (adopts from root)
+   - Shows two player cards with progress bars
+   - **Left card = YOU, Right card = OPPONENT** (perspective-based)
+   - Simulates loading: 30% → 60% → 100% (1.5s total)
+   - Sends `loading_status: "ready"` via relay when complete
+   - Waits for opponent's ready message
+   - When both ready: 2s countdown → Arena
+   - **Timeout:** 30s max, returns to room if sync fails
+   - **Relay client reparented to root** before arena transition
+
+4. **Arena Scene** (`code_breaker_arena.gd`)
+   - Receives `relay_client` from loading (adopts from root)
+   - Host generates snippet list → sends via relay
+   - Client receives snippets → sends `client_ready`
+   - Host receives ready → starts game for both
+   - **Gameplay via relay messages:**
+     - Type correct → `damage` message to opponent
+     - Stats sync: `stats_update` (score, health) every 0.5s
+     - Game end: `player_died` or `player_finished`
+   - Game ends → **returns to room** (NOT landing)
+   - Relay connection preserved throughout
+
+### Relay Client Lifecycle (Node Preservation)
+```
+Room creates relay_client
+  ↓
+Room → Loading: Reparent to root
+  ↓
+Loading adopts from root
+  ↓
+Loading → Arena: Reparent to root
+  ↓
+Arena adopts from root
+  ↓
+Arena → Room: (if rematch) Reparent to root
+```
+
+**Why reparenting?** When `change_scene_to_packed()` is called, the current scene and all its children are freed. By moving `relay_client` to the scene root before transition, it survives the scene change and can be adopted by the next scene.
+
+### Relay Message Types
+
+**Connection Messages:**
+```json
+{"type": "player_connected", "player_id": "...", "username": "..."}
+{"type": "player_disconnected", "player_id": "..."}
+```
+
+**Room Messages:**
+```json
+{"type": "player_status", "action": "ready", "player_id": "..."}
+{"type": "game_start", "game_start_time": 1234567890}
+```
+
+**Loading Screen Messages:**
+```json
+{"type": "loading_status", "status": "loading|ready", "player_id": "..."}
+```
+
+**Arena Messages:**
+```json
+{"type": "snippet_list", "snippets": [...]}
+{"type": "client_ready", "player_id": "..."}
+{"type": "game_start", "player_id": "..."}
+{"type": "damage", "damage": 2, "player_id": "..."}
+{"type": "stats_update", "score": 15, "health": 94, "player_id": "..."}
+{"type": "player_died", "player_id": "..."}
+{"type": "player_finished", "time": 45.2, "wpm": 68}
+```
 
 ### Leave/Delete Logic (3 Scenarios)
 ```
@@ -248,27 +316,86 @@ var current_mode: Mode = Mode.PRODUCTION  # Render.com
 
 ## 📚 Key Files
 
-| Purpose | File |
-|---------|------|
-| Auth & Presence | `script/auth.gd`, `scene/auth.tscn` |
-| Chat | `script/ChatManager.gd` |
-| Lobby | `script/code_breaker_lobby.gd` (5s poll) |
-| Room | `script/code_breaker_room.gd` (2s poll, relay connection) |
-| Arena | `script/code_breaker_arena.gd` (gameplay sync via relay) |
-| Relay Client | `script/WebSocketRelayClient.gd` |
-| Lobby Server | `server/server.js` (Express + express-ws) |
-| Config | `script/MultiplayerConfig.gd` |
+| Purpose | File | Key Features |
+|---------|------|--------------|
+| **Auth & Presence** | `script/auth.gd` | Firebase auth, JWT tokens, online presence |
+| **Chat System** | `script/ChatManager.gd` | RTDB polling, message sync, unread counts |
+| **Server Config** | `script/MultiplayerConfig.gd` | PRODUCTION/LOCALHOST mode toggle |
+| **Relay Client** | `script/WebSocketRelayClient.gd` | WebSocket wrapper, message send/receive, 150 lines |
+| **Lobby** | `script/code_breaker_lobby.gd` | Room list polling (5s), create/join rooms |
+| **Room** | `script/code_breaker_room.gd` | Room state polling (2s), relay setup, ready system, heartbeat |
+| **Loading** | `script/code_breaker_loading.gd` | Player sync screen, progress bars, 30s timeout, relay preservation |
+| **Arena** | `script/code_breaker_arena.gd` | 1v1 typing battle, damage system, stats sync (0.5s), relay messages |
+| **Lobby Server** | `server/server.js` | Express + express-ws, REST API + WebSocket relay, in-memory rooms |
+
+### Scene Hierarchy
+```
+scene/
+├─ auth.tscn (autoload singleton)
+├─ landing.tscn (hub with visibility toggles)
+├─ code_breaker_lobby.tscn
+├─ code_breaker_room.tscn
+├─ code_breaker_loading.tscn ← NEW!
+└─ code_breaker_arena.tscn
+```
+
+### Server Endpoints (server.js)
+```javascript
+// REST API
+POST   /api/rooms/create      → Create room (returns room_id)
+GET    /api/rooms/list        → List all active rooms
+GET    /api/rooms/:id         → Get room details
+POST   /api/rooms/:id/join    → Join as client
+POST   /api/rooms/:id/leave   → Leave (with host promotion logic)
+POST   /api/rooms/:id/heartbeat → Keep-alive (host only, 30s)
+DELETE /api/rooms/:id         → Delete room
+
+// WebSocket Relay
+WS     /ws/relay/:room_id?player_id=X&username=Y
+       → Real-time gameplay message relay
+       → Max 2 players per room
+       → Auto-cleanup on disconnect
+```
 
 ## 🚀 Quick Checklist
-- [ ] HTTPRequest: create fresh + `queue_free()`
-- [ ] Chat paths: sort UIDs always
-- [ ] Timers: add to tree for auto-cleanup
-- [ ] Meta: clear with `set_meta("key", null)`
-- [ ] Token: check before RTDB calls
-- [ ] Relay: Both players connect to same `/ws/relay/:room_id`
-- [ ] Leave: Handle 3 scenarios (client leaves, host leaves, host alone)
-- [ ] Heartbeat: Host only, 30s interval
+- [x] HTTPRequest: create fresh + `queue_free()` after use
+- [x] Chat paths: sort UIDs lexicographically always
+- [x] Timers: add to scene tree for auto-cleanup
+- [x] Meta: clear with `set_meta("key", null)` after reading
+- [x] Token: check `Auth.current_id_token` before RTDB calls
+- [x] Relay: Both players connect to same `/ws/relay/:room_id`
+- [x] Leave: Handle 3 scenarios (client leaves, host leaves, host alone)
+- [x] Heartbeat: Host only, 30s interval, stops on scene unload
+- [x] Reparenting: Move relay_client to root before `change_scene_to_packed()`
+- [x] Loading: 30s timeout, returns to room on failure
+- [x] Stats Sync: Send on BOTH correct (damage) and wrong (self-damage)
+- [x] Periodic Sync: Timer sends stats every 0.5s during gameplay
+
+## 🌍 Cross-Network Multiplayer
+
+**NO PORT FORWARDING REQUIRED!** Both players connect TO the relay server, which forwards messages:
+
+```
+PC (Home WiFi) ────────┐
+                        ├──→ Render.com Relay Server ←──┐
+Laptop (Starbucks) ────┘                                 │
+                                                          │
+Phone (Mobile Data) ──────────────────────────────────────┘
+```
+
+**Works on:**
+- ✅ Different WiFi networks
+- ✅ Mobile data vs home WiFi
+- ✅ School/work networks (firewall-friendly)
+- ✅ Any internet connection (outgoing only)
+
+**Test Setup:**
+1. PC (home): Create room, wait
+2. Laptop (different location): Join room
+3. Console logs show `[Room] ✅ Relay connected!`
+4. Play across networks!
 
 ---
 
-Last updated: Nov 2025. See `RELAY_ARCHITECTURE.md` and `WEBSOCKET_P2P_GUIDE.md` for details.
+Last updated: Nov 2025 (Added Loading Screen + Arena Relay Integration)
+See `RELAY_ARCHITECTURE.md` for architecture details.
