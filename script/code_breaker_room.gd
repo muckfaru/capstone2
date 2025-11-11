@@ -44,6 +44,9 @@ var _heartbeat_timer: Timer = null
 var _lobby_server_url: String = ""
 const HEARTBEAT_INTERVAL := 30.0  # Send heartbeat every 30 seconds
 
+# Game start time (passed to loading screen)
+var _game_start_time: int = 0
+
 func _ready() -> void:
 	var init: Dictionary = {}
 	if get_tree().has_meta("code_breaker_room_init"):
@@ -560,37 +563,100 @@ func _go_to_landing() -> void:
 # =============================================================================
 
 func _on_start_pressed() -> void:
+	"""Host pressed START MATCH button - transition to loading screen"""
 	print("[CodeBreakerRoom] Start Match pressed by host")
+	
 	if not _is_host:
 		push_warning("[CodeBreakerRoom] Only host can start match")
 		return
+	
 	if _room_id == "":
+		push_warning("[CodeBreakerRoom] No room ID")
 		return
 	
-	var id_token := Auth.current_id_token if Auth else ""
-	if id_token == "":
-		push_warning("[CodeBreakerRoom] No id_token to start match")
+	if _transitioning_to_arena:
+		print("[CodeBreakerRoom] Already transitioning...")
 		return
 	
-	# Update room state to "in_game" and initialize game countdown
-	var patch_obj := {
-		"state": "in_game",
-		"game_start_time": int(Time.get_unix_time_from_system())
-	}
+	_transitioning_to_arena = true
 	
+	# Set game start time
+	_game_start_time = int(Time.get_unix_time_from_system())
+	
+	print("[CodeBreakerRoom] 🎮 Starting game! Time: %d" % _game_start_time)
+	
+	# Update room status to "in_game" on lobby server
 	var http := HTTPRequest.new()
 	add_child(http)
-	http.request_completed.connect(func(_r, code, _h, _b):
+	http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
 		http.queue_free()
 		if code != 200:
-			push_warning("[CodeBreakerRoom] Failed to update room state: HTTP " + str(code))
+			push_warning("[CodeBreakerRoom] Failed to update room status: HTTP %d" % code)
+			_transitioning_to_arena = false
 			return
-		# Transition to arena
-		_transition_to_arena()
+		
+		print("[CodeBreakerRoom] ✅ Room status updated to 'in_game'")
+		
+		# Send game_start message via relay to client
+		if _relay_client and _relay_connected:
+			_relay_client.send_message({
+				"type": "game_start",
+				"game_start_time": _game_start_time
+			})
+			print("[CodeBreakerRoom] 📤 Sent game_start to client")
+		
+		# Transition to loading screen
+		_transition_to_loading()
 	)
 	
-	var url := RTDB_BASE + ROOMS_PATH + "/" + _room_id + ".json?auth=" + id_token
-	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PATCH, JSON.stringify(patch_obj))
+	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/status"
+	var headers := ["Content-Type: application/json"]
+	var status_data := JSON.stringify({
+		"status": "in_game",
+		"game_start_time": _game_start_time
+	})
+	
+	var err := http.request(url, headers, HTTPClient.METHOD_POST, status_data)
+	if err != OK:
+		push_error("[CodeBreakerRoom] HTTP request failed: %d" % err)
+		http.queue_free()
+		_transitioning_to_arena = false
+
+func _transition_to_loading() -> void:
+	"""Transition to loading screen (not directly to arena)"""
+	print("[CodeBreakerRoom] Transitioning to loading screen...")
+	
+	# Get player info
+	var host_username := Auth.current_username if Auth else "Host"
+	var client_username := _client_username.text if _client_username.text != "." else "Client"
+	
+	# Prepare loading init data
+	var loading_init := {
+		"room_id": _room_id,
+		"relay_client": _relay_client,  # Pass relay connection
+		"player_id": Auth.current_local_id if Auth else "unknown",
+		"is_host": _is_host,
+		"host_data": {
+			"username": host_username,
+			"level": Auth.current_level if Auth else 1
+		},
+		"client_data": {
+			"username": client_username,
+			"level": 1  # TODO: Get from room data
+		},
+		"game_start_time": _game_start_time,
+		"lobby_server_url": _lobby_server_url
+	}
+	
+	get_tree().set_meta("code_breaker_loading_init", loading_init)
+	
+	# Load loading screen
+	var loading_scene := load("res://scene/code_breaker_loading.tscn")
+	if loading_scene:
+		get_tree().change_scene_to_packed(loading_scene)
+	else:
+		push_error("[CodeBreakerRoom] Failed to load loading scene!")
+		_transitioning_to_arena = false
 
 func _transition_to_arena() -> void:
 	# Fetch current room data to pass to arena
@@ -769,6 +835,15 @@ func _on_relay_message_received(data: Dictionary) -> void:
 					_message_label.text = "Client is ready! You can start the match."
 				else:
 					_message_label.text = "Waiting for client to be ready..."
+		
+		"game_start":
+			# Host started the game - client receives this
+			print("[CodeBreakerRoom] 🎮 Host started the game!")
+			_game_start_time = int(data.get("game_start_time", Time.get_unix_time_from_system()))
+			
+			# Wait a moment then transition to loading
+			await get_tree().create_timer(0.5).timeout
+			_transition_to_loading()
 		
 		"game_action":
 			# Forward to arena (if in arena)
