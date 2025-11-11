@@ -124,20 +124,22 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	
 	http.request_completed.connect(func(_r: int, code: int, _h: PackedStringArray, resp_body: PackedByteArray):
 		print("🔍 [DEBUG] HTTP Response - Code: ", code, " Body: ", resp_body.get_string_from_utf8())
-		http.queue_free()
 		
 		if code != 200:
 			push_error("[CodeBreakerLobby] Failed to register room with lobby server. HTTP %d" % code)
+			http.queue_free()
 			return
 		
 		var resp = JSON.parse_string(resp_body.get_string_from_utf8())
 		if resp == null:
 			push_error("[CodeBreakerLobby] Invalid JSON response from lobby server")
+			http.queue_free()
 			return
 		
 		_created_room_id = str(resp.get("room_id", ""))
 		if _created_room_id == "":
 			push_error("[CodeBreakerLobby] No room_id returned from lobby server")
+			http.queue_free()
 			return
 		
 		print("[CodeBreakerLobby] ✅ Room registered: %s" % _created_room_id)
@@ -153,9 +155,11 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 		
 		var room_scene := load("res://scene/code_breaker_room.tscn")
 		if room_scene:
+			http.queue_free()
 			get_tree().change_scene_to_packed(room_scene)
 		else:
 			push_error("[CodeBreakerLobby] code_breaker_room.tscn not found")
+			http.queue_free()
 	)
 	
 	# Make API request
