@@ -68,60 +68,60 @@ var _opponent_score: int = 0
 var _opponent_health: int = STARTING_HEALTH
 var _opponent_alive: bool = true
 
-# Multiplayer
+# Multiplayer - WebSocket Relay (Option B)
+var _relay_client: Node = null
 var _sync_timer: Timer
 var _game_active: bool = false
+var _lobby_server_url: String = ""
 
 func _ready() -> void:
-	print("[CodeBreakerArena] Multiplayer Arena starting")
+	print("[CodeBreakerArena] 🎮 Arena starting (WebSocket Relay Mode)")
 	
-	# CRITICAL: Check if multiplayer peer is set
-	if multiplayer.multiplayer_peer == null:
-		push_error("[CodeBreakerArena] ERROR: No multiplayer peer set! Connection was not established in room.")
-		_status_label.text = "Multiplayer connection failed!"
+	# Load init data from loading screen
+	var init: Dictionary = {}
+	if get_tree().has_meta("code_breaker_arena_init"):
+		init = get_tree().get_meta("code_breaker_arena_init")
+		get_tree().set_meta("code_breaker_arena_init", null)
+	
+	_room_id = str(init.get("room_id", ""))
+	_relay_client = init.get("relay_client", null)
+	_player_id = str(init.get("player_id", ""))
+	_is_host = bool(init.get("is_host", false))
+	_lobby_server_url = str(init.get("lobby_server_url", ""))
+	
+	var host_data = init.get("host_data", {})
+	var client_data = init.get("client_data", {})
+	_host_username = str(host_data.get("username", "Player 1"))
+	_client_username = str(client_data.get("username", "Player 2"))
+	_game_start_time = float(init.get("game_start_time", 0))
+	
+	print("[Arena] 📊 Room: %s | Is Host: %s | Host: %s | Client: %s" % [
+		_room_id, _is_host, _host_username, _client_username
+	])
+	
+	# CRITICAL: Check relay client
+	if _relay_client == null:
+		push_error("[Arena] ❌ No relay client! Returning to lobby...")
+		_status_label.text = "Connection failed!"
 		if _ws_indicator:
 			_ws_indicator.color = Color.RED
 		await get_tree().create_timer(3.0).timeout
 		_leave_arena()
 		return
 	
-	print("[CodeBreakerArena] Multiplayer peer active. My ID: %d" % multiplayer.get_unique_id())
-	print("[CodeBreakerArena] Current peers: %s" % str(multiplayer.get_peers()))
+	# Adopt relay_client if it's attached to root
+	if _relay_client and _relay_client.get_parent() == get_tree().root:
+		_relay_client.get_parent().remove_child(_relay_client)
+		add_child(_relay_client)
 	
-	# Setup multiplayer callbacks
-	multiplayer.peer_connected.connect(_on_peer_connected)
-	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-	multiplayer.connected_to_server.connect(_on_connected_to_server)
-	multiplayer.connection_failed.connect(_on_connection_failed)
-	multiplayer.server_disconnected.connect(_on_server_disconnected)
-	
-	# Load init data
-	if get_tree().has_meta("code_breaker_arena_init"):
-		var init = get_tree().get_meta("code_breaker_arena_init")
-		_room_id = str(init.get("room_id", ""))
-		_is_host = bool(init.get("is_host", false))
-		_player_id = str(Auth.current_local_id if Auth else "unknown")
-		_host_username = str(init.get("host_name", "Player 1"))
-		
-		if init.has("room_data"):
-			var room_data = init.get("room_data")
-			if room_data.has("host"):
-				_host_username = str(room_data["host"].get("username", "Player 1"))
-			if room_data.has("client"):
-				_client_username = str(room_data["client"].get("username", "Player 2"))
-			if room_data.has("game_start_time"):
-				_game_start_time = float(room_data.get("game_start_time", 0))
-		
-		# Get multiplayer peer (should be set by room before scene change)
-		if init.has("peer_id"):
-			_peer_id = int(init.get("peer_id", 1))
-		
-		get_tree().set_meta("code_breaker_arena_init", null)
+	# Connect relay signals
+	if not _relay_client.message_received.is_connected(_on_relay_message):
+		_relay_client.message_received.connect(_on_relay_message)
 	
 	# Update UI
 	_host_name_label.text = _host_username
 	_client_name_label.text = _client_username
-	_status_label.text = "Waiting for opponent..." if _is_host else "Connecting to host..."
+	_status_label.text = "Setting up match..."
 	
 	# Setup display timer (100ms for countdown)
 	_sync_timer = Timer.new()
@@ -130,30 +130,23 @@ func _ready() -> void:
 	add_child(_sync_timer)
 	_sync_timer.start()
 	
-	# Setup multiplayer synchronizer polling timer
-	var sync_poll_timer = Timer.new()
-	sync_poll_timer.wait_time = 0.05  # 50ms sync polling
-	sync_poll_timer.timeout.connect(_poll_opponent_properties)
-	add_child(sync_poll_timer)
-	sync_poll_timer.start()
-	
 	# Connect input field signals ONCE in _ready()
 	if _input_field:
 		_input_field.text_submitted.connect(_on_input_submitted)
 	
-	# Initial indicator
+	# Initial indicator - show connected
 	if _ws_indicator:
-		_ws_indicator.color = Color.YELLOW
+		_ws_indicator.color = Color.GREEN
 	
-	# Generate snippet list (host generates, then syncs to client)
+	# Generate snippet list (host generates, then syncs to client via relay)
 	if _is_host:
 		_generate_snippet_list()
-		_code_display.text = _code_snippet  # Show immediately on host
-		call_deferred("_wait_for_client")
+		# Send snippet list to client
+		await get_tree().create_timer(0.5).timeout
+		_send_snippet_list_via_relay()
 	else:
-		# Client: Request snippet list from host when ready
-		print("[Arena] 👋 Client ready! Requesting snippet list from host...")
-		call_deferred("_request_code_from_host")
+		# Client waits for snippet list from host
+		_status_label.text = "Waiting for code from host..."
 
 func _wait_for_client() -> void:
 	"""Host waits for client to connect before starting"""
@@ -179,7 +172,172 @@ func _wait_for_client() -> void:
 		# At that point, game will start automatically
 
 # =============================================================================
-# MULTIPLAYER CALLBACKS
+# RELAY MESSAGE HANDLER
+# =============================================================================
+
+func _on_relay_message(data: Dictionary) -> void:
+	"""Handle all relay messages from opponent"""
+	var msg_type = data.get("type", "")
+	
+	match msg_type:
+		"snippet_list":
+			# Host sent snippet list to client
+			_receive_snippet_list(data.get("snippets", []))
+		
+		"client_ready":
+			# Client confirmed receipt of snippets
+			if _is_host:
+				print("[Arena] ✅ Client ready! Starting game...")
+				_start_typing_game()  # Start for host
+				_send_game_start()  # Tell client to start
+		
+		"game_start":
+			# Host told us to start
+			if not _is_host:
+				_start_typing_game()
+		
+		"damage":
+			# Opponent dealt damage to us
+			var damage = int(data.get("damage", 0))
+			_receive_damage(damage)
+		
+		"stats_update":
+			# Opponent sent their current stats
+			_opponent_score = int(data.get("score", 0))
+			_opponent_health = int(data.get("health", 0))
+			_update_opponent_display()
+		
+		"player_died":
+			# Opponent died
+			_opponent_alive = false
+			_status_label.text = "💀 OPPONENT DIED! YOU WIN!"
+			print("[Arena] 🎉 Opponent died! Victory!")
+			await get_tree().create_timer(3.0).timeout
+			_end_game_victory()
+		
+		"player_finished":
+			# Opponent completed all snippets
+			var time = float(data.get("time", 0))
+			var wpm = int(data.get("wpm", 0))
+			print("[Arena] ⚠️ Opponent finished! Time: %.2f s | WPM: %d" % [time, wpm])
+			_status_label.text = "Opponent finished! Time: %.2f s" % time
+			await get_tree().create_timer(2.0).timeout
+			if _game_active:
+				_end_game_defeat()
+		
+		"player_disconnected":
+			# Opponent disconnected
+			print("[Arena] ⚠️ Opponent disconnected!")
+			_status_label.text = "Opponent disconnected!"
+			if _ws_indicator:
+				_ws_indicator.color = Color.RED
+			await get_tree().create_timer(3.0).timeout
+			_leave_arena()
+
+# =============================================================================
+# RELAY SEND FUNCTIONS (Replace RPC calls)
+# =============================================================================
+
+func _send_snippet_list_via_relay() -> void:
+	"""Host sends snippet list to client via relay"""
+	if not _relay_client or not _is_host:
+		return
+	
+	print("[Arena] 📤 Sending snippet list to client (%d snippets)..." % _snippet_list.size())
+	_relay_client.send_message({
+		"type": "snippet_list",
+		"snippets": _snippet_list,
+		"player_id": _player_id
+	})
+
+func _receive_snippet_list(snippets: Array) -> void:
+	"""Client receives snippet list from host"""
+	_snippet_list.clear()
+	for snippet in snippets:
+		_snippet_list.append(str(snippet))
+	
+	_my_snippet_index = 0
+	_code_snippet = _snippet_list[0]
+	
+	print("[Arena] 📥 Received snippet list: %d snippets" % _snippet_list.size())
+	
+	if _code_display:
+		_code_display.text = _code_snippet
+		print("[Arena] ✅ First snippet displayed")
+	
+	# Notify host we're ready
+	await get_tree().create_timer(0.2).timeout
+	_relay_client.send_message({
+		"type": "client_ready",
+		"player_id": _player_id
+	})
+
+func _send_game_start() -> void:
+	"""Host tells client to start the game"""
+	if not _relay_client:
+		return
+	
+	_relay_client.send_message({
+		"type": "game_start",
+		"player_id": _player_id
+	})
+
+func _send_damage_to_opponent(damage: int) -> void:
+	"""Send damage to opponent via relay"""
+	if not _relay_client:
+		return
+	
+	_relay_client.send_message({
+		"type": "damage",
+		"damage": damage,
+		"player_id": _player_id
+	})
+
+func _receive_damage(damage: int) -> void:
+	"""Receive damage from opponent"""
+	player_health -= damage
+	print("[Arena] 💥 Took %d damage! Health: %d" % [damage, player_health])
+	
+	_update_my_health_display()
+	
+	if player_health <= 0:
+		_on_player_died()
+		return
+	
+	# Flash damage indicator
+	if _ws_indicator:
+		var original_color = _ws_indicator.color
+		_ws_indicator.color = Color.RED
+		await get_tree().create_timer(0.2).timeout
+		_ws_indicator.color = original_color
+
+func _send_stats_update() -> void:
+	"""Send my current stats to opponent"""
+	if not _relay_client:
+		return
+	
+	_relay_client.send_message({
+		"type": "stats_update",
+		"score": player_score,
+		"health": player_health,
+		"player_id": _player_id
+	})
+
+func _update_opponent_display() -> void:
+	"""Update opponent's stats display"""
+	if _is_host:
+		# Host displays opponent (client) on right side
+		_p2_score.text = "P2: %d" % _opponent_score
+		if _p2_health:
+			_p2_health.value = _opponent_health
+	else:
+		# Client displays opponent (host) on left side
+		_p1_score.text = "P1: %d" % _opponent_score
+		if _p1_health:
+			_p1_health.value = _opponent_health
+
+# =============================================================================
+# MULTIPLAYER CALLBACKS (OLD - Keep for backwards compatibility)
 # =============================================================================
 
 func _on_peer_connected(id: int) -> void:
@@ -416,8 +574,11 @@ func _on_input_submitted(submitted_text: String) -> void:
 		_update_my_score_display()
 		_update_my_health_display()
 		
-		# Deal damage to opponent
-		_deal_damage_to_opponent.rpc(DAMAGE_TO_ENEMY, "")
+		# Deal damage to opponent via relay
+		_send_damage_to_opponent(DAMAGE_TO_ENEMY)
+		
+		# Send stats update
+		_send_stats_update()
 		
 		# Visual feedback
 		_flash_success()
@@ -478,8 +639,12 @@ func _on_player_died() -> void:
 	
 	_status_label.text = "💀 YOU DIED! Health: 0"
 	
-	# Notify opponent
-	_on_opponent_died.rpc()
+	# Notify opponent via relay
+	if _relay_client:
+		_relay_client.send_message({
+			"type": "player_died",
+			"player_id": _player_id
+		})
 	
 	print("[Arena] 💀 Player died! Health: 0")
 	
@@ -564,38 +729,11 @@ func _on_player_finished(time: float, wpm: int, _accuracy: float) -> void:
 		_end_game_defeat()
 
 # =============================================================================
-# PROPERTY SYNCHRONIZATION (RPC-based since MultiplayerSynchronizer needs peer authority)
+# STATS SYNCHRONIZATION (Relay-based)
 # =============================================================================
 
-func _poll_opponent_properties() -> void:
-	"""Poll opponent's synced properties via RPC"""
-	# Request opponent's current stats
-	if multiplayer.get_peers().size() > 0:
-		_request_opponent_stats.rpc()
-
-@rpc("any_peer", "call_remote", "unreliable")
-func _request_opponent_stats() -> void:
-	"""Opponent requests our current stats"""
-	var sender_id = multiplayer.get_remote_sender_id()
-	_send_my_stats.rpc_id(sender_id, player_score, player_health)
-
-@rpc("any_peer", "call_remote", "unreliable")
-func _send_my_stats(score: int, health: int) -> void:
-	"""Receive opponent's stats and update display"""
-	# Store opponent's stats
-	_opponent_score = score
-	_opponent_health = health
-	
-	if _is_host:
-		# Host displays opponent (client) on right side
-		_p2_score.text = "P2: %d" % score
-		if _p2_health:
-			_p2_health.value = health
-	else:
-		# Client displays opponent (host) on left side
-		_p1_score.text = "P1: %d" % score
-		if _p1_health:
-			_p1_health.value = health
+# Stats sync happens automatically via _send_stats_update() after each action
+# No polling needed - event-driven updates
 
 # =============================================================================
 # UI UPDATES (My own stats)
