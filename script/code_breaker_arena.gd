@@ -553,17 +553,21 @@ func _start_typing_game() -> void:
 		_input_field.text = ""
 		_input_field.placeholder_text = "Get ready..."
 	
+	# PAUSE the timer during countdown
+	if _sync_timer:
+		_sync_timer.stop()
+	
 	# 3-2-1 COUNTDOWN!
-	_status_label.text = "🎮 GET READY..."
+	_status_label.text = "READY PLAYER!!!"
 	await get_tree().create_timer(1.0).timeout
 	
-	_status_label.text = "3️⃣"
+	_status_label.text = "3️"
 	await get_tree().create_timer(1.0).timeout
 	
-	_status_label.text = "2️⃣"
+	_status_label.text = "2️"
 	await get_tree().create_timer(1.0).timeout
 	
-	_status_label.text = "1️⃣"
+	_status_label.text = "1️"
 	await get_tree().create_timer(1.0).timeout
 	
 	_status_label.text = "⌨️ TYPE!"
@@ -575,6 +579,10 @@ func _start_typing_game() -> void:
 	# NOW start the actual game and timer
 	_start_time = Time.get_unix_time_from_system()
 	_game_active = true
+	
+	# RESUME the timer after countdown
+	if _sync_timer:
+		_sync_timer.start()
 	
 	# Enable input field
 	if _input_field:
