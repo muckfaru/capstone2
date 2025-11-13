@@ -21,6 +21,7 @@ extends Control
 @onready var menu_panel: Control = $MenuPanel
 @onready var menu_button: Button = $MenuButton
 @onready var _countdown_label: Label = $CountdownLabel
+@onready var _battle_music: AudioStreamPlayer = $BattleMusic
 
 
 # Typing UI
@@ -29,7 +30,7 @@ extends Control
 
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const ROOMS_PATH := "/codebreaker_rooms"
-const GAME_DURATION := 180.0  # 3 minute match (or until someone dies)
+const GAME_DURATION := 240.0  # 4 minute match (or until someone dies)
 
 # NEW GAME MECHANICS CONSTANTS
 const SCORE_CORRECT := 100           # Points for correct submission
@@ -153,6 +154,12 @@ func _ready() -> void:
 	# Initial indicator - show connected
 	if _ws_indicator:
 		_ws_indicator.color = Color.GREEN
+	
+	# Fade in battle music
+	if _battle_music:
+		_battle_music.volume_db = -80
+		var tween = create_tween()
+		tween.tween_property(_battle_music, "volume_db", -5.0, 2.0)
 	
 	# Generate snippet list (host generates, then syncs to client via relay)
 	if _is_host:
@@ -950,6 +957,10 @@ func _end_game_timeout() -> void:
 
 func _leave_arena() -> void:
 	"""Clean up and return to room"""
+	# Stop battle music
+	if _battle_music:
+		_battle_music.stop()
+	
 	# Disconnect multiplayer
 	if multiplayer.multiplayer_peer:
 		multiplayer.multiplayer_peer.close()

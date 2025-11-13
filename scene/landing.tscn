@@ -359,7 +359,7 @@ func _on_code_breaker_gui_input(event: InputEvent) -> void:
 "
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irntn"]
-bg_color = Color(0.164706, 0.164706, 0.164706, 0.419608)
+bg_color = Color(0.164706, 0.164706, 0.164706, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hlv06"]
 bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)
@@ -377,7 +377,7 @@ corner_radius_top_right = 20
 bg_color = Color(0.243137, 0.243137, 0.243137, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qdyf0"]
-bg_color = Color(0.165656, 0.165656, 0.165656, 0.419608)
+bg_color = Color(0.164706, 0.164706, 0.164706, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bsyjm"]
 bg_color = Color(0.117647, 0.117647, 0.117647, 0.619608)
@@ -455,10 +455,10 @@ script = SubResource("GDScript_soi4p")
 
 [node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
 layout_mode = 0
-offset_left = -139.0
-offset_top = -28.0
-offset_right = 1303.0
-offset_bottom = 690.0
+offset_left = -131.0
+offset_top = -23.0
+offset_right = 1311.0
+offset_bottom = 695.0
 stream = ExtResource("2_qr7a0")
 autoplay = true
 expand = true
@@ -759,10 +759,10 @@ vertical_alignment = 1
 [node name="CodeBreakerLobby" parent="VideoStreamPlayer" instance=ExtResource("9_08qf3")]
 visible = false
 layout_mode = 0
-offset_left = 11.0
-offset_top = 20.0
-offset_right = 1360.0
-offset_bottom = 634.0
+offset_left = 15.0
+offset_top = 37.0
+offset_right = 1364.0
+offset_bottom = 651.0
 
 [node name="AkashicLobby" parent="VideoStreamPlayer" instance=ExtResource("11_tgc")]
 visible = false

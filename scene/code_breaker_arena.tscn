@@ -1,8 +1,9 @@
-[gd_scene load_steps=15 format=3 uid="uid://b1ngbpq5ojqqk"]
+[gd_scene load_steps=16 format=3 uid="uid://b1ngbpq5ojqqk"]
 
 [ext_resource type="Script" uid="uid://dw7agivap55un" path="res://script/code_breaker_arena.gd" id="1_18ytm"]
 [ext_resource type="Texture2D" uid="uid://d4ddfveb65kqw" path="res://asset/background/Code Breaker Arena Background.png" id="2_e4tay"]
 [ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="3_e4tay"]
+[ext_resource type="AudioStream" path="res://asset/audio/plasma-dr-gabba_cut.mp3" id="4_music"]
 
 [sub_resource type="SceneReplicationConfig" id="replication_config"]
 properties/0/path = NodePath(".:player_score")
@@ -47,7 +48,6 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-shadow_color = Color(0, 0, 0, 0.6)
 shadow_size = 10
 shadow_offset = Vector2(0, 5)
 
@@ -429,11 +429,11 @@ offset_bottom = 68.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 1, 0.5, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_shadow_color = Color(0, 0.5, 1, 0.5)
-theme_override_constants/outline_size = 8
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 4
 theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 8
 theme_override_constants/shadow_outline_size = 2
 theme_override_font_sizes/font_size = 120
 text = "3"
@@ -460,3 +460,9 @@ offset_left = 2.0
 offset_top = 2.0
 offset_right = 2.0
 offset_bottom = 2.0
+
+[node name="BattleMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_music")
+volume_db = -5.0
+autoplay = true
+bus = &"Music"
