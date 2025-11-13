@@ -1,6 +1,7 @@
-[gd_scene load_steps=14 format=3 uid="uid://b1ngbpq5ojqqk"]
+[gd_scene load_steps=15 format=3 uid="uid://b1ngbpq5ojqqk"]
 
 [ext_resource type="Script" uid="uid://dw7agivap55un" path="res://script/code_breaker_arena.gd" id="1_18ytm"]
+[ext_resource type="Texture2D" uid="uid://d4ddfveb65kqw" path="res://asset/background/Code Breaker Arena Background.png" id="2_e4tay"]
 [ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="3_e4tay"]
 
 [sub_resource type="SceneReplicationConfig" id="replication_config"]
@@ -120,6 +121,7 @@ script = ExtResource("1_18ytm")
 layout_mode = 0
 offset_right = 1158.0
 offset_bottom = 655.0
+texture = ExtResource("2_e4tay")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("replication_config")

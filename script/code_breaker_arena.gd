@@ -317,6 +317,15 @@ func _receive_damage(damage: int) -> void:
 	
 	_update_my_health_display()
 	
+	# SHAKE EFFECT: Health bar shake
+	var my_health_bar = _p1_health if _is_host else _p2_health
+	if my_health_bar:
+		_shake_node(my_health_bar, 8.0, 0.25)
+	
+	# SCREEN SHAKE on critical damage (health < 30%)
+	if player_health < 30 and player_health > 0:
+		_shake_screen(12.0, 0.35)
+	
 	if player_health <= 0:
 		_on_player_died()
 		return
@@ -556,26 +565,31 @@ func _start_typing_game() -> void:
 	
 	# Timer is not running yet (will start after countdown)
 	
-	# 3-2-1 COUNTDOWN! (Show in center of screen)
+	# 3-2-1 COUNTDOWN! (Show in center of screen with BOUNCE effect)
 	if _countdown_label:
 		_countdown_label.visible = true
 		_countdown_label.text = "GET READY!"
+		_bounce_scale(_countdown_label, 1.3, 0.8)
 	await get_tree().create_timer(1.0).timeout
 	
 	if _countdown_label:
 		_countdown_label.text = "3"
+		_bounce_scale(_countdown_label, 1.5, 0.8)
 	await get_tree().create_timer(1.0).timeout
 	
 	if _countdown_label:
 		_countdown_label.text = "2"
+		_bounce_scale(_countdown_label, 1.5, 0.8)
 	await get_tree().create_timer(1.0).timeout
 	
 	if _countdown_label:
 		_countdown_label.text = "1"
+		_bounce_scale(_countdown_label, 1.5, 0.8)
 	await get_tree().create_timer(1.0).timeout
 	
 	if _countdown_label:
 		_countdown_label.text = "TYPE!"
+		_bounce_scale(_countdown_label, 1.4, 0.4)
 	await get_tree().create_timer(0.5).timeout
 	
 	# Hide the countdown label
@@ -663,6 +677,15 @@ func _on_input_submitted(submitted_text: String) -> void:
 		# Update MY health display immediately
 		_update_my_health_display()
 		_update_my_score_display()
+		
+		# SHAKE EFFECT: Health bar shake for self-damage
+		var my_health_bar = _p1_health if _is_host else _p2_health
+		if my_health_bar:
+			_shake_node(my_health_bar, 10.0, 0.3)
+		
+		# SCREEN SHAKE on critical health (< 25%)
+		if player_health < 25 and player_health > 0:
+			_shake_screen(15.0, 0.4)
 		
 		# Send stats update to opponent (they need to see my health dropped)
 		_send_stats_update()
@@ -930,3 +953,57 @@ func _on_menu_button_pressed() -> void:
 	if menu_panel:
 		menu_panel.visible = !menu_panel.visible
 		print("[Arena] 🎮 Menu panel toggled: %s" % ("VISIBLE" if menu_panel.visible else "HIDDEN"))
+
+# =============================================================================
+# ANIMATION EFFECTS
+# =============================================================================
+
+func _shake_node(node: Node, intensity: float = 10.0, duration: float = 0.3) -> void:
+	"""Shake a node horizontally"""
+	if not node or not node is Control:
+		return
+	
+	var original_pos = node.position
+	var shake_count = 8
+	var shake_interval = duration / shake_count
+	
+	for i in shake_count:
+		var offset = randf_range(-intensity, intensity)
+		node.position.x = original_pos.x + offset
+		await get_tree().create_timer(shake_interval).timeout
+	
+	node.position = original_pos
+
+func _shake_screen(intensity: float = 15.0, duration: float = 0.4) -> void:
+	"""Shake the entire screen"""
+	var root = get_tree().root
+	var original_pos = position
+	var shake_count = 10
+	var shake_interval = duration / shake_count
+	
+	for i in shake_count:
+		var offset_x = randf_range(-intensity, intensity)
+		var offset_y = randf_range(-intensity, intensity)
+		position = original_pos + Vector2(offset_x, offset_y)
+		await get_tree().create_timer(shake_interval).timeout
+	
+	position = original_pos
+
+func _bounce_scale(node: Node, scale_multiplier: float = 1.5, duration: float = 0.3) -> void:
+	"""Bounce scale effect - grows then returns"""
+	if not node or not node is Control:
+		return
+	
+	var original_scale = node.scale
+	var target_scale = original_scale * scale_multiplier
+	var halfway = duration / 2.0
+	
+	# Create tween for smooth animation
+	var tween = create_tween()
+	tween.set_parallel(true)
+	
+	# Scale up
+	tween.tween_property(node, "scale", target_scale, halfway).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	
+	# Scale down
+	tween.chain().tween_property(node, "scale", original_scale, halfway).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
