@@ -212,6 +212,8 @@ _relay_client.message_received.connect(_on_relay_message)
 
 4. **Arena Scene** (`code_breaker_arena.gd`)
    - Receives `relay_client` from loading (adopts from root)
+   - **3-2-1 Countdown:** Centered countdown with bounce animation before game starts
+   - **Timer Pause:** 3-minute timer paused during countdown, starts after "TYPE!"
    - Host generates snippet list → sends via relay
    - Client receives snippets → sends `client_ready`
    - Host receives ready → starts game for both
@@ -219,6 +221,14 @@ _relay_client.message_received.connect(_on_relay_message)
      - Type correct → `damage` message to opponent
      - Stats sync: `stats_update` (score, health) every 0.5s
      - Game end: `player_died` or `player_finished`
+   - **Visual Effects:**
+     - Shake animations on damage (health bar + screen shake on critical)
+     - Bounce/scale animations on countdown numbers
+     - Success sparkle particles on correct answer (15 particles)
+     - Explosion particles on damage (12 normal / 25 critical)
+     - Panel shadows for depth (8-12px shadows)
+     - Text outlines on countdown (8px black outline + cyan shadow)
+   - **Battle Music:** Auto-fade in on start, stops on leave
    - Game ends → **returns to room** (NOT landing)
    - Relay connection preserved throughout
 
@@ -325,8 +335,17 @@ var current_mode: Mode = Mode.PRODUCTION  # Render.com
 | **Lobby** | `script/code_breaker_lobby.gd` | Room list polling (5s), create/join rooms |
 | **Room** | `script/code_breaker_room.gd` | Room state polling (2s), relay setup, ready system, heartbeat |
 | **Loading** | `script/code_breaker_loading.gd` | Player sync screen, progress bars, 30s timeout, relay preservation |
-| **Arena** | `script/code_breaker_arena.gd` | 1v1 typing battle, damage system, stats sync (0.5s), relay messages |
+| **Arena** | `script/code_breaker_arena.gd` | 1v1 typing battle, damage system, stats sync (0.5s), relay messages, animations, particles, music |
 | **Lobby Server** | `server/server.js` | Express + express-ws, REST API + WebSocket relay, in-memory rooms |
+
+### Arena Animation Functions
+```gdscript
+_shake_node(node, intensity, duration)           // Shake any UI node horizontally
+_shake_screen(intensity, duration)               // Shake entire screen (X/Y axis)
+_bounce_scale(node, scale_multiplier, duration)  // Bounce/scale effect with tween
+_spawn_success_particles(position)               // Spawn 15 sparkle particles on correct answer
+_spawn_damage_explosion(position, is_critical)   // Spawn 12-25 explosion particles on damage
+```
 
 ### Scene Hierarchy
 ```
@@ -370,6 +389,9 @@ WS     /ws/relay/:room_id?player_id=X&username=Y
 - [x] Loading: 30s timeout, returns to room on failure
 - [x] Stats Sync: Send on BOTH correct (damage) and wrong (self-damage)
 - [x] Periodic Sync: Timer sends stats every 0.5s during gameplay
+- [x] Countdown: 3-2-1-TYPE centered with bounce animations, timer paused during countdown
+- [x] Visual Effects: Shake animations (damage), particles (success/damage), panel shadows
+- [x] Battle Music: Fade in on start (-80dB → -5dB over 2s), stop on leave
 
 ## 🌍 Cross-Network Multiplayer
 
@@ -397,5 +419,13 @@ Phone (Mobile Data) ────────────────────
 
 ---
 
-Last updated: Nov 2025 (Added Loading Screen + Arena Relay Integration)
+**Latest Updates (Nov 13, 2025):**
+- ✅ **Arena Countdown System:** 3-2-1-TYPE centered countdown with bounce animations, timer paused during countdown
+- ✅ **Visual Effects Suite:** Health bar shake on damage, screen shake on critical (<30% HP), bounce animations on countdown
+- ✅ **Particle Systems:** Success sparkles (15 particles) on correct answer, explosion particles (12-25) on damage
+- ✅ **UI Polish:** Panel shadows (8-12px), text outlines on countdown (8px outline + cyan shadow)
+- ✅ **Battle Music:** Auto-fade in on arena start (-80dB → -5dB over 2s), stops cleanly on leave
+- ✅ **Menu System:** Toggle menu panel with hamburger button
+
+Last updated: Nov 13, 2025 (Added Arena Visual Effects, Animations, Particles & Music)
 See `RELAY_ARCHITECTURE.md` for architecture details.
