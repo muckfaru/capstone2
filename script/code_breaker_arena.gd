@@ -577,6 +577,8 @@ func _start_typing_game() -> void:
 	_status_label.text = ""
 	
 	# NOW start the actual game and timer
+	# CRITICAL: Reset _game_start_time to NOW (after countdown)
+	_game_start_time = Time.get_unix_time_from_system()
 	_start_time = Time.get_unix_time_from_system()
 	_game_active = true
 	
