@@ -1,6 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://b1ngbpq5ojqqk"]
+[gd_scene load_steps=11 format=3 uid="uid://b1ngbpq5ojqqk"]
 
 [ext_resource type="Script" uid="uid://dw7agivap55un" path="res://script/code_breaker_arena.gd" id="1_18ytm"]
+[ext_resource type="Texture2D" uid="uid://ncwfxpvc1nst" path="res://asset/create user bg .png" id="2_gc8kg"]
 
 [sub_resource type="SceneReplicationConfig" id="replication_config"]
 properties/0/path = NodePath(".:player_score")
@@ -101,6 +102,12 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_18ytm")
+
+[node name="NinePatchRect" type="NinePatchRect" parent="."]
+layout_mode = 0
+offset_right = 1158.0
+offset_bottom = 655.0
+texture = ExtResource("2_gc8kg")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("replication_config")
@@ -250,10 +257,10 @@ layout_mode = 1
 anchors_preset = -1
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = 273.0
-offset_top = 66.953
-offset_right = -42.0
-offset_bottom = -4.04698
+offset_left = 18.0
+offset_top = 44.0
+offset_right = -297.0
+offset_bottom = 15.16
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
@@ -302,10 +309,10 @@ anchor_left = 0.5
 anchor_top = 0.18
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 45.0
-offset_top = 50.6834
-offset_right = -270.0
-offset_bottom = -3.39656
+offset_left = 28.0
+offset_top = 34.08
+offset_right = -307.0
+offset_bottom = 10.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.35, 0.43, 1)
@@ -320,10 +327,10 @@ anchor_left = 0.05
 anchor_top = 0.25
 anchor_right = 0.95
 anchor_bottom = 0.65
-offset_left = -21.1
-offset_top = -314.5
-offset_right = -20.9
-offset_bottom = -159.1
+offset_left = 199.9
+offset_top = -248.5
+offset_right = -246.9
+offset_bottom = -237.1
 theme_override_styles/panel = SubResource("code_panel_style")
 
 [node name="CodeDisplay" type="RichTextLabel" parent="VBox/CodeDisplayPanel"]
@@ -343,6 +350,8 @@ bbcode_enabled = true
 text = "Waiting for code snippet..."
 fit_content = true
 scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="InputField" type="LineEdit" parent="VBox"]
 layout_mode = 1
@@ -351,10 +360,10 @@ anchor_left = 0.05
 anchor_top = 0.68
 anchor_right = 0.95
 anchor_bottom = 0.75
-offset_left = -11.1
-offset_top = -168.72
-offset_right = -11.1
-offset_bottom = -143.5
+offset_left = 140.9
+offset_top = -171.72
+offset_right = -203.9
+offset_bottom = -146.5
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 20
 placeholder_text = "Type the code here..."
