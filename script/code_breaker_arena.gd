@@ -126,12 +126,12 @@ func _ready() -> void:
 	_client_name_label.text = _client_username
 	_status_label.text = "Setting up match..."
 	
-	# Setup display timer (100ms for countdown)
+	# Setup display timer (100ms for countdown) - DON'T start yet!
 	_sync_timer = Timer.new()
 	_sync_timer.wait_time = 0.1
 	_sync_timer.timeout.connect(_on_display_timer_timeout)
 	add_child(_sync_timer)
-	_sync_timer.start()
+	# Timer will start AFTER countdown in _start_typing_game()
 	
 	# Setup stats sync timer (send stats every 0.5s during gameplay)
 	var stats_sync_timer = Timer.new()
@@ -553,9 +553,7 @@ func _start_typing_game() -> void:
 		_input_field.text = ""
 		_input_field.placeholder_text = "Get ready..."
 	
-	# PAUSE the timer during countdown
-	if _sync_timer:
-		_sync_timer.stop()
+	# Timer is not running yet (will start after countdown)
 	
 	# 3-2-1 COUNTDOWN!
 	_status_label.text = "READY PLAYER!!!"
