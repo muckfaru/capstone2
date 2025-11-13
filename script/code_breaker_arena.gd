@@ -321,6 +321,11 @@ func _receive_damage(damage: int) -> void:
 	var my_health_bar = _p1_health if _is_host else _p2_health
 	if my_health_bar:
 		_shake_node(my_health_bar, 8.0, 0.25)
+		
+		# PARTICLE EFFECT: Explosion at health bar
+		var is_critical = player_health < 30
+		var particle_pos = my_health_bar.global_position + my_health_bar.size / 2
+		_spawn_damage_explosion(particle_pos, is_critical)
 	
 	# SCREEN SHAKE on critical damage (health < 30%)
 	if player_health < 30 and player_health > 0:
@@ -656,6 +661,12 @@ func _on_input_submitted(submitted_text: String) -> void:
 		
 		# Visual feedback
 		_flash_success()
+		
+		# PARTICLE EFFECT: Success sparkles!
+		if _code_display:
+			var particle_pos = _code_display.global_position + _code_display.size / 2
+			_spawn_success_particles(particle_pos)
+		
 		var progress_text = "✅ CORRECT! (%d/%d) | +100 Score | Enemy -10 HP" % [
 			_my_snippet_index + 1,
 			_snippet_list.size()
@@ -682,6 +693,11 @@ func _on_input_submitted(submitted_text: String) -> void:
 		var my_health_bar = _p1_health if _is_host else _p2_health
 		if my_health_bar:
 			_shake_node(my_health_bar, 10.0, 0.3)
+			
+			# PARTICLE EFFECT: Self-damage explosion
+			var is_critical = player_health < 25
+			var particle_pos = my_health_bar.global_position + my_health_bar.size / 2
+			_spawn_damage_explosion(particle_pos, is_critical)
 		
 		# SCREEN SHAKE on critical health (< 25%)
 		if player_health < 25 and player_health > 0:
@@ -1007,3 +1023,58 @@ func _bounce_scale(node: Node, scale_multiplier: float = 1.5, duration: float = 
 	
 	# Scale down
 	tween.chain().tween_property(node, "scale", original_scale, halfway).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+
+func _spawn_success_particles(at_position: Vector2) -> void:
+	"""Spawn sparkle/star particles for correct answer"""
+	var particle_count = 15
+	
+	for i in particle_count:
+		var particle = ColorRect.new()
+		particle.size = Vector2(8, 8)
+		particle.color = Color(randf_range(0.5, 1.0), randf_range(0.8, 1.0), randf_range(0.0, 0.3))
+		particle.position = at_position
+		add_child(particle)
+		
+		# Random direction and speed
+		var angle = randf_range(0, TAU)
+		var speed = randf_range(100, 300)
+		var velocity = Vector2(cos(angle), sin(angle)) * speed
+		var lifetime = randf_range(0.5, 1.0)
+		
+		# Animate particle
+		var tween = create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(particle, "position", particle.position + velocity * lifetime, lifetime)
+		tween.tween_property(particle, "modulate:a", 0.0, lifetime)
+		tween.tween_property(particle, "scale", Vector2.ZERO, lifetime)
+		
+		# Cleanup after animation
+		tween.finished.connect(func(): particle.queue_free())
+
+func _spawn_damage_explosion(at_position: Vector2, is_critical: bool = false) -> void:
+	"""Spawn explosion particles for damage"""
+	var particle_count = 25 if is_critical else 12
+	var base_color = Color.RED if is_critical else Color.ORANGE
+	
+	for i in particle_count:
+		var particle = ColorRect.new()
+		particle.size = Vector2(randf_range(6, 12), randf_range(6, 12))
+		particle.color = base_color.lerp(Color.YELLOW, randf())
+		particle.position = at_position
+		add_child(particle)
+		
+		# Explosive outward motion
+		var angle = randf_range(0, TAU)
+		var speed = randf_range(150, 400) if is_critical else randf_range(100, 250)
+		var velocity = Vector2(cos(angle), sin(angle)) * speed
+		var lifetime = randf_range(0.4, 0.8)
+		
+		# Animate explosion
+		var tween = create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(particle, "position", particle.position + velocity * lifetime, lifetime)
+		tween.tween_property(particle, "modulate:a", 0.0, lifetime * 0.7)
+		tween.tween_property(particle, "rotation", randf_range(-PI, PI), lifetime)
+		
+		# Cleanup
+		tween.finished.connect(func(): particle.queue_free())
