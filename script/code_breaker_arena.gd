@@ -567,6 +567,10 @@ func _start_typing_game() -> void:
 	await get_tree().create_timer(1.0).timeout
 	
 	_status_label.text = "⌨️ TYPE!"
+	await get_tree().create_timer(0.5).timeout
+	
+	# Clear the countdown text
+	_status_label.text = ""
 	
 	# NOW start the actual game and timer
 	_start_time = Time.get_unix_time_from_system()

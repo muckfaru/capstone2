@@ -1,7 +1,6 @@
-[gd_scene load_steps=15 format=3 uid="uid://b1ngbpq5ojqqk"]
+[gd_scene load_steps=14 format=3 uid="uid://b1ngbpq5ojqqk"]
 
 [ext_resource type="Script" uid="uid://dw7agivap55un" path="res://script/code_breaker_arena.gd" id="1_18ytm"]
-[ext_resource type="Texture2D" uid="uid://ncwfxpvc1nst" path="res://asset/create user bg .png" id="2_gc8kg"]
 [ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="3_e4tay"]
 
 [sub_resource type="SceneReplicationConfig" id="replication_config"]
@@ -121,7 +120,6 @@ script = ExtResource("1_18ytm")
 layout_mode = 0
 offset_right = 1158.0
 offset_bottom = 655.0
-texture = ExtResource("2_gc8kg")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("replication_config")
@@ -395,10 +393,10 @@ anchor_left = 0.05
 anchor_top = 0.8
 anchor_right = 0.95
 anchor_bottom = 0.9
-offset_left = -134.1
-offset_top = 50.8
-offset_right = -133.9
-offset_bottom = 63.4
+offset_left = -5.1
+offset_top = 58.8
+offset_right = -4.89996
+offset_bottom = 71.4
 theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
 theme_override_font_sizes/font_size = 20
 text = "Waiting for opponent..."
@@ -406,6 +404,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="MenuButton" type="Button" parent="."]
+layout_mode = 0
 offset_left = 1086.0
 offset_top = 11.0
 offset_right = 1148.0
