@@ -20,6 +20,7 @@ extends Control
 @onready var _p2_health: ProgressBar = $VBox/ScorePanel/P2HealthBar
 @onready var menu_panel: Control = $MenuPanel
 @onready var menu_button: Button = $MenuButton
+@onready var _countdown_label: Label = $CountdownLabel
 
 
 # Typing UI
@@ -555,24 +556,31 @@ func _start_typing_game() -> void:
 	
 	# Timer is not running yet (will start after countdown)
 	
-	# 3-2-1 COUNTDOWN!
-	_status_label.text = "READY PLAYER!!!"
+	# 3-2-1 COUNTDOWN! (Show in center of screen)
+	if _countdown_label:
+		_countdown_label.visible = true
+		_countdown_label.text = "GET READY!"
 	await get_tree().create_timer(1.0).timeout
 	
-	_status_label.text = "3️"
+	if _countdown_label:
+		_countdown_label.text = "3"
 	await get_tree().create_timer(1.0).timeout
 	
-	_status_label.text = "2️"
+	if _countdown_label:
+		_countdown_label.text = "2"
 	await get_tree().create_timer(1.0).timeout
 	
-	_status_label.text = "1️"
+	if _countdown_label:
+		_countdown_label.text = "1"
 	await get_tree().create_timer(1.0).timeout
 	
-	_status_label.text = "⌨️ TYPE!"
+	if _countdown_label:
+		_countdown_label.text = "TYPE!"
 	await get_tree().create_timer(0.5).timeout
 	
-	# Clear the countdown text
-	_status_label.text = ""
+	# Hide the countdown label
+	if _countdown_label:
+		_countdown_label.visible = false
 	
 	# NOW start the actual game and timer
 	# CRITICAL: Reset _game_start_time to NOW (after countdown)
