@@ -1,7 +1,8 @@
-[gd_scene load_steps=11 format=3 uid="uid://b1ngbpq5ojqqk"]
+[gd_scene load_steps=15 format=3 uid="uid://b1ngbpq5ojqqk"]
 
 [ext_resource type="Script" uid="uid://dw7agivap55un" path="res://script/code_breaker_arena.gd" id="1_18ytm"]
 [ext_resource type="Texture2D" uid="uid://ncwfxpvc1nst" path="res://asset/create user bg .png" id="2_gc8kg"]
+[ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="3_e4tay"]
 
 [sub_resource type="SceneReplicationConfig" id="replication_config"]
 properties/0/path = NodePath(".:player_score")
@@ -94,6 +95,19 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_180ra"]
+bg_color = Color(0, 0, 0, 1)
+border_color = Color(0.8, 0.8, 0.8, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hen0n"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xxldw"]
+content_margin_left = 20.0
+content_margin_right = 20.0
+bg_color = Color(0.00784314, 0.0666667, 0.137255, 0)
+border_color = Color(0.8, 0.8, 0.8, 0)
+
 [node name="CodeBreakerArena" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -148,7 +162,7 @@ anchor_bottom = 0.9
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
-text = "00:00"
+text = "03:00"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -173,6 +187,10 @@ anchor_left = 0.615
 anchor_top = 0.26
 anchor_right = 0.63
 anchor_bottom = 0.74
+offset_left = -670.632
+offset_top = 522.206
+offset_right = -677.184
+offset_bottom = 514.434
 tooltip_text = "WebSocket status"
 mouse_filter = 1
 color = Color(1, 0.75, 0, 1)
@@ -257,14 +275,14 @@ layout_mode = 1
 anchors_preset = -1
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = 18.0
+offset_left = 26.0
 offset_top = 44.0
-offset_right = -297.0
+offset_right = -289.0
 offset_bottom = 15.16
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
-text = "P1: 0"
+text = "SCORE: 0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -309,14 +327,14 @@ anchor_left = 0.5
 anchor_top = 0.18
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 28.0
-offset_top = 34.08
-offset_right = -307.0
-offset_bottom = 10.0
+offset_left = 299.0
+offset_top = 31.08
+offset_right = -35.9999
+offset_bottom = 7.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.35, 0.43, 1)
-text = "P2: 0"
+text = "0 :SCORE"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -386,3 +404,23 @@ theme_override_font_sizes/font_size = 20
 text = "Waiting for opponent..."
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="MenuButton" type="Button" parent="."]
+offset_left = 1086.0
+offset_top = 11.0
+offset_right = 1148.0
+offset_bottom = 46.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 25
+theme_override_styles/focus = SubResource("StyleBoxFlat_180ra")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hen0n")
+theme_override_styles/normal = SubResource("StyleBoxFlat_xxldw")
+text = "☰"
+
+[node name="MenuPanel" parent="." instance=ExtResource("3_e4tay")]
+visible = false
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 2.0
+offset_bottom = 2.0

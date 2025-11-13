@@ -3,8 +3,8 @@ extends Control
 ## CODE BREAKER ARENA - Submit-Based Typing Combat
 ## 🎮 NEW MECHANICS (v3.0):
 ## - Type code in input field, press ENTER to submit
-## - ✅ Correct submission: +3 score, -2 opponent HP
-## - ❌ Wrong submission: -2 self HP (penalty)
+## - ✅ Correct submission: +100 score, -10 opponent HP
+## - ❌ Wrong submission: -8 self HP (penalty)
 ## - First to 0 HP = LOSE
 ## - Case-sensitive, exact match required
 
@@ -18,6 +18,9 @@ extends Control
 @onready var _p2_score: Label = $VBox/ScorePanel/ScoreP2
 @onready var _p1_health: ProgressBar = $VBox/ScorePanel/P1HealthBar
 @onready var _p2_health: ProgressBar = $VBox/ScorePanel/P2HealthBar
+@onready var menu_panel: Control = $MenuPanel
+@onready var menu_button: Button = $MenuButton
+
 
 # Typing UI
 @onready var _code_display: RichTextLabel = $VBox/CodeDisplayPanel/CodeDisplay
@@ -28,9 +31,9 @@ const ROOMS_PATH := "/codebreaker_rooms"
 const GAME_DURATION := 180.0  # 3 minute match (or until someone dies)
 
 # NEW GAME MECHANICS CONSTANTS
-const SCORE_CORRECT := 3           # Points for correct submission
-const DAMAGE_TO_ENEMY := 2         # HP damage to opponent on correct
-const SELF_DAMAGE_PENALTY := 2     # HP damage to self on wrong submission
+const SCORE_CORRECT := 100           # Points for correct submission
+const DAMAGE_TO_ENEMY := 10         # HP damage to opponent on correct
+const SELF_DAMAGE_PENALTY := 8     # HP damage to self on wrong submission
 const STARTING_HEALTH := 100       # Starting health for both players
 
 # Game state
@@ -141,6 +144,10 @@ func _ready() -> void:
 	# Connect input field signals ONCE in _ready()
 	if _input_field:
 		_input_field.text_submitted.connect(_on_input_submitted)
+	
+	# Connect menu button
+	if menu_button:
+		menu_button.pressed.connect(_on_menu_button_pressed)
 	
 	# Initial indicator - show connected
 	if _ws_indicator:
@@ -338,12 +345,12 @@ func _update_opponent_display() -> void:
 	print("[Arena] 📊 Updating opponent display: Score=%d HP=%d" % [_opponent_score, _opponent_health])
 	if _is_host:
 		# Host displays opponent (client) on right side
-		_p2_score.text = "P2: %d" % _opponent_score
+		_p2_score.text = "SCORE: %d" % _opponent_score
 		if _p2_health:
 			_p2_health.value = _opponent_health
 	else:
 		# Client displays opponent (host) on left side
-		_p1_score.text = "P1: %d" % _opponent_score
+		_p1_score.text = "SCORE: %d" % _opponent_score
 		if _p1_health:
 			_p1_health.value = _opponent_health
 
@@ -532,24 +539,46 @@ func _start_typing_game() -> void:
 		_status_label.text = "ERROR: No code snippet received!"
 		return
 	
-	_start_time = Time.get_unix_time_from_system()
+	# Initialize scores/health but DON'T start game yet
 	player_score = 0
 	player_health = STARTING_HEALTH
-	_game_active = true
 	
-	_status_label.text = "🛡️ TYPE SECURITY COMMAND & PRESS ENTER!"
-	
+	# Display code snippet but keep input disabled during countdown
 	if _code_display:
 		_code_display.text = _code_snippet
-		print("[Arena] �️ Security command displayed: %s" % _code_snippet)
+		print("[Arena] 🛡️ Security command displayed: %s" % _code_snippet)
 	
 	if _input_field:
-		_input_field.editable = true
+		_input_field.editable = false
 		_input_field.text = ""
+		_input_field.placeholder_text = "Get ready..."
+	
+	# 3-2-1 COUNTDOWN!
+	_status_label.text = "🎮 GET READY..."
+	await get_tree().create_timer(1.0).timeout
+	
+	_status_label.text = "3️⃣"
+	await get_tree().create_timer(1.0).timeout
+	
+	_status_label.text = "2️⃣"
+	await get_tree().create_timer(1.0).timeout
+	
+	_status_label.text = "1️⃣"
+	await get_tree().create_timer(1.0).timeout
+	
+	_status_label.text = "⌨️ TYPE!"
+	
+	# NOW start the actual game and timer
+	_start_time = Time.get_unix_time_from_system()
+	_game_active = true
+	
+	# Enable input field
+	if _input_field:
+		_input_field.editable = true
 		_input_field.placeholder_text = "Type the security command and press ENTER..."
 		call_deferred("_grab_input_focus")
 	
-	print("[Arena] 🛡️ SECURITY BREACH! Neutralize with command: %d chars" % _code_snippet.length())
+	print("[Arena] 🛡️ GAME START! Neutralize with command: %d chars" % _code_snippet.length())
 	print("[Arena] 💪 System Health: %d | Defense Score: %d" % [player_health, player_score])
 
 func _grab_input_focus() -> void:
@@ -593,7 +622,7 @@ func _on_input_submitted(submitted_text: String) -> void:
 		
 		# Visual feedback
 		_flash_success()
-		var progress_text = "✅ CORRECT! (%d/%d) | +3 Score | Enemy -2 HP" % [
+		var progress_text = "✅ CORRECT! (%d/%d) | +100 Score | Enemy -10 HP" % [
 			_my_snippet_index + 1,
 			_snippet_list.size()
 		]
@@ -625,7 +654,7 @@ func _on_input_submitted(submitted_text: String) -> void:
 		
 		# Visual feedback
 		_flash_error()
-		var progress_text = "❌ WRONG! (%d/%d) | -2 HP Penalty" % [
+		var progress_text = "❌ WRONG! (%d/%d) | -8 HP Penalty" % [
 			_my_snippet_index + 1,
 			_snippet_list.size()
 		]
@@ -871,3 +900,13 @@ func _leave_arena() -> void:
 	var room_scene := load("res://scene/code_breaker_room.tscn")
 	if room_scene:
 		get_tree().change_scene_to_packed(room_scene)
+
+# =============================================================================
+# MENU PANEL TOGGLE
+# =============================================================================
+
+func _on_menu_button_pressed() -> void:
+	"""Toggle menu panel visibility when menu button is clicked"""
+	if menu_panel:
+		menu_panel.visible = !menu_panel.visible
+		print("[Arena] 🎮 Menu panel toggled: %s" % ("VISIBLE" if menu_panel.visible else "HIDDEN"))
