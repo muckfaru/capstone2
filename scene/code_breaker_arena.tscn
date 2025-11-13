@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dw7agivap55un" path="res://script/code_breaker_arena.gd" id="1_18ytm"]
 [ext_resource type="Texture2D" uid="uid://d4ddfveb65kqw" path="res://asset/background/Code Breaker Arena Background.png" id="2_e4tay"]
 [ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="3_e4tay"]
-[ext_resource type="AudioStream" path="res://asset/audio/plasma-dr-gabba_cut.mp3" id="4_music"]
+[ext_resource type="AudioStream" uid="uid://cyvqhddv1l1h2" path="res://asset/audio/plasma-dr-gabba_cut.mp3" id="4_music"]
 
 [sub_resource type="SceneReplicationConfig" id="replication_config"]
 properties/0/path = NodePath(".:player_score")
@@ -465,4 +465,3 @@ offset_bottom = 2.0
 stream = ExtResource("4_music")
 volume_db = -5.0
 autoplay = true
-bus = &"Music"
