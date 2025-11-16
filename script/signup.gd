@@ -81,6 +81,16 @@ func _on_signup_pressed():
 		return
 
 	message_label.text = "⏳ Creating account..."
+	
+	# Zoom in animation on entire scene
+	var tween = create_tween()
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.set_ease(Tween.EASE_IN)
+	tween.tween_property(self, "scale", Vector2(1.2, 1.2), 0.3)
+	tween.tween_property(self, "modulate:a", 0.0, 0.2)
+	
+	await tween.finished
+	
 	Auth.sign_up(email, password)
 
 

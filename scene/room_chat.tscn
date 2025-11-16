@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://caeteha34m08t"]
 
-[ext_resource type="Script" path="res://script/room_chat.gd" id="1_room_chat"]
+[ext_resource type="Script" uid="uid://b10vkj3uxafv3" path="res://script/room_chat.gd" id="1_room_chat"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)
@@ -66,5 +66,5 @@ placeholder_text = "Type a message..."
 
 [node name="Button" type="Button" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
-text = "Send"
 mouse_default_cursor_shape = 2
+text = "Send"

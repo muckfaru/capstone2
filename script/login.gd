@@ -119,5 +119,5 @@ func _check_firestore_username_and_route():
 # 🔹 Button para lumipat sa Signup scene
 # ------------------------------------------------------
 func _on_sign_up_button_pressed() -> void:
-	var signupScene = "res://scene/signup.tscn"
+	var signupScene = "res://scene/signupldscreen.tscn"
 	get_tree().change_scene_to_file(signupScene)

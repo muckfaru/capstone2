@@ -1,0 +1,66 @@
+[gd_scene load_steps=10 format=3 uid="uid://dl3ud7ey6rcuf"]
+
+[ext_resource type="Script" uid="uid://ct7p1fc7nt6k6" path="res://scene/signupldscreen.gd" id="1_bdmiw"]
+[ext_resource type="Texture2D" uid="uid://bnibx5snemo06" path="res://asset/4e838cbb-ea7e-4663-a1a3-5e2937ba793d (1).jpg" id="2_jxp8i"]
+[ext_resource type="Texture2D" uid="uid://dvsmsxanemj2r" path="res://asset/icons/Sign in Ani.png" id="3_bdmiw"]
+[ext_resource type="Texture2D" uid="uid://ddcdxku5td3pu" path="res://asset/icons/Sign in Ani 1.png" id="4_yb1ln"]
+[ext_resource type="Texture2D" uid="uid://xunilcfbdw1c" path="res://asset/icons/Sign in Ani 2.png" id="5_afy6b"]
+[ext_resource type="Texture2D" uid="uid://b6w7enskbusxf" path="res://asset/icons/Sign in Ani 3.png" id="6_eo1u0"]
+[ext_resource type="Texture2D" uid="uid://c2hhbdkdd0alq" path="res://asset/icons/Sign in Ani 4.png" id="7_grmk4"]
+[ext_resource type="Texture2D" uid="uid://b38n2lmfo7bif" path="res://asset/icons/Sign in Ani 5.png" id="8_julg6"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_dq017"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_bdmiw")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_yb1ln")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_afy6b")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_eo1u0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_grmk4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_julg6")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Signupldscreen" type="CanvasLayer"]
+script = ExtResource("1_bdmiw")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_jxp8i")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Control"]
+texture_filter = 1
+position = Vector2(581, 340.875)
+scale = Vector2(0.67054, 0.614602)
+sprite_frames = SubResource("SpriteFrames_dq017")
+autoplay = "default"
+frame_progress = 0.183797
