@@ -531,6 +531,16 @@ app.get('/health', (req, res) => {
 });
 
 /**
+ * Simple ping endpoint to wake up server from sleep
+ */
+app.get('/ping', (req, res) => {
+  res.json({ 
+    status: 'pong',
+    timestamp: Date.now()
+  });
+});
+
+/**
  * Stats endpoint
  */
 app.get('/stats', (req, res) => {

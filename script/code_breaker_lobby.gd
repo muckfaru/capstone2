@@ -89,11 +89,23 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	"""
 	Option B: Relay Server Architecture
 	Steps:
-	1. Register room with lobby server (no IP/port needed)
-	2. Enter room scene with room_id
-	3. Room scene connects both players to relay server
+	1. Ping server to wake it up (if sleeping on Render free tier)
+	2. Register room with lobby server (no IP/port needed)
+	3. Enter room scene with room_id
+	4. Room scene connects both players to relay server
 	"""
 	print("[CodeBreakerLobby] Creating room (Option B: Relay)...")
+	
+	# STEP 1: Wake up server if sleeping (Render.com free tier fix)
+	if create_btn:
+		create_btn.disabled = true
+		create_btn.text = "Waking up server..."
+	
+	await _ping_server_to_wake()
+	
+	# STEP 2: Continue with room creation
+	if create_btn:
+		create_btn.text = "Creating room..."
 	
 	# Get user info
 	var uid: String = Auth.current_local_id if Auth else "anonymous"
@@ -119,11 +131,16 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	}
 	
 	var http := HTTPRequest.new()
-	http.timeout = 10.0
+	http.timeout = 30.0  # Increased timeout for server wake-up
 	add_child(http)
 	
 	http.request_completed.connect(func(_r: int, code: int, _h: PackedStringArray, resp_body: PackedByteArray):
 		print("🔍 [DEBUG] HTTP Response - Code: ", code, " Body: ", resp_body.get_string_from_utf8())
+		
+		# Re-enable create button
+		if create_btn:
+			create_btn.disabled = false
+			create_btn.text = "Create Room"
 		
 		if code != 200:
 			push_error("[CodeBreakerLobby] Failed to register room with lobby server. HTTP %d" % code)
@@ -442,6 +459,58 @@ func _initialize_multiplayer_config() -> void:
 	
 	print("[CodeBreakerLobby] Multiplayer config initialized")
 	print("[CodeBreakerLobby] Lobby server: %s" % _lobby_server_url)
+
+# =============================================================================
+# SERVER WAKE-UP LOGIC (Render.com Free Tier Fix)
+# =============================================================================
+
+func _ping_server_to_wake() -> void:
+	"""
+	Ping the server to wake it up if it's sleeping (Render.com free tier).
+	Render free tier sleeps after 15 minutes of inactivity.
+	First request after sleep takes 30-60 seconds to wake up.
+	"""
+	print("[CodeBreakerLobby] 🔔 Pinging server to wake up...")
+	
+	var ping_http := HTTPRequest.new()
+	ping_http.timeout = 60.0  # Long timeout for wake-up
+	add_child(ping_http)
+	
+	var ping_completed := false
+	
+	ping_http.request_completed.connect(func(_r: int, code: int, _h: PackedStringArray, _body: PackedByteArray):
+		if code == 200:
+			print("[CodeBreakerLobby] ✅ Server is awake!")
+		else:
+			print("[CodeBreakerLobby] ⚠️ Ping returned code: %d (server might still be waking up)" % code)
+		ping_completed = true
+		ping_http.queue_free()
+	)
+	
+	# Send ping request
+	var ping_url = _multiplayer_config.get_api_endpoint("/ping")
+	print("[CodeBreakerLobby] Ping URL: ", ping_url)
+	ping_http.request(ping_url)
+	
+	# Wait for response (max 60 seconds)
+	var wait_time := 0.0
+	while not ping_completed and wait_time < 60.0:
+		await get_tree().create_timer(0.5).timeout
+		wait_time += 0.5
+		
+		# Update button text with countdown
+		if create_btn and wait_time < 60.0:
+			var remaining := int(60.0 - wait_time)
+			create_btn.text = "Waking server... (%ds)" % remaining
+	
+	if not ping_completed:
+		print("[CodeBreakerLobby] ⚠️ Ping timeout, but continuing anyway...")
+		if is_instance_valid(ping_http):
+			ping_http.queue_free()
+	
+	# Small delay to ensure server is fully ready
+	await get_tree().create_timer(1.0).timeout
+	print("[CodeBreakerLobby] ✅ Ready to create room!")
 
 
 # Option B: No network helper needed for relay architecture
