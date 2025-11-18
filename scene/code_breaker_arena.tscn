@@ -1,9 +1,12 @@
-[gd_scene load_steps=16 format=3 uid="uid://b1ngbpq5ojqqk"]
+[gd_scene load_steps=19 format=3 uid="uid://b1ngbpq5ojqqk"]
 
 [ext_resource type="Script" uid="uid://dw7agivap55un" path="res://script/code_breaker_arena.gd" id="1_18ytm"]
 [ext_resource type="Texture2D" uid="uid://d4ddfveb65kqw" path="res://asset/background/Code Breaker Arena Background.png" id="2_e4tay"]
 [ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="3_e4tay"]
 [ext_resource type="AudioStream" uid="uid://cyvqhddv1l1h2" path="res://asset/audio/plasma-dr-gabba_cut.mp3" id="4_music"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n4nb7"]
+bg_color = Color(0.360784, 0.505882, 0.941176, 0.207843)
 
 [sub_resource type="SceneReplicationConfig" id="replication_config"]
 properties/0/path = NodePath(".:player_score")
@@ -90,7 +93,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="code_panel_style"]
-bg_color = Color(0, 0, 0, 0.85)
+bg_color = Color(0.356863, 0.47451, 0.878431, 0)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -103,6 +106,13 @@ corner_radius_bottom_left = 5
 shadow_color = Color(0, 0, 0, 0.7)
 shadow_size = 12
 shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o8gsb"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_color = Color(0.8, 0.8, 0.8, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qu5hw"]
+border_color = Color(0.0980392, 0.262745, 0.403922, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_180ra"]
 bg_color = Color(0, 0, 0, 1)
@@ -131,6 +141,12 @@ layout_mode = 0
 offset_right = 1158.0
 offset_bottom = 655.0
 texture = ExtResource("2_e4tay")
+
+[node name="Panel" type="Panel" parent="NinePatchRect"]
+layout_mode = 0
+offset_right = 1157.0
+offset_bottom = 655.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_n4nb7")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("replication_config")
@@ -395,7 +411,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 20
 placeholder_text = "Type the code here..."
 alignment = 1
-editable = false
+editable = true
 
 [node name="StatusLabel" type="Label" parent="VBox"]
 layout_mode = 1
