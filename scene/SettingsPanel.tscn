@@ -22,10 +22,10 @@ color = Color(0, 0, 0, 0.35)
 
 [node name="Window" type="Panel" parent="."]
 layout_mode = 0
-offset_left = 528.0
-offset_top = 183.0
-offset_right = 850.0
-offset_bottom = 460.0
+offset_left = 486.0
+offset_top = 200.0
+offset_right = 808.0
+offset_bottom = 477.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_spbg")
 
 [node name="Header" type="Panel" parent="Window"]

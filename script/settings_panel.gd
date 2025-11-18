@@ -23,27 +23,13 @@ func _on_volume_changed(value: float) -> void:
     volume_value_label.text = "%d dB" % int(value)
 
 func _on_apply_pressed() -> void:
-    var vol_db := volume_slider.value
-    var is_full := (display_mode.selected == 1)
+    var vol_db = volume_slider.value
+    var is_full = (display_mode.selected == 1)
 
     # Apply to BattleMusic if present
-    var music := get_tree().get_current_scene().find_node("BattleMusic", true, false)
+    var music = get_tree().get_current_scene().find_node("BattleMusic", true, false)
     if music and music is AudioStreamPlayer:
         music.volume_db = vol_db
-
-    # Try to toggle fullscreen (best-effort)
-    if Engine.has_singleton("OS"):
-        # Old API fallback
-        if "window_fullscreen" in OS:
-            OS.window_fullscreen = is_full
-        else:
-            # Godot 4 fallback using DisplayServer (best-effort)
-            var mode = DisplayServer.WindowMode.WINDOWED
-            if is_full:
-                mode = DisplayServer.WindowMode.FULLSCREEN
-            var root_win = DisplayServer.window_get_current()
-            if root_win != 0:
-                DisplayServer.window_set_mode(root_win, mode)
 
     # Persist settings
     var cfg := ConfigFile.new()
@@ -53,7 +39,7 @@ func _on_apply_pressed() -> void:
 
 func _on_close_pressed() -> void:
     # Show menu if it exists
-    var menu := get_tree().get_current_scene().find_node("MenuPanel", true, false)
+    var menu = get_tree().get_current_scene().find_node("MenuPanel", true, false)
     if menu:
         menu.visible = true
     queue_free()
@@ -68,14 +54,7 @@ func _load_settings() -> void:
         volume_value_label.text = "%d dB" % int(vol)
         display_mode.select(1 if full else 0)
 
-        # Apply immediately
-        var music := get_tree().get_current_scene().find_node("BattleMusic", true, false)
+        # Apply music volume immediately if present
+        var music = get_tree().get_current_scene().find_node("BattleMusic", true, false)
         if music and music is AudioStreamPlayer:
             music.volume_db = float(vol)
-        if full:
-            if "window_fullscreen" in OS:
-                OS.window_fullscreen = true
-            else:
-                var root_win = DisplayServer.window_get_current()
-                if root_win != 0:
-                    DisplayServer.window_set_mode(root_win, DisplayServer.WindowMode.FULLSCREEN)
