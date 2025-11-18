@@ -17,13 +17,24 @@ func _ready() -> void:
 	if close_button and not close_button.pressed.is_connected(_on_close_pressed):
 		close_button.pressed.connect(_on_close_pressed)
 
+	# Ensure display mode options exist
+	if display_mode and display_mode.get_item_count() == 0:
+		display_mode.add_item("Windowed")
+		display_mode.add_item("Fullscreen")
+
 	_load_settings()
 
 func _on_volume_changed(value: float) -> void:
-	volume_value_label.text = "%d dB" % int(value)
+	volume_value_label.text = "%d" % int(value)
+
+func _map_level_to_db(level: float) -> float:
+	var t = clamp((level - 1.0) / 99.0, 0.0, 1.0)
+	return lerp(-80.0, 0.0, t)
+
 
 func _on_apply_pressed() -> void:
-	var vol_db = volume_slider.value
+	var vol_level = int(volume_slider.value)
+	var vol_db = _map_level_to_db(vol_level)
 	var is_full = (display_mode.selected == 1)
 
 	# Apply to BattleMusic if present
@@ -31,9 +42,9 @@ func _on_apply_pressed() -> void:
 	if music and music is AudioStreamPlayer:
 		music.volume_db = vol_db
 
-	# Persist settings
+	# Persist settings (save integer 1..100)
 	var cfg := ConfigFile.new()
-	cfg.set_value("audio", "music_db", vol_db)
+	cfg.set_value("audio", "music_level", vol_level)
 	cfg.set_value("display", "fullscreen", is_full)
 	cfg.save(SETTINGS_PATH)
 
@@ -48,16 +59,16 @@ func _load_settings() -> void:
 	var cfg := ConfigFile.new()
 	var err := cfg.load(SETTINGS_PATH)
 	if err == OK:
-		var vol = cfg.get_value("audio", "music_db", -5)
+		var vol_level = int(cfg.get_value("audio", "music_level", 50))
 		var full = cfg.get_value("display", "fullscreen", false)
-		volume_slider.value = float(vol)
-		volume_value_label.text = "%d dB" % int(vol)
+		volume_slider.value = float(vol_level)
+		volume_value_label.text = "%d" % int(vol_level)
 		display_mode.select(1 if full else 0)
 
 		# Apply music volume immediately if present
 		var music = _find_node_by_name(get_tree().get_current_scene(), "BattleMusic")
 		if music and music is AudioStreamPlayer:
-			music.volume_db = float(vol)
+			music.volume_db = _map_level_to_db(vol_level)
 
 
 func _find_node_by_name(node: Node, target: String) -> Node:
