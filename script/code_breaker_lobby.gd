@@ -496,12 +496,12 @@ func _ping_server_to_wake() -> void:
 	var wait_time := 0.0
 	var show_countdown := false
 	
-	# First 3 seconds: wait silently (server might already be awake)
-	while not ping_completed and wait_time < 3.0:
+	# First 10 seconds: wait silently (server might already be awake)
+	while not ping_completed and wait_time < 10.0:
 		await get_tree().create_timer(0.5).timeout
 		wait_time += 0.5
 	
-	# After 3 seconds: show countdown (server is waking up)
+	# After 10 seconds: show countdown (server is waking up)
 	if not ping_completed:
 		show_countdown = true
 		print("[CodeBreakerLobby] ⏰ Server is waking up, showing countdown...")
