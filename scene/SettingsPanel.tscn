@@ -1,0 +1,116 @@
+[gd_scene load_steps=3 format=3 uid="uid://wry110205xkc"]
+
+[ext_resource type="Script" uid="uid://fd1s64beyund" path="res://script/settings_panel.gd" id="1_spg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_spbg"]
+bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.67)
+
+[node name="SettingsPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_spg")
+
+[node name="Overlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.35)
+
+[node name="Window" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 528.0
+offset_top = 183.0
+offset_right = 850.0
+offset_bottom = 460.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_spbg")
+
+[node name="Header" type="Panel" parent="Window"]
+layout_mode = 2
+offset_left = 2.0
+offset_top = 3.0
+offset_right = 321.0
+offset_bottom = 43.0
+
+[node name="TitleLabel" type="Label" parent="Window/Header"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -52.5
+offset_top = -9.0
+offset_right = 21.5
+offset_bottom = 14.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "SETTINGS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Body" type="Panel" parent="Window"]
+layout_mode = 0
+offset_left = -1.0
+offset_top = 54.0
+offset_right = 321.0
+offset_bottom = 135.0
+
+[node name="VolumeLabel" type="Label" parent="Window/Body"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 6.0
+offset_right = 200.0
+offset_bottom = 30.0
+text = "Music Volume"
+
+[node name="VolumeSlider" type="HSlider" parent="Window/Body"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 30.0
+offset_right = 269.0
+offset_bottom = 60.0
+min_value = -80.0
+max_value = 0.0
+
+[node name="VolumeValue" type="Label" parent="Window/Body"]
+layout_mode = 0
+offset_left = 274.0
+offset_top = 34.0
+offset_right = 334.0
+offset_bottom = 64.0
+text = "-5 dB"
+
+[node name="DisplayLabel" type="Label" parent="Window/Body"]
+layout_mode = 0
+offset_left = 13.0
+offset_top = 95.0
+offset_right = 203.0
+offset_bottom = 123.0
+text = "Display Mode"
+
+[node name="DisplayMode" type="OptionButton" parent="Window/Body"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 121.0
+offset_right = 206.0
+offset_bottom = 153.0
+
+[node name="ApplyButton" type="Button" parent="Window/Body"]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 164.0
+offset_right = 135.0
+offset_bottom = 195.0
+text = "Apply"
+
+[node name="CloseButton" type="Button" parent="Window/Body"]
+layout_mode = 0
+offset_left = 146.0
+offset_top = 164.0
+offset_right = 266.0
+offset_bottom = 195.0
+text = "Close"

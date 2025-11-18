@@ -7,6 +7,7 @@ extends Control
 @onready var close_button: Button = $Window/Panel/CloseMenuButton
 @onready var overlay: ColorRect = $Overlay
 @onready var menu_logout_button: Button = $Window/Body/LogoutButton
+@onready var settings_button: Button = $Window/Body/SettingsButton
 
 var _dragging: bool = false
 var _drag_offset: Vector2 = Vector2.ZERO
@@ -21,6 +22,8 @@ func _ready() -> void:
 		close_button.pressed.connect(_on_close_pressed)
 	if menu_logout_button and not menu_logout_button.pressed.is_connected(_on_menu_logout_pressed):
 		menu_logout_button.pressed.connect(_on_menu_logout_pressed)
+	if settings_button and not settings_button.pressed.is_connected(_on_settings_pressed):
+		settings_button.pressed.connect(_on_settings_pressed)
 
 
 func _on_close_pressed() -> void:
@@ -31,6 +34,16 @@ func _on_menu_logout_pressed() -> void:
 	# Mirror navigation logout behavior
 	Auth.set_user_offline()
 	get_tree().change_scene_to_file("res://scene/login.tscn")
+
+
+func _on_settings_pressed() -> void:
+	# Instantiate the SettingsPanel and add to the current scene, hide this menu
+	var settings_scene = preload("res://scene/SettingsPanel.tscn")
+	var inst = settings_scene.instantiate()
+	var cs = get_tree().get_current_scene()
+	if cs:
+		cs.add_child(inst)
+	visible = false
 
 
 func _on_header_gui_input(event: InputEvent) -> void:
