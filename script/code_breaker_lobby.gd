@@ -506,13 +506,13 @@ func _ping_server_to_wake() -> void:
 		show_countdown = true
 		print("[CodeBreakerLobby] ⏰ Server is waking up, showing countdown...")
 	
-	while not ping_completed and wait_time < 60.0:
+	while not ping_completed and wait_time < 5.0:
 		await get_tree().create_timer(0.5).timeout
 		wait_time += 0.5
 		
 		# Only update button text if we're showing countdown
-		if show_countdown and create_btn and wait_time < 60.0:
-			var remaining := int(60.0 - wait_time)
+		if show_countdown and create_btn and wait_time < 5.0:
+			var remaining := int(5.0 - wait_time)
 			create_btn.text = "Waking server... (%ds)" % remaining
 	
 	if not ping_completed:
