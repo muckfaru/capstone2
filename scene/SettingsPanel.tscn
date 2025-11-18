@@ -74,16 +74,14 @@ offset_top = 30.0
 offset_right = 269.0
 offset_bottom = 60.0
 min_value = 1.0
-max_value = 100.0
-step = 1.0
 value = 50.0
 
 [node name="VolumeValue" type="Label" parent="Window/Body"]
 layout_mode = 0
 offset_left = 274.0
 offset_top = 34.0
-offset_right = 334.0
-offset_bottom = 64.0
+offset_right = 311.0
+offset_bottom = 58.0
 text = "50"
 
 [node name="DisplayLabel" type="Label" parent="Window/Body"]

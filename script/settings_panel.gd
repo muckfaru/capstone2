@@ -8,6 +8,8 @@ extends Control
 
 const SETTINGS_PATH := "user://settings.cfg"
 
+var _target_music: AudioStreamPlayer = null
+
 func _ready() -> void:
 	# connect signals
 	if volume_slider and not volume_slider.value_changed.is_connected(_on_volume_changed):
@@ -38,7 +40,9 @@ func _on_apply_pressed() -> void:
 	var is_full = (display_mode.selected == 1)
 
 	# Apply to BattleMusic if present
-	var music = _find_node_by_name(get_tree().get_current_scene(), "BattleMusic")
+	var music = _target_music
+	if not music:
+		music = _find_node_by_name(get_tree().get_current_scene(), "BattleMusic")
 	if music and music is AudioStreamPlayer:
 		music.volume_db = vol_db
 
@@ -66,9 +70,16 @@ func _load_settings() -> void:
 		display_mode.select(1 if full else 0)
 
 		# Apply music volume immediately if present
-		var music = _find_node_by_name(get_tree().get_current_scene(), "BattleMusic")
+		var music = _target_music
+		if not music:
+			music = _find_node_by_name(get_tree().get_current_scene(), "BattleMusic")
 		if music and music is AudioStreamPlayer:
 			music.volume_db = _map_level_to_db(vol_level)
+
+
+func set_target_music(node: Node) -> void:
+	if node and node is AudioStreamPlayer:
+		_target_music = node
 
 
 func _find_node_by_name(node: Node, target: String) -> Node:

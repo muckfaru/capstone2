@@ -43,6 +43,11 @@ func _on_settings_pressed() -> void:
 	var cs = get_tree().get_current_scene()
 	if cs:
 		cs.add_child(inst)
+		# If the current scene has a BattleMusic node, pass it to the settings panel
+		if cs.has_node("BattleMusic"):
+			var bm = cs.get_node("BattleMusic")
+			if bm and inst.has_method("set_target_music"):
+				inst.set_target_music(bm)
 	visible = false
 
 
