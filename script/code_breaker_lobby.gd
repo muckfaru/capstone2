@@ -492,14 +492,26 @@ func _ping_server_to_wake() -> void:
 	print("[CodeBreakerLobby] Ping URL: ", ping_url)
 	ping_http.request(ping_url)
 	
-	# Wait for response (max 60 seconds)
+	# Wait for response (max 60 seconds) - but only show countdown if slow
 	var wait_time := 0.0
+	var show_countdown := false
+	
+	# First 3 seconds: wait silently (server might already be awake)
+	while not ping_completed and wait_time < 3.0:
+		await get_tree().create_timer(0.5).timeout
+		wait_time += 0.5
+	
+	# After 3 seconds: show countdown (server is waking up)
+	if not ping_completed:
+		show_countdown = true
+		print("[CodeBreakerLobby] ⏰ Server is waking up, showing countdown...")
+	
 	while not ping_completed and wait_time < 60.0:
 		await get_tree().create_timer(0.5).timeout
 		wait_time += 0.5
 		
-		# Update button text with countdown
-		if create_btn and wait_time < 60.0:
+		# Only update button text if we're showing countdown
+		if show_countdown and create_btn and wait_time < 60.0:
 			var remaining := int(60.0 - wait_time)
 			create_btn.text = "Waking server... (%ds)" % remaining
 	
@@ -507,9 +519,12 @@ func _ping_server_to_wake() -> void:
 		print("[CodeBreakerLobby] ⚠️ Ping timeout, but continuing anyway...")
 		if is_instance_valid(ping_http):
 			ping_http.queue_free()
+	else:
+		# Server responded - log how long it took
+		print("[CodeBreakerLobby] ✅ Server responded in %.1f seconds" % wait_time)
 	
 	# Small delay to ensure server is fully ready
-	await get_tree().create_timer(1.0).timeout
+	await get_tree().create_timer(0.5).timeout
 	print("[CodeBreakerLobby] ✅ Ready to create room!")
 
 
