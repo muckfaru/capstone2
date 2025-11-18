@@ -81,28 +81,28 @@ self_modulate = Color(0.1485, 0.8778, 0.99, 0.588235)
 clip_children = 2
 visibility_layer = 512
 layout_mode = 2
-offset_left = 156.0
-offset_top = 110.0
-offset_right = 762.0
-offset_bottom = 557.0
+offset_left = 201.0
+offset_top = 57.0
+offset_right = 807.0
+offset_bottom = 504.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_vd3ky")
 
 [node name="logo" type="PanelContainer" parent="VideoStreamPlayer"]
 modulate = Color(0, 0, 0, 1)
 self_modulate = Color(0, 0, 0, 1)
 layout_mode = 2
-offset_left = 734.0
-offset_top = 110.0
-offset_right = 945.0
-offset_bottom = 556.0
+offset_left = 784.0
+offset_top = 55.0
+offset_right = 1015.0
+offset_bottom = 501.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_76uxg")
 
 [node name="LoginButton" type="Button" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 316.0
-offset_top = 389.0
-offset_right = 548.0
-offset_bottom = 433.0
+offset_left = 374.0
+offset_top = 357.0
+offset_right = 606.0
+offset_bottom = 401.0
 mouse_default_cursor_shape = 2
 theme_override_fonts/font = ExtResource("3_i5fi3")
 theme_override_font_sizes/font_size = 20
@@ -114,19 +114,19 @@ text = "Log in
 
 [node name="PasswordLabel" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 216.0
-offset_top = 268.0
-offset_right = 304.0
-offset_bottom = 292.0
+offset_left = 247.0
+offset_top = 254.0
+offset_right = 347.0
+offset_bottom = 278.0
 theme_override_fonts/font = ExtResource("3_i5fi3")
 text = "Password"
 
 [node name="EmailLineEdit" type="LineEdit" parent="VideoStreamPlayer"]
 layout_mode = 2
-offset_left = 215.0
-offset_top = 204.0
-offset_right = 663.0
-offset_bottom = 250.0
+offset_left = 260.0
+offset_top = 179.0
+offset_right = 708.0
+offset_bottom = 225.0
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
@@ -140,10 +140,10 @@ caret_blink = true
 
 [node name="PasswordLineEdit" type="LineEdit" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 215.0
-offset_top = 295.0
-offset_right = 663.0
-offset_bottom = 338.0
+offset_left = 263.0
+offset_top = 279.0
+offset_right = 711.0
+offset_bottom = 322.0
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
@@ -168,10 +168,10 @@ text = "forgot password"
 
 [node name="DontHaveAccLabel" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 320.0
-offset_top = 527.0
-offset_right = 529.0
-offset_bottom = 576.0
+offset_left = 376.0
+offset_top = 470.0
+offset_right = 585.0
+offset_bottom = 519.0
 theme_override_fonts/font = ExtResource("4_ayshr")
 text = "Dont Have Account?
 "
@@ -185,54 +185,54 @@ offset_bottom = 381.0
 
 [node name="logintxt" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 396.0
-offset_top = 137.0
-offset_right = 455.0
-offset_bottom = 163.0
+offset_left = 449.0
+offset_top = 89.0
+offset_right = 516.0
+offset_bottom = 115.0
 theme_override_fonts/font = ExtResource("3_i5fi3")
 theme_override_font_sizes/font_size = 20
 text = "Login"
 
 [node name="EmailLabel" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 220.0
-offset_top = 174.0
-offset_right = 271.0
-offset_bottom = 200.0
+offset_left = 254.0
+offset_top = 156.0
+offset_right = 351.0
+offset_bottom = 182.0
 theme_override_fonts/font = ExtResource("3_i5fi3")
 text = "Username"
 
 [node name="SignUpButton" type="LinkButton" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 478.0
-offset_top = 526.0
-offset_right = 552.0
-offset_bottom = 566.0
+offset_left = 532.0
+offset_top = 469.0
+offset_right = 606.0
+offset_bottom = 509.0
 theme_override_colors/font_color = Color(0.961518, 4.45209e-06, 9.62615e-07, 1)
 theme_override_fonts/font = ExtResource("4_ayshr")
 theme_override_styles/focus = SubResource("StyleBoxFlat_u7yg4")
 text = "Sign up"
 
 [node name="Logo" type="Sprite2D" parent="VideoStreamPlayer"]
-position = Vector2(841, 347)
+position = Vector2(902, 296)
 scale = Vector2(0.592831, 0.589275)
 texture = ExtResource("2_xhhai")
 
 [node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 372.0
-offset_top = 452.0
-offset_right = 420.0
-offset_bottom = 500.0
+offset_left = 436.0
+offset_top = 407.0
+offset_right = 484.0
+offset_bottom = 455.0
 mouse_default_cursor_shape = 2
 texture_normal = ExtResource("4_7yur4")
 
 [node name="FacebookLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
 layout_mode = 2
-offset_left = 429.0
-offset_top = 454.0
-offset_right = 477.0
-offset_bottom = 502.0
+offset_left = 493.0
+offset_top = 407.0
+offset_right = 541.0
+offset_bottom = 455.0
 mouse_default_cursor_shape = 2
 texture_normal = ExtResource("5_u7yg4")
 

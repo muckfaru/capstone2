@@ -6,13 +6,53 @@ extends Control
 @onready var message_label: Label = $VideoStreamPlayer/status
 @onready var signup_button: Button = $VideoStreamPlayer/SignUpButton
 @onready var google_signup_btn: TextureButton = $VideoStreamPlayer/GoogleLoginButton
+@onready var animated_sprite: AnimatedSprite2D = $VideoStreamPlayer/AnimatedSprite2D
+@onready var fill_up_form: PanelContainer = $VideoStreamPlayer/FillUpForm
+
+# All form elements to hide/show
+@onready var form_elements = [
+	$VideoStreamPlayer/FillUpForm,
+	$VideoStreamPlayer/EmailLabel,
+	$VideoStreamPlayer/EmailLabel2,
+	$VideoStreamPlayer/PasswordLabel,
+	$VideoStreamPlayer/RepeatPasswordLabel,
+	$VideoStreamPlayer/EmailLineEdit,
+	$VideoStreamPlayer/PasswordLineEdit,
+	$VideoStreamPlayer/RepeatPasswordLineEdit,
+	$VideoStreamPlayer/TermsCheckBox,
+	$VideoStreamPlayer/TermsLabel,
+	$VideoStreamPlayer/TermsLink,
+	$VideoStreamPlayer/PrivacyLabel,
+	$VideoStreamPlayer/PrivacyLink,
+	$VideoStreamPlayer/SignUpButton,
+	$VideoStreamPlayer/OrDividerLeft,
+	$VideoStreamPlayer/OrLabel,
+	$VideoStreamPlayer/OrDividerRight,
+	$VideoStreamPlayer/GoogleLoginButton,
+	$VideoStreamPlayer/FacebookLoginButton,
+	$VideoStreamPlayer/UsernameLabel2,
+	$VideoStreamPlayer/ChangeToLoginButton,
+	$VideoStreamPlayer/BackButton
+]
 
 # daan papunta sa helper script mo (baguhin kung nasa ibang path)
 @onready var oauth_helper = preload("res://script/auth_helper.gd").new()
 
 var email_regex := RegEx.new()
+var is_loading := true
 
 func _ready():
+	# Position all form elements off-screen to the right
+	_hide_form_elements()
+	
+	# Setup animated sprite - play once and stop at last frame
+	animated_sprite.visible = true
+	animated_sprite.frame = 0
+	animated_sprite.play("default")
+	
+	# Monitor when animation reaches last frame
+	_monitor_animation_progress()
+	
 	# panimulang setup
 	add_child(oauth_helper)
 	oauth_helper.token_received.connect(_on_google_code_received)
@@ -25,6 +65,65 @@ func _ready():
 	email_input.text_changed.connect(_validate_inputs)
 	password_input.text_changed.connect(_validate_inputs)
 	repeat_password_input.text_changed.connect(_validate_inputs)
+
+
+func _hide_form_elements():
+	"""Hide all form elements during loading"""
+	# Get the animated sprite position as the starting point
+	var sprite_x = animated_sprite.position.x
+	
+	# Position all form elements at the sprite's location
+	for element in form_elements:
+		if element:
+			element.visible = false  # Make invisible during loading
+			# Store original position for later
+			if not element.has_meta("original_x"):
+				element.set_meta("original_x", element.position.x)
+			# Move to sprite location (center of screen where loading animation is)
+			element.position.x = sprite_x
+
+
+func _show_form_elements():
+	"""Slide in all form elements after loading"""
+	var tween = create_tween()
+	tween.set_parallel(true)  # All elements slide in at the same time
+	tween.set_trans(Tween.TRANS_CUBIC)
+	tween.set_ease(Tween.EASE_OUT)
+	
+	for element in form_elements:
+		if element and element.has_meta("original_x"):
+			element.visible = true  # Make visible before animating
+			var target_x = element.get_meta("original_x")  # Slide back to original position
+			tween.tween_property(element, "position:x", target_x, 0.8)
+
+
+func _monitor_animation_progress():
+	"""Monitor the animation and stop at last frame"""
+	# Wait until animation reaches frame 6 (last frame)
+	while animated_sprite.frame < 6:
+		await get_tree().process_frame
+	
+	# Stop the animation at frame 6
+	animated_sprite.stop()
+	animated_sprite.frame = 6
+	
+	# Trigger the form reveal
+	_on_loading_complete()
+
+
+func _on_loading_complete():
+	"""Called when animated sprite reaches last frame"""
+	if is_loading:
+		is_loading = false
+		
+		# Keep sprite visible at frame 6 (last slide stays visible)
+		print("Loading complete - showing form")
+		
+		# Wait a brief moment
+		await get_tree().create_timer(0.5).timeout
+		
+		# Slide in all form elements from right to left
+		_show_form_elements()
 
 
 # ------------------------------------------------------
@@ -168,6 +267,7 @@ func _check_firestore_username_and_route():
 func _on_change_to_login_button_pressed() -> void:
 	var loginScene = "res://scene/login.tscn"
 	get_tree().change_scene_to_file(loginScene)
+
 func _on_back_button_pressed() -> void:
 	var loginScene = "res://scene/login.tscn"
 	get_tree().change_scene_to_file(loginScene)

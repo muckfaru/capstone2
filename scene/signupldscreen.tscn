@@ -1,6 +1,5 @@
-[gd_scene load_steps=10 format=3 uid="uid://dl3ud7ey6rcuf"]
+[gd_scene load_steps=10 format=3 uid="uid://djym40evwdogs"]
 
-[ext_resource type="Script" uid="uid://ct7p1fc7nt6k6" path="res://scene/signupldscreen.gd" id="1_bdmiw"]
 [ext_resource type="Texture2D" uid="uid://bnibx5snemo06" path="res://asset/4e838cbb-ea7e-4663-a1a3-5e2937ba793d (1).jpg" id="2_jxp8i"]
 [ext_resource type="Texture2D" uid="uid://dvsmsxanemj2r" path="res://asset/icons/Sign in Ani.png" id="3_bdmiw"]
 [ext_resource type="Texture2D" uid="uid://ddcdxku5td3pu" path="res://asset/icons/Sign in Ani 1.png" id="4_yb1ln"]
@@ -8,6 +7,48 @@
 [ext_resource type="Texture2D" uid="uid://b6w7enskbusxf" path="res://asset/icons/Sign in Ani 3.png" id="6_eo1u0"]
 [ext_resource type="Texture2D" uid="uid://c2hhbdkdd0alq" path="res://asset/icons/Sign in Ani 4.png" id="7_grmk4"]
 [ext_resource type="Texture2D" uid="uid://b38n2lmfo7bif" path="res://asset/icons/Sign in Ani 5.png" id="8_julg6"]
+
+[sub_resource type="GDScript" id="GDScript_r1vfw"]
+script/source = "extends CanvasLayer
+
+@export_file(\"*.tscn\") var next_scene_path: String = \"res://scene/signup.tscn\"
+@export var parameters: Dictionary 
+
+func _ready():
+	ResourceLoader.load_threaded_request(next_scene_path) 
+
+func _process(_delta):
+	if ResourceLoader.load_threaded_get_status(next_scene_path) == ResourceLoader.THREAD_LOAD_LOADED:
+		set_process(false) 
+		await get_tree().create_timer(1).timeout 
+		
+		# Slide down with fade animation on sprite before scene change
+		var sprite = get_node_or_null(\"Control/AnimatedSprite2D\")
+		if sprite:
+			var tween = create_tween()
+			tween.set_trans(Tween.TRANS_QUAD)
+			tween.set_ease(Tween.EASE_IN)
+			tween.set_parallel(true)
+			tween.tween_property(sprite, \"position:y\", get_tree().root.get_visible_rect().size.y, 1.0)
+			tween.tween_property(sprite, \"modulate:a\", 0.0, 1.0)
+			await tween.finished
+		else:
+			await get_tree().create_timer(1.0).timeout
+		
+		var new_scene: PackedScene = ResourceLoader.load_threaded_get(next_scene_path)
+		var new_node = new_scene.instantiate()
+
+		
+		if \"parameters\" in new_node:
+			new_node.parameters = parameters
+		elif new_node.has_method(\"set_parameters\"):
+			new_node.set_parameters(parameters)
+
+		var current_scene = get_tree().current_scene
+		get_tree().get_root().add_child(new_node)
+		get_tree().current_scene = new_node
+		current_scene.queue_free()
+"
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_dq017"]
 animations = [{
@@ -36,7 +77,7 @@ animations = [{
 }]
 
 [node name="Signupldscreen" type="CanvasLayer"]
-script = ExtResource("1_bdmiw")
+script = SubResource("GDScript_r1vfw")
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
