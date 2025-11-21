@@ -384,10 +384,6 @@ theme_override_colors/default_color = Color(0, 1, 0.5, 1)
 theme_override_font_sizes/normal_font_size = 18
 bbcode_enabled = true
 text = "Waiting for code snippet..."
-# Prevent the RichTextLabel from resizing the panel when text changes.
-# Use a minimum size so layout remains stable during snippet switches.
-fit_content = false
-rect_min_size = Vector2(600, 120)
 scroll_active = false
 horizontal_alignment = 1
 vertical_alignment = 1

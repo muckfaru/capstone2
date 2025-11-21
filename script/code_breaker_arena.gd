@@ -27,6 +27,7 @@ extends Control
 # Typing UI
 @onready var _code_display: RichTextLabel = $VBox/CodeDisplayPanel/CodeDisplay
 @onready var _input_field: LineEdit = $VBox/InputField
+@onready var _code_panel: Panel = $VBox/CodeDisplayPanel
 
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const ROOMS_PATH := "/codebreaker_rooms"
@@ -1046,28 +1047,36 @@ func _popin_code_display_with_text(new_text: String) -> void:
 	if not _code_display:
 		return
 
-	# POP-OUT: shrink and fade
+	# Target the whole panel for the bubble effect, but replace the label text
+	var target_node: Node = null
+	if _code_panel:
+		target_node = _code_panel
+	else:
+		target_node = _code_display
+
+	# POP-OUT: shrink and fade the panel
 	var pop_out = create_tween()
-	pop_out.tween_property(_code_display, "scale", Vector2(0.85, 0.85), 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-	pop_out.tween_property(_code_display, "modulate", Color(1, 1, 1, 0), 0.12)
+	pop_out.tween_property(target_node, "scale", Vector2(0.85, 0.85), 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	pop_out.tween_property(target_node, "modulate", Color(1, 1, 1, 0), 0.12)
 	await pop_out.finished
 
 	# Swap text while invisible
-	_code_display.text = new_text
+	if _code_display:
+		_code_display.text = new_text
 
 	# Prepare for pop-in: slightly overscaled and transparent
-	_code_display.scale = Vector2(1.15, 1.15)
-	_code_display.modulate = Color(1, 1, 1, 0)
+	target_node.scale = Vector2(1.15, 1.15)
+	target_node.modulate = Color(1, 1, 1, 0)
 
 	# POP-IN: grow to normal size with ease/back for bubble feel, and fade in
 	var pop_in = create_tween()
-	pop_in.tween_property(_code_display, "scale", Vector2(1, 1), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	pop_in.tween_property(_code_display, "modulate", Color(1, 1, 1, 1), 0.18)
+	pop_in.tween_property(target_node, "scale", Vector2(1, 1), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	pop_in.tween_property(target_node, "modulate", Color(1, 1, 1, 1), 0.18)
 	await pop_in.finished
 
 	# Ensure exact final state
-	_code_display.scale = Vector2(1, 1)
-	_code_display.modulate = Color(1, 1, 1, 1)
+	target_node.scale = Vector2(1, 1)
+	target_node.modulate = Color(1, 1, 1, 1)
 
 func _spawn_success_particles(at_position: Vector2) -> void:
 	"""Spawn sparkle/star particles for correct answer"""
