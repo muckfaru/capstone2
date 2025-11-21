@@ -103,7 +103,7 @@ const POP_PRESETS := {
 }
 
 # Active preset name (change via set_pop_preset)
-var _active_pop_preset: String = "normal"
+var _active_pop_preset: String = "dramatic"
 
 func _ready() -> void:
 	print("[CodeBreakerArena] 🎮 Arena starting (WebSocket Relay Mode)")
