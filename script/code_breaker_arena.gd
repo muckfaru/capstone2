@@ -80,6 +80,31 @@ var _sync_timer: Timer
 var _game_active: bool = false
 var _lobby_server_url: String = ""
 
+# Pop/bubble animation presets for CodeDisplayPanel
+const POP_PRESETS := {
+	"subtle": {
+		"out_duration": 0.09,
+		"in_duration": 0.12,
+		"out_scale": 0.92,
+		"in_overscale": 1.08
+	},
+	"normal": {
+		"out_duration": 0.12,
+		"in_duration": 0.18,
+		"out_scale": 0.85,
+		"in_overscale": 1.15
+	},
+	"dramatic": {
+		"out_duration": 0.18,
+		"in_duration": 0.28,
+		"out_scale": 0.7,
+		"in_overscale": 1.35
+	}
+}
+
+# Active preset name (change via set_pop_preset)
+var _active_pop_preset: String = "normal"
+
 func _ready() -> void:
 	print("[CodeBreakerArena] 🎮 Arena starting (WebSocket Relay Mode)")
 	
@@ -1054,10 +1079,19 @@ func _popin_code_display_with_text(new_text: String) -> void:
 	else:
 		target_node = _code_display
 
+	# Resolve active preset
+	var preset_name = _active_pop_preset if _active_pop_preset in POP_PRESETS else "normal"
+	var preset = POP_PRESETS.get(preset_name, POP_PRESETS["normal"])
+
+	var out_dur = float(preset["out_duration"])
+	var in_dur = float(preset["in_duration"])
+	var out_scale = float(preset["out_scale"])
+	var in_overscale = float(preset["in_overscale"])
+
 	# POP-OUT: shrink and fade the panel
 	var pop_out = create_tween()
-	pop_out.tween_property(target_node, "scale", Vector2(0.85, 0.85), 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-	pop_out.tween_property(target_node, "modulate", Color(1, 1, 1, 0), 0.12)
+	pop_out.tween_property(target_node, "scale", Vector2(out_scale, out_scale), out_dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	pop_out.tween_property(target_node, "modulate", Color(1, 1, 1, 0), out_dur)
 	await pop_out.finished
 
 	# Swap text while invisible
@@ -1065,18 +1099,26 @@ func _popin_code_display_with_text(new_text: String) -> void:
 		_code_display.text = new_text
 
 	# Prepare for pop-in: slightly overscaled and transparent
-	target_node.scale = Vector2(1.15, 1.15)
+	target_node.scale = Vector2(in_overscale, in_overscale)
 	target_node.modulate = Color(1, 1, 1, 0)
 
 	# POP-IN: grow to normal size with ease/back for bubble feel, and fade in
 	var pop_in = create_tween()
-	pop_in.tween_property(target_node, "scale", Vector2(1, 1), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	pop_in.tween_property(target_node, "modulate", Color(1, 1, 1, 1), 0.18)
+	pop_in.tween_property(target_node, "scale", Vector2(1, 1), in_dur).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	pop_in.tween_property(target_node, "modulate", Color(1, 1, 1, 1), in_dur)
 	await pop_in.finished
 
 	# Ensure exact final state
 	target_node.scale = Vector2(1, 1)
 	target_node.modulate = Color(1, 1, 1, 1)
+
+func set_pop_preset(preset_name: String) -> void:
+	"""Set active pop animation preset. Valid: 'subtle', 'normal', 'dramatic'."""
+	if not preset_name in POP_PRESETS:
+		push_error("[Arena] Unknown pop preset: %s" % preset_name)
+		return
+	_active_pop_preset = preset_name
+	print("[Arena] Pop preset set to: %s" % _active_pop_preset)
 
 func _spawn_success_particles(at_position: Vector2) -> void:
 	"""Spawn sparkle/star particles for correct answer"""
