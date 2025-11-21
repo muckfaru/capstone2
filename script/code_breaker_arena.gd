@@ -1081,7 +1081,7 @@ func _popin_code_display_with_text(new_text: String) -> void:
 
 	# Resolve active preset
 	var preset_name = _active_pop_preset if _active_pop_preset in POP_PRESETS else "normal"
-	var preset = POP_PRESETS.get(preset_name, POP_PRESETS["normal"])
+	var preset = POP_PRESETS.get(preset_name, POP_PRESETS["dramatic"])
 
 	var out_dur = float(preset["out_duration"])
 	var in_dur = float(preset["in_duration"])
