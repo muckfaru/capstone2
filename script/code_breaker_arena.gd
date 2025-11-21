@@ -286,7 +286,8 @@ func _receive_snippet_list(snippets: Array) -> void:
 	print("[Arena] 📥 Received snippet list: %d snippets" % _snippet_list.size())
 	
 	if _code_display:
-		_code_display.text = _code_snippet
+		# Use pop-in bubble animation when first showing snippet
+		await _popin_code_display_with_text(_code_snippet)
 		print("[Arena] ✅ First snippet displayed")
 	
 	# Notify host we're ready
@@ -521,7 +522,8 @@ func _sync_snippet_list(snippet_list_raw: Array) -> void:
 	print("[Arena] 📥 Received snippet list: %d snippets" % _snippet_list.size())
 	
 	if _code_display:
-		_code_display.text = _code_snippet
+		# Animate initial display with pop/bubble effect for smoothness
+		await _popin_code_display_with_text(_code_snippet)
 		print("[Arena] ✅ Starting snippet #1 displayed: %s" % _code_snippet)
 	
 	# Client is now ready, wait a bit then notify host (ONLY IF GAME NOT STARTED YET!)
@@ -567,7 +569,8 @@ func _start_typing_game() -> void:
 	
 	# Display code snippet but keep input disabled during countdown
 	if _code_display:
-		_code_display.text = _code_snippet
+		# Animate the initial snippet with a pop/bubble effect
+		await _popin_code_display_with_text(_code_snippet)
 		print("[Arena] 🛡️ Security command displayed: %s" % _code_snippet)
 	
 	if _input_field:
@@ -683,7 +686,8 @@ func _on_input_submitted(submitted_text: String) -> void:
 		# ADVANCE to next snippet in sequential list
 		_advance_to_next_snippet()
 		if _code_display:
-			_code_display.text = _code_snippet
+			# Animate snippet change with pop effect
+			await _popin_code_display_with_text(_code_snippet)
 		
 		# Clear input for next round
 		_input_field.text = ""
@@ -729,7 +733,8 @@ func _on_input_submitted(submitted_text: String) -> void:
 		# ADVANCE to next snippet anyway (both correct & wrong advance!)
 		_advance_to_next_snippet()
 		if _code_display:
-			_code_display.text = _code_snippet
+			# Animate snippet change with pop effect
+			await _popin_code_display_with_text(_code_snippet)
 		
 		# Clear input to try again
 		_input_field.text = ""
@@ -1003,7 +1008,6 @@ func _shake_node(node: Node, intensity: float = 10.0, duration: float = 0.3) -> 
 
 func _shake_screen(intensity: float = 15.0, duration: float = 0.4) -> void:
 	"""Shake the entire screen"""
-	var root = get_tree().root
 	var original_pos = position
 	var shake_count = 10
 	var shake_interval = duration / shake_count
@@ -1034,6 +1038,36 @@ func _bounce_scale(node: Node, scale_multiplier: float = 1.5, duration: float = 
 	
 	# Scale down
 	tween.chain().tween_property(node, "scale", original_scale, halfway).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+
+func _popin_code_display_with_text(new_text: String) -> void:
+	"""Pop-out the current code display, swap text, then pop-in with bubble effect.
+	Awaitable: callers may await this function to sequence actions.
+	"""
+	if not _code_display:
+		return
+
+	# POP-OUT: shrink and fade
+	var pop_out = create_tween()
+	pop_out.tween_property(_code_display, "scale", Vector2(0.85, 0.85), 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	pop_out.tween_property(_code_display, "modulate", Color(1, 1, 1, 0), 0.12)
+	await pop_out.finished
+
+	# Swap text while invisible
+	_code_display.text = new_text
+
+	# Prepare for pop-in: slightly overscaled and transparent
+	_code_display.scale = Vector2(1.15, 1.15)
+	_code_display.modulate = Color(1, 1, 1, 0)
+
+	# POP-IN: grow to normal size with ease/back for bubble feel, and fade in
+	var pop_in = create_tween()
+	pop_in.tween_property(_code_display, "scale", Vector2(1, 1), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	pop_in.tween_property(_code_display, "modulate", Color(1, 1, 1, 1), 0.18)
+	await pop_in.finished
+
+	# Ensure exact final state
+	_code_display.scale = Vector2(1, 1)
+	_code_display.modulate = Color(1, 1, 1, 1)
 
 func _spawn_success_particles(at_position: Vector2) -> void:
 	"""Spawn sparkle/star particles for correct answer"""

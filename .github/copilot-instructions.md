@@ -10,7 +10,7 @@ Firebase Auth ──→ Landing (profile/chat) ──→ Game Lobbies ──→ 
                     ChatManager.gd          (no port fwd!)     (gameplay sync)
 ```
 
-## 🏗️ Architecture: WebSocket Relay (Option B)
+## 🏗️ Architecture: WebSocket Relay
 
 **NO PORT FORWARDING NEEDED** - Both players connect TO server, server relays messages.
 
