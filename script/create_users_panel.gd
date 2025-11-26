@@ -86,7 +86,8 @@ func _create_new_user(username: String) -> void:
 
 		if code == 200 or code == 201:
 			message_label.text = "✅ Profile created successfully!"
-			get_tree().change_scene_to_packed(load("res://scene/landing.tscn"))
+			# Navigate to mode selection instead of landing
+			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 		else:
 			message_label.text = "❌ Failed to create profile (%s)" % code
 			push_warning(text)
