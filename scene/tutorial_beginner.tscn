@@ -1,271 +1,280 @@
-[gd_scene load_steps=12 format=3 uid="uid://bxv8eshosga11"]
+[gd_scene load_steps=9 format=3 uid="uid://bxv8eshosga11"]
 
 [ext_resource type="Script" uid="uid://cyg4ls12ufqw2" path="res://script/tutorial_beginner.gd" id="1_tutorial"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
-sky_top_color = Color(0.0666667, 0.0470588, 0.0980392, 1)
-sky_horizon_color = Color(0.133333, 0.0823529, 0.196078, 1)
-ground_bottom_color = Color(0, 0, 0, 1)
-ground_horizon_color = Color(0.133333, 0.0823529, 0.196078, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window_bg"]
+bg_color = Color(0.753, 0.753, 0.753, 1)
 
-[sub_resource type="Sky" id="Sky_1"]
-sky_material = SubResource("ProceduralSkyMaterial_1")
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title_bar"]
+bg_color = Color(0, 0, 0.502, 1)
 
-[sub_resource type="Environment" id="Environment_1"]
-background_mode = 2
-sky = SubResource("Sky_1")
-ambient_light_source = 3
-ambient_light_color = Color(0.2, 0.15, 0.3, 1)
-tonemap_mode = 2
-glow_enabled = true
-glow_intensity = 1.5
-glow_strength = 1.2
-glow_bloom = 0.3
-
-[sub_resource type="BoxMesh" id="BoxMesh_terminal"]
-size = Vector3(2, 1.5, 0.3)
-
-[sub_resource type="StandardMaterial3D" id="Material_frame"]
-albedo_color = Color(0.2, 0.2, 0.2, 1)
-metallic = 0.8
-roughness = 0.3
-
-[sub_resource type="BoxMesh" id="BoxMesh_screen"]
-size = Vector3(1.8, 1.3, 0.05)
-
-[sub_resource type="StandardMaterial3D" id="Material_screen"]
-albedo_color = Color(0, 0, 0, 1)
-emission_enabled = true
-emission = Color(0.1, 0, 0, 1)
-emission_energy_multiplier = 2.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0, 0, 0, 0.9)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(1, 0, 0, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
-bg_color = Color(0.1, 0, 0, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_content_bg"]
+bg_color = Color(0.753, 0.753, 0.753, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(1, 0, 0, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
+border_color = Color(0, 0, 0, 1)
 
-[node name="TutorialBeginner" type="Node3D"]
-script = ExtResource("1_tutorial")
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_1")
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.753, 0.753, 0.753, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
-fov = 60.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_warning_popup"]
+bg_color = Color(1, 0.8, 0, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.8, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 0.8)
+shadow_size = 20
+shadow_offset = Vector2(8, 8)
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 5, 5)
-light_color = Color(0.8, 0.6, 1, 1)
-light_energy = 0.5
-
-[node name="Terminal" type="Node3D" parent="."]
-
-[node name="Frame" type="MeshInstance3D" parent="Terminal"]
-mesh = SubResource("BoxMesh_terminal")
-surface_material_override/0 = SubResource("Material_frame")
-
-[node name="Screen" type="MeshInstance3D" parent="Terminal"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.15)
-mesh = SubResource("BoxMesh_screen")
-surface_material_override/0 = SubResource("Material_screen")
-
-[node name="ScreenLight" type="OmniLight3D" parent="Terminal/Screen"]
-light_color = Color(1, 0, 0, 1)
-light_energy = 2.0
-omni_range = 3.0
-
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="TerminalUI" type="Control" parent="CanvasLayer"]
+[node name="TutorialBeginner" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_tutorial")
 
-[node name="Panel" type="PanelContainer" parent="CanvasLayer/TerminalUI"]
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.502, 0.502, 0.502, 1)
+
+[node name="WindowDialog" type="PanelContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -400.0
+offset_left = -450.0
 offset_top = -250.0
-offset_right = 400.0
+offset_right = 450.0
 offset_bottom = 250.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+theme_override_styles/panel = SubResource("StyleBoxFlat_window_bg")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/TerminalUI/Panel"]
+[node name="VBox" type="VBoxContainer" parent="WindowDialog"]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 0
 
-[node name="WarningLabel" type="Label" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
+[node name="TitleBar" type="Panel" parent="WindowDialog/VBox"]
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0, 0, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 28
-text = "⚠️ SECURITY BREACH IN PROGRESS ⚠️"
-horizontal_alignment = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_title_bar")
 
-[node name="HackerProgressLabel" type="Label" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 16
-text = "Hacker Intrusion Progress:"
-horizontal_alignment = 1
+[node name="HBox" type="HBoxContainer" parent="WindowDialog/VBox/TitleBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="HackerProgressBar" type="ProgressBar" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(700, 30)
+[node name="TitleLabel" type="Label" parent="WindowDialog/VBox/TitleBar/HBox"]
 layout_mode = 2
-max_value = 30.0
-show_percentage = false
-
-[node name="HSeparator" type="HSeparator" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 20
-theme_override_styles/separator = SubResource("StyleBoxFlat_panel")
-
-[node name="ScenarioLabel" type="Label" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
-layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "  PASSWORD STRENGTH BUILDER"
+vertical_alignment = 1
+
+[node name="MinimizeButton" type="Button" parent="WindowDialog/VBox/TitleBar/HBox"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+disabled = true
+text = "_"
+
+[node name="MaximizeButton" type="Button" parent="WindowDialog/VBox/TitleBar/HBox"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+disabled = true
+text = "□"
+
+[node name="CloseButton" type="Button" parent="WindowDialog/VBox/TitleBar/HBox"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+text = "X"
+
+[node name="ContentPanel" type="Panel" parent="WindowDialog/VBox"]
+custom_minimum_size = Vector2(0, 440)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_content_bg")
+
+[node name="MarginContainer" type="MarginContainer" parent="WindowDialog/VBox/ContentPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="WarningContainer" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="WarningIcon" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/VBox/WarningContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 64
+text = "⚠"
+
+[node name="ScenarioLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/VBox/WarningContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 20
-text = "Your cyber lab account was brute-forced.
-Create a strong replacement password."
-horizontal_alignment = 1
+text = "Your cyber lab account was brute-forced. Create a strong replacement password."
 autowrap_mode = 3
 
-[node name="Spacer1" type="Control" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 20)
+[node name="Spacer1" type="Control" parent="WindowDialog/VBox/ContentPanel/MarginContainer/VBox"]
+custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
-[node name="PasswordLabel" type="Label" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
+[node name="PasswordInput" type="LineEdit" parent="WindowDialog/VBox/ContentPanel/MarginContainer/VBox"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_colors/caret_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
-text = "Enter Password (16+ characters):"
-
-[node name="PasswordInput" type="LineEdit" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(700, 50)
-layout_mode = 2
-theme_override_colors/caret_color = Color(1, 0, 0, 1)
-theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 20
 theme_override_styles/focus = SubResource("StyleBoxFlat_input")
 theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-placeholder_text = "Type your password here..."
 max_length = 50
-caret_blink = true
 
-[node name="StrengthBar" type="ProgressBar" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(700, 30)
+[node name="ProgressBar" type="ProgressBar" parent="WindowDialog/VBox/ContentPanel/MarginContainer/VBox"]
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 max_value = 5.0
 show_percentage = false
 
-[node name="FeedbackLabel" type="Label" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
+[node name="Spacer2" type="Control" parent="WindowDialog/VBox/ContentPanel/MarginContainer/VBox"]
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.7, 0, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 16
-text = "Waiting for input..."
-horizontal_alignment = 1
+size_flags_vertical = 3
 
-[node name="Spacer2" type="Control" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-
-[node name="ButtonContainer" type="HBoxContainer" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 20
-alignment = 1
-
-[node name="BackButton" type="Button" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer/ButtonContainer"]
-custom_minimum_size = Vector2(150, 50)
-layout_mode = 2
-mouse_default_cursor_shape = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 24
-text = "BACK"
-
-[node name="OKButton" type="Button" parent="CanvasLayer/TerminalUI/Panel/VBoxContainer/ButtonContainer"]
-custom_minimum_size = Vector2(150, 50)
-layout_mode = 2
-mouse_default_cursor_shape = 2
-theme_override_colors/font_color = Color(0, 1, 0, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 24
-text = "OK"
-
-[node name="HackerAlert" type="PanelContainer" parent="CanvasLayer"]
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -400.0
-offset_top = 20.0
-offset_right = 400.0
-offset_bottom = 110.0
-grow_horizontal = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/HackerAlert"]
+[node name="ButtonContainer" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="AlertLabel" type="Label" parent="CanvasLayer/HackerAlert/VBox"]
+[node name="BackButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/VBox/ButtonContainer"]
+custom_minimum_size = Vector2(120, 35)
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "BACK"
+
+[node name="NextButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/VBox/ButtonContainer"]
+custom_minimum_size = Vector2(120, 35)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "NEXT"
+
+[node name="TimerLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -100.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 60.0
+grow_horizontal = 0
 theme_override_colors/font_color = Color(1, 0, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 20
-text = "⚠️ SECURITY BREACH DETECTED ⚠️"
-horizontal_alignment = 1
-
-[node name="StatusLabel" type="Label" parent="CanvasLayer/HackerAlert/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
-text = "Hacker attempting to access database..."
-horizontal_alignment = 1
-
-[node name="TimerLabel" type="Label" parent="CanvasLayer/HackerAlert/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 32
 text = "30"
+horizontal_alignment = 2
+
+[node name="DarkOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.8)
+
+[node name="WarningPopup" type="PanelContainer" parent="DarkOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -270.0
+offset_top = -150.0
+offset_right = 270.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_warning_popup")
+
+[node name="VBox" type="VBoxContainer" parent="DarkOverlay/WarningPopup"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="WarningIcon" type="Label" parent="DarkOverlay/WarningPopup/VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 100
+text = "⚠️"
 horizontal_alignment = 1
 
-[connection signal="text_changed" from="CanvasLayer/TerminalUI/Panel/VBoxContainer/PasswordInput" to="." method="_on_password_changed"]
-[connection signal="pressed" from="CanvasLayer/TerminalUI/Panel/VBoxContainer/ButtonContainer/BackButton" to="." method="_on_back_pressed"]
-[connection signal="pressed" from="CanvasLayer/TerminalUI/Panel/VBoxContainer/ButtonContainer/OKButton" to="." method="_on_ok_pressed"]
+[node name="MessageLabel" type="Label" parent="DarkOverlay/WarningPopup/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 32
+text = "YOUR DATA
+HAS BEEN
+OBTAINED"
+horizontal_alignment = 1
+
+[connection signal="pressed" from="WindowDialog/VBox/TitleBar/HBox/CloseButton" to="." method="_on_close_button_pressed"]
+[connection signal="text_changed" from="WindowDialog/VBox/ContentPanel/MarginContainer/VBox/PasswordInput" to="." method="_on_password_changed"]
+[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/VBox/ButtonContainer/BackButton" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/VBox/ButtonContainer/NextButton" to="." method="_on_next_pressed"]
