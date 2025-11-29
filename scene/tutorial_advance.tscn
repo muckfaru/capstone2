@@ -1,0 +1,558 @@
+[gd_scene load_steps=11 format=3 uid="uid://laaqr0scnly1"]
+
+[ext_resource type="Script" uid="uid://d3bxhgekolwpm" path="res://script/tutorial_advance.gd" id="1_script"]
+[ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="2_bg"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+bg_color = Color(0, 0, 0, 0.8)
+border_width_bottom = 3
+border_color = Color(0, 1, 1, 1)
+shadow_color = Color(0, 1, 1, 0.3)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_alert"]
+bg_color = Color(0.2, 0, 0, 0.9)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 0, 0, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+shadow_color = Color(1, 0, 0, 0.6)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_monitor"]
+bg_color = Color(0, 0.05, 0.1, 0.9)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 1, 1, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 1, 1, 0.4)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0, 0.2, 0.2, 0.9)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 1, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 1, 1, 0.5)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_normal"]
+bg_color = Color(0, 0, 0, 0.7)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_feedback"]
+bg_color = Color(0, 0.3, 0, 0.95)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0, 1, 0, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+shadow_color = Color(0, 1, 0, 0.8)
+shadow_size = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_debrief"]
+bg_color = Color(0, 0, 0, 0.95)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(1, 0.843, 0, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(1, 0.843, 0, 0.5)
+shadow_size = 20
+
+[node name="TutorialAdvance" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stream = ExtResource("2_bg")
+autoplay = true
+expand = true
+loop = true
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Header" type="Panel" parent="CanvasLayer"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 80.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="Title" type="Label" parent="CanvasLayer/Header"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.843, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 32
+text = "🦠 MALWARE INCIDENT RESPONSE SIMULATION"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PhaseLabel" type="Label" parent="CanvasLayer/Header"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -15.0
+offset_right = -20.0
+offset_bottom = 15.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 18
+text = "PHASE: DETECTION"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TimerLabel" type="Label" parent="CanvasLayer/Header"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 20.0
+offset_top = -15.0
+offset_right = 150.0
+offset_bottom = 15.0
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "⏱ 00:00"
+vertical_alignment = 1
+
+[node name="AlertPanel" type="Panel" parent="CanvasLayer"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 100.0
+offset_right = 400.0
+offset_bottom = 220.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_alert")
+
+[node name="AlertIcon" type="Label" parent="CanvasLayer/AlertPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -64.0
+offset_top = -44.0
+offset_right = 36.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 48
+text = "⚠️"
+horizontal_alignment = 1
+
+[node name="AlertText" type="Label" parent="CanvasLayer/AlertPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -5.0
+offset_right = 350.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "SECURITY ALERT: Employee John Doe clicked 'invoice.pdf.exe'
+Endpoint Detection: Suspicious process spawned on PC-ACCOUNTING-07"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="SystemMonitor" type="Panel" parent="CanvasLayer"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -550.0
+offset_top = -300.0
+offset_right = 550.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_monitor")
+
+[node name="MonitorTitle" type="Label" parent="CanvasLayer/SystemMonitor"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 40.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "🖥️ SYSTEM MONITOR - PC-ACCOUNTING-07"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ProcessList" type="VBoxContainer" parent="CanvasLayer/SystemMonitor"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -514.0
+offset_top = -121.0
+offset_right = 486.0
+offset_bottom = 116.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="ProcessHeader" type="Label" parent="CanvasLayer/SystemMonitor/ProcessList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "RUNNING PROCESSES:"
+
+[node name="Process1" type="Label" parent="CanvasLayer/SystemMonitor/ProcessList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "✅ explorer.exe          PID: 1234    CPU: 2%    Memory: 45MB"
+
+[node name="Process2" type="Label" parent="CanvasLayer/SystemMonitor/ProcessList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "✅ svchost.exe           PID: 5678    CPU: 1%    Memory: 23MB"
+
+[node name="Process3" type="Label" parent="CanvasLayer/SystemMonitor/ProcessList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "⚠️ invoice.exe           PID: 9012    CPU: 45%   Memory: 120MB"
+
+[node name="Process4" type="Label" parent="CanvasLayer/SystemMonitor/ProcessList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "❌ powershell.exe        PID: 3456    CPU: 78%   Memory: 95MB   [HIDDEN]"
+
+[node name="NetworkHeader" type="Label" parent="CanvasLayer/SystemMonitor/ProcessList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "NETWORK CONNECTIONS:"
+
+[node name="Network1" type="Label" parent="CanvasLayer/SystemMonitor/ProcessList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "✅ 192.168.1.100 → 8.8.8.8:443          [HTTPS - google.com]"
+
+[node name="Network2" type="Label" parent="CanvasLayer/SystemMonitor/ProcessList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "❌ 192.168.1.100 → 45.33.32.156:443     [SUSPICIOUS C2 TRAFFIC]"
+
+[node name="RegistryHeader" type="Label" parent="CanvasLayer/SystemMonitor/ProcessList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "REGISTRY CHANGES:"
+
+[node name="Registry1" type="Label" parent="CanvasLayer/SystemMonitor/ProcessList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "❌ HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\WindowsUpdate"
+
+[node name="ActionButtons" type="HBoxContainer" parent="CanvasLayer"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -500.0
+offset_top = -390.0
+offset_right = 500.0
+offset_bottom = -310.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="Action1" type="Button" parent="CanvasLayer/ActionButtons"]
+custom_minimum_size = Vector2(310, 70)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_button_normal")
+text = "Delete the file immediately"
+text_overrun_behavior = 3
+
+[node name="Action2" type="Button" parent="CanvasLayer/ActionButtons"]
+custom_minimum_size = Vector2(310, 70)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_button_normal")
+text = "Isolate machine from network"
+text_overrun_behavior = 3
+
+[node name="Action3" type="Button" parent="CanvasLayer/ActionButtons"]
+custom_minimum_size = Vector2(310, 70)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_button_normal")
+text = "Restart the computer"
+text_overrun_behavior = 3
+
+[node name="FeedbackPanel" type="Panel" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -100.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_feedback")
+
+[node name="FeedbackIcon" type="Label" parent="CanvasLayer/FeedbackPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -60.0
+offset_right = 40.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 48
+text = "✅"
+horizontal_alignment = 1
+
+[node name="FeedbackText" type="Label" parent="CanvasLayer/FeedbackPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -10.0
+offset_right = 250.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 16
+text = "Correct! Isolating prevents lateral movement."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="DebriefScreen" type="Panel" parent="CanvasLayer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_debrief")
+
+[node name="DebriefContent" type="VBoxContainer" parent="CanvasLayer/DebriefScreen"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -250.0
+offset_right = 400.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="DebriefTitle" type="Label" parent="CanvasLayer/DebriefScreen/DebriefContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 32
+text = "🎯 MISSION COMPLETE"
+horizontal_alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="CanvasLayer/DebriefScreen/DebriefContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 24
+text = "SCORE: 850/1000"
+horizontal_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="CanvasLayer/DebriefScreen/DebriefContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 18
+text = "⏱ Time: 2:45"
+horizontal_alignment = 1
+
+[node name="Summary" type="Label" parent="CanvasLayer/DebriefScreen/DebriefContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "📊 INCIDENT SUMMARY:
+• Trojan detected and isolated
+• C2 communication blocked
+• Persistence mechanisms removed
+• System restored successfully"
+autowrap_mode = 3
+
+[node name="Education" type="Label" parent="CanvasLayer/DebriefScreen/DebriefContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "💡 WHAT YOU LEARNED:
+• Trojan behavior: Persistence, C2 communication, data exfiltration
+• Incident response phases: Detect → Contain → Eradicate → Recover
+• Critical first step: Network isolation prevents lateral movement"
+autowrap_mode = 3
+
+[node name="ButtonContainer" type="HBoxContainer" parent="CanvasLayer/DebriefScreen/DebriefContent"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="RetryButton" type="Button" parent="CanvasLayer/DebriefScreen/DebriefContent/ButtonContainer"]
+custom_minimum_size = Vector2(180, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843, 0, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 18
+text = "🔄 RETRY"
+
+[node name="NextButton" type="Button" parent="CanvasLayer/DebriefScreen/DebriefContent/ButtonContainer"]
+custom_minimum_size = Vector2(180, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 18
+text = "➡️ NEXT SCENARIO"
+
+[node name="BackButton" type="Button" parent="CanvasLayer/DebriefScreen/DebriefContent/ButtonContainer"]
+custom_minimum_size = Vector2(180, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 18
+text = "🏠 BACK TO MENU"
+
+[connection signal="pressed" from="CanvasLayer/ActionButtons/Action1" to="." method="_on_action_selected" binds= [0]]
+[connection signal="pressed" from="CanvasLayer/ActionButtons/Action2" to="." method="_on_action_selected" binds= [1]]
+[connection signal="pressed" from="CanvasLayer/ActionButtons/Action3" to="." method="_on_action_selected" binds= [2]]
+[connection signal="pressed" from="CanvasLayer/DebriefScreen/DebriefContent/ButtonContainer/RetryButton" to="." method="_on_retry_pressed"]
+[connection signal="pressed" from="CanvasLayer/DebriefScreen/DebriefContent/ButtonContainer/NextButton" to="." method="_on_next_pressed"]
+[connection signal="pressed" from="CanvasLayer/DebriefScreen/DebriefContent/ButtonContainer/BackButton" to="." method="_on_back_pressed"]

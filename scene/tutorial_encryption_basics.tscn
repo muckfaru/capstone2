@@ -1,0 +1,221 @@
+[gd_scene load_steps=4 format=3 uid="uid://cg0qoeigupgpd"]
+
+[ext_resource type="Script" uid="uid://bj1w0w0eker74" path="res://script/tutorial_encryption_basics.gd" id="1_encryption"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window_bg"]
+bg_color = Color(0.753, 0.753, 0.753, 1)
+
+[node name="TutorialEncryptionBasics" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_encryption")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.502, 0.502, 0.502, 1)
+
+[node name="WindowDialog" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 50.0
+offset_top = 30.0
+offset_right = -50.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_window_bg")
+
+[node name="VBox" type="VBoxContainer" parent="WindowDialog"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="TitleBar" type="PanelContainer" parent="WindowDialog/VBox"]
+custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="WindowDialog/VBox/TitleBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="SectionLabel" type="Label" parent="WindowDialog/VBox/TitleBar/MarginContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "ENCRYPTION BASICS"
+vertical_alignment = 1
+
+[node name="ContentPanel" type="PanelContainer" parent="WindowDialog/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="WindowDialog/VBox/ContentPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="MainVBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="ContentScroll" type="ScrollContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ContentLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Content text here..."
+autowrap_mode = 3
+
+[node name="DemoPanel" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+visible = false
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="InputHBox" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="InputLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/InputHBox"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Plaintext:"
+
+[node name="PlaintextInput" type="LineEdit" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/InputHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "HELLO WORLD"
+
+[node name="KeyHBox" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="KeyLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Shift Key:"
+
+[node name="KeyInput" type="SpinBox" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox"]
+layout_mode = 2
+max_value = 25.0
+value = 3.0
+
+[node name="EncryptButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox"]
+custom_minimum_size = Vector2(120, 35)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "ENCRYPT"
+
+[node name="ResultLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.6, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "Encrypted: KHOOR ZRUOG"
+
+[node name="ChallengePanel" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+visible = false
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ChallengeLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.4, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "🔐 Encrypted Message: WKLV LV VHFUHW"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Hint: Key = 3"
+horizontal_alignment = 1
+
+[node name="InputHBox" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="AnswerInput" type="LineEdit" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox"]
+custom_minimum_size = Vector2(300, 35)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+placeholder_text = "Type decrypted message..."
+
+[node name="SubmitButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox"]
+custom_minimum_size = Vector2(100, 35)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "SUBMIT"
+
+[node name="ButtonContainer" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="BackButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer"]
+custom_minimum_size = Vector2(120, 35)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "BACK"
+
+[node name="NextButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer"]
+custom_minimum_size = Vector2(120, 35)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "NEXT"
+
+[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox/EncryptButton" to="." method="_on_encrypt_pressed"]
+[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox/SubmitButton" to="." method="_on_submit_pressed"]
+[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton" to="." method="_on_next_pressed"]

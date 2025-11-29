@@ -16,10 +16,10 @@ func _ready() -> void:
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(1, 0, 0, 1)  # Red
 	# Set corner radius to half the size to make it a perfect circle
-	style.corner_radius_top_left = dot_size / 2
-	style.corner_radius_top_right = dot_size / 2
-	style.corner_radius_bottom_left = dot_size / 2
-	style.corner_radius_bottom_right = dot_size / 2
+	style.corner_radius_top_left = dot_size / 2.0
+	style.corner_radius_top_right = dot_size / 2.0
+	style.corner_radius_bottom_left = dot_size / 2.0
+	style.corner_radius_bottom_right = dot_size / 2.0
 	_badge_bg.add_theme_stylebox_override("panel", style)
 	add_child(_badge_bg)
 	

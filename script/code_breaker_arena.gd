@@ -46,7 +46,7 @@ var _player_id: String = ""
 var _host_username: String = "Player 1"
 var _client_username: String = "Player 2"
 var _game_start_time: float = 0.0
-var _peer_id: int = 1
+# var _peer_id: int = 1  # Unused - relay handles peer IDs
 
 # Typing challenge - SEQUENTIAL RACE MODE
 var _snippet_list: Array[String] = []  # Shuffled list of snippets

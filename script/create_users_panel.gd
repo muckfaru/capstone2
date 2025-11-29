@@ -33,7 +33,7 @@ func _on_save_pressed() -> void:
 	var req := HTTPRequest.new()
 	add_child(req)
 
-	req.request_completed.connect(func(_r, code, _h, body):
+	req.request_completed.connect(func(_r, code, _h, _body):
 		req.queue_free()
 
 		if code == 200:
@@ -78,10 +78,10 @@ func _create_new_user(username: String) -> void:
 	var http := HTTPRequest.new()
 	add_child(http)
 
-	http.request_completed.connect(func(_r, code, _h, body):
+	http.request_completed.connect(func(_r, code, _h, _response_body):
 		http.queue_free()
 
-		var text: String = body.get_string_from_utf8()
+		var text: String = _response_body.get_string_from_utf8()
 		print("Firestore Response:", code, text)
 
 		if code == 200 or code == 201:

@@ -168,7 +168,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_beginner_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_beginner")
 text = "🔰 BEGINNER"
 
-[node name="AdvanceButton" type="Button" parent="CanvasLayer/ButtonContainer"]
+[node name="IntermediateButton" type="Button" parent="CanvasLayer/ButtonContainer"]
 custom_minimum_size = Vector2(500, 80)
 layout_mode = 2
 mouse_default_cursor_shape = 2
@@ -178,9 +178,9 @@ theme_override_font_sizes/font_size = 32
 theme_override_styles/hover = SubResource("StyleBoxFlat_advance_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_advance_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_advance")
-text = "⚔️ ADVANCE"
+text = "💀 INTERMEDIATE"
 
-[node name="IntermediateButton" type="Button" parent="CanvasLayer/ButtonContainer"]
+[node name="AdvancedButton" type="Button" parent="CanvasLayer/ButtonContainer"]
 custom_minimum_size = Vector2(500, 80)
 layout_mode = 2
 mouse_default_cursor_shape = 2
@@ -190,6 +190,12 @@ theme_override_font_sizes/font_size = 32
 theme_override_styles/hover = SubResource("StyleBoxFlat_intermediate_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_intermediate_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_intermediate")
-text = "💀 INTERMEDIATE"
+text = "⚔️ ADVANCED"
 
 [connection signal="pressed" from="CanvasLayer/MenuButton" to="." method="_on_menu_pressed"]
+[connection signal="mouse_entered" from="CanvasLayer/ButtonContainer/BeginnerButton" to="." method="_on_button_hover" binds= ["beginner"]]
+[connection signal="pressed" from="CanvasLayer/ButtonContainer/BeginnerButton" to="." method="_on_level_selected" binds= ["beginner"]]
+[connection signal="mouse_entered" from="CanvasLayer/ButtonContainer/IntermediateButton" to="." method="_on_button_hover" binds= ["intermediate"]]
+[connection signal="pressed" from="CanvasLayer/ButtonContainer/IntermediateButton" to="." method="_on_level_selected" binds= ["intermediate"]]
+[connection signal="mouse_entered" from="CanvasLayer/ButtonContainer/AdvancedButton" to="." method="_on_button_hover" binds= ["advanced"]]
+[connection signal="pressed" from="CanvasLayer/ButtonContainer/AdvancedButton" to="." method="_on_level_selected" binds= ["advanced"]]

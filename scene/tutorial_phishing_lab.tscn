@@ -1,0 +1,252 @@
+[gd_scene load_steps=4 format=3 uid="uid://dyd8hd3q8mt34"]
+
+[ext_resource type="Script" uid="uid://ctd4jx5deh0ia" path="res://script/tutorial_phishing_lab.gd" id="1_phishing"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window_bg"]
+bg_color = Color(0.753, 0.753, 0.753, 1)
+
+[node name="TutorialPhishingLab" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_phishing")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.502, 0.502, 0.502, 1)
+
+[node name="WindowDialog" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 50.0
+offset_top = 30.0
+offset_right = -50.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_window_bg")
+
+[node name="VBox" type="VBoxContainer" parent="WindowDialog"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="TitleBar" type="PanelContainer" parent="WindowDialog/VBox"]
+custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="WindowDialog/VBox/TitleBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="HBox" type="HBoxContainer" parent="WindowDialog/VBox/TitleBar/MarginContainer"]
+layout_mode = 2
+
+[node name="SectionLabel" type="Label" parent="WindowDialog/VBox/TitleBar/MarginContainer/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "PHISHING IDENTIFICATION LAB"
+vertical_alignment = 1
+
+[node name="TimerLabel" type="Label" parent="WindowDialog/VBox/TitleBar/MarginContainer/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "90s"
+
+[node name="ContentPanel" type="PanelContainer" parent="WindowDialog/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="WindowDialog/VBox/ContentPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="MainVBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="IntroLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Read each email carefully and decide if it's SAFE or PHISHING"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="EmailPanel" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/EmailPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="EmailContent" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/EmailPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FromLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/EmailPanel/MarginContainer/EmailContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "From: support@paypa1.com"
+
+[node name="SubjectLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/EmailPanel/MarginContainer/EmailContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Subject: Urgent Account Verification"
+
+[node name="HSeparator" type="HSeparator" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/EmailPanel/MarginContainer/EmailContent"]
+layout_mode = 2
+
+[node name="BodyScroll" type="ScrollContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/EmailPanel/MarginContainer/EmailContent"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BodyLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/EmailPanel/MarginContainer/EmailContent/BodyScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Email body text here..."
+autowrap_mode = 3
+
+[node name="ButtonContainer" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="SafeButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer"]
+custom_minimum_size = Vector2(150, 45)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0.6, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "✓ SAFE"
+
+[node name="PhishingButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer"]
+custom_minimum_size = Vector2(150, 45)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.8, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "⚠ PHISHING"
+
+[node name="ProgressLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Email 1/8 | Score: 0"
+horizontal_alignment = 1
+
+[node name="BottomButtons" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="BackButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/BottomButtons"]
+custom_minimum_size = Vector2(120, 35)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "BACK"
+
+[node name="DarkOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.8)
+
+[node name="FeedbackPopup" type="PanelContainer" parent="DarkOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -150.0
+offset_right = 250.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="DarkOverlay/FeedbackPopup"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="IconLabel" type="Label" parent="DarkOverlay/FeedbackPopup/VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 60
+text = "✓"
+horizontal_alignment = 1
+
+[node name="MessageLabel" type="Label" parent="DarkOverlay/FeedbackPopup/VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "Correct!"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="RedFlagsLabel" type="Label" parent="DarkOverlay/FeedbackPopup/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Red Flags:"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="OKButton" type="Button" parent="DarkOverlay/FeedbackPopup/VBox"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "OK"
+
+[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/SafeButton" to="." method="_on_safe_pressed"]
+[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/PhishingButton" to="." method="_on_phishing_pressed"]
+[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/BottomButtons/BackButton" to="." method="_on_back_pressed"]

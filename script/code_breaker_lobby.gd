@@ -476,14 +476,14 @@ func _ping_server_to_wake() -> void:
 	ping_http.timeout = 60.0  # Long timeout for wake-up
 	add_child(ping_http)
 	
-	var ping_completed := false
+	var ping_state := {"completed": false}  # Use dictionary to avoid capture reassignment
 	
 	ping_http.request_completed.connect(func(_r: int, code: int, _h: PackedStringArray, _body: PackedByteArray):
 		if code == 200:
 			print("[CodeBreakerLobby] ✅ Server is awake!")
 		else:
 			print("[CodeBreakerLobby] ⚠️ Ping returned code: %d (server might still be waking up)" % code)
-		ping_completed = true
+		ping_state["completed"] = true
 		ping_http.queue_free()
 	)
 	
@@ -494,7 +494,7 @@ func _ping_server_to_wake() -> void:
 	
 	# Wait for response (max 60 seconds)
 	var wait_time := 0.0
-	while not ping_completed and wait_time < 5.0:
+	while not ping_state["completed"] and wait_time < 5.0:
 		await get_tree().create_timer(0.5).timeout
 		wait_time += 0.5
 		
@@ -503,7 +503,7 @@ func _ping_server_to_wake() -> void:
 			var remaining := int(5.0 - wait_time)
 			create_btn.text = "Creating Room... (%ds)" % remaining
 	
-	if not ping_completed:
+	if not ping_state["completed"]:
 		print("[CodeBreakerLobby] ⚠️ Ping timeout, but continuing anyway...")
 		if is_instance_valid(ping_http):
 			ping_http.queue_free()

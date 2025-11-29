@@ -6,7 +6,7 @@ signal unread_count_changed(user_id: String, count: int)
 
 var current_user_id: String = ""
 var current_chat_user_id: String = ""
-var _initialized := true
+# var _initialized := true  # Unused
 var _listening := false
 var _listen_timer: Timer
 var _last_received_keys: Dictionary = {}

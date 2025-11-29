@@ -1,0 +1,364 @@
+<mxfile host="app.diagrams.net" modified="2025-11-29T00:00:00.000Z" agent="Capstone2 System" version="22.1.0" etag="system-architecture" type="device">
+  <diagram name="Complete System Flow" id="complete-flow">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="1654" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Authentication Layer -->
+        <mxCell id="start" value="User Opens App" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff6b6b;strokeColor=#c92a2a;fontColor=#ffffff;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="480" y="40" width="160" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="auth-check" value="Authenticated?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#a29bfe;strokeColor=#6c5ce7;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="495" y="120" width="130" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="login" value="Login/Signup&#xa;Screen" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ff6b6b;strokeColor=#c92a2a;fontColor=#ffffff;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="280" y="130" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="firebase-auth" value="Firebase&#xa;Authentication" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ff6b6b;strokeColor=#c92a2a;fontColor=#ffffff;fontSize=12" vertex="1" parent="1">
+          <mxGeometry x="280" y="230" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="landing" value="Landing Hub Scene&#xa;Social Platform" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4ecdc4;strokeColor=#0d9488;fontColor=#ffffff;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="495" y="250" width="130" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Social Features -->
+        <mxCell id="profile" value="User Profile&#xa;Avatar/Level/Stats" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4ecdc4;strokeColor=#0d9488;fontColor=#ffffff;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="680" y="180" width="120" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="friends" value="Friend List" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4ecdc4;strokeColor=#0d9488;fontColor=#ffffff;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="680" y="245" width="120" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="chat" value="Real-time Chat&#xa;2s/5s polling" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4ecdc4;strokeColor=#0d9488;fontColor=#ffffff;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="680" y="300" width="120" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="game-select" value="Game Selection&#xa;Panel" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4ecdc4;strokeColor=#0d9488;fontColor=#ffffff;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="500" y="360" width="120" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Code Breaker Flow -->
+        <mxCell id="cb-lobby" value="Code Breaker&#xa;Lobby&#xa;5s polling" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#95e1d3;strokeColor=#0d9488;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="360" y="460" width="110" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cb-room" value="Code Breaker&#xa;Room&#xa;2s polling" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f9ca24;strokeColor=#f0932b;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="360" y="570" width="110" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cb-loading" value="Code Breaker&#xa;Loading Screen&#xa;Progress Sync" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#6c5ce7;strokeColor=#5f27cd;fontColor=#ffffff;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="360" y="680" width="110" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="cb-arena" value="Code Breaker&#xa;Arena&#xa;1v1 Combat" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eb4d4b;strokeColor=#c23616;fontColor=#ffffff;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="360" y="800" width="110" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- WebSocket Relay -->
+        <mxCell id="relay-server" value="WebSocket Relay&#xa;Render.com Server&#xa;No Port Forwarding!" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6c5ce7;strokeColor=#5f27cd;fontColor=#ffffff;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="600" y="650" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Akashic TCG -->
+        <mxCell id="tcg" value="Akashic TCG&#xa;(In Progress)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#95e1d3;strokeColor=#0d9488;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="650" y="460" width="110" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows -->
+        <mxCell id="arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="start" target="auth-check">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#333333;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="auth-check" target="login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow2-label" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontStyle=1" vertex="1" connectable="0" parent="arrow2">
+          <mxGeometry x="-0.2" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#333333;labelBackgroundColor=#ffffff;fontSize=11;" edge="1" parent="1" source="auth-check" target="landing">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3-label" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontStyle=1" vertex="1" connectable="0" parent="arrow3">
+          <mxGeometry x="-0.2" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#333333;dashed=1;" edge="1" parent="1" source="landing" target="profile">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="660" y="280" />
+              <mxPoint x="660" y="205" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#333333;dashed=1;" edge="1" parent="1" source="landing" target="friends">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="660" y="280" />
+              <mxPoint x="660" y="265" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#333333;dashed=1;" edge="1" parent="1" source="landing" target="chat">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="660" y="280" />
+              <mxPoint x="660" y="325" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="landing" target="game-select">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#333333;" edge="1" parent="1" source="game-select" target="cb-lobby">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#333333;dashed=1;" edge="1" parent="1" source="game-select" target="tcg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#f0932b;" edge="1" parent="1" source="cb-lobby" target="cb-room">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#5f27cd;" edge="1" parent="1" source="cb-room" target="cb-loading">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#c23616;" edge="1" parent="1" source="cb-loading" target="cb-arena">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="arrow13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#6c5ce7;dashed=1;" edge="1" parent="1" source="relay-server" target="cb-room">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="550" y="690" />
+              <mxPoint x="550" y="600" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow13-label" value="WebSocket&#xa;Connection" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=1;labelBackgroundColor=#ffffff" vertex="1" connectable="0" parent="arrow13">
+          <mxGeometry x="-0.2" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#6c5ce7;dashed=1;" edge="1" parent="1" source="relay-server" target="cb-arena">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="550" y="710" />
+              <mxPoint x="550" y="835" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow14-label" value="Gameplay&#xa;Messages" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontStyle=1;labelBackgroundColor=#ffffff" vertex="1" connectable="0" parent="arrow14">
+          <mxGeometry x="-0.2" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend-box" value="LEGEND" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=14;fontStyle=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="820" y="460" width="220" height="200" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend1" value="Authentication" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ff6b6b;strokeColor=#c92a2a;fontColor=#ffffff;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="840" y="495" width="100" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend2" value="Social Features" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#4ecdc4;strokeColor=#0d9488;fontColor=#ffffff;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="840" y="530" width="100" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend3" value="Lobby" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#95e1d3;strokeColor=#0d9488;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="840" y="565" width="100" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend4" value="Room" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f9ca24;strokeColor=#f0932b;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="840" y="600" width="100" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend5" value="WebSocket Relay" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#6c5ce7;strokeColor=#5f27cd;fontColor=#ffffff;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="960" y="495" width="100" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend6" value="Arena (Combat)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eb4d4b;strokeColor=#c23616;fontColor=#ffffff;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="960" y="530" width="100" height="25" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="legend7" value="Decision Point" style="rhombus;whiteSpace=wrap;html=1;fillColor=#a29bfe;strokeColor=#6c5ce7;fontSize=11" vertex="1" parent="1">
+          <mxGeometry x="960" y="560" width="100" height="60" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+  
+  <diagram name="WebSocket Relay Architecture" id="relay-architecture">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="WebSocket Relay Architecture - Cross-Network Multiplayer" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="240" y="20" width="690" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Players -->
+        <mxCell id="pc" value="PC (Host)&#xa;mark2&#xa;Home WiFi&#xa;192.168.1.100" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ff6b6b;strokeColor=#c92a2a;fontColor=#ffffff;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="80" y="200" width="140" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="laptop" value="Laptop (Client)&#xa;Mark123456&#xa;Starbucks WiFi&#xa;10.0.0.55" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4ecdc4;strokeColor=#0d9488;fontColor=#ffffff;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="80" y="400" width="140" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="phone" value="Phone&#xa;Player3&#xa;Mobile Data&#xa;4G LTE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#95e1d3;strokeColor=#0d9488;fontSize=12;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="80" y="600" width="140" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Render.com Server -->
+        <mxCell id="server-box" value="Render.com Cloud Server&#xa;codebreaker-lobby.onrender.com" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#666666;fontSize=14;fontStyle=1;align=center;verticalAlign=top;spacingTop=10" vertex="1" parent="1">
+          <mxGeometry x="400" y="150" width="600" height="450" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="rest-api" value="REST API&#xa;Express.js&#xa;&#xa;POST /api/rooms/create&#xa;GET /api/rooms/list&#xa;POST /api/rooms/:id/join&#xa;POST /api/rooms/:id/leave&#xa;POST /api/rooms/:id/heartbeat" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#48c774;strokeColor=#23d160;fontColor=#ffffff;fontSize=11;align=left;spacingLeft=10" vertex="1" parent="1">
+          <mxGeometry x="450" y="200" width="220" height="150" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="websocket" value="WebSocket Relay&#xa;express-ws&#xa;&#xa;WS /ws/relay/:room_id&#xa;&#xa;• Real-time gameplay&#xa;• Max 2 players/room&#xa;• Auto-cleanup on disconnect" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3273dc;strokeColor=#2366d1;fontColor=#ffffff;fontSize=11;align=left;spacingLeft=10" vertex="1" parent="1">
+          <mxGeometry x="730" y="200" width="220" height="150" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="memory" value="In-Memory Storage&#xa;&#xa;rooms Map:&#xa;room_id → {&#xa;  host: {...},&#xa;  client: {...},&#xa;  status,&#xa;  created_at,&#xa;  last_heartbeat&#xa;}" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffdd57;strokeColor=#ffd324;fontSize=11;align=left;spacingLeft=10" vertex="1" parent="1">
+          <mxGeometry x="550" y="420" width="300" height="150" as="geometry" />
+        </mxCell>
+        
+        <!-- Connections -->
+        <mxCell id="conn1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#48c774;" edge="1" parent="1" source="pc" target="rest-api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn1-label" value="POST /api/rooms/create" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;labelBackgroundColor=#ffffff;fontStyle=1" vertex="1" connectable="0" parent="conn1">
+          <mxGeometry x="-0.1" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="conn2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#48c774;dashed=1;" edge="1" parent="1" source="rest-api" target="pc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn2-label" value="room_id: abc123" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;labelBackgroundColor=#ffffff;fontStyle=1" vertex="1" connectable="0" parent="conn2">
+          <mxGeometry x="-0.1" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="conn3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#48c774;" edge="1" parent="1" source="laptop" target="rest-api">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="320" y="425" />
+              <mxPoint x="320" y="275" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn3-label" value="GET /api/rooms/list" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;labelBackgroundColor=#ffffff;fontStyle=1" vertex="1" connectable="0" parent="conn3">
+          <mxGeometry x="-0.1" y="2" relative="1" as="geometry">
+            <mxPoint y="-10" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="conn4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#3273dc;" edge="1" parent="1" source="pc" target="websocket">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="250" />
+              <mxPoint x="280" y="110" />
+              <mxPoint x="710" y="110" />
+              <mxPoint x="710" y="238" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn4-label" value="WS /ws/relay/abc123&#xa;(Gameplay)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;labelBackgroundColor=#ffffff;fontStyle=1" vertex="1" connectable="0" parent="conn4">
+          <mxGeometry x="-0.1" y="2" relative="1" as="geometry">
+            <mxPoint x="120" y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="conn5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#3273dc;" edge="1" parent="1" source="laptop" target="websocket">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="340" y="450" />
+              <mxPoint x="340" y="680" />
+              <mxPoint x="710" y="680" />
+              <mxPoint x="710" y="313" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="conn5-label" value="WS /ws/relay/abc123&#xa;(Gameplay)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;labelBackgroundColor=#ffffff;fontStyle=1" vertex="1" connectable="0" parent="conn5">
+          <mxGeometry x="-0.1" y="2" relative="1" as="geometry">
+            <mxPoint x="120" y="5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="conn6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;strokeColor=#666666;dashed=1;" edge="1" parent="1" source="rest-api" target="memory">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="conn7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;strokeColor=#666666;dashed=1;" edge="1" parent="1" source="websocket" target="memory">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="840" y="380" />
+              <mxPoint x="700" y="380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Cross icon for blocked P2P -->
+        <mxCell id="blocked" value="❌ BLOCKED&#xa;by NAT/Firewall&#xa;in Direct P2P" style="text;html=1;strokeColor=#ff4757;fillColor=#ffe6e6;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="260" y="640" width="120" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="blocked-arrow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeWidth=4;strokeColor=#ff4757;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="phone" target="laptop">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="150" y="550" />
+              <mxPoint x="150" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Success icon for relay -->
+        <mxCell id="success" value="✅ WORKS&#xa;via Relay&#xa;No Configuration!" style="text;html=1;strokeColor=#48c774;fillColor=#e6ffe6;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=11;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="250" y="600" width="130" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="success-arrow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=3;strokeColor=#48c774;" edge="1" parent="1" source="phone" target="websocket">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="675" />
+              <mxPoint x="360" y="720" />
+              <mxPoint x="710" y="720" />
+              <mxPoint x="710" y="275" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

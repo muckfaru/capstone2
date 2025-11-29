@@ -21,6 +21,7 @@ Auth="*res://scene/auth.tscn"
 ChatManager="*res://script/ChatManager.gd"
 MultiplayerConfig="*res://script/MultiplayerConfig.gd"
 ForceNetworkMode="*res://script/ForceNetworkMode.gd"
+TutorialManager="*res://script/TutorialManager.gd"
 
 [display]
 

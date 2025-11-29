@@ -7,7 +7,7 @@ Used for Option A: Pure Direct P2P Architecture
 """
 
 signal public_ip_detected(ip: String)
-signal public_ip_failed(error: String)
+# signal public_ip_failed(error: String)  # Reserved for future error handling
 signal port_check_complete(is_open: bool)
 signal upnp_completed(success: bool, message: String)
 

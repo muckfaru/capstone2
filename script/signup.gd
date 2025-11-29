@@ -243,7 +243,7 @@ func _check_firestore_username_and_route():
 
 	var http := HTTPRequest.new()
 	add_child(http)
-	http.request_completed.connect(func(result, response_code, headers_r, body_r, req=http):
+	http.request_completed.connect(func(_result, response_code, _headers_r, body_r, req=http):
 		req.queue_free()
 		var text = body_r.get_string_from_utf8()
 		print("Firestore check: ", response_code, " | ", text)

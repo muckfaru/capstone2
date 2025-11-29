@@ -37,7 +37,7 @@ func _ready():
 	
 	# Wait longer for ChatManager to initialize
 	await get_tree().create_timer(3.0).timeout
-	if ChatManager and ChatManager._initialized:
+	if ChatManager:
 		ChatManager.set_current_user(Auth.current_username)
 		print("[FriendList] ChatManager initialized, user set")
 	else:
@@ -194,7 +194,7 @@ func _update_friend_ui(friends: Array) -> void:
 		child.queue_free()
 	friend_label_map.clear()
 
-	for name in friends:
+	for friend_name in friends:
 		var hbox = HBoxContainer.new()
 		hbox.add_theme_constant_override("separation", 2)
 		hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -205,7 +205,7 @@ func _update_friend_ui(friends: Array) -> void:
 		icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		icon_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_set_presence_label(icon_lbl, name, "offline")
+		_set_presence_label(icon_lbl, friend_name, "offline")
 
 		var icon_wrap := MarginContainer.new()
 		icon_wrap.add_theme_constant_override("margin_top", PRESENCE_ICON_TOP_OFFSET)
@@ -216,7 +216,7 @@ func _update_friend_ui(friends: Array) -> void:
 
 		# Username label (centered vertically like buttons)
 		var name_lbl := Label.new()
-		name_lbl.text = name
+		name_lbl.text = friend_name
 		name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -232,8 +232,7 @@ func _update_friend_ui(friends: Array) -> void:
 		view_profile_btn.add_theme_stylebox_override("hover", transparent_button_style)
 		view_profile_btn.add_theme_stylebox_override("pressed", transparent_button_style)
 		view_profile_btn.add_theme_stylebox_override("focus", transparent_button_style)
-		# Capture name in closure
-		var friend_name: String = name
+		# Use friend_name directly from loop
 		view_profile_btn.pressed.connect(func():
 			_on_view_profile_button_pressed(friend_name)
 		)
@@ -248,19 +247,17 @@ func _update_friend_ui(friends: Array) -> void:
 		chat_btn.add_theme_stylebox_override("hover", transparent_button_style)
 		chat_btn.add_theme_stylebox_override("pressed", transparent_button_style)
 		chat_btn.add_theme_stylebox_override("focus", transparent_button_style)
-		# Capture name in closure
-		var chat_friend_name: String = name
+		# Use friend_name directly from loop
 		chat_btn.pressed.connect(func():
-			_on_chat_button_pressed(chat_friend_name)
+			_on_chat_button_pressed(friend_name)
 		)
 		hbox.add_child(chat_btn)
 		
 		# Defer badge creation to next frame (don't block rendering)
 		if is_instance_valid(ChatManager):
 			var chat_btn_ref = chat_btn
-			var friend_name_ref = name
 			await get_tree().process_frame
-			_create_badge_for_chat_button(chat_btn_ref, friend_name_ref)
+			_create_badge_for_chat_button(chat_btn_ref, friend_name)
 
 		var unfriend_btn = Button.new()
 		unfriend_btn.text = "❌"
@@ -270,17 +267,16 @@ func _update_friend_ui(friends: Array) -> void:
 		unfriend_btn.add_theme_stylebox_override("hover", transparent_button_style)
 		unfriend_btn.add_theme_stylebox_override("pressed", transparent_button_style)
 		unfriend_btn.add_theme_stylebox_override("focus", transparent_button_style)
-		# Capture name in closure
-		var unfriend_name: String = name
+		# Use friend_name directly from loop
 		unfriend_btn.pressed.connect(func():
-			unfriend_user(unfriend_name)
+			unfriend_user(friend_name)
 			hbox.queue_free()
 		)
 		hbox.add_child(unfriend_btn)
 
 		# Store the ICON label for presence updates
-		friend_label_map[name] = icon_lbl
-		_start_presence_check(name, icon_lbl)
+		friend_label_map[friend_name] = icon_lbl
+		_start_presence_check(friend_name, icon_lbl)
 
 		hbox.modulate.a = 0
 		friend_container.add_child(hbox)
@@ -744,9 +740,9 @@ func _on_chat_button_pressed(friend_username: String) -> void:
 	# If same friend, toggle close
 	if currently_open_chat == friend_username:
 		print("[FriendList] Closing chat with: ", friend_username)
-		var chat_panel = get_tree().root.find_child("ChatPanel", true, false)
-		if chat_panel:
-			chat_panel.visible = false
+		var open_chat_panel = get_tree().root.find_child("ChatPanel", true, false)
+		if open_chat_panel:
+			open_chat_panel.visible = false
 		currently_open_chat = ""
 		return
 	

@@ -1,8 +1,8 @@
 extends Control
 
 @onready var beginner_btn: Button = $CanvasLayer/ButtonContainer/BeginnerButton
-@onready var advance_btn: Button = $CanvasLayer/ButtonContainer/AdvanceButton
 @onready var intermediate_btn: Button = $CanvasLayer/ButtonContainer/IntermediateButton
+@onready var advanced_btn: Button = $CanvasLayer/ButtonContainer/AdvancedButton
 
 const PROJECT_ID := "capstone-823dc"
 const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents" % PROJECT_ID
@@ -24,8 +24,8 @@ func _on_button_hover(level: String) -> void:
 	var btn: Button
 	match level:
 		"beginner": btn = beginner_btn
-		"advance": btn = advance_btn
 		"intermediate": btn = intermediate_btn
+		"advanced": btn = advanced_btn
 		_: return
 	
 	# Bounce scale animation
@@ -44,8 +44,8 @@ func _on_level_selected(level: String) -> void:
 	var btn: Button
 	match level:
 		"beginner": btn = beginner_btn
-		"advance": btn = advance_btn
 		"intermediate": btn = intermediate_btn
+		"advanced": btn = advanced_btn
 		_: return
 	
 	# Click animation (press down → bounce back)
@@ -57,33 +57,79 @@ func _on_level_selected(level: String) -> void:
 	
 	await tween.finished
 	
-	# Save level to Firestore + navigate to tutorial
-	_save_level_and_navigate(level)
+	# Show tutorial selection menu for this level
+	_show_tutorial_menu(level)
+
+
+# -------------------------
+# SHOW TUTORIAL MENU (Selection Dialog)
+# -------------------------
+func _show_tutorial_menu(level: String) -> void:
+	var tutorials: Array = []
+	var level_int: int = 1
+	
+	match level:
+		"beginner":
+			level_int = 1
+			tutorials = [
+				{"name": "🎓 Cybersecurity Fundamentals (Start Here!)", "scene": "res://scene/tutorial_cyber_fundamentals.tscn", "id": "beginner_fundamentals"},
+				{"name": "🌐 Network Basics", "scene": "res://scene/tutorial_network_basics.tscn", "id": "beginner_network"},
+				{"name": "🔐 Encryption Basics", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "beginner_encryption"},
+				{"name": "🦠 Malware Types Overview", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware"}
+			]
+		"intermediate":
+			level_int = 2
+			tutorials = [
+				{"name": "🎣 Phishing Detection Lab", "scene": "res://scene/tutorial_phishing_lab.tscn", "id": "intermediate_phishing"},
+				{"name": "🐴 Trojan Horse Analysis", "scene": "res://scene/malware_trojan_tutorial.tscn", "id": "intermediate_trojan"},
+				{"name": "🛡️ Interactive Defense Training", "scene": "res://scene/tutorial_advance_interactive.tscn", "id": "intermediate_defense"},
+				{"name": "🔬 Advanced Malware Lab", "scene": "res://scene/malware_tutorial_menu.tscn", "id": "intermediate_lab"}
+			]
+		"advanced":
+			level_int = 3
+			tutorials = [
+				{"name": "⚔️ Advanced Threat Scenarios", "scene": "res://scene/tutorial_advance.tscn", "id": "advanced_scenarios"},
+				{"name": "💀 Malware Research Lab", "scene": "res://scene/malware_tutorial_menu.tscn", "id": "advanced_lab"}
+			]
+	
+	# Update Auth level
+	Auth.current_level = level_int
+	
+	# Create selection dialog
+	var dialog := ConfirmationDialog.new()
+	dialog.title = "Choose Tutorial - Level %d Assessment" % level_int
+	dialog.dialog_text = "Complete tutorials to earn XP and unlock games!\nPassing score: 70% or higher"
+	dialog.get_ok_button().visible = false
+	dialog.get_cancel_button().text = "Back"
+	
+	# Create vertical list of tutorial buttons
+	var vbox := VBoxContainer.new()
+	vbox.custom_minimum_size = Vector2(400, 0)
+	vbox.add_theme_constant_override("separation", 10)
+	
+	for tutorial in tutorials:
+		var btn := Button.new()
+		btn.text = "🎯 " + tutorial["name"]
+		btn.custom_minimum_size = Vector2(0, 50)
+		btn.pressed.connect(func():
+			dialog.queue_free()
+			# Store tutorial metadata for result tracking
+			get_tree().set_meta("tutorial_id", tutorial["id"])
+			get_tree().set_meta("tutorial_level", level_int)
+			_save_level_and_navigate(level_int, tutorial["scene"])
+		)
+		vbox.add_child(btn)
+	
+	dialog.add_child(vbox)
+	add_child(dialog)
+	dialog.popup_centered()
 
 
 # -------------------------
 # SAVE LEVEL TO FIRESTORE + NAVIGATE TO TUTORIAL
 # -------------------------
-func _save_level_and_navigate(level: String) -> void:
+func _save_level_and_navigate(level_int: int, tutorial_scene: String) -> void:
 	print("💾 Saving level to Firestore...")
-	
-	# Convert level string to integer for Auth.current_level
-	var level_int: int = 1
-	var tutorial_scene: String = ""
-	
-	match level:
-		"beginner":
-			level_int = 1
-			tutorial_scene = "res://scene/tutorial_beginner.tscn"
-		"intermediate":
-			level_int = 2
-			tutorial_scene = "res://scene/tutorial_intermediate.tscn"
-		"advance":
-			level_int = 3
-			tutorial_scene = "res://scene/tutorial_advance.tscn"
-	
-	# Update Auth singleton immediately (client-side)
-	Auth.current_level = level_int
 	
 	# Build Firestore PATCH request (only update 'level' field)
 	var url: String = "%s/users/%s?updateMask.fieldPaths=level" % [FIRESTORE_URL, Auth.current_local_id]
@@ -105,7 +151,7 @@ func _save_level_and_navigate(level: String) -> void:
 		var text: String = body_response.get_string_from_utf8()
 		
 		if code == 200:
-			print("✅ Level saved successfully:", level)
+			print("✅ Level saved successfully:", level_int)
 		else:
 			push_error("❌ Failed to save level (%s): %s" % [code, text])
 		

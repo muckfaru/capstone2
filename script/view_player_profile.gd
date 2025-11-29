@@ -83,7 +83,7 @@ func display_player_profile(player_username: String) -> void:
 	http.request_completed.connect(_on_player_data_received)
 	http.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
 
-func _on_player_data_received(result, response_code, _headers, body) -> void:
+func _on_player_data_received(_result, response_code, _headers, body) -> void:
 	if response_code != 200:
 		push_error("⚠️ Failed to fetch player data")
 		if http:

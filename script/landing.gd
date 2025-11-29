@@ -44,6 +44,9 @@ func _ready() -> void:
 
 	# mark presence online when entering landing
 	Auth.set_user_online()
+	
+	# Load tutorial/XP data for game unlocks
+	TutorialManager.load_user_data()
 
 	# === Navigation setup ===
 	_setup_navigation()
@@ -321,7 +324,14 @@ func _on_akashic_tcg_gui_input(event: InputEvent) -> void:
 # === Code Breaker NinePatchRect Handler ===
 func _on_code_breaker_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		print("[Landing] Code Breaker clicked - showing lobby")
+		print("[Landing] Code Breaker clicked")
+		
+		# Check if game is unlocked
+		if not TutorialManager.is_game_unlocked("code_breaker"):
+			_show_locked_game_dialog("Code Breaker", 500)
+			return
+		
+		print("[Landing] Code Breaker unlocked - showing lobby")
 		
 		# Hide GameSelectPanel
 		var game_select_panel = $VideoStreamPlayer/GameSelectPanel
@@ -340,3 +350,21 @@ func _on_code_breaker_gui_input(event: InputEvent) -> void:
 			print("[Landing] CodeBreakerLobby is now visible")
 		else:
 			push_error("[Landing] Code Breaker Lobby node not found")
+
+
+# === Show Locked Game Dialog ===
+func _show_locked_game_dialog(game_name: String, required_xp: int) -> void:
+	var current_xp: int = TutorialManager.total_xp
+	var xp_needed: int = required_xp - current_xp
+	
+	var dialog := AcceptDialog.new()
+	dialog.title = "🔒 Game Locked"
+	dialog.dialog_text = "%s is locked!\n\nYour XP: %d\nRequired XP: %d\nNeeded: %d more XP\n\nComplete tutorials in Mode Selection to earn XP and unlock games." % [game_name, current_xp, required_xp, xp_needed]
+	dialog.ok_button_text = "Go to Mode Selection"
+	dialog.canceled.connect(func(): dialog.queue_free())
+	dialog.confirmed.connect(func():
+		dialog.queue_free()
+		get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	)
+	add_child(dialog)
+	dialog.popup_centered()
