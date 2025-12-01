@@ -103,8 +103,8 @@ func _check_firestore_username_and_route():
 		if response_code == 200:
 			var resp = JSON.parse_string(text)
 			if typeof(resp) == TYPE_DICTIONARY and resp.has("fields") and resp["fields"].has("username"):
-				var landing = load("res://scene/landing.tscn")
-				get_tree().change_scene_to_packed(landing)
+				# Existing user - go to mode selection first
+				get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 			else:
 				var createuser = load("res://scene/create_users_panel.tscn")
 				get_tree().change_scene_to_packed(createuser)

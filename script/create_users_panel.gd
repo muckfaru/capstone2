@@ -37,8 +37,8 @@ func _on_save_pressed() -> void:
 		req.queue_free()
 
 		if code == 200:
-			print("✅ Existing user found, redirecting to landing.tscn...")
-			get_tree().change_scene_to_packed(load("res://scene/landing.tscn"))
+			print("✅ Existing user found, redirecting to mode_selection.tscn...")
+			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 			return
 
 		print("🆕 No existing user found, creating new Firestore doc...")
