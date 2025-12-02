@@ -354,6 +354,7 @@ Malware removed successfully!
 	var tutorial_id: String = get_tree().get_meta("tutorial_id", "intermediate_defense")
 	var tutorial_mgr = get_node("/root/TutorialManager")
 	tutorial_mgr.save_tutorial_result(tutorial_id, final_score, 1000)
+	await tutorial_mgr.save_completed
 	
 	cmd_terminal.visible = false
 	debrief_screen.visible = true
@@ -378,4 +379,4 @@ func _on_retry_pressed() -> void:
 
 
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	get_tree().change_scene_to_file("res://scene/landing.tscn")

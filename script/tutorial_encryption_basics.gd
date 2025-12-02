@@ -151,6 +151,8 @@ but BAD when attackers use it against you (ransomware).
 
 Always keep backups!""" % score
 			next_button.text = "FINISH"
+			next_button.disabled = false
+			print("[TUTORIAL] Section COMPLETE set - FINISH button enabled")
 
 
 func _on_encrypt_pressed() -> void:
@@ -175,6 +177,8 @@ func _on_submit_pressed() -> void:
 		answer_input.editable = false
 		submit_button.disabled = true
 		
+		print("[Encryption] ✅ Correct answer! Score: %d" % score)
+		
 		await get_tree().create_timer(2.0).timeout
 		content_label.add_theme_color_override("font_color", Color.BLACK)
 		_start_phase(Phase.RANSOMWARE_EXPLANATION)
@@ -183,8 +187,12 @@ func _on_submit_pressed() -> void:
 		content_label.text += "\n\n❌ Wrong. Hint: Shift each letter BACKWARDS by 3. Try again!"
 		content_label.add_theme_color_override("font_color", Color(0.8, 0, 0))
 		
+		print("[Encryption] ❌ Wrong answer. Score: %d | Attempts: %d" % [score, attempts])
+		
 		if attempts >= 3:
+			score = max(score, 50)  # Give minimum 50 points for trying
 			content_label.text += "\n\nAnswer: " + correct_answer + "\n(Shift backwards: W→T, K→H, etc.)"
+			print("[Encryption] Max attempts reached. Giving 50 points minimum. Score: %d" % score)
 			await get_tree().create_timer(3.0).timeout
 			content_label.add_theme_color_override("font_color", Color.BLACK)
 			_start_phase(Phase.RANSOMWARE_EXPLANATION)
@@ -217,13 +225,44 @@ func _on_next_pressed() -> void:
 		Phase.RANSOMWARE_EXPLANATION:
 			_start_phase(Phase.COMPLETE)
 		Phase.COMPLETE:
+			print("[TUTORIAL] FINISH button pressed!")
+			print("[TUTORIAL] Final Score: %d / Max: 100" % score)
+			
+			# Don't save if score is negative or zero
+			if score <= 0:
+				print("[TUTORIAL] ⚠️ Score too low (%d), not saving. Redirecting to landing..." % score)
+				get_tree().change_scene_to_file("res://scene/landing.tscn")
+				return
+			
 			# Save tutorial result
 			var tutorial_mgr = get_node("/root/TutorialManager")
 			if tutorial_mgr:
-				tutorial_mgr.save_tutorial_result("intermediate_encryption", score, 200)
+				print("[TUTORIAL] TutorialManager found, saving result...")
+				tutorial_mgr.save_tutorial_result("beginner_encryption", score, 100)
+				
+				# Wait for Firestore save to complete before navigating
+				print("[TUTORIAL] Waiting for Firestore save to complete...")
+				await tutorial_mgr.save_completed
+				print("[TUTORIAL] Save confirmed, navigating to landing...")
+			else:
+				push_error("[TUTORIAL] TutorialManager not found!")
 			
-			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+			# Return to landing page
+			get_tree().change_scene_to_file("res://scene/landing.tscn")
 
 
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	match current_phase:
+		Phase.INTRO:
+			# First phase - exit to mode selection
+			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+		Phase.ENCRYPT_DEMO:
+			_start_phase(Phase.INTRO)
+		Phase.DECRYPT_CHALLENGE:
+			_start_phase(Phase.ENCRYPT_DEMO)
+		Phase.RANSOMWARE_EXPLANATION:
+			# Reset challenge and go back
+			attempts = 0
+			_start_phase(Phase.DECRYPT_CHALLENGE)
+		Phase.COMPLETE:
+			_start_phase(Phase.RANSOMWARE_EXPLANATION)

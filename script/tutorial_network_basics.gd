@@ -74,6 +74,7 @@ func _start_section(section: Section) -> void:
 	current_section = section
 	quiz_panel.visible = false
 	diagram_panel.visible = false
+	next_button.disabled = false  # Enable by default, disable for quiz
 	
 	match section:
 		Section.INTRO:
@@ -256,6 +257,8 @@ YOU KNOW:
 
 Ready for advanced security tutorials!""" % [score, quiz_questions.size()]
 			next_button.text = "FINISH"
+			next_button.disabled = false
+			print("[TUTORIAL] Section COMPLETE set - FINISH button enabled")
 
 
 func _show_quiz_question() -> void:
@@ -316,12 +319,42 @@ func _on_next_pressed() -> void:
 		Section.PROTOCOLS:
 			_start_section(Section.QUIZ)
 		Section.COMPLETE:
+			print("[TUTORIAL] FINISH button pressed!")
+			print("[TUTORIAL] Quiz Score: %d/%d" % [score, quiz_questions.size()])
+			print("[TUTORIAL] Calculated Score: %d / Max: %d" % [score * 50, quiz_questions.size() * 50])
+			
 			# Save tutorial result
 			var tutorial_mgr = get_node("/root/TutorialManager")
-			tutorial_mgr.save_tutorial_result("intermediate_network", score * 50, quiz_questions.size() * 50)
+			if tutorial_mgr:
+				print("[TUTORIAL] TutorialManager found, saving result...")
+				tutorial_mgr.save_tutorial_result("beginner_network", score * 50, quiz_questions.size() * 50)
+				
+				# Wait for Firestore save to complete before navigating
+				print("[TUTORIAL] Waiting for Firestore save to complete...")
+				await tutorial_mgr.save_completed
+				print("[TUTORIAL] Save confirmed, navigating to landing...")
+			else:
+				push_error("[TUTORIAL] TutorialManager not found!")
 			
-			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+			# Return to landing page
+			get_tree().change_scene_to_file("res://scene/landing.tscn")
 
 
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	match current_section:
+		Section.INTRO:
+			# First section - exit to mode selection
+			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+		Section.IP_ADDRESSES:
+			_start_section(Section.INTRO)
+		Section.PORTS:
+			_start_section(Section.IP_ADDRESSES)
+		Section.PROTOCOLS:
+			_start_section(Section.PORTS)
+		Section.QUIZ:
+			_start_section(Section.PROTOCOLS)
+		Section.COMPLETE:
+			# From complete screen, go back to quiz start
+			current_quiz_index = 0
+			score = 0
+			_start_section(Section.QUIZ)

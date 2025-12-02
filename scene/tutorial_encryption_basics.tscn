@@ -1,10 +1,26 @@
-[gd_scene load_steps=4 format=3 uid="uid://cg0qoeigupgpd"]
+[gd_scene load_steps=5 format=3 uid="uid://cg0qoeigupgpd"]
 
 [ext_resource type="Script" uid="uid://bj1w0w0eker74" path="res://script/tutorial_encryption_basics.gd" id="1_encryption"]
-[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window_bg"]
-bg_color = Color(0.753, 0.753, 0.753, 1)
+bg_color = Color(0.95, 0.97, 1, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.2, 0.5, 0.9, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0.3, 0.6, 0.3)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title_bar"]
+bg_color = Color(0.15, 0.4, 0.75, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
 
 [node name="TutorialEncryptionBasics" type="Control"]
 layout_mode = 3
@@ -22,7 +38,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.502, 0.502, 0.502, 1)
+color = Color(0.12, 0.15, 0.25, 1)
 
 [node name="WindowDialog" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -42,8 +58,9 @@ layout_mode = 2
 theme_override_constants/separation = 0
 
 [node name="TitleBar" type="PanelContainer" parent="WindowDialog/VBox"]
-custom_minimum_size = Vector2(0, 45)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_title_bar")
 
 [node name="MarginContainer" type="MarginContainer" parent="WindowDialog/VBox/TitleBar"]
 layout_mode = 2
@@ -55,8 +72,10 @@ theme_override_constants/margin_bottom = 8
 [node name="SectionLabel" type="Label" parent="WindowDialog/VBox/TitleBar/MarginContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.5)
+theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 text = "ENCRYPTION BASICS"
 vertical_alignment = 1
 

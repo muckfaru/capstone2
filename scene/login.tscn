@@ -178,10 +178,10 @@ text = "Dont Have Account?
 
 [node name="MessageLabel" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0
-offset_left = 214.0
-offset_top = 355.0
-offset_right = 324.0
-offset_bottom = 381.0
+offset_left = 248.0
+offset_top = 325.0
+offset_right = 358.0
+offset_bottom = 351.0
 
 [node name="logintxt" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0

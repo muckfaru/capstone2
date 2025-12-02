@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cvlhhpf857lir" path="res://script/tutorial_advance_interactive.gd" id="1_script"]
 [ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="2_bg"]
-[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_font"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="3_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_desktop"]
 bg_color = Color(0.05, 0.05, 0.1, 0.95)

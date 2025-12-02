@@ -3,6 +3,9 @@ extends Control
 @onready var beginner_btn: Button = $CanvasLayer/ButtonContainer/BeginnerButton
 @onready var intermediate_btn: Button = $CanvasLayer/ButtonContainer/IntermediateButton
 @onready var advanced_btn: Button = $CanvasLayer/ButtonContainer/AdvancedButton
+@onready var xp_label: Label = $CanvasLayer/XPLabel
+@onready var rank_label: Label = $CanvasLayer/RankLabel
+@onready var profile_btn: Button = $CanvasLayer/ProfileButton
 
 const PROJECT_ID := "capstone-823dc"
 const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents" % PROJECT_ID
@@ -15,6 +18,23 @@ func _ready() -> void:
 		return
 	
 	print("✅ Mode Selection Ready | UID:", Auth.current_local_id)
+	
+	# Connect to data_loaded signal BEFORE loading data
+	if not TutorialManager.data_loaded.is_connected(_update_xp_display):
+		TutorialManager.data_loaded.connect(_update_xp_display)
+	
+	# Load TutorialManager data if not already loaded
+	if not TutorialManager.data_has_loaded:
+		print("[ModeSelection] TutorialManager data not loaded yet, loading now...")
+		TutorialManager.load_user_data()
+	else:
+		print("[ModeSelection] TutorialManager already has data (XP: %d)" % TutorialManager.total_xp)
+		# Update display immediately since data is already loaded
+		call_deferred("_update_xp_display")
+	
+	# Connect profile button
+	if profile_btn:
+		profile_btn.pressed.connect(_on_profile_pressed)
 
 
 # -------------------------
@@ -98,29 +118,65 @@ func _show_tutorial_menu(level: String) -> void:
 	# Create selection dialog
 	var dialog := ConfirmationDialog.new()
 	dialog.title = "Choose Tutorial - Level %d Assessment" % level_int
-	dialog.dialog_text = "Complete tutorials to earn XP and unlock games!\nPassing score: 70% or higher"
+	dialog.dialog_text = ""  # Clear default text to avoid overlap
 	dialog.get_ok_button().visible = false
 	dialog.get_cancel_button().text = "Back"
+	dialog.min_size = Vector2(600, 500)  # Set minimum dialog size
+	
+	# Create main container with proper margins
+	var margin_container := MarginContainer.new()
+	margin_container.add_theme_constant_override("margin_left", 20)
+	margin_container.add_theme_constant_override("margin_top", 20)
+	margin_container.add_theme_constant_override("margin_right", 20)
+	margin_container.add_theme_constant_override("margin_bottom", 20)
+	
+	# Create vertical container for all content
+	var main_vbox := VBoxContainer.new()
+	main_vbox.add_theme_constant_override("separation", 15)
+	
+	# Add header label
+	var header_label := Label.new()
+	header_label.text = "Complete tutorials to earn XP and unlock games!\nPassing score: 70% or higher"
+	header_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	main_vbox.add_child(header_label)
+	
+	# Add separator
+	var separator := HSeparator.new()
+	main_vbox.add_child(separator)
 	
 	# Create vertical list of tutorial buttons
 	var vbox := VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(400, 0)
 	vbox.add_theme_constant_override("separation", 10)
 	
 	for tutorial in tutorials:
 		var btn := Button.new()
-		btn.text = "🎯 " + tutorial["name"]
+		var tutorial_id: String = tutorial["id"]
+		var is_completed: bool = TutorialManager.completed_tutorials.has(tutorial_id)
+		
+		# Show completion status in button text
+		if is_completed:
+			var result = TutorialManager.completed_tutorials[tutorial_id]
+			var percentage: float = result.get("percentage", 0.0)
+			btn.text = tutorial["name"] + " ✓ (%.0f%%)" % percentage
+			btn.disabled = true
+			btn.tooltip_text = "Already completed with %.0f%%. XP already earned!" % percentage
+		else:
+			btn.text = tutorial["name"]
+		
 		btn.custom_minimum_size = Vector2(0, 50)
 		btn.pressed.connect(func():
 			dialog.queue_free()
 			# Store tutorial metadata for result tracking
-			get_tree().set_meta("tutorial_id", tutorial["id"])
+			get_tree().set_meta("tutorial_id", tutorial_id)
 			get_tree().set_meta("tutorial_level", level_int)
 			_save_level_and_navigate(level_int, tutorial["scene"])
 		)
 		vbox.add_child(btn)
 	
-	dialog.add_child(vbox)
+	main_vbox.add_child(vbox)
+	margin_container.add_child(main_vbox)
+	dialog.add_child(margin_container)
 	add_child(dialog)
 	dialog.popup_centered()
 
@@ -191,3 +247,36 @@ func _transition_to_tutorial(scene_path: String) -> void:
 func _on_menu_pressed() -> void:
 	print("🍔 Menu button pressed (placeholder)")
 	# TODO: Open settings or back navigation
+
+
+# -------------------------
+# XP AND RANK DISPLAY
+# -------------------------
+func _update_xp_display() -> void:
+	print("[ModeSelection] ========== UPDATING XP DISPLAY ==========")
+	print("[ModeSelection] TutorialManager.total_xp: %d" % TutorialManager.total_xp)
+	print("[ModeSelection] TutorialManager.data_has_loaded: %s" % TutorialManager.data_has_loaded)
+	
+	var rank: Dictionary = TutorialManager.get_rank()
+	
+	if xp_label:
+		xp_label.text = "XP: %d" % TutorialManager.total_xp
+		print("[ModeSelection] ✅ XP Label updated to: %s" % xp_label.text)
+	else:
+		print("[ModeSelection] ⚠️ xp_label not found!")
+	
+	if rank_label:
+		rank_label.text = "%s %s" % [rank["icon"], rank["name"]]
+		rank_label.add_theme_color_override("font_color", rank["color"])
+		rank_label.tooltip_text = "Progress: %.0f%% | XP to next rank: %d" % [rank["progress"], rank["xp_to_next"]]
+		print("[ModeSelection] ✅ Rank Label updated to: %s" % rank_label.text)
+	else:
+		print("[ModeSelection] ⚠️ rank_label not found!")
+
+
+# -------------------------
+# PROFILE BUTTON
+# -------------------------
+func _on_profile_pressed() -> void:
+	print("👤 Opening profile...")
+	get_tree().change_scene_to_file("res://scene/landing.tscn")

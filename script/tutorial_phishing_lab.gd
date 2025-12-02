@@ -335,6 +335,7 @@ Click OK to return to menu.""" % [
 	var tutorial_mgr = get_node("/root/TutorialManager")
 	if tutorial_mgr:
 		tutorial_mgr.save_tutorial_result("beginner_phishing", score, total_emails * 150)
+		await tutorial_mgr.save_completed
 	
 	# Disconnect OK button from next email, connect to exit
 	if ok_button.pressed.is_connected(_on_ok_pressed):
@@ -353,11 +354,11 @@ func _on_time_expired() -> void:
 	_show_feedback(false, "")
 	
 	await get_tree().create_timer(3.0).timeout
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	get_tree().change_scene_to_file("res://scene/landing.tscn")
 
 
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	get_tree().change_scene_to_file("res://scene/landing.tscn")
 
 
 func _on_next_pressed() -> void:

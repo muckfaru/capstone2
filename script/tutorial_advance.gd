@@ -318,6 +318,7 @@ func _show_debrief() -> void:
 	var tutorial_id: String = get_tree().get_meta("tutorial_id", "advance_scenarios")
 	var tutorial_mgr = get_node("/root/TutorialManager")
 	tutorial_mgr.save_tutorial_result(tutorial_id, final_score, 1000)
+	await tutorial_mgr.save_completed
 	
 	# Animate debrief
 	debrief_screen.modulate.a = 0.0
@@ -339,8 +340,8 @@ func _on_next_pressed() -> void:
 
 
 func _on_back_pressed() -> void:
-	# Return to mode selection
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	# Return to landing
+	get_tree().change_scene_to_file("res://scene/landing.tscn")
 
 
 # ============================================

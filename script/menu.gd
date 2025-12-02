@@ -33,6 +33,10 @@ func _on_close_pressed() -> void:
 func _on_menu_logout_pressed() -> void:
 	# Mirror navigation logout behavior
 	Auth.set_user_offline()
+	
+	# Clear TutorialManager data on logout
+	TutorialManager.reset_data()
+	
 	get_tree().change_scene_to_file("res://scene/login.tscn")
 
 

@@ -5,10 +5,15 @@ extends Control
 @onready var level_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/levelInput
 @onready var wins_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/winsInput
 @onready var losses_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/losesInput
+@onready var xp_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/xpInput
+@onready var rank_label: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/rankLabel
+@onready var match_played_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/MatchPlayedInput
 @onready var status_label: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/StatusLabel
 @onready var profile_pic: TextureRect = $VideoStreamPlayer/ProfilePanel/UserPanel/ProfilePic
 @onready var change_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/ChangeAvatarButton
 @onready var save_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/SaveProfile
+@onready var tutorial_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/TutorialButton
+@onready var reset_stats_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/ResetStatsButton
 @onready var avatar_picker: PopupPanel = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker
 @onready var avatar_grid: GridContainer = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/GridContainer
 @onready var menu_panel: Control = $MenuPanel
@@ -37,6 +42,8 @@ func _ready() -> void:
 	_load_avatars()
 	change_btn.pressed.connect(_on_change_avatar_pressed)
 	save_btn.pressed.connect(_on_save_profile_pressed)
+	tutorial_btn.pressed.connect(_on_tutorial_pressed)
+	reset_stats_btn.pressed.connect(_on_reset_stats_pressed)
 	_load_user_data()
 
 	# Load and instance ChatPanel
@@ -45,14 +52,77 @@ func _ready() -> void:
 	# mark presence online when entering landing
 	Auth.set_user_online()
 	
-	# Load tutorial/XP data for game unlocks
+	# Connect to XP update signals FIRST (before loading data)
+	TutorialManager.xp_updated.connect(_on_xp_updated)
+	TutorialManager.rank_up.connect(_on_rank_up)
+	TutorialManager.data_loaded.connect(_update_xp_display)
+	
+	# Load tutorial/XP data for game unlocks (signal will fire after load completes)
 	TutorialManager.load_user_data()
+	
+	# Also update display immediately if TutorialManager already has data
+	# (in case of hot reload or scene re-entry)
+	# Use call_deferred to ensure UI nodes are fully ready
+	call_deferred("_update_xp_display")
 
 	# === Navigation setup ===
 	_setup_navigation()
 
 	
 
+
+# === Update XP Display ===
+func _update_xp_display() -> void:
+	print("[Landing] ========== UPDATING XP DISPLAY ==========")
+	print("[Landing] Total XP: %d" % TutorialManager.total_xp)
+	print("[Landing] Completed Tutorials: %d" % TutorialManager.completed_tutorials.size())
+	
+	if xp_input:
+		xp_input.text = "XP : %d" % TutorialManager.total_xp
+		print("[Landing] ✅ XP Label updated to: %s" % xp_input.text)
+	else:
+		push_error("[Landing] xp_input label not found!")
+	
+	# Update rank display
+	var rank: Dictionary = TutorialManager.get_rank()
+	print("[Landing] Rank: %s %s" % [rank["icon"], rank["name"]])
+	
+	if rank_label:
+		rank_label.text = "%s %s" % [rank["icon"], rank["name"]]
+		rank_label.add_theme_color_override("font_color", rank["color"])
+		rank_label.tooltip_text = "XP: %d/%d (%.0f%% to next rank)" % [rank["current_xp"], rank["max_xp"], rank["progress"]]
+		print("[Landing] ✅ Rank Label updated to: %s" % rank_label.text)
+	
+	# Update match played display
+	if match_played_input and wins_input and losses_input:
+		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
+		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
+		var total_matches = wins + losses
+		match_played_input.text = str(total_matches)
+		print("[Landing] ✅ Match Played updated to: %d" % total_matches)
+
+func _on_xp_updated(new_xp: int) -> void:
+	if xp_input:
+		xp_input.text = "XP %d" % new_xp
+		print("🎉 XP Updated: ", new_xp)
+	
+	# Update rank
+	var rank: Dictionary = TutorialManager.get_rank(new_xp)
+	if rank_label:
+		rank_label.text = "%s %s" % [rank["icon"], rank["name"]]
+		rank_label.add_theme_color_override("font_color", rank["color"])
+
+func _on_rank_up(new_rank: Dictionary) -> void:
+	print("🏆 RANK UP! %s %s" % [new_rank["icon"], new_rank["name"]])
+	
+	# Show rank up dialog
+	var dialog := AcceptDialog.new()
+	dialog.title = "RANK UP!"
+	dialog.dialog_text = "Congratulations!\n\nYou've been promoted to:\n%s %s\n\nKeep completing tutorials to climb higher!" % [new_rank["icon"], new_rank["name"]]
+	dialog.min_size = Vector2(300, 200)
+	add_child(dialog)
+	dialog.popup_centered()
+	dialog.confirmed.connect(func(): dialog.queue_free())
 
 # === Load avatars from folder ===
 func _load_avatars() -> void:
@@ -198,6 +268,12 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 
 	if f.has("losses"):
 		losses_input.text = str(f["losses"]["integerValue"])
+	
+	# Update match played count
+	if match_played_input:
+		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
+		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
+		match_played_input.text = str(wins + losses)
 
 
 # === Navigation Logic ===
@@ -274,10 +350,65 @@ func _show_panel(panel_paths: Dictionary, panel_name: String) -> void:
 		friend_list.visible = (panel_name != "game")
 
 
+# === Reset Match Stats ===
+func _on_reset_stats_pressed() -> void:
+	print("[Landing] Resetting match statistics...")
+	
+	# Reset UI
+	wins_input.text = "0"
+	losses_input.text = "0"
+	match_played_input.text = "0"
+	
+	# Save to Firestore
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	if user_id == "" or id_token == "":
+		push_error("⚠️ User not logged in, cannot reset stats")
+		return
+	
+	var url = "%s/%s?updateMask.fieldPaths=wins&updateMask.fieldPaths=losses" % [firestore_base_url, user_id]
+	var body = {
+		"fields": {
+			"wins": { "integerValue": 0 },
+			"losses": { "integerValue": 0 }
+		}
+	}
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	
+	var http_reset := HTTPRequest.new()
+	add_child(http_reset)
+	
+	http_reset.request_completed.connect(func(_r, code, _h, response_body):
+		http_reset.queue_free()
+		if code == 200:
+			status_label.text = "✅ Match stats reset!"
+			print("[Landing] ✅ Match stats reset successfully")
+		else:
+			var msg = response_body.get_string_from_utf8() if response_body.size() > 0 else "Unknown error"
+			status_label.text = "❌ Failed to reset stats"
+			push_error("Firestore error: %s" % msg)
+	)
+	
+	http_reset.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+
+
+# === Tutorial Button ===
+func _on_tutorial_pressed() -> void:
+	print("[Landing] Opening tutorials...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+
+
 # === Logout Logic ===
 func _on_logout_pressed() -> void:
 	print("Logging out...")
 	Auth.set_user_offline()  # 🔴 mark offline before exit
+	
+	# Clear TutorialManager data on logout
+	TutorialManager.reset_data()
+	
 	get_tree().change_scene_to_file("res://scene/login.tscn")
 
 

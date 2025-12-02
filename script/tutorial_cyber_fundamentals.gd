@@ -265,6 +265,8 @@ These concepts apply to EVERYTHING in cybersecurity:
 
 You're now ready for technical tutorials!""" % [score, quiz_questions.size()]
 			next_button.text = "FINISH"
+			next_button.disabled = false
+			print("[TUTORIAL] Section COMPLETE set - FINISH button enabled")
 
 
 func _show_quiz_question() -> void:
@@ -327,12 +329,44 @@ func _on_next_pressed() -> void:
 		Section.THREAT_MODEL:
 			_start_section(Section.QUIZ)
 		Section.COMPLETE:
+			print("[TUTORIAL] FINISH button pressed!")
+			print("[TUTORIAL] Quiz Score: %d/%d" % [score, quiz_questions.size()])
+			print("[TUTORIAL] Calculated Score: %d / Max: %d" % [score * 50, quiz_questions.size() * 50])
+			
 			# Save tutorial result
 			var tutorial_mgr = get_node("/root/TutorialManager")
-			tutorial_mgr.save_tutorial_result("beginner_fundamentals", score * 50, quiz_questions.size() * 50)
+			if tutorial_mgr:
+				print("[TUTORIAL] TutorialManager found, saving result...")
+				tutorial_mgr.save_tutorial_result("beginner_fundamentals", score * 50, quiz_questions.size() * 50)
+				
+				# Wait for Firestore save to complete before navigating
+				print("[TUTORIAL] Waiting for Firestore save to complete...")
+				await tutorial_mgr.save_completed
+				print("[TUTORIAL] Save confirmed, navigating to landing...")
+			else:
+				push_error("[TUTORIAL] TutorialManager not found!")
 			
-			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+			# Return to landing page
+			get_tree().change_scene_to_file("res://scene/landing.tscn")
 
 
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	match current_section:
+		Section.INTRO:
+			# First section - exit to mode selection
+			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+		Section.CIA_CONFIDENTIALITY:
+			_start_section(Section.INTRO)
+		Section.CIA_INTEGRITY:
+			_start_section(Section.CIA_CONFIDENTIALITY)
+		Section.CIA_AVAILABILITY:
+			_start_section(Section.CIA_INTEGRITY)
+		Section.THREAT_MODEL:
+			_start_section(Section.CIA_AVAILABILITY)
+		Section.QUIZ:
+			_start_section(Section.THREAT_MODEL)
+		Section.COMPLETE:
+			# From complete screen, go back to quiz start
+			current_quiz_index = 0
+			score = 0
+			_start_section(Section.QUIZ)
