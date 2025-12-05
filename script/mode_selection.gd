@@ -94,7 +94,7 @@ func _show_tutorial_menu(level: String) -> void:
 			tutorials = [
 				{"name": "🎓 Cybersecurity Fundamentals (Start Here!)", "scene": "res://scene/tutorial_cyber_fundamentals.tscn", "id": "beginner_fundamentals"},
 				{"name": "🌐 Network Basics", "scene": "res://scene/tutorial_network_basics.tscn", "id": "beginner_network"},
-				{"name": "🔐 Encryption Basics", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "beginner_encryption"},
+				{"name": "🔐 Password Fortress Defender", "scene": "res://scene/tutorial_password_basics.tscn", "id": "beginner_password"},
 				{"name": "🦠 Malware Types Overview", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware"}
 			]
 		"intermediate":
@@ -109,6 +109,7 @@ func _show_tutorial_menu(level: String) -> void:
 			level_int = 3
 			tutorials = [
 				{"name": "⚔️ Advanced Threat Scenarios", "scene": "res://scene/tutorial_advance.tscn", "id": "advanced_scenarios"},
+				{"name": "🔐 Encryption", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "advanced_encryption"},
 				{"name": "💀 Malware Research Lab", "scene": "res://scene/malware_tutorial_menu.tscn", "id": "advanced_lab"}
 			]
 	

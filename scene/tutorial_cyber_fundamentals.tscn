@@ -23,7 +23,7 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_diagram"]
-bg_color = Color(0.92, 0.95, 0.98, 1)
+bg_color = Color(0.12, 0.14, 0.18, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -122,7 +122,9 @@ autowrap_mode = 3
 
 [node name="DiagramPanel" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
 visible = false
+custom_minimum_size = Vector2(680, 470)
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_diagram")
 
 [node name="DiagramLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DiagramPanel"]
@@ -136,7 +138,13 @@ autowrap_mode = 3
 [node name="QuizPanel" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
 visible = false
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/separation = 10
+alignment = 1
+
+[node name="TopSpacer" type="Control" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/QuizPanel"]
+layout_mode = 2
+size_flags_vertical = 3
 
 [node name="QuestionLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/QuizPanel"]
 layout_mode = 2
@@ -144,11 +152,16 @@ theme_override_colors/font_color = Color(0.1, 0.1, 0.15, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
 text = "Quiz question here..."
+horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="OptionsContainer" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/QuizPanel"]
 layout_mode = 2
 theme_override_constants/separation = 8
+
+[node name="BottomSpacer" type="Control" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/QuizPanel"]
+layout_mode = 2
+size_flags_vertical = 3
 
 [node name="ButtonContainer" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
 layout_mode = 2
