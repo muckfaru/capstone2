@@ -10,6 +10,67 @@ Firebase Auth ──→ Landing (profile/chat) ──→ Game Lobbies ──→ 
                     ChatManager.gd          (no port fwd!)     (30s max)   (Submit-Based)
 ```
 
+## 🎓 Tutorial System
+
+**XP-Based Progression** - Complete tutorials to earn XP, unlock ranks, and unlock games (like Code Breaker).
+
+### Tutorial Manager (Autoload Singleton)
+- **File:** `script/TutorialManager.gd`
+- **Firestore Integration:** Saves/loads completed tutorials, total XP, unlocked games
+- **Rank System:** 9 ranks (Iron → Bronze → Silver → Gold → Platinum → Diamond → Master → Grandmaster → Challenger)
+- **Game Unlocks:**
+  - **Akashic TCG:** Always unlocked (0 XP)
+  - **Code Breaker:** Unlocked at 500 XP
+  - **Game 3:** Future (1500 XP)
+
+### Tutorial Categories
+**Beginner Tutorials:**
+- `tutorial_beginner.tscn` - Password strength basics (timed challenge, 30s)
+- `tutorial_cyber_fundamentals.gd` - Core cybersecurity concepts
+- `tutorial_network_basics.gd` - Ports, IPs, traffic analysis
+- `tutorial_password_basics.gd` - Password fortress battle game
+- `tutorial_malware_types.gd` - Types of malware
+
+**Intermediate Tutorials:**
+- `tutorial_phishing_lab.tscn` - Email classification lab (5 emails, phishing vs. legitimate)
+- `malware_trojan_tutorial.tscn` - Trojan horse attack simulation
+
+**Advanced Tutorials:**
+- `tutorial_encryption_basics.gd` - Caesar cipher + ransomware explanation
+- `tutorial_advance.tscn` - Advanced scenarios
+- `tutorial_advance_interactive.tscn` - Interactive advanced labs
+
+### XP Rewards
+- **90%+ score:** 200 XP (A grade)
+- **80-89% score:** 150 XP (B grade)
+- **70-79% score:** 100 XP (C grade)
+- **50-69% score:** 50 XP (D grade)
+- **Below 50%:** 0 XP (F grade - fail)
+
+### Tutorial Flow
+```
+Landing (Tutorial Button)
+    ↓
+Mode Selection (Beginner/Intermediate/Advanced)
+    ↓
+Select Tutorial
+    ↓
+Complete Challenge (timed/scored)
+    ↓
+TutorialManager.complete_tutorial(id, score, max_score)
+    ↓
+Save to Firestore → Award XP → Check rank up → Check game unlocks
+    ↓
+Return to Mode Selection
+```
+
+### Signals
+- `xp_updated(new_xp: int)` - XP changed
+- `rank_up(new_rank: Dictionary)` - Player ranked up
+- `game_unlocked(game_name: String)` - New game unlocked
+- `data_loaded()` - Firestore data loaded
+- `save_completed()` - Save finished
+
 ## 🏗️ Architecture: WebSocket Relay
 
 **NO PORT FORWARDING NEEDED** - Both players connect TO server, server relays messages.
@@ -66,6 +127,7 @@ Firebase Auth ──→ Landing (profile/chat) ──→ Game Lobbies ──→ 
 |-----------|------|-----------------|
 | **Auth** | `scene/auth.tscn` + `script/auth.gd` | Firebase Auth: `current_id_token` (JWT), `current_local_id` (UID), `current_username`, `current_avatar`, `current_level`. Methods: `login()`, `sign_up()`, `login_with_google()`, `set_user_online()`, `set_user_offline()`. Emits `auth_response(code, response)`. Writes presence to RTDB. **Hard-coded credentials in lines 6–8.** |
 | **ChatManager** | `script/ChatManager.gd` | RTDB polling for real-time chat. Two timers: 2s (current chat) + 5s (all unread counts). Methods: `set_current_user()`, `load_chat_history()`, `send_message()`, `get_unread_count()`. Signals: `message_received`, `chat_loaded`, `unread_count_changed`. |
+| **TutorialManager** | `script/TutorialManager.gd` | XP/rank tracking, tutorial completion, game unlocks. Methods: `complete_tutorial()`, `get_rank()`, `is_game_unlocked()`, `load_user_data()`, `save_user_data()`. Signals: `xp_updated`, `rank_up`, `game_unlocked`, `data_loaded`, `save_completed`. Firestore integration for persistence. |
 | **MultiplayerConfig** | `script/MultiplayerConfig.gd` | Server URL configuration. `current_mode` = `Mode.PRODUCTION` or `Mode.LOCALHOST`. Returns lobby server URL for room operations and relay connections. Used by lobby and room scenes. |
 
 ## 📊 Data Schema
@@ -110,7 +172,20 @@ chats/<user_a_user_b>/messages/<pushKey>
 
 ### Firestore (capstone-823dc)
 ```
-users/<uid> = {username, avatar, level, wins, losses, xp}
+users/<uid> = {
+  username, avatar, level, wins, losses, xp,
+  total_xp: int,              // Total XP earned from tutorials
+  unlocked_games: [String],   // Array of unlocked game IDs
+  tutorials: {                // Map of completed tutorials
+    <tutorial_id>: {
+      score: int,
+      max_score: int,
+      percentage: float,
+      xp_earned: int,
+      timestamp: int
+    }
+  }
+}
 ```
 
 
@@ -133,7 +208,20 @@ codebreaker_rooms/<roomId>
 
 ### Firestore (capstone-823dc)
 ```
-users/<uid> = {username, avatar, level, wins, losses, xp}
+users/<uid> = {
+  username, avatar, level, wins, losses, xp,
+  total_xp: int,              // Total XP earned from tutorials
+  unlocked_games: [String],   // Array of unlocked game IDs
+  tutorials: {                // Map of completed tutorials
+    <tutorial_id>: {
+      score: int,
+      max_score: int,
+      percentage: float,
+      xp_earned: int,
+      timestamp: int
+    }
+  }
+}
 ```
 
 ## ⚡ Critical Patterns
@@ -399,6 +487,9 @@ WS     /ws/relay/:room_id?player_id=X&username=Y
 - [x] Countdown: 3-2-1-TYPE centered with bounce animations, timer paused during countdown
 - [x] Visual Effects: Shake animations (damage), particles (success/damage), panel shadows
 - [x] Battle Music: Fade in on start (-80dB → -5dB over 2s), stop on leave
+- [x] Tutorial System: Award XP via `TutorialManager.complete_tutorial(id, score, max_score)`
+- [x] Tutorial XP: 200/150/100/50/0 for A/B/C/D/F grades (70%+ to pass)
+- [x] Game Unlocks: Check `TutorialManager.is_game_unlocked("code_breaker")` before showing game
 
 ## 🌍 Cross-Network Multiplayer
 
@@ -426,7 +517,17 @@ Phone (Mobile Data) ────────────────────
 
 ---
 
-**Latest Updates (Dec 1, 2025):**
+**Latest Updates (Dec 6, 2025):**
+- ✅ **Tutorial System Overhaul:** Complete XP-based progression system with 9 ranks (Iron to Challenger)
+- ✅ **TutorialManager Singleton:** Autoload that tracks completion, XP, ranks, and game unlocks
+- ✅ **Tutorial Categories:** Beginner (4 tutorials), Intermediate (2 tutorials), Advanced (2 tutorials)
+- ✅ **Grading System:** A/B/C/D/F grades with XP rewards (200/150/100/50/0 XP)
+- ✅ **Game Unlock Progression:** Code Breaker unlocks at 500 XP
+- ✅ **Phishing Lab:** Interactive 5-email classification challenge with real-world examples
+- ✅ **Password Fortress:** Battle-style tutorial teaching password strength
+- ✅ **Encryption Basics:** Caesar cipher hands-on lab with ransomware explanation
+- ✅ **Firestore Integration:** Persistent tutorial progress, XP, and unlocked games
+- ✅ **Mode Selection UI:** Shows rank icon, XP progress bar, and game unlock status
 - ✅ **Submit-Based Combat System:** Type in input field + ENTER to submit (not character-by-character)
 - ✅ **New Damage Model:** +100 score & -10 enemy HP on correct, -8 self HP on wrong submission
 - ✅ **First to 0 HP loses** (not progress-based racing anymore)
