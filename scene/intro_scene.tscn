@@ -1,0 +1,186 @@
+[gd_scene load_steps=10 format=3 uid="uid://cchwj33t8m7rt"]
+
+[ext_resource type="Script" uid="uid://copq15yolvwiq" path="res://scene/intro_scene.gd" id="1_stdvg"]
+[ext_resource type="Texture2D" uid="uid://2o4kwx4ukq6v" path="res://asset/main lobby or landing bg.png" id="2_4ofrk"]
+[ext_resource type="Texture2D" uid="uid://dxrydx6v8dfsl" path="res://asset/icons/hologram_guide.png" id="2_stdvg"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="4_4ofrk"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="5_6pmbo"]
+
+[sub_resource type="Theme" id="Theme_6pmbo"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialogue"]
+bg_color = Color(0.02, 0.15, 0.35, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0.8, 0.9, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
+bg_color = Color(0, 0.204676, 0.433769, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.956148, 0.981664, 0.963273, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skip_button"]
+bg_color = Color(0.1, 0.1, 0.1, 0.7)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.5, 0.5, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="IntroScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_stdvg")
+
+[node name="Background" type="TextureRect" parent="."]
+modulate = Color(0.41598, 0.41598, 0.41598, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 241.0
+offset_top = -31.0
+offset_right = 165.0
+offset_bottom = -92.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_6pmbo")
+texture = ExtResource("2_4ofrk")
+expand_mode = 1
+stretch_mode = 3
+
+[node name="HologramGuide" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -556.0
+offset_top = -343.0
+offset_right = -56.0
+offset_bottom = 157.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_stdvg")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DialoguePanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -420.0
+offset_top = -180.0
+offset_right = 420.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialogue")
+
+[node name="DialogueLabel" type="Label" parent="DialoguePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 20.0
+offset_right = -30.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_4ofrk")
+theme_override_font_sizes/font_size = 19
+autowrap_mode = 3
+
+[node name="UsernameInput" type="LineEdit" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 56.0
+offset_top = -23.0
+offset_right = 406.0
+offset_bottom = 27.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/caret_color = Color(0, 0.8, 0.9, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_4ofrk")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/focus = SubResource("StyleBoxFlat_input")
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+placeholder_text = "Enter your name"
+alignment = 1
+max_length = 16
+caret_blink = true
+
+[node name="ConfirmButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 113.0
+offset_top = 51.0
+offset_right = 363.0
+offset_bottom = 101.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("5_6pmbo")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/hover = SubResource("StyleBoxFlat_input")
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+text = "CONFIRM"
+
+[node name="SkipButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -470.0
+offset_top = -73.0
+offset_right = -176.0
+offset_bottom = -41.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.947199, 0.947199, 0.947199, 1)
+theme_override_fonts/font = ExtResource("5_6pmbo")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/hover = SubResource("StyleBoxFlat_skip_button")
+theme_override_styles/normal = SubResource("StyleBoxFlat_skip_button")
+text = "Press ENTER to Continue"
+flat = true

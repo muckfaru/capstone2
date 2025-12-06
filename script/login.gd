@@ -12,7 +12,6 @@ extends Control
 var email_regex := RegEx.new()
 
 func _ready():
-
 	add_child(oauth_helper)
 	oauth_helper.token_received.connect(_on_google_code_received)
 	Auth.auth_response.connect(_on_auth_response)
@@ -78,7 +77,7 @@ func _on_auth_response(response_code: int, response: Dictionary):
 
 
 # ------------------------------------------------------
-# 🔹 Pag-check sa Firestore (katulad din ng sa signup)
+# 🔹 Pag-check sa Firestore - UPDATED ROUTING LOGIC
 # ------------------------------------------------------
 func _check_firestore_username_and_route():
 	if Auth.current_local_id == "" or Auth.current_id_token == "":
@@ -103,14 +102,17 @@ func _check_firestore_username_and_route():
 		if response_code == 200:
 			var resp = JSON.parse_string(text)
 			if typeof(resp) == TYPE_DICTIONARY and resp.has("fields") and resp["fields"].has("username"):
-				# Existing user - go to mode selection first
-				get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+				# ✅ EXISTING USER - Go directly to landing page
+				print("✅ Existing user found, going to landing page")
+				get_tree().change_scene_to_file("res://scene/landing.tscn")
 			else:
-				var createuser = load("res://scene/create_users_panel.tscn")
-				get_tree().change_scene_to_packed(createuser)
+				# 🆕 NEW USER (no username in Firestore) - Go to intro scene
+				print("🆕 New user, showing introduction")
+				get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 		else:
-			var createuser = load("res://scene/create_users_panel.tscn")
-			get_tree().change_scene_to_packed(createuser)
+			# 🆕 USER NOT FOUND (404 or other error) - Go to intro scene
+			print("🆕 User document not found, showing introduction")
+			get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 	)
 	http.request(url, headers, HTTPClient.METHOD_GET)
 	

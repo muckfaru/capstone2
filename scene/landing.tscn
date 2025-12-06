@@ -1,9 +1,10 @@
-[gd_scene load_steps=32 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=36 format=3 uid="uid://5o3qtaqdnl8s"]
 
 [ext_resource type="VideoStream" uid="uid://copge130jsikm" path="res://asset/Cyberpunk_City_Video_Generation.ogv" id="2_qr7a0"]
 [ext_resource type="Texture2D" uid="uid://cq7k5uvykyfbt" path="res://asset/icons/code breaker 1.png" id="3_7xp6e"]
 [ext_resource type="PackedScene" uid="uid://bohnaxmk78jfw" path="res://scene/friend_list.tscn" id="3_hlv06"]
-[ext_resource type="Texture2D" uid="uid://cnxhft11givsa" path="res://asset/icons/logo 48x48.png" id="3_q33pn"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_nicomoji"]
+[ext_resource type="Texture2D" uid="uid://bvhe8ouk5yxa5" path="res://asset/icons/Nav logo.png" id="3_q33pn"]
 [ext_resource type="Texture2D" uid="uid://ca874tphfshxx" path="res://asset/avatars/default.png" id="3_qdyf0"]
 [ext_resource type="Texture2D" uid="uid://dp4co62dijgua" path="res://asset/icons/akashic tgc 1.png" id="4_hlv06"]
 [ext_resource type="Texture2D" uid="uid://cckv7p82fksqa" path="res://asset/icons/Defuse the trojan 1.png" id="5_1dlu4"]
@@ -312,6 +313,7 @@ func _setup_navigation() -> void:
 	$NavigationPanel/HBoxContainer/GameNavigate.pressed.connect(func(): _show_panel(panel_paths, \"game\"))
 	$NavigationPanel/HBoxContainer/RankingNavigate.pressed.connect(func(): _show_panel(panel_paths, \"ranking\"))
 	$NavigationPanel/HBoxContainer/ProfileNavigate.pressed.connect(func(): _show_panel(panel_paths, \"profile\"))
+	$NavigationPanel/HBoxContainer/ModuleNavigate.pressed.connect(func(): get_tree().change_scene_to_file(\"res://scene/mode_selection.tscn\"))
 	$NavigationPanel/HBoxContainer/LogoButton.pressed.connect(func(): _show_panel(panel_paths, \"home\"))
 	$NavigationPanel/HBoxContainer/MenuButton.pressed.connect(_on_menu_button_pressed)
 
@@ -499,34 +501,72 @@ bg_color = Color(0.0177324, 0.0177324, 0.0177324, 1)
 corner_radius_top_right = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q33pn"]
-bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)
+bg_color = Color(0, 0, 0, 1)
 
 [sub_resource type="Theme" id="Theme_qdyf0"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qjbfm"]
-bg_color = Color(0, 0, 0, 1)
-border_color = Color(0.8, 0.8, 0.8, 0)
+content_margin_left = 16.0
+content_margin_top = 4.0
+content_margin_right = 16.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jpfeh"]
-bg_color = Color(0, 0, 0, 1)
+content_margin_left = 16.0
+content_margin_top = 4.0
+content_margin_right = 16.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.1, 0.1, 0.3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uxtpd"]
-content_margin_left = 20.0
-content_margin_right = 20.0
+content_margin_left = 16.0
+content_margin_top = 4.0
+content_margin_right = 16.0
+content_margin_bottom = 4.0
 bg_color = Color(0, 0, 0, 0)
-border_color = Color(0.8, 0.8, 0.8, 0)
+border_color = Color(0, 0, 0, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bafi2"]
-content_margin_left = 20.0
-content_margin_right = 20.0
+content_margin_left = 16.0
+content_margin_top = 4.0
+content_margin_right = 16.0
+content_margin_bottom = 4.0
 bg_color = Color(0, 0, 0, 0)
-border_color = Color(0.8, 0.8, 0.8, 0)
+border_color = Color(0, 0, 0, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7xp6e"]
-content_margin_left = 20.0
-content_margin_right = 20.0
-bg_color = Color(0.00784314, 0.0666667, 0.137255, 0)
-border_color = Color(0.8, 0.8, 0.8, 0)
+content_margin_left = 16.0
+content_margin_top = 4.0
+content_margin_right = 16.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_focus"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 40.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_pressed"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 40.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 40.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0, 0, 0)
+border_color = Color(0, 0, 0, 0)
 
 [node name="Landing" type="Control"]
 layout_mode = 3
@@ -899,31 +939,66 @@ offset_right = 1360.0
 offset_bottom = 634.0
 
 [node name="NavigationPanel" type="Panel" parent="."]
-custom_minimum_size = Vector2(0, 46)
-layout_mode = 0
-offset_left = -2.0
-offset_top = 1.0
-offset_right = 1164.0
-offset_bottom = 47.0
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 50.0
+grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_q33pn")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="NavigationPanel"]
-custom_minimum_size = Vector2(0, 46)
-layout_mode = 0
-offset_left = 6.0
-offset_top = -1.0
-offset_right = 1151.0
-offset_bottom = 45.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme = SubResource("Theme_qdyf0")
 
 [node name="LogoButton" type="TextureButton" parent="NavigationPanel/HBoxContainer"]
+custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
+size_flags_vertical = 4
 mouse_default_cursor_shape = 2
 texture_normal = ExtResource("3_q33pn")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="NavigationPanel/HBoxContainer/LogoButton"]
+layout_mode = 0
+offset_left = 19.0
+offset_top = 24.0
+offset_right = 87.0
+offset_bottom = 41.0
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_font_sizes/font_size = 12
+text = "Arena"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Label2" type="Label" parent="NavigationPanel/HBoxContainer/LogoButton"]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 14.0
+offset_right = 77.0
+offset_bottom = 31.0
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_font_sizes/font_size = 12
+text = "Cyber"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LogoSpacer" type="Control" parent="NavigationPanel/HBoxContainer"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
 
 [node name="HomeNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_font_sizes/font_size = 16
 theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
 theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
 theme_override_styles/normal = SubResource("StyleBoxFlat_uxtpd")
@@ -932,6 +1007,9 @@ text = "Home"
 [node name="GameNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_font_sizes/font_size = 16
 theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
 theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
 theme_override_styles/normal = SubResource("StyleBoxFlat_bafi2")
@@ -940,6 +1018,9 @@ text = "Game"
 [node name="RankingNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_font_sizes/font_size = 16
 theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
 theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
@@ -948,23 +1029,42 @@ text = "Ranking"
 [node name="ProfileNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_font_sizes/font_size = 16
 theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
 theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Profile"
 
+[node name="ModuleNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
+theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
+text = "Module"
+
 [node name="Spacer" type="Control" parent="NavigationPanel/HBoxContainer"]
+custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="MenuButton" type="Button" parent="NavigationPanel/HBoxContainer"]
+custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
+size_flags_vertical = 4
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 25
-theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
-theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
-theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
+theme_override_constants/h_separation = 0
+theme_override_font_sizes/font_size = 24
+theme_override_styles/focus = SubResource("StyleBoxFlat_menu_focus")
+theme_override_styles/hover = SubResource("StyleBoxFlat_menu_focus")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_menu_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_menu")
 text = "☰"
 
 [node name="ChatPanel" parent="." instance=ExtResource("9_1dlu4")]

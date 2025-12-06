@@ -1,0 +1,115 @@
+[gd_scene load_steps=4 format=3 uid="uid://bsg7jl2cgxgnn"]
+
+[ext_resource type="Script" path="res://script/mode_selection_NEW.gd" id="1_script"]
+[ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="2_bg"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_font"]
+
+[node name="TrainingAcademy" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stream = ExtResource("2_bg")
+autoplay = true
+expand = true
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ProgressPanel" type="Panel" parent="CanvasLayer"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 150.0
+grow_horizontal = 2
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/ProgressPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="Spacer1" type="Control" parent="CanvasLayer/ProgressPanel/VBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="XPLabel" type="Label" parent="CanvasLayer/ProgressPanel/VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 24
+text = "Total XP: 0"
+horizontal_alignment = 1
+
+[node name="RankLabel" type="Label" parent="CanvasLayer/ProgressPanel/VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "🔩 Iron"
+horizontal_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="CanvasLayer/ProgressPanel/VBox"]
+custom_minimum_size = Vector2(600, 20)
+layout_mode = 2
+size_flags_horizontal = 4
+value = 50.0
+show_percentage = false
+
+[node name="UnlockLabel" type="Label" parent="CanvasLayer/ProgressPanel/VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 18
+text = "🎮 Code Breaker: 100 more XP needed"
+horizontal_alignment = 1
+
+[node name="CompletionLabel" type="Label" parent="CanvasLayer/ProgressPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Modules Completed: 0/10 (0%)"
+horizontal_alignment = 1
+
+[node name="Spacer2" type="Control" parent="CanvasLayer/ProgressPanel/VBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 150.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ContentVBox" type="VBoxContainer" parent="CanvasLayer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="BackButton" type="Button" parent="CanvasLayer"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -50.0
+offset_right = 100.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "🏠 BACK TO LANDING"

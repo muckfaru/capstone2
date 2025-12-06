@@ -4,11 +4,35 @@ extends Control
 @onready var intermediate_btn: Button = $CanvasLayer/ButtonContainer/IntermediateButton
 @onready var advanced_btn: Button = $CanvasLayer/ButtonContainer/AdvancedButton
 @onready var xp_label: Label = $CanvasLayer/XPLabel
+@onready var rank_icon: TextureRect = $CanvasLayer/RankIcon
 @onready var rank_label: Label = $CanvasLayer/RankLabel
 @onready var profile_btn: Button = $CanvasLayer/ProfileButton
+@onready var back_btn: Button = $CanvasLayer/BackButton
+
+# Dynamically created nodes (set in _setup_ui_elements)
+var xp_progress_bar: ProgressBar = null
+var unlock_panel: Panel = null
+var beginner_desc: Label = null
+var intermediate_desc: Label = null
+var advanced_desc: Label = null
 
 const PROJECT_ID := "capstone-823dc"
 const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents" % PROJECT_ID
+
+# Tutorial metadata with time estimates and XP ranges
+const TUTORIAL_METADATA := {
+	"beginner_fundamentals": {"time": "10-15 min", "xp_range": "100-200 XP", "difficulty": 2},
+	"beginner_network": {"time": "12-18 min", "xp_range": "100-200 XP", "difficulty": 3},
+	"beginner_password": {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3},
+	"beginner_malware": {"time": "10-15 min", "xp_range": "100-200 XP", "difficulty": 2},
+	"intermediate_phishing": {"time": "20-25 min", "xp_range": "100-200 XP", "difficulty": 4},
+	"intermediate_trojan": {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3},
+	"intermediate_defense": {"time": "18-25 min", "xp_range": "100-200 XP", "difficulty": 4},
+	"intermediate_lab": {"time": "20-30 min", "xp_range": "100-200 XP", "difficulty": 4},
+	"advanced_scenarios": {"time": "25-35 min", "xp_range": "100-200 XP", "difficulty": 5},
+	"advanced_encryption": {"time": "20-25 min", "xp_range": "100-200 XP", "difficulty": 4},
+	"advanced_lab": {"time": "25-40 min", "xp_range": "100-200 XP", "difficulty": 5}
+}
 
 func _ready() -> void:
 	# Verify auth state
@@ -18,6 +42,9 @@ func _ready() -> void:
 		return
 	
 	print("✅ Mode Selection Ready | UID:", Auth.current_local_id)
+	
+	# Setup UI elements first
+	_setup_ui_elements()
 	
 	# Connect to data_loaded signal BEFORE loading data
 	if not TutorialManager.data_loaded.is_connected(_update_xp_display):
@@ -35,6 +62,246 @@ func _ready() -> void:
 	# Connect profile button
 	if profile_btn:
 		profile_btn.pressed.connect(_on_profile_pressed)
+	
+	# Connect back button
+	if back_btn:
+		back_btn.pressed.connect(_on_back_pressed)
+	
+	# Animate entrance
+	_animate_entrance()
+	
+	# Animate entrance
+	_animate_entrance()
+
+
+# -------------------------
+# UI SETUP
+# -------------------------
+func _setup_ui_elements() -> void:
+	"""Setup progress bars, unlock panels, and level descriptions"""
+	# Create XP Progress Bar if not in scene
+	if not xp_progress_bar:
+		xp_progress_bar = ProgressBar.new()
+		xp_progress_bar.name = "XPProgressBar"
+		xp_progress_bar.anchors_preset = Control.PRESET_TOP_WIDE
+		xp_progress_bar.offset_left = 20
+		xp_progress_bar.offset_top = 20
+		xp_progress_bar.offset_right = -20
+		xp_progress_bar.offset_bottom = 50
+		xp_progress_bar.show_percentage = false
+		$CanvasLayer.add_child(xp_progress_bar)
+	
+	# Create Unlock Progress Panel
+	if not unlock_panel:
+		unlock_panel = Panel.new()
+		unlock_panel.name = "UnlockProgressPanel"
+		unlock_panel.custom_minimum_size = Vector2(400, 200)
+		unlock_panel.anchors_preset = Control.PRESET_TOP_RIGHT
+		unlock_panel.offset_left = -420
+		unlock_panel.offset_top = 80
+		unlock_panel.offset_right = -20
+		unlock_panel.offset_bottom = 280
+		unlock_panel.visible = false  # Hide by default until populated
+		
+		# Add stylebox for glassmorphism effect
+		var style = StyleBoxFlat.new()
+		style.bg_color = Color(0, 0, 0, 0.6)
+		style.border_width_left = 2
+		style.border_width_top = 2
+		style.border_width_right = 2
+		style.border_width_bottom = 2
+		style.border_color = Color(0, 1, 1, 0.5)
+		style.corner_radius_top_left = 10
+		style.corner_radius_top_right = 10
+		style.corner_radius_bottom_left = 10
+		style.corner_radius_bottom_right = 10
+		unlock_panel.add_theme_stylebox_override("panel", style)
+		
+		$CanvasLayer.add_child(unlock_panel)
+		_populate_unlock_panel()
+		unlock_panel.visible = true  # Show after population
+	
+	# Add level descriptions and icons if buttons exist
+	if beginner_btn and not beginner_desc:
+		# Add icon to beginner button
+		var icon_texture = load("res://asset/icons/Beginner Icon.png")
+		if icon_texture and not beginner_btn.has_node("IconRect"):
+			var icon_rect = TextureRect.new()
+			icon_rect.name = "IconRect"
+			icon_rect.texture = icon_texture
+			icon_rect.custom_minimum_size = Vector2(48, 48)
+			icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon_rect.position = Vector2(20, 16)  # Left side, vertically centered
+			icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			beginner_btn.add_child(icon_rect)
+		
+		var desc = Label.new()
+		desc.name = "Description"
+		desc.text = "Cybersecurity Fundamentals - Start here if new!"
+		desc.add_theme_font_size_override("font_size", 13)
+		desc.add_theme_color_override("font_color", Color(0.7, 0.9, 0.9))
+		desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		desc.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		desc.position = Vector2(0, 50)
+		desc.size = Vector2(500, 25)
+		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		beginner_btn.add_child(desc)
+	
+	if intermediate_btn and not intermediate_desc:
+		# Add intermediate icon
+		var icon_texture = load("res://asset/icons/intermediate.png")
+		if icon_texture and not intermediate_btn.has_node("IconRect"):
+			var icon_rect = TextureRect.new()
+			icon_rect.name = "IconRect"
+			icon_rect.texture = icon_texture
+			icon_rect.custom_minimum_size = Vector2(48, 48)
+			icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon_rect.position = Vector2(20, 16)  # Left side, vertically centered
+			icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			intermediate_btn.add_child(icon_rect)
+		
+		var desc = Label.new()
+		desc.name = "Description"
+		desc.text = "Real-world Threats & Defense"
+		desc.add_theme_font_size_override("font_size", 13)
+		desc.add_theme_color_override("font_color", Color(0.7, 0.9, 0.9))
+		desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		desc.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		desc.position = Vector2(0, 50)
+		desc.size = Vector2(500, 25)
+		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		intermediate_btn.add_child(desc)
+	
+	if advanced_btn and not advanced_desc:
+		# Add advanced icon
+		var icon_texture = load("res://asset/icons/Advance.png")
+		if icon_texture and not advanced_btn.has_node("IconRect"):
+			var icon_rect = TextureRect.new()
+			icon_rect.name = "IconRect"
+			icon_rect.texture = icon_texture
+			icon_rect.custom_minimum_size = Vector2(48, 48)
+			icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon_rect.position = Vector2(20, 16)  # Left side, vertically centered
+			icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			advanced_btn.add_child(icon_rect)
+		
+		var desc = Label.new()
+		desc.name = "Description"
+		desc.text = "Red Team Tactics & Forensics"
+		desc.add_theme_font_size_override("font_size", 13)
+		desc.add_theme_color_override("font_color", Color(0.7, 0.9, 0.9))
+		desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		desc.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		desc.position = Vector2(0, 50)
+		desc.size = Vector2(500, 25)
+		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		advanced_btn.add_child(desc)
+
+
+func _populate_unlock_panel() -> void:
+	"""Populate unlock panel with game unlock progress"""
+	if not unlock_panel:
+		return
+	
+	# Clear existing children
+	for child in unlock_panel.get_children():
+		child.queue_free()
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 15)
+	vbox.position = Vector2(10, 10)
+	vbox.size = Vector2(380, 180)
+	
+	# Title
+	var title = Label.new()
+	title.text = "🎮 UNLOCKABLE GAMES"
+	title.add_theme_font_size_override("font_size", 16)
+	title.add_theme_color_override("font_color", Color(0, 1, 1))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+	
+	# Akashic TCG (always unlocked)
+	var akashic_label = Label.new()
+	akashic_label.text = "✅ Akashic TCG (Always Available)"
+	akashic_label.add_theme_font_size_override("font_size", 14)
+	akashic_label.add_theme_color_override("font_color", Color(0, 1, 0.5))
+	vbox.add_child(akashic_label)
+	
+	# Code Breaker progress
+	var code_breaker_vbox = VBoxContainer.new()
+	code_breaker_vbox.add_theme_constant_override("separation", 5)
+	
+	var cb_label = Label.new()
+	var current_xp = TutorialManager.total_xp
+	var required_xp = TutorialManager.XP_THRESHOLDS["code_breaker"]
+	var is_unlocked = TutorialManager.is_game_unlocked("code_breaker")
+	
+	if is_unlocked:
+		cb_label.text = "✅ Code Breaker (Unlocked!)"
+		cb_label.add_theme_color_override("font_color", Color(0, 1, 0.5))
+	else:
+		cb_label.text = "🔒 Code Breaker (Unlock at 500 XP)"
+		cb_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	
+	cb_label.add_theme_font_size_override("font_size", 14)
+	code_breaker_vbox.add_child(cb_label)
+	
+	if not is_unlocked:
+		var cb_progress = ProgressBar.new()
+		cb_progress.max_value = required_xp
+		cb_progress.value = current_xp
+		cb_progress.custom_minimum_size = Vector2(360, 20)
+		cb_progress.show_percentage = false
+		code_breaker_vbox.add_child(cb_progress)
+		
+		var cb_progress_label = Label.new()
+		cb_progress_label.text = "Progress: %d/%d XP (%.0f%%)" % [current_xp, required_xp, (float(current_xp) / required_xp) * 100.0]
+		cb_progress_label.add_theme_font_size_override("font_size", 12)
+		cb_progress_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+		code_breaker_vbox.add_child(cb_progress_label)
+	
+	vbox.add_child(code_breaker_vbox)
+	
+	# Game 3 placeholder
+	var game3_label = Label.new()
+	var game3_unlocked = TutorialManager.is_game_unlocked("game_3")
+	if game3_unlocked:
+		game3_label.text = "✅ Mystery Game (Unlocked!)"
+		game3_label.add_theme_color_override("font_color", Color(0, 1, 0.5))
+	else:
+		game3_label.text = "🔒 Mystery Game (Unlock at 1500 XP)"
+		game3_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+	game3_label.add_theme_font_size_override("font_size", 14)
+	vbox.add_child(game3_label)
+	
+	unlock_panel.add_child(vbox)
+
+
+func _animate_entrance() -> void:
+	"""Animate UI elements on entrance"""
+	# Fade in and slide buttons
+	for btn in [beginner_btn, intermediate_btn, advanced_btn]:
+		if btn:
+			btn.modulate.a = 0
+			btn.position.x -= 50
+	
+	if beginner_btn:
+		var tween = create_tween()
+		tween.tween_property(beginner_btn, "modulate:a", 1.0, 0.5).set_delay(0.1)
+		tween.parallel().tween_property(beginner_btn, "position:x", beginner_btn.position.x + 50, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	
+	if intermediate_btn:
+		var tween = create_tween()
+		tween.tween_property(intermediate_btn, "modulate:a", 1.0, 0.5).set_delay(0.2)
+		tween.parallel().tween_property(intermediate_btn, "position:x", intermediate_btn.position.x + 50, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	
+	if advanced_btn:
+		var tween = create_tween()
+		tween.tween_property(advanced_btn, "modulate:a", 1.0, 0.5).set_delay(0.3)
+		tween.parallel().tween_property(advanced_btn, "position:x", advanced_btn.position.x + 50, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 # -------------------------
@@ -146,26 +413,88 @@ func _show_tutorial_menu(level: String) -> void:
 	var separator := HSeparator.new()
 	main_vbox.add_child(separator)
 	
-	# Create vertical list of tutorial buttons
+	# Create vertical list of tutorial cards
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 10)
 	
 	for tutorial in tutorials:
-		var btn := Button.new()
 		var tutorial_id: String = tutorial["id"]
 		var is_completed: bool = TutorialManager.completed_tutorials.has(tutorial_id)
+		var metadata = TUTORIAL_METADATA.get(tutorial_id, {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3})
 		
-		# Show completion status in button text
+		# Create card container
+		var card = PanelContainer.new()
+		var card_style = StyleBoxFlat.new()
+		card_style.bg_color = Color(0.05, 0.05, 0.1, 0.8) if not is_completed else Color(0.1, 0.2, 0.1, 0.8)
+		card_style.border_width_left = 2
+		card_style.border_width_top = 2
+		card_style.border_width_right = 2
+		card_style.border_width_bottom = 2
+		card_style.border_color = Color(0, 1, 1, 0.6) if not is_completed else Color(0, 1, 0.5, 0.8)
+		card_style.corner_radius_top_left = 8
+		card_style.corner_radius_top_right = 8
+		card_style.corner_radius_bottom_left = 8
+		card_style.corner_radius_bottom_right = 8
+		card.add_theme_stylebox_override("panel", card_style)
+		
+		# Card content
+		var card_vbox = VBoxContainer.new()
+		card_vbox.add_theme_constant_override("separation", 5)
+		
+		# Title row
+		var title_label = Label.new()
+		title_label.text = tutorial["name"]
+		title_label.add_theme_font_size_override("font_size", 16)
+		title_label.add_theme_color_override("font_color", Color.WHITE)
+		card_vbox.add_child(title_label)
+		
+		# Info row (time + XP)
+		var info_hbox = HBoxContainer.new()
+		info_hbox.add_theme_constant_override("separation", 20)
+		
+		var time_label = Label.new()
+		time_label.text = "⏱️ " + metadata["time"]
+		time_label.add_theme_font_size_override("font_size", 12)
+		time_label.add_theme_color_override("font_color", Color(0.7, 0.7, 1))
+		info_hbox.add_child(time_label)
+		
+		var xp_info_label = Label.new()
+		xp_info_label.text = "💎 " + metadata["xp_range"]
+		xp_info_label.add_theme_font_size_override("font_size", 12)
+		xp_info_label.add_theme_color_override("font_color", Color(1, 0.843, 0))
+		info_hbox.add_child(xp_info_label)
+		
+		var difficulty_label = Label.new()
+		var stars = ""
+		for i in metadata["difficulty"]:
+			stars += "★"
+		for i in (5 - metadata["difficulty"]):
+			stars += "☆"
+		difficulty_label.text = "📊 " + stars
+		difficulty_label.add_theme_font_size_override("font_size", 12)
+		difficulty_label.add_theme_color_override("font_color", Color(1, 0.5, 0.5))
+		info_hbox.add_child(difficulty_label)
+		
+		card_vbox.add_child(info_hbox)
+		
+		# Status row
+		var btn := Button.new()
 		if is_completed:
 			var result = TutorialManager.completed_tutorials[tutorial_id]
 			var percentage: float = result.get("percentage", 0.0)
-			btn.text = tutorial["name"] + " ✓ (%.0f%%)" % percentage
+			btn.text = "✅ COMPLETED - %.0f%%" % percentage
 			btn.disabled = true
-			btn.tooltip_text = "Already completed with %.0f%%. XP already earned!" % percentage
+			
+			var status_label = Label.new()
+			status_label.text = "🏆 XP earned: %d" % result.get("xp_earned", 0)
+			status_label.add_theme_font_size_override("font_size", 11)
+			status_label.add_theme_color_override("font_color", Color(0, 1, 0.5))
+			card_vbox.add_child(status_label)
 		else:
-			btn.text = tutorial["name"]
+			btn.text = "START TUTORIAL →"
+			btn.add_theme_color_override("font_color", Color(0, 1, 1))
 		
-		btn.custom_minimum_size = Vector2(0, 50)
+		btn.custom_minimum_size = Vector2(0, 40)
 		btn.pressed.connect(func():
 			dialog.queue_free()
 			# Store tutorial metadata for result tracking
@@ -173,7 +502,10 @@ func _show_tutorial_menu(level: String) -> void:
 			get_tree().set_meta("tutorial_level", level_int)
 			_save_level_and_navigate(level_int, tutorial["scene"])
 		)
-		vbox.add_child(btn)
+		card_vbox.add_child(btn)
+		
+		card.add_child(card_vbox)
+		vbox.add_child(card)
 	
 	main_vbox.add_child(vbox)
 	margin_container.add_child(main_vbox)
@@ -259,20 +591,45 @@ func _update_xp_display() -> void:
 	print("[ModeSelection] TutorialManager.data_has_loaded: %s" % TutorialManager.data_has_loaded)
 	
 	var rank: Dictionary = TutorialManager.get_rank()
+	var current_xp = TutorialManager.total_xp
 	
 	if xp_label:
-		xp_label.text = "XP: %d" % TutorialManager.total_xp
+		xp_label.text = ": %d" % current_xp
+		xp_label.add_theme_color_override("font_color", Color(0.984, 0.992, 0.910, 1))  # #fbfde8
 		print("[ModeSelection] ✅ XP Label updated to: %s" % xp_label.text)
 	else:
 		print("[ModeSelection] ⚠️ xp_label not found!")
 	
+	if rank_icon:
+		var icon_texture = load(rank["icon"])
+		if icon_texture:
+			rank_icon.texture = icon_texture
+			print("[ModeSelection] ✅ Rank Icon loaded: %s" % rank["icon"])
+		else:
+			print("[ModeSelection] ⚠️ Failed to load rank icon: %s" % rank["icon"])
+	else:
+		print("[ModeSelection] ⚠️ rank_icon not found!")
+	
 	if rank_label:
-		rank_label.text = "%s %s" % [rank["icon"], rank["name"]]
+		rank_label.text = rank["name"]
 		rank_label.add_theme_color_override("font_color", rank["color"])
 		rank_label.tooltip_text = "Progress: %.0f%% | XP to next rank: %d" % [rank["progress"], rank["xp_to_next"]]
 		print("[ModeSelection] ✅ Rank Label updated to: %s" % rank_label.text)
 	else:
 		print("[ModeSelection] ⚠️ rank_label not found!")
+	
+	# Update XP Progress Bar
+	if xp_progress_bar:
+		var next_rank_xp = rank["max_xp"] if rank["max_xp"] != 999999 else rank["min_xp"] + 1000
+		xp_progress_bar.max_value = next_rank_xp
+		xp_progress_bar.value = current_xp
+		
+		# Animate progress bar fill
+		var tween = create_tween()
+		tween.tween_property(xp_progress_bar, "value", current_xp, 1.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	
+	# Update unlock panel
+	_populate_unlock_panel()
 
 
 # -------------------------
@@ -280,4 +637,11 @@ func _update_xp_display() -> void:
 # -------------------------
 func _on_profile_pressed() -> void:
 	print("👤 Opening profile...")
+	get_tree().change_scene_to_file("res://scene/landing.tscn")
+
+
+# -------------------------
+# BACK BUTTON
+# -------------------------
+func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file("res://scene/landing.tscn")
