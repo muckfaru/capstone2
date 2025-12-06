@@ -18,20 +18,24 @@ extends Control
 @onready var _p2_score: Label = $VBox/ScorePanel/ScoreP2
 @onready var _p1_health: ProgressBar = $VBox/ScorePanel/P1HealthBar
 @onready var _p2_health: ProgressBar = $VBox/ScorePanel/P2HealthBar
+@onready var _p1_title: Label = $VBox/ScorePanel/Player1Title
+@onready var _p2_title: Label = $VBox/ScorePanel/Player2Title
 @onready var menu_panel: Control = $MenuPanel
 @onready var menu_button: Button = $MenuButton
 @onready var _countdown_label: Label = $CountdownLabel
 @onready var _battle_music: AudioStreamPlayer = $BattleMusic
-
+@onready var _pop_sound: AudioStreamPlayer = $PopSound
 
 # Typing UI
 @onready var _code_display: RichTextLabel = $VBox/CodeDisplayPanel/CodeDisplay
 @onready var _input_field: LineEdit = $VBox/InputField
 @onready var _code_panel: Panel = $VBox/CodeDisplayPanel
+@onready var _snippet_timer_label: Label = $VBox/CodeDisplayPanel/SnippetTimer
 
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const ROOMS_PATH := "/codebreaker_rooms"
 const GAME_DURATION := 240.0  # 4 minute match (or until someone dies)
+const SNIPPET_TIME_LIMIT := 15.0  # 15 seconds per snippet
 
 # NEW GAME MECHANICS CONSTANTS
 const SCORE_CORRECT := 100           # Points for correct submission
@@ -80,6 +84,10 @@ var _sync_timer: Timer
 var _game_active: bool = false
 var _lobby_server_url: String = ""
 
+# Snippet timer (15 seconds per snippet)
+var _snippet_time_remaining: float = SNIPPET_TIME_LIMIT
+var _snippet_timer_active: bool = false
+
 # Pop/bubble animation presets for CodeDisplayPanel
 const POP_PRESETS := {
 	"subtle": {
@@ -104,6 +112,22 @@ const POP_PRESETS := {
 
 # Active preset name (change via set_pop_preset)
 var _active_pop_preset: String = "dramatic"
+
+# Position shuffle mechanic - code panel moves on pop
+var _position_shuffle_enabled: bool = true
+var _original_panel_position: Vector2 = Vector2.ZERO
+var _panel_position_offsets: Array[Vector2] = [
+	Vector2(0, 0),      # Center (original)
+	Vector2(-150, -60),  # Top-left
+	Vector2(150, -60),   # Top-right
+	Vector2(-150, 60),   # Bottom-left
+	Vector2(150, 60),    # Bottom-right
+	Vector2(0, -40),    # Top center
+	Vector2(0, 40),     # Bottom center
+	Vector2(-60, 0),    # Left center
+	Vector2(60, 0)      # Right center
+]
+var _last_position_index: int = 0
 
 func _ready() -> void:
 	print("[CodeBreakerArena] 🎮 Arena starting (WebSocket Relay Mode)")
@@ -180,6 +204,77 @@ func _ready() -> void:
 	# Initial indicator - show connected
 	if _ws_indicator:
 		_ws_indicator.color = Color.GREEN
+	
+	# Store original code panel position for position shuffling
+	if _code_panel:
+		_original_panel_position = _code_panel.position
+		print("[Arena] 📍 Stored original panel position: %s" % _original_panel_position)
+	
+	# Set health bar colors: Cyan (#00d1ff) for self, Pink-Red (#ff596e) for opponent
+	# Create StyleBoxFlat for custom colors
+	var cyan_style = StyleBoxFlat.new()
+	cyan_style.bg_color = Color("#00d1ff")
+	cyan_style.corner_radius_top_left = 8
+	cyan_style.corner_radius_top_right = 8
+	cyan_style.corner_radius_bottom_right = 8
+	cyan_style.corner_radius_bottom_left = 8
+	
+	var pink_red_style = StyleBoxFlat.new()
+	pink_red_style.bg_color = Color("#ff596e")
+	pink_red_style.corner_radius_top_left = 8
+	pink_red_style.corner_radius_top_right = 8
+	pink_red_style.corner_radius_bottom_right = 8
+	pink_red_style.corner_radius_bottom_left = 8
+	
+	if _is_host:
+		# Host: P1 is YOU (cyan), P2 is OPPONENT (pink-red)
+		if _p1_health:
+			_p1_health.add_theme_stylebox_override("fill", cyan_style)
+		if _p2_health:
+			_p2_health.add_theme_stylebox_override("fill", pink_red_style)
+	else:
+		# Client: P2 is YOU (cyan), P1 is OPPONENT (pink-red)
+		if _p2_health:
+			_p2_health.add_theme_stylebox_override("fill", cyan_style)
+		if _p1_health:
+			_p1_health.add_theme_stylebox_override("fill", pink_red_style)
+	
+	print("[Arena] 🎨 Health bar colors set - Cyan (#00d1ff): YOU | Pink-Red (#ff596e): OPPONENT")
+	
+	# Set username, title, and score colors to match health bars
+	var cyan_color = Color("#00d1ff")
+	var pink_red_color = Color("#ff596e")
+	
+	if _is_host:
+		# Host: P1 is YOU (cyan), P2 is OPPONENT (pink-red)
+		if _host_name_label:
+			_host_name_label.add_theme_color_override("font_color", cyan_color)
+		if _client_name_label:
+			_client_name_label.add_theme_color_override("font_color", pink_red_color)
+		if _p1_title:
+			_p1_title.add_theme_color_override("font_color", cyan_color)
+		if _p2_title:
+			_p2_title.add_theme_color_override("font_color", pink_red_color)
+		if _p1_score:
+			_p1_score.add_theme_color_override("font_color", cyan_color)
+		if _p2_score:
+			_p2_score.add_theme_color_override("font_color", pink_red_color)
+	else:
+		# Client: P2 is YOU (cyan), P1 is OPPONENT (pink-red)
+		if _host_name_label:
+			_host_name_label.add_theme_color_override("font_color", pink_red_color)
+		if _client_name_label:
+			_client_name_label.add_theme_color_override("font_color", cyan_color)
+		if _p1_title:
+			_p1_title.add_theme_color_override("font_color", pink_red_color)
+		if _p2_title:
+			_p2_title.add_theme_color_override("font_color", cyan_color)
+		if _p1_score:
+			_p1_score.add_theme_color_override("font_color", pink_red_color)
+		if _p2_score:
+			_p2_score.add_theme_color_override("font_color", cyan_color)
+	
+	print("[Arena] 🎨 All UI colors updated - Cyan: YOU | Pink-Red: OPPONENT")
 	
 	# Fade in battle music
 	if _battle_music:
@@ -394,12 +489,12 @@ func _update_opponent_display() -> void:
 	print("[Arena] 📊 Updating opponent display: Score=%d HP=%d" % [_opponent_score, _opponent_health])
 	if _is_host:
 		# Host displays opponent (client) on right side
-		_p2_score.text = "SCORE: %d" % _opponent_score
+		_p2_score.text = "P2: %d" % _opponent_score
 		if _p2_health:
 			_p2_health.value = _opponent_health
 	else:
 		# Client displays opponent (host) on left side
-		_p1_score.text = "SCORE: %d" % _opponent_score
+		_p1_score.text = "P1: %d" % _opponent_score
 		if _p1_health:
 			_p1_health.value = _opponent_health
 
@@ -647,6 +742,13 @@ func _start_typing_game() -> void:
 	if _sync_timer:
 		_sync_timer.start()
 	
+	# Start snippet timer
+	_snippet_time_remaining = SNIPPET_TIME_LIMIT
+	_snippet_timer_active = true
+	if _snippet_timer_label:
+		_snippet_timer_label.visible = true
+		_snippet_timer_label.text = "%.1fs" % _snippet_time_remaining
+	
 	# Enable input field
 	if _input_field:
 		_input_field.editable = true
@@ -715,6 +817,9 @@ func _on_input_submitted(submitted_text: String) -> void:
 			# Animate snippet change with pop effect
 			await _popin_code_display_with_text(_code_snippet)
 		
+		# Reset snippet timer for new snippet
+		_snippet_time_remaining = SNIPPET_TIME_LIMIT
+		
 		# Clear input for next round
 		_input_field.text = ""
 	else:
@@ -762,7 +867,45 @@ func _on_input_submitted(submitted_text: String) -> void:
 			# Animate snippet change with pop effect
 			await _popin_code_display_with_text(_code_snippet)
 		
+		# Reset snippet timer for new snippet
+		_snippet_time_remaining = SNIPPET_TIME_LIMIT
+		
 		# Clear input to try again
+		_input_field.text = ""
+
+func _on_snippet_timeout() -> void:
+	"""Called when 15-second timer expires for current snippet"""
+	if not _game_active:
+		return
+	
+	print("[Arena] ⏰ Snippet timeout! Skipping to next snippet (no penalty)...")
+	
+	# NO PENALTY - Just skip to next snippet
+	# No health damage, no score change
+	
+	# Visual feedback
+	_status_label.text = "⏰ TIMEOUT! Skipping snippet... (%d/%d)" % [
+		_my_snippet_index + 1,
+		_snippet_list.size()
+	]
+	
+	# Flash yellow indicator for timeout (not red since no penalty)
+	if _status_label:
+		var original_color = _status_label.modulate
+		_status_label.modulate = Color.YELLOW
+		await get_tree().create_timer(0.3).timeout
+		_status_label.modulate = original_color
+	
+	# Move to next snippet
+	_advance_to_next_snippet()
+	if _code_display:
+		await _popin_code_display_with_text(_code_snippet)
+	
+	# Reset timer for new snippet
+	_snippet_time_remaining = SNIPPET_TIME_LIMIT
+	
+	# Clear input
+	if _input_field:
 		_input_field.text = ""
 
 func _on_typing_finished() -> void:
@@ -773,6 +916,7 @@ func _on_typing_finished() -> void:
 func _on_player_died() -> void:
 	"""NEW: Player health reached 0 - GAME OVER"""
 	_game_active = false
+	_snippet_timer_active = false
 	
 	if _input_field:
 		_input_field.editable = false
@@ -903,6 +1047,25 @@ func _on_display_timer_timeout() -> void:
 	var secs: int = total_secs % 60
 	_timer_label.text = "%02d:%02d" % [mins, secs]
 	
+	# Update snippet timer (15 seconds per snippet)
+	if _snippet_timer_active:
+		_snippet_time_remaining -= 0.1
+		
+		if _snippet_timer_label:
+			_snippet_timer_label.text = "%.1fs" % max(0.0, _snippet_time_remaining)
+			
+			# Color changes based on remaining time
+			if _snippet_time_remaining > 10.0:
+				_snippet_timer_label.add_theme_color_override("font_color", Color(0, 1, 1))  # Cyan
+			elif _snippet_time_remaining > 5.0:
+				_snippet_timer_label.add_theme_color_override("font_color", Color(1, 1, 0))  # Yellow
+			else:
+				_snippet_timer_label.add_theme_color_override("font_color", Color(1, 0, 0))  # Red
+		
+		# Time's up for this snippet!
+		if _snippet_time_remaining <= 0.0:
+			_on_snippet_timeout()
+	
 	# Check if time's up (timeout = highest score wins)
 	if remaining <= 0.0:
 		_end_game_timeout()
@@ -914,6 +1077,7 @@ func _on_display_timer_timeout() -> void:
 func _end_game_victory() -> void:
 	"""NEW: Victory - Either opponent died or you finished first"""
 	_game_active = false
+	_snippet_timer_active = false
 	_sync_timer.stop()
 	
 	if _input_field:
@@ -931,6 +1095,7 @@ func _end_game_victory() -> void:
 func _end_game_defeat() -> void:
 	"""NEW: Defeat - Either you died or opponent finished first"""
 	_game_active = false
+	_snippet_timer_active = false
 	_sync_timer.stop()
 	
 	if _input_field:
@@ -948,6 +1113,7 @@ func _end_game_defeat() -> void:
 func _end_game_timeout() -> void:
 	"""NEW: Time ran out - Highest score wins"""
 	_game_active = false
+	_snippet_timer_active = false
 	_sync_timer.stop()
 	
 	if _input_field:
@@ -1068,9 +1234,15 @@ func _bounce_scale(node: Node, scale_multiplier: float = 1.5, duration: float = 
 func _popin_code_display_with_text(new_text: String) -> void:
 	"""Pop-out the current code display, swap text, then pop-in with bubble effect.
 	Awaitable: callers may await this function to sequence actions.
+	🆕 POSITION SHUFFLE: Code panel moves to random position on pop!
+	🔊 POP SOUND: Plays sound effect on animation start!
 	"""
 	if not _code_display:
 		return
+	
+	# 🔊 Play pop sound effect
+	if _pop_sound:
+		_pop_sound.play()
 
 	# Target the whole panel for the bubble effect, but replace the label text
 	var target_node: Node = null
@@ -1097,6 +1269,20 @@ func _popin_code_display_with_text(new_text: String) -> void:
 	# Swap text while invisible
 	if _code_display:
 		_code_display.text = new_text
+	
+	# 🆕 POSITION SHUFFLE: Move to random position!
+	if _position_shuffle_enabled and _code_panel:
+		var new_position_index = _last_position_index
+		# Ensure different position than last time
+		while new_position_index == _last_position_index and _panel_position_offsets.size() > 1:
+			new_position_index = randi() % _panel_position_offsets.size()
+		
+		_last_position_index = new_position_index
+		var offset = _panel_position_offsets[new_position_index]
+		var new_position = _original_panel_position + offset
+		
+		_code_panel.position = new_position
+		print("[Arena] 📍 Panel moved to position index %d (offset: %s)" % [new_position_index, offset])
 
 	# Prepare for pop-in: slightly overscaled and transparent
 	target_node.scale = Vector2(in_overscale, in_overscale)

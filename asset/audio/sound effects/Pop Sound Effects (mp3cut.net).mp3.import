@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://chstil5w3lvp6"
+path="res://.godot/imported/Pop Sound Effects (mp3cut.net).mp3-8c35617e3364cd15a5037ef05003e7e1.mp3str"
+
+[deps]
+
+source_file="res://asset/audio/sound effects/Pop Sound Effects (mp3cut.net).mp3"
+dest_files=["res://.godot/imported/Pop Sound Effects (mp3cut.net).mp3-8c35617e3364cd15a5037ef05003e7e1.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
