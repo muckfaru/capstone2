@@ -1,13 +1,13 @@
 ﻿# Copilot Instructions for capstone2
 
 ## 🎮 Big Picture
-**Godot 4.4 multi-game social platform** with Firebase authentication and **WebSocket Relay multiplayer** (no port forwarding required). Architecture: Auth → Landing (hub) → Game Lobbies → Rooms → Arenas (1v1 gameplay). Two games: **Code Breaker** (typing race) and **Akashic TCG** (turn-based card game). Scene navigation uses visibility toggles for Landing, `change_scene_to_packed()` for game flows. REST via transient `HTTPRequest` nodes; Multiplayer via **Node.js relay server** on Render.com.
+**Godot 4.4 multi-game social platform** with Firebase authentication and **WebSocket Relay multiplayer** (no port forwarding required). Architecture: Auth → Landing (hub) → Game Lobbies → Rooms → Loading → Arenas (1v1 gameplay). Two games: **Code Breaker** (submit-based typing combat) and **Akashic TCG** (turn-based card game). Scene navigation uses visibility toggles for Landing, `change_scene_to_packed()` for game flows. REST via transient `HTTPRequest` nodes; Multiplayer via **Node.js relay server** on Render.com.
 
 ```
-Firebase Auth ──→ Landing (profile/chat) ──→ Game Lobbies ──→ Rooms ──→ Arenas
-                           │                        │               │
-                    Auth.gd (autoload)      Relay Connection   WebSocket Relay
-                    ChatManager.gd          (no port fwd!)     (gameplay sync)
+Firebase Auth ──→ Landing (profile/chat) ──→ Game Lobbies ──→ Rooms ──→ Loading ──→ Arenas
+                           │                        │               │          │
+                    Auth.gd (autoload)      Relay Connection   Sync Screen  Combat
+                    ChatManager.gd          (no port fwd!)     (30s max)   (Submit-Based)
 ```
 
 ## 🏗️ Architecture: WebSocket Relay
@@ -217,6 +217,12 @@ _relay_client.message_received.connect(_on_relay_message)
    - Host generates snippet list → sends via relay
    - Client receives snippets → sends `client_ready`
    - Host receives ready → starts game for both
+   - **Submit-Based Combat System:**
+     - Type code in input field, press ENTER to submit
+     - ✅ Correct submission: +100 score, -10 opponent HP
+     - ❌ Wrong submission: -8 self HP (penalty)
+     - First to 0 HP = LOSE
+     - Case-sensitive, exact match required
    - **Gameplay via relay messages:**
      - Type correct → `damage` message to opponent
      - Stats sync: `stats_update` (score, health) every 0.5s
@@ -228,6 +234,7 @@ _relay_client.message_received.connect(_on_relay_message)
      - Explosion particles on damage (12 normal / 25 critical)
      - Panel shadows for depth (8-12px shadows)
      - Text outlines on countdown (8px black outline + cyan shadow)
+     - Pop/bubble animations on code panel (3 presets: subtle/normal/dramatic)
    - **Battle Music:** Auto-fade in on start, stops on leave
    - Game ends → **returns to room** (NOT landing)
    - Relay connection preserved throughout
@@ -273,8 +280,8 @@ Arena → Room: (if rematch) Reparent to root
 {"type": "snippet_list", "snippets": [...]}
 {"type": "client_ready", "player_id": "..."}
 {"type": "game_start", "player_id": "..."}
-{"type": "damage", "damage": 2, "player_id": "..."}
-{"type": "stats_update", "score": 15, "health": 94, "player_id": "..."}
+{"type": "damage", "damage": 10, "player_id": "..."}
+{"type": "stats_update", "score": 100, "health": 92, "player_id": "..."}
 {"type": "player_died", "player_id": "..."}
 {"type": "player_finished", "time": 45.2, "wpm": 68}
 ```
@@ -335,7 +342,7 @@ var current_mode: Mode = Mode.PRODUCTION  # Render.com
 | **Lobby** | `script/code_breaker_lobby.gd` | Room list polling (5s), create/join rooms |
 | **Room** | `script/code_breaker_room.gd` | Room state polling (2s), relay setup, ready system, heartbeat |
 | **Loading** | `script/code_breaker_loading.gd` | Player sync screen, progress bars, 30s timeout, relay preservation |
-| **Arena** | `script/code_breaker_arena.gd` | 1v1 typing battle, damage system, stats sync (0.5s), relay messages, animations, particles, music |
+| **Arena** | `script/code_breaker_arena.gd` | 1v1 submit-based typing combat, damage system (±10 HP correct, -8 HP wrong), stats sync (0.5s), relay messages, animations, particles, music |
 | **Lobby Server** | `server/server.js` | Express + express-ws, REST API + WebSocket relay, in-memory rooms |
 
 ### Arena Animation Functions
@@ -419,7 +426,10 @@ Phone (Mobile Data) ────────────────────
 
 ---
 
-**Latest Updates (Nov 13, 2025):**
+**Latest Updates (Dec 1, 2025):**
+- ✅ **Submit-Based Combat System:** Type in input field + ENTER to submit (not character-by-character)
+- ✅ **New Damage Model:** +100 score & -10 enemy HP on correct, -8 self HP on wrong submission
+- ✅ **First to 0 HP loses** (not progress-based racing anymore)
 - ✅ **Arena Countdown System:** 3-2-1-TYPE centered countdown with bounce animations, timer paused during countdown
 - ✅ **Visual Effects Suite:** Health bar shake on damage, screen shake on critical (<30% HP), bounce animations on countdown
 - ✅ **Particle Systems:** Success sparkles (15 particles) on correct answer, explosion particles (12-25) on damage
@@ -427,5 +437,4 @@ Phone (Mobile Data) ────────────────────
 - ✅ **Battle Music:** Auto-fade in on arena start (-80dB → -5dB over 2s), stops cleanly on leave
 - ✅ **Menu System:** Toggle menu panel with hamburger button
 
-Last updated: Nov 13, 2025 (Added Arena Visual Effects, Animations, Particles & Music)
-See `RELAY_ARCHITECTURE.md` for architecture details.
+
