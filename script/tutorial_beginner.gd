@@ -48,7 +48,7 @@ func _update_timer_display() -> void:
 	var total_seconds := floori(time_remaining)
 	timer_label.text = "%d" % total_seconds
 	
-	# Change color based on time remaining
+	
 	if time_remaining < 10.0:
 		timer_label.modulate = Color(1, 0, 0)
 	elif time_remaining < 20.0:

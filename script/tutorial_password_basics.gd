@@ -605,10 +605,34 @@ func _advance_to_next_wave() -> void:
 
 
 func _on_next_pressed() -> void:
+	# Get current wave FIRST before any modifications
 	var wave: Dictionary = waves[current_wave]
 	
-	# If final wave, return to menu
+	# If final wave (congratulations screen), save and return to menu
 	if current_wave == waves.size() - 1:
+		print("[TUTORIAL] Password Basic completed!")
+		print("[TUTORIAL] Final Score: %d" % player_score)
+		
+		# Calculate final score (player_score is already accumulated throughout waves)
+		# Max score is approximately 280 points (40 points per wave × 7 waves)
+		var max_score := 280
+		
+		print("[TUTORIAL] Calculated Score: %d / Max: %d" % [player_score, max_score])
+		
+		# Save tutorial result
+		var tutorial_mgr = get_node("/root/TutorialManager")
+		if tutorial_mgr:
+			print("[TUTORIAL] TutorialManager found, saving result...")
+			tutorial_mgr.save_tutorial_result("beginner_password", player_score, max_score)
+			
+			# Wait for Firestore save to complete before navigating
+			print("[TUTORIAL] Waiting for Firestore save to complete...")
+			await tutorial_mgr.save_completed
+			print("[TUTORIAL] Save confirmed, navigating to landing...")
+		else:
+			push_error("[TUTORIAL] TutorialManager not found!")
+		
+		# Return to landing page
 		get_tree().change_scene_to_file("res://scene/landing.tscn")
 		return
 	
@@ -1105,7 +1129,7 @@ func _end_battle(victory: bool, wave: Dictionary) -> void:
 	
 	if victory:
 		current_state = GameState.VICTORY
-		var points := int(password_strength * 10) + (100 - attempts_shown)
+		var points: int = min(40, int(password_strength * 0.4))  # Max 40 points based on strength
 		player_score += points
 		
 		# Clear old battle messages

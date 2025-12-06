@@ -1,5 +1,6 @@
 # intro_scene.gd
 # Introduction scene with talking guide before username creation
+# UPDATED: Now redirects to landing_tutorial.tscn after username creation
 
 extends Control
 
@@ -26,25 +27,21 @@ var dialogues := [
 # State variables
 var current_dialogue_index := 0
 var current_char_index := 0
-var typing_speed := 0.05  # seconds per character
+var typing_speed := 0.05
 var is_typing := false
 var can_skip := false
-var hologram_tween: Tween  # For hologram animation
+var hologram_tween: Tween
 
 func _ready() -> void:
 	print("🎬 IntroScene started!")
 	
 	# Initialize UI
 	dialogue_label.text = ""
-	dialogue_panel.modulate.a = 1.0  # Dialogue box always visible
+	dialogue_panel.modulate.a = 1.0
 	skip_button.visible = false
-	hologram_guide.modulate.a = 0.0  # Start hologram invisible
+	hologram_guide.modulate.a = 0.0
 	username_input.visible = false
 	confirm_button.visible = false
-	
-	print("📝 Dialogue label found: ", dialogue_label != null)
-	print("🎨 Dialogue panel found: ", dialogue_panel != null)
-	print("👤 Hologram found: ", hologram_guide != null)
 	
 	# Connect signals
 	skip_button.pressed.connect(_on_skip_pressed)
@@ -62,18 +59,15 @@ func _fade_in_hologram() -> void:
 	tween.tween_property(hologram_guide, "modulate:a", 1.0, 1.5)
 
 func _start_hologram_talk_animation() -> void:
-	# Stop previous animation if exists
 	if hologram_tween:
 		hologram_tween.kill()
 	
-	# Create pulsing glow effect while "talking"
 	hologram_tween = create_tween()
 	hologram_tween.set_loops()
 	hologram_tween.tween_property(hologram_guide, "modulate:a", 0.7, 0.4)
 	hologram_tween.tween_property(hologram_guide, "modulate:a", 1.0, 0.4)
 
 func _stop_hologram_talk_animation() -> void:
-	# Stop pulsing and return to normal
 	if hologram_tween:
 		hologram_tween.kill()
 	
@@ -83,14 +77,12 @@ func _stop_hologram_talk_animation() -> void:
 func _show_next_dialogue() -> void:
 	print("💬 Showing dialogue #", current_dialogue_index)
 	
-	# Check if all dialogues are complete
 	if current_dialogue_index >= dialogues.size():
 		print("✅ All dialogues complete! Showing username input...")
 		_stop_hologram_talk_animation()
 		_show_username_input()
 		return
 	
-	# Reset for new dialogue
 	is_typing = true
 	can_skip = false
 	dialogue_label.text = ""
@@ -98,25 +90,20 @@ func _show_next_dialogue() -> void:
 	skip_button.text = "Press ENTER to Continue >"
 	skip_button.visible = false
 	
-	# Start hologram talking animation
 	_start_hologram_talk_animation()
 	
-	# Start typing animation - FIXED TYPE
 	var current_text: String = dialogues[current_dialogue_index]
 	print("📝 Starting to type: ", current_text)
 	_type_character(current_text)
 
 func _type_character(full_text: String) -> void:
-	# Recursive typing function
 	if current_char_index < full_text.length():
 		dialogue_label.text += full_text[current_char_index]
 		current_char_index += 1
 		
-		# Continue typing
 		await get_tree().create_timer(typing_speed).timeout
 		_type_character(full_text)
 	else:
-		# Typing complete
 		print("✅ Typing complete: ", dialogue_label.text)
 		_on_typing_complete()
 
@@ -125,12 +112,10 @@ func _on_typing_complete() -> void:
 	can_skip = true
 	skip_button.visible = true
 	
-	# Stop hologram talking animation
 	_stop_hologram_talk_animation()
 	
-	# Auto-advance after 3 seconds if user doesn't skip
 	await get_tree().create_timer(3.0).timeout
-	if can_skip:  # Check if user hasn't already skipped
+	if can_skip:
 		_advance_dialogue()
 
 func _advance_dialogue() -> void:
@@ -141,44 +126,25 @@ func _advance_dialogue() -> void:
 	current_dialogue_index += 1
 	skip_button.visible = false
 	
-	# Small pause between dialogues
 	await get_tree().create_timer(0.8).timeout
 	_show_next_dialogue()
 
 func _on_skip_pressed() -> void:
 	if is_typing:
-		# Complete current dialogue instantly
 		dialogue_label.text = dialogues[current_dialogue_index]
 		is_typing = false
 		can_skip = true
 		skip_button.text = "Press ENTER to Continue >"
-		# Stop hologram animation when skipping
 		_stop_hologram_talk_animation()
 	elif can_skip:
-		# Move to next dialogue
 		_advance_dialogue()
-
-func _transition_to_username_scene() -> void:
-	print("✅ Introduction complete, moving to username creation...")
-	
-	# Fade out effect
-	var tween := create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, 0.8)
-	await tween.finished
-	
-	# Change to username creation scene
-	get_tree().change_scene_to_file("res://scene/create_users_panel.tscn")
 
 func _show_username_input() -> void:
 	print("📝 Showing username input...")
 	
-	# Hide skip button
 	skip_button.visible = false
-	
-	# Clear dialogue and show instruction
 	dialogue_label.text = "Enter your name above"
 	
-	# Show input and button with fade animation
 	username_input.visible = true
 	confirm_button.visible = true
 	username_input.modulate.a = 0.0
@@ -193,7 +159,6 @@ func _show_username_input() -> void:
 	username_input.grab_focus()
 
 func _on_username_submitted(_text: String) -> void:
-	# Allow pressing Enter in input field to submit
 	_on_confirm_pressed()
 
 func _on_confirm_pressed() -> void:
@@ -211,12 +176,10 @@ func _on_confirm_pressed() -> void:
 		dialogue_label.text = "⚠️ Missing Auth info. Please log in again."
 		return
 	
-	# Disable input while checking
 	username_input.editable = false
 	confirm_button.disabled = true
 	dialogue_label.text = "⏳ Checking existing profile..."
 	
-	# Check if user already exists
 	var url: String = "%s/users/%s" % [FIRESTORE_URL, Auth.current_local_id]
 	var headers: Array = ["Authorization: Bearer %s" % Auth.current_id_token]
 	
@@ -246,6 +209,7 @@ func _on_confirm_pressed() -> void:
 func _create_new_user(username: String) -> void:
 	dialogue_label.text = "⏳ Creating new profile..."
 	
+	# 🔹 UPDATED: Added tutorial_completed field
 	var body := {
 		"fields": {
 			"username": {"stringValue": username},
@@ -254,7 +218,9 @@ func _create_new_user(username: String) -> void:
 			"losses": {"integerValue": 0},
 			"level": {"integerValue": 1},
 			"friends": {"arrayValue": {"values": []}},
-			"requests_received": {"arrayValue": {"values": []}}
+			"requests_received": {"arrayValue": {"values": []}},
+			"first_login": {"booleanValue": true},
+			"tutorial_completed": {"booleanValue": false}  # 🆕 NEW FIELD
 		}
 	}
 	
@@ -276,13 +242,13 @@ func _create_new_user(username: String) -> void:
 		if code == 200 or code == 201:
 			dialogue_label.text = "✅ Profile created successfully!"
 			
-			# Welcome message with username
 			await get_tree().create_timer(1.0).timeout
 			dialogue_label.text = "Welcome, %s!" % username
 			
-			# Transition to LANDING PAGE (not mode selection)
+			# 🆕 UPDATED: Redirect to tutorial instead of landing
 			await get_tree().create_timer(2.0).timeout
-			get_tree().change_scene_to_file("res://scene/landing.tscn")
+			print("🎓 Redirecting to landing_tutorial.tscn...")
+			get_tree().change_scene_to_file("res://scene/landing_tutorial.tscn")
 		else:
 			dialogue_label.text = "❌ Failed to create profile (%s)" % code
 			push_warning(text)
@@ -298,9 +264,8 @@ func _create_new_user(username: String) -> void:
 		confirm_button.disabled = false
 		dialogue_label.text = "❌ Connection error. Try again."
 
-# Handle keyboard input for skipping
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_accept"):  # Enter key
+	if event.is_action_pressed("ui_accept"):
 		if can_skip or is_typing:
 			_on_skip_pressed()
-			accept_event()  # Prevent event from propagating
+			accept_event()

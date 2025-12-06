@@ -68,6 +68,7 @@ func _ready() -> void:
 	# === Navigation setup ===
 	_setup_navigation()
 
+	_check_tutorial_status()
 	
 
 
@@ -499,3 +500,56 @@ func _show_locked_game_dialog(game_name: String, required_xp: int) -> void:
 	)
 	add_child(dialog)
 	dialog.popup_centered()
+func _check_tutorial_status() -> void:
+	"""
+	Checks if user has completed tutorial.
+	If tutorial_completed is false, redirect to landing_tutorial.tscn
+	This handles cases where users closed the app during tutorial.
+	"""
+	var user_id := Auth.current_local_id
+	var id_token := Auth.current_id_token
+	
+	if user_id == "" or id_token == "":
+		print("[Landing] No auth info, skipping tutorial check")
+		return
+	
+	var url := "%s/%s" % [firestore_base_url, user_id]
+	var headers := ["Authorization: Bearer %s" % id_token]
+	
+	var http_tutorial := HTTPRequest.new()
+	add_child(http_tutorial)
+	
+	http_tutorial.request_completed.connect(func(_r, code, _h, body):
+		http_tutorial.queue_free()
+		
+		if code != 200:
+			print("[Landing] Failed to check tutorial status: %s" % code)
+			return
+		
+		var data = JSON.parse_string(body.get_string_from_utf8())
+		if not data or not data.has("fields"):
+			print("[Landing] No user data found")
+			return
+		
+		var fields = data["fields"]
+		
+		# Check if tutorial was completed
+		if fields.has("tutorial_completed"):
+			var completed: bool = fields["tutorial_completed"].get("booleanValue", true)
+			
+			if not completed:
+				print("[Landing] 🎓 Tutorial not completed, redirecting to tutorial...")
+				# Small delay to ensure landing scene is fully loaded
+				await get_tree().create_timer(0.5).timeout
+				get_tree().change_scene_to_file("res://scene/landing_tutorial.tscn")
+			else:
+				print("[Landing] ✅ Tutorial already completed")
+		else:
+			# If field doesn't exist, assume old user (no tutorial needed)
+			print("[Landing] Tutorial field not found, assuming existing user")
+	)
+	
+	var err := http_tutorial.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		push_error("[Landing] Failed to start tutorial check request: %s" % err)
+		http_tutorial.queue_free()

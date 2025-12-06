@@ -6,7 +6,6 @@ extends Control
 @onready var login_button: Button = $VideoStreamPlayer/LoginButton
 @onready var google_login_btn: TextureButton = $VideoStreamPlayer/GoogleLoginButton
 
-# (helper) para sa OAuth2 / Google Login
 @onready var oauth_helper = preload("res://script/auth_helper.gd").new()
 
 var email_regex := RegEx.new()
@@ -23,65 +22,71 @@ func _ready():
 
 
 # ------------------------------------------------------
-# 🔹 Email/Password Login (Pag-login gamit ang email at password)
+# 🔹 Email/Password Login
 # ------------------------------------------------------
 func _on_login_pressed():
 	var email = email_input.text.strip_edges()
 	var password = password_input.text.strip_edges()
 
 	if email == "" or password == "":
-		message_label.text = "⚠️ Pakilagay ang email at password."
+		message_label.text = "⚠️ Please enter email and password."
 		return
 
 	if not email_regex.search(email):
-		message_label.text = "⚠️ Mali ang format ng email."
+		message_label.text = "⚠️ Invalid email format."
 		return
 
-	message_label.text = "⏳ Nagla-login..."
+	message_label.text = "⏳ Logging in..."
 	Auth.login(email, password)
 
 
 # ------------------------------------------------------
-# 🔹 Google OAuth Login Flow (pareho lang sa signup)
+# 🔹 Google OAuth Login Flow
 # ------------------------------------------------------
 func _on_google_login_pressed():
-	message_label.text = "⏳ Binubuksan ang Google Sign-In..."
+	message_label.text = "⏳ Opening Google Sign-In..."
 	oauth_helper.start_google_login()
-	message_label.text = "🌐 Naghihintay sa pag-redirect ng browser..."
+	message_label.text = "🌐 Waiting for browser redirect..."
 
 
 func _on_google_code_received(code: String):
-	message_label.text = "⏳ Pinapalit ang code para maging token..."
+	message_label.text = "⏳ Exchanging code for token..."
 	Auth.exchange_google_code(code)
-	message_label.text = "⏳ Nagla-login gamit ang Google..."
+	message_label.text = "⏳ Logging in with Google..."
 
 
 # ------------------------------------------------------
-# 🔹 Tugon mula sa Firebase Authentication
+# 🔹 FIXED: Auth Response from Firebase
 # ------------------------------------------------------
 func _on_auth_response(response_code: int, response: Dictionary):
 	print("Auth Response:", response_code, response)
 
 	if response_code == 200:
 		if response.has("idToken"):
-			message_label.text = "✅ Matagumpay na naka-login!"
+			message_label.text = "✅ Login successful!"
 			Auth.current_id_token = response["idToken"]
 			if response.has("localId"):
 				Auth.current_local_id = response["localId"]
 
-			# mark presence online
+			# Mark user as online
 			Auth.set_user_online()
 
+			# Check Firestore to determine routing
 			_check_firestore_username_and_route()
 			return
+		else:
+			message_label.text = "❌ Unexpected response: " + str(response)
+	else:
+		var error_msg = response.get("error", {}).get("message", "Unknown error")
+		message_label.text = "❌ Login failed: " + error_msg
 
 
 # ------------------------------------------------------
-# 🔹 Pag-check sa Firestore - UPDATED ROUTING LOGIC
+# 🔹 FIXED: Check Firestore and Route Correctly
 # ------------------------------------------------------
 func _check_firestore_username_and_route():
 	if Auth.current_local_id == "" or Auth.current_id_token == "":
-		push_error("Walang auth data pagkatapos mag-sign in")
+		push_error("Missing auth data after sign in")
 		return
 
 	const PROJECT_ID := "capstone-823dc"
@@ -102,24 +107,23 @@ func _check_firestore_username_and_route():
 		if response_code == 200:
 			var resp = JSON.parse_string(text)
 			if typeof(resp) == TYPE_DICTIONARY and resp.has("fields") and resp["fields"].has("username"):
-				# ✅ EXISTING USER - Go directly to landing page
+				# ✅ EXISTING USER with username - Go directly to landing page
 				print("✅ Existing user found, going to landing page")
 				get_tree().change_scene_to_file("res://scene/landing.tscn")
 			else:
-				# 🆕 NEW USER (no username in Firestore) - Go to intro scene
-				print("🆕 New user, showing introduction")
+				# 🆕 USER EXISTS but NO USERNAME - Go to intro scene
+				print("🆕 User exists but no username, showing intro scene")
 				get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 		else:
-			# 🆕 USER NOT FOUND (404 or other error) - Go to intro scene
-			print("🆕 User document not found, showing introduction")
+			# 🆕 USER NOT FOUND (404) - This shouldn't happen on login, but go to intro just in case
+			print("⚠️ User document not found, showing intro scene")
 			get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 	)
 	http.request(url, headers, HTTPClient.METHOD_GET)
-	
-	
+
+
 # ------------------------------------------------------
-# 🔹 Button para lumipat sa Signup scene
+# 🔹 Navigate to Signup Scene
 # ------------------------------------------------------
 func _on_sign_up_button_pressed() -> void:
-	var signupScene = "res://scene/signup.tscn"
-	get_tree().change_scene_to_file(signupScene)
+	get_tree().change_scene_to_file("res://scene/signup.tscn")
