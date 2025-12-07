@@ -33,31 +33,38 @@ func _map_level_to_db(level: float) -> float:
 	var t = clamp((level - 1.0) / 99.0, 0.0, 1.0)
 	return lerp(-80.0, 0.0, t)
 
-
+func _on_close_pressed() -> void:
+	print("🔙 Closing settings panel...")
+	queue_free()
+	
 func _on_apply_pressed() -> void:
 	var vol_level = int(volume_slider.value)
 	var vol_db = _map_level_to_db(vol_level)
 	var is_full = (display_mode.selected == 1)
 
-	# Apply to BattleMusic if present
+	# Apply to music player if present (try BackgroundMusic first, then BattleMusic)
 	var music = _target_music
+	if not music:
+		music = _find_node_by_name(get_tree().get_current_scene(), "BackgroundMusic")
 	if not music:
 		music = _find_node_by_name(get_tree().get_current_scene(), "BattleMusic")
 	if music and music is AudioStreamPlayer:
 		music.volume_db = vol_db
+
+	# Apply fullscreen setting
+	if is_full:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 
 	# Persist settings (save integer 1..100)
 	var cfg := ConfigFile.new()
 	cfg.set_value("audio", "music_level", vol_level)
 	cfg.set_value("display", "fullscreen", is_full)
 	cfg.save(SETTINGS_PATH)
+	
+	print("✅ Settings applied: Volume=%d, Fullscreen=%s" % [vol_level, is_full])
 
-func _on_close_pressed() -> void:
-	# Show menu if it exists
-	var menu = _find_node_by_name(get_tree().get_current_scene(), "MenuPanel")
-	if menu:
-		menu.visible = true
-	queue_free()
 
 func _load_settings() -> void:
 	var cfg := ConfigFile.new()
@@ -71,6 +78,8 @@ func _load_settings() -> void:
 
 		# Apply music volume immediately if present
 		var music = _target_music
+		if not music:
+			music = _find_node_by_name(get_tree().get_current_scene(), "BackgroundMusic")
 		if not music:
 			music = _find_node_by_name(get_tree().get_current_scene(), "BattleMusic")
 		if music and music is AudioStreamPlayer:

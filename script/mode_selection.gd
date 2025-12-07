@@ -15,6 +15,7 @@ var unlock_panel: Panel = null
 var beginner_desc: Label = null
 var intermediate_desc: Label = null
 var advanced_desc: Label = null
+var fade_overlay: ColorRect = null  # ADD THIS LINE
 
 const PROJECT_ID := "capstone-823dc"
 const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents" % PROJECT_ID
@@ -45,6 +46,7 @@ func _ready() -> void:
 	
 	# Setup UI elements first
 	_setup_ui_elements()
+	_setup_smooth_video_loop()
 	
 	# Connect to data_loaded signal BEFORE loading data
 	if not TutorialManager.data_loaded.is_connected(_update_xp_display):
@@ -73,7 +75,51 @@ func _ready() -> void:
 	# Animate entrance
 	_animate_entrance()
 
+	var bgm = $BackgroundMusic
+	if bgm:
+		bgm.volume_db = -80  # Start silent
+		var tween = create_tween()
+		tween.tween_property(bgm, "volume_db", -10, 2.0)
 
+func _fade_out_music_and_transition(scene_path: String) -> void:
+	var bgm = $BackgroundMusic
+	if bgm:
+		var tween = create_tween()
+		tween.tween_property(bgm, "volume_db", -80, 0.5)
+		await tween.finished
+	
+	get_tree().change_scene_to_file(scene_path)
+
+func _setup_smooth_video_loop() -> void:
+	var video_player = $VideoStreamPlayer
+	
+	# Create fade overlay
+	fade_overlay = ColorRect.new()
+	fade_overlay.color = Color.BLACK
+	fade_overlay.modulate.a = 0
+	fade_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(fade_overlay)
+	move_child(fade_overlay, get_child_count() - 2)  # Just above video
+	
+	# Disable built-in loop, handle manually
+	video_player.loop = false
+	video_player.finished.connect(_on_video_finished)
+
+func _on_video_finished() -> void:
+	var video_player = $VideoStreamPlayer
+	var tween = create_tween()
+	
+	# Fade out
+	tween.tween_property(fade_overlay, "modulate:a", 1.0, 0.4)
+	await tween.finished
+	
+	# Restart
+	video_player.play()
+	await get_tree().create_timer(0.1).timeout
+	
+	# Fade in
+	var tween2 = create_tween()
+	tween2.tween_property(fade_overlay, "modulate:a", 0.0, 0.6)
 # -------------------------
 # UI SETUP
 # -------------------------
@@ -314,7 +360,10 @@ func _on_button_hover(level: String) -> void:
 		"intermediate": btn = intermediate_btn
 		"advanced": btn = advanced_btn
 		_: return
-	
+		
+	var hover_sfx = $HoverSound
+	if hover_sfx and not hover_sfx.playing:
+		hover_sfx.play()
 	# Bounce scale animation
 	var tween = create_tween()
 	tween.set_trans(Tween.TRANS_ELASTIC)
@@ -567,7 +616,10 @@ func _transition_to_tutorial(scene_path: String) -> void:
 	# Zoom in + fade out
 	tween.tween_property(self, "scale", Vector2(1.2, 1.2), 0.4)
 	tween.tween_property(self, "modulate:a", 0.0, 0.3)
-	
+
+	var bgm = $BackgroundMusic
+	if bgm:
+		tween.tween_property(bgm, "volume_db", -80, 0.3)
 	await tween.finished
 	
 	# Navigate to tutorial scene
@@ -577,10 +629,34 @@ func _transition_to_tutorial(scene_path: String) -> void:
 # -------------------------
 # MENU BUTTON (Placeholder)
 # -------------------------
+# -------------------------
+# MENU BUTTON (Opens Settings)
+# -------------------------
 func _on_menu_pressed() -> void:
-	print("🍔 Menu button pressed (placeholder)")
-	# TODO: Open settings or back navigation
-
+	print("🍔 Menu button pressed - Opening settings...")
+	
+	# Load the settings panel scene
+	var settings_scene = load("res://scene/SettingsPanel.tscn")
+	if not settings_scene:
+		push_error("❌ Failed to load settings_panel.tscn")
+		return
+	
+	var settings_panel = settings_scene.instantiate()
+	
+	# Set the background music as the target for volume control
+	var bgm = $BackgroundMusic
+	if bgm and settings_panel.has_method("set_target_music"):
+		settings_panel.set_target_music(bgm)
+	
+	# Add settings panel to the scene
+	$CanvasLayer.add_child(settings_panel)
+	
+	# Center the settings panel on screen
+	# Center the settings panel on screen
+	if settings_panel.has_node("Window"):
+		var window = settings_panel.get_node("Window")
+		var viewport_size = get_viewport_rect().size
+		window.position = (viewport_size - window.size) / 2
 
 # -------------------------
 # XP AND RANK DISPLAY
@@ -637,11 +713,11 @@ func _update_xp_display() -> void:
 # -------------------------
 func _on_profile_pressed() -> void:
 	print("👤 Opening profile...")
-	get_tree().change_scene_to_file("res://scene/landing.tscn")
+	_fade_out_music_and_transition("res://scene/landing.tscn")
 
 
 # -------------------------
 # BACK BUTTON
 # -------------------------
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://scene/landing.tscn")
+		_fade_out_music_and_transition("res://scene/landing.tscn")
