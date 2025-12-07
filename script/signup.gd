@@ -225,25 +225,37 @@ func _check_firestore_username_and_route():
 	http.request_completed.connect(func(_result, response_code, _headers_r, body_r, req=http):
 		req.queue_free()
 		var text = body_r.get_string_from_utf8()
-		print("Firestore check: ", response_code, " | ", text)
+		print("🔍 Firestore check (Google): ", response_code, " | ", text)
 		
 		if response_code == 200:
+			# ✅ User document exists
 			var resp = JSON.parse_string(text)
-			if typeof(resp) == TYPE_DICTIONARY and resp.has("fields") and resp["fields"].has("username"):
-				# ✅ EXISTING USER - Go directly to landing page
-				print("✅ Existing Google user, going to landing page")
-				get_tree().change_scene_to_file("res://scene/landing.tscn")
+			print("📦 Parsed response type: ", typeof(resp))
+			print("📦 Response data: ", resp)
+			
+			# Check if username field exists and has a value
+			if typeof(resp) == TYPE_DICTIONARY and resp.has("fields"):
+				var fields = resp["fields"]
+				print("📦 Fields: ", fields)
+				
+				if fields.has("username") and fields["username"].has("stringValue"):
+					var username = fields["username"]["stringValue"]
+					print("✅ Existing Google user with username: ", username)
+					# Existing Google user - go to landing
+					get_tree().change_scene_to_file("res://scene/landing.tscn")
+				else:
+					print("🆕 Google user exists but no username")
+					# Google user without username - go to intro
+					get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 			else:
-				# 🆕 NEW GOOGLE USER - Go to intro scene to create username
-				print("🆕 New Google user, showing intro scene")
+				print("⚠️ Invalid response structure")
 				get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 		else:
-			# 🆕 USER NOT FOUND - Go to intro scene
-			print("🆕 Google user not found in Firestore, showing intro scene")
+			# 🆕 New Google user (404)
+			print("🆕 New Google user (", response_code, "), showing intro scene")
 			get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 	)
 	http.request(url, headers, HTTPClient.METHOD_GET)
-
 
 func _on_change_to_login_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scene/login.tscn")

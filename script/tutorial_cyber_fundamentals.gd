@@ -21,7 +21,7 @@ var score := 0
 var quiz_answers := {}
 
 # Node references
-@onready var section_label: Label = $WindowDialog/VBox/TitleBar/MarginContainer/SectionLabel
+@onready var section_label: Label = $WindowDialog/VBox/TitleBar/MarginContainer/HBox/SectionLabel
 @onready var content_label: Label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll/ContentLabel
 @onready var diagram_panel: PanelContainer = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DiagramPanel
 @onready var diagram_text: Label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DiagramPanel/DiagramLabel
@@ -30,10 +30,27 @@ var quiz_answers := {}
 @onready var option_container: VBoxContainer = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/QuizPanel/OptionsContainer
 @onready var next_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton
 @onready var back_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton
+@onready var confirm_overlay: ColorRect = $ConfirmOverlay
+@onready var confirm_popup: PanelContainer = $ConfirmOverlay/ConfirmPopup
+@onready var simulation_overlay: ColorRect = $SimulationOverlay
+@onready var simulation_popup: PanelContainer = $SimulationOverlay/SimulationPopup
+@onready var sim_title: Label = $SimulationOverlay/SimulationPopup/VBox/TitleBar/HBox/Title
+@onready var sim_close_btn: Button = $SimulationOverlay/SimulationPopup/VBox/TitleBar/HBox/CloseButton
+@onready var tab_container: TabContainer = $SimulationOverlay/SimulationPopup/VBox/Content/TabContainer
+
 
 # Interactive diagram components
 var diagram_container: Control = null
 var animation_tween: Tween = null
+
+# CMD typing animation variables
+var typing_speed := 0.015  # Seconds per character (faster for CMD feel)
+var current_text := ""
+var target_text := ""
+var typing_tween: Tween = null
+var cursor_blink_tween: Tween = null
+var cursor_label: Label = null
+var cmd_prefix_label: Label = null
 
 # Quiz data
 var quiz_questions := [
@@ -91,18 +108,276 @@ func _ready() -> void:
 	diagram_panel.visible = false
 	quiz_question.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
+	# Setup CMD-style interface
+	_setup_cmd_interface()
+	
 	_start_section(Section.INTRO)
 
 
+func _setup_cmd_interface() -> void:
+	var content_panel = $WindowDialog/VBox/ContentPanel
+	
+	# CMD-style background (softer black)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.0, 0.0, 0.0, 1.0)
+	style.border_width_left = 3
+	style.border_width_top = 3
+	style.border_width_right = 3
+	style.border_width_bottom = 3
+	style.border_color = Color(0.15, 0.35, 0.15, 1)
+	content_panel.add_theme_stylebox_override("panel", style)
+	
+	var scroll_container = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll
+	
+	# Scrollbar styling
+	var scrollbar_style = StyleBoxFlat.new()
+	scrollbar_style.bg_color = Color(0.1, 0.15, 0.1, 0.5)
+	scroll_container.add_theme_stylebox_override("scroll", scrollbar_style)
+	
+	var grabber_style = StyleBoxFlat.new()
+	grabber_style.bg_color = Color(0.4, 0.85, 0.4, 0.6)
+	grabber_style.corner_radius_top_left = 4
+	grabber_style.corner_radius_top_right = 4
+	grabber_style.corner_radius_bottom_left = 4
+	grabber_style.corner_radius_bottom_right = 4
+	scroll_container.add_theme_stylebox_override("grabber", grabber_style)
+	
+	var grabber_hover_style = StyleBoxFlat.new()
+	grabber_hover_style.bg_color = Color(0.5, 0.9, 0.5, 0.8)
+	grabber_hover_style.corner_radius_top_left = 4
+	grabber_hover_style.corner_radius_top_right = 4
+	grabber_hover_style.corner_radius_bottom_left = 4
+	grabber_hover_style.corner_radius_bottom_right = 4
+	scroll_container.add_theme_stylebox_override("grabber_highlight", grabber_hover_style)
+	
+	# Set text alignment BEFORE any restructuring
+	content_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	content_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	content_label.add_theme_color_override("font_color", Color(0.4, 0.85, 0.4, 1))
+	content_label.add_theme_font_size_override("font_size", 17)
+	content_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content_label.custom_minimum_size = Vector2(690, 0)  # Fix: Set minimum width for autowrapping
+	
+	var mono_font = load("res://asset/fonts/CONSOLA.TTF")
+	if not mono_font:
+		mono_font = load("res://asset/fonts/ABeeZee-Regular.ttf")
+	if mono_font:
+		content_label.add_theme_font_override("font", mono_font)
+	
+	# NOW create the VBox for the command interface extras
+	var scroll_content = scroll_container.get_child(0)
+	if scroll_content and scroll_content != content_label:
+		# VBox already exists, use it
+		pass
+	else:
+		# Create new VBox and reorganize
+		var content_vbox = VBoxContainer.new()
+		content_vbox.add_theme_constant_override("separation", 5)
+		
+		# Add CMD prefix label
+		cmd_prefix_label = Label.new()
+		cmd_prefix_label.text = "C:\\CYBERSECURITY\\TUTORIAL>"
+		cmd_prefix_label.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5, 1))
+		cmd_prefix_label.add_theme_font_size_override("font_size", 13)
+		if mono_font:
+			cmd_prefix_label.add_theme_font_override("font", mono_font)
+		content_vbox.add_child(cmd_prefix_label)
+		
+		# Move content label to VBox
+		var parent = content_label.get_parent()
+		parent.remove_child(content_label)
+		content_vbox.add_child(content_label)
+		
+		# Add cursor
+		
+		
+		# Add command input
+		var cmd_input = LineEdit.new()
+		cmd_input.name = "CommandInput"
+		cmd_input.placeholder_text = "Type 'next' to continue..."
+		cmd_input.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5, 1))
+		cmd_input.add_theme_color_override("font_placeholder_color", Color(0.3, 0.6, 0.3, 0.6))
+		cmd_input.add_theme_font_size_override("font_size", 14)
+		if mono_font:
+			cmd_input.add_theme_font_override("font", mono_font)
+		
+		var input_style = StyleBoxFlat.new()
+		input_style.bg_color = Color(0.08, 0.12, 0.08, 1)
+		input_style.border_color = Color(0.4, 0.85, 0.4, 0.5)
+		input_style.border_width_left = 2
+		input_style.border_width_top = 2
+		input_style.border_width_right = 2
+		input_style.border_width_bottom = 2
+		cmd_input.add_theme_stylebox_override("normal", input_style)
+		cmd_input.add_theme_stylebox_override("focus", input_style)
+		
+		content_vbox.add_child(cmd_input)
+		cmd_input.text_submitted.connect(_on_command_entered)
+		
+		scroll_container.add_child(content_vbox)
+	
+	_start_cursor_blink()
+	_style_cmd_buttons()
+
+func _toggle_cmd_interface(visible: bool) -> void:
+	if cmd_prefix_label:
+		cmd_prefix_label.visible = visible
+	if cursor_label:
+		cursor_label.visible = visible
+	
+	# Try multiple possible paths for the CommandInput
+	var cmd_input = get_node_or_null("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll/VBoxContainer/CommandInput")
+	
+	if not cmd_input:
+		# Try searching through all children recursively
+		var scroll = get_node_or_null("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll")
+		if scroll:
+			for child in scroll.get_children():
+				if child is VBoxContainer:
+					cmd_input = child.find_child("CommandInput", false, false)
+					if cmd_input:
+						break
+	
+	if cmd_input:
+		print("DEBUG: Found CommandInput! Setting visible to: ", visible)
+		cmd_input.visible = visible
+	else:
+		print("DEBUG: CommandInput STILL not found - searching entire tree...")
+		# Last resort - search the entire tree
+		cmd_input = find_child("CommandInput", true, false)
+		if cmd_input:
+			print("DEBUG: Found CommandInput via find_child! Setting visible to: ", visible)
+			cmd_input.visible = visible
+		else:
+			print("DEBUG: CommandInput does not exist anywhere in the scene tree!")
+
+# Cursor blinking effect
+func _start_cursor_blink() -> void:
+	if cursor_blink_tween:
+		cursor_blink_tween.kill()
+	
+	cursor_blink_tween = create_tween()
+	cursor_blink_tween.set_loops()
+	cursor_blink_tween.tween_property(cursor_label, "modulate:a", 0.0, 0.5)
+	cursor_blink_tween.tween_property(cursor_label, "modulate:a", 1.0, 0.5)
+
+
+# Handle typed commands
+func _on_command_entered(command: String) -> void:
+	var cmd = command.strip_edges().to_lower()
+	var cmd_input = get_node_or_null("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll/VBoxContainer/CommandInput")
+	
+	if cmd_input:
+		cmd_input.text = ""
+	
+	# Only allow commands on intro section
+	if current_section != Section.INTRO:
+		return
+	
+	if cmd == "next":
+		_on_next_pressed()
+	elif cmd == "back":
+		_on_back_pressed()
+	elif cmd == "help":
+		# Show available commands
+		var help_text = "\n> Available commands: next, back, help"
+		content_label.text += help_text
+	else:
+		# Invalid command
+		var error_text = "\n> Unknown command: '" + command + "'. Type 'help' for available commands."
+		content_label.text += error_text
+
+
+# Style buttons to match CMD theme
+func _style_cmd_buttons() -> void:
+	# Style NEXT button - softer green
+	var next_style = StyleBoxFlat.new()
+	next_style.bg_color = Color(0.08, 0.18, 0.08, 1)  # Darker muted green
+	next_style.border_color = Color(0.4, 0.85, 0.4, 1)  # Softer green border
+	next_style.border_width_left = 2
+	next_style.border_width_top = 2
+	next_style.border_width_right = 2
+	next_style.border_width_bottom = 2
+	next_button.add_theme_stylebox_override("normal", next_style)
+	next_button.add_theme_stylebox_override("hover", next_style)
+	next_button.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5, 1))
+	next_button.add_theme_color_override("font_hover_color", Color(0.6, 1.0, 0.6, 1))
+	
+	# Style BACK button - softer red
+	var back_style = StyleBoxFlat.new()
+	back_style.bg_color = Color(0.18, 0.08, 0.08, 1)  # Darker muted red
+	back_style.border_color = Color(0.85, 0.4, 0.4, 1)  # Softer red border
+	back_style.border_width_left = 2
+	back_style.border_width_top = 2
+	back_style.border_width_right = 2
+	back_style.border_width_bottom = 2
+	back_button.add_theme_stylebox_override("normal", back_style)
+	back_button.add_theme_stylebox_override("hover", back_style)
+	back_button.add_theme_color_override("font_color", Color(0.9, 0.5, 0.5, 1))
+	back_button.add_theme_color_override("font_hover_color", Color(1.0, 0.6, 0.6, 1))
+
+
+# Modified typing animation function with CMD effect
+# Modified typing animation function with CMD effect
+func _type_text(text: String) -> void:
+	if typing_tween:
+		typing_tween.kill()
+	
+	target_text = text
+	current_text = ""
+	content_label.text = ""
+	
+	# Show cursor while typing
+	if cursor_label:
+		cursor_label.visible = true
+	
+	typing_tween = create_tween()
+	
+	for i in range(text.length()):
+		typing_tween.tween_callback(func():
+			if i < target_text.length():
+				current_text += target_text[i]
+				content_label.text = current_text + "█"  # ← Add cursor to text
+		)
+		# Add slight variation to typing speed for realism
+		var delay = typing_speed
+		if i < text.length() and text[i] == '\n':
+			delay = 0.1  # Pause at newlines
+		typing_tween.tween_interval(delay)
+	
+	# Hide cursor after typing completes
+	typing_tween.tween_callback(func():
+		content_label.text = current_text  # ← Remove cursor from final text
+		if cursor_label:
+			cursor_label.visible = false
+	)
+
+# Modify _start_section to use typing animation
 func _start_section(section: Section) -> void:
 	current_section = section
 	quiz_panel.visible = false
 	diagram_panel.visible = false
+	content_label.visible = true
+	
+	_toggle_cmd_interface(section == Section.INTRO)
+	next_button.disabled = false
+	back_button.disabled = false
+	next_button.text = "NEXT"
+	
+	# Hide buttons for INTRO section only
+	if section == Section.INTRO:
+		next_button.visible = false
+		back_button.visible = false
+	else:
+		next_button.visible = true
+		back_button.visible = true
+	
+	var section_text
 	
 	match section:
 		Section.INTRO:
 			section_label.text = "What is Cybersecurity?"
-			content_label.text = """WELCOME TO CYBERSECURITY FUNDAMENTALS
+			section_text = """WELCOME TO CYBERSECURITY FUNDAMENTALS
 
 Cybersecurity = Protecting computers, networks, and data from attacks.
 
@@ -120,29 +395,29 @@ Before learning about malware and hacking techniques, you need to understand the
 
 This is the framework ALL cybersecurity professionals use!
 
-Click NEXT to learn the CIA Triad →"""
+Type 'next' to learn the CIA Triad →"""
 		
 		Section.CIA_CONFIDENTIALITY:
 			section_label.text = "CIA Triad - Part 1: Confidentiality"
-			content_label.text = """CONFIDENTIALITY = KEEPING SECRETS
+			section_text = """CONFIDENTIALITY = KEEPING SECRETS
 
 Confidentiality means only authorized people can access information.
 
 Examples of Confidentiality:
-✓ Passwords (only you should know yours)
-✓ Medical records (only you and your doctor)
-✓ Credit card numbers (only you and the bank)
-✓ Company secrets (trade secrets, financial data)
+   ✓ Passwords (only you should know yours)
+   ✓ Medical records (only you and your doctor)
+   ✓ Credit card numbers (only you and the bank)
+   ✓ Company secrets (trade secrets, financial data)
 
 How it's protected:
-• Encryption (scrambles data)
-• Access controls (passwords, permissions)
-• Authentication (proving who you are)
+   • Encryption (scrambles data)
+   • Access controls (passwords, permissions)
+   • Authentication (proving who you are)
 
 Confidentiality BREACH Example:
-❌ Hacker steals customer database with emails/passwords
-❌ Employee leaks company financial reports
-❌ Someone reads your private messages
+   ❌ Hacker steals customer database with emails/passwords
+   ❌ Employee leaks company financial reports
+   ❌ Someone reads your private messages
 
 Watch how encryption protects your data! →"""
 			diagram_panel.visible = true
@@ -151,26 +426,26 @@ Watch how encryption protects your data! →"""
 		
 		Section.CIA_INTEGRITY:
 			section_label.text = "CIA Triad - Part 2: Integrity"
-			content_label.text = """INTEGRITY = PREVENTING TAMPERING
+			section_text = """INTEGRITY = PREVENTING TAMPERING
 
 Integrity means data is accurate, authentic, and hasn't been modified by unauthorized people.
 
 Examples of Integrity:
-✓ Bank account balance (must be exact)
-✓ Software downloads (no hidden malware)
-✓ Medical prescriptions (correct dosage)
-✓ Website content (not defaced by hackers)
+   ✓ Bank account balance (must be exact)
+   ✓ Software downloads (no hidden malware)
+   ✓ Medical prescriptions (correct dosage)
+   ✓ Website content (not defaced by hackers)
 
 How it's protected:
-• Digital signatures (proves authenticity)
-• Checksums/hashes (detects changes)
-• Version control (tracks modifications)
-• Access controls (limits who can edit)
+   • Digital signatures (proves authenticity)
+   • Checksums/hashes (detects changes)
+   • Version control (tracks modifications)
+   • Access controls (limits who can edit)
 
 Integrity BREACH Example:
-❌ Hacker changes your bank balance
-❌ Malware injected into software update
-❌ Attacker modifies website to spread misinformation
+   ❌ Hacker changes your bank balance
+   ❌ Malware injected into software update
+   ❌ Attacker modifies website to spread misinformation
 
 Click to see how hash detection works! →"""
 			diagram_panel.visible = true
@@ -179,26 +454,26 @@ Click to see how hash detection works! →"""
 		
 		Section.CIA_AVAILABILITY:
 			section_label.text = "CIA Triad - Part 3: Availability"
-			content_label.text = """AVAILABILITY = KEEPING SERVICES RUNNING
+			section_text = """AVAILABILITY = KEEPING SERVICES RUNNING
 
 Availability means systems and data are accessible when needed.
 
 Examples of Availability:
-✓ Website is online 24/7
-✓ Email server responds quickly
-✓ Hospital systems work during emergencies
-✓ ATM machines dispense cash
+   ✓ Website is online 24/7
+   ✓ Email server responds quickly
+   ✓ Hospital systems work during emergencies
+   ✓ ATM machines dispense cash
 
 How it's protected:
-• Redundancy (backup servers)
-• Load balancing (distribute traffic)
-• DDoS protection (block attack traffic)
-• Disaster recovery plans
+   • Redundancy (backup servers)
+   • Load balancing (distribute traffic)
+   • DDoS protection (block attack traffic)
+   • Disaster recovery plans
 
 Availability BREACH Example:
-❌ DDoS attack crashes website (too much traffic)
-❌ Ransomware locks all files (can't access data)
-❌ Server outage (hardware failure, power loss)
+   ❌ DDoS attack crashes website (too much traffic)
+   ❌ Ransomware locks all files (can't access data)
+   ❌ Server outage (hardware failure, power loss)
 
 Watch redundancy in action! →"""
 			diagram_panel.visible = true
@@ -211,40 +486,58 @@ Watch redundancy in action! →"""
 			diagram_panel.visible = true
 			diagram_text.visible = false
 			_create_threat_model_diagram()
+			
+			# Show buttons
+			next_button.visible = true
+			back_button.visible = true
+			return  # Skip typing for this section
 		
 		Section.QUIZ:
 			section_label.text = "Knowledge Check - CIA Triad Quiz"
-			quiz_panel.visible = false
+			if typing_tween:
+				typing_tween.kill()
+				typing_tween = null
+				content_label.visible = false
+			quiz_panel.visible = true
+			back_button.disabled = true
 			_show_quiz_question()
+			_toggle_cmd_interface(false)
+			# Show buttons
+			next_button.visible = true
+			back_button.visible = true
+			return  # Skip typing for quiz
 		
 		Section.COMPLETE:
+			content_label.visible = true
 			section_label.text = "Fundamentals Mastered!"
-			content_label.text = """🎉 CONGRATULATIONS!
+			section_text = """🎉 CONGRATULATIONS!
 
 You now understand cybersecurity fundamentals:
 
 ✓ CIA Triad:
-  • Confidentiality (keeping secrets)
-  • Integrity (preventing tampering)
-  • Availability (keeping services running)
+   • Confidentiality (keeping secrets)
+   • Integrity (preventing tampering)
+   • Availability (keeping services running)
 
 ✓ Threat Modeling:
-  • Threats (potential dangers)
-  • Vulnerabilities (weaknesses)
-  • Risks (likelihood × impact)
+   • Threats (potential dangers)
+   • Vulnerabilities (weaknesses)
+   • Risks (likelihood × impact)
 
 Quiz Score: %d/%d correct
 
 These concepts apply to EVERYTHING in cybersecurity:
-• Password security → Confidentiality
-• Malware detection → Integrity
-• DDoS defense → Availability
+   • Password security → Confidentiality
+   • Malware detection → Integrity
+   • DDoS defense → Availability
 
 You're now ready for technical tutorials!""" % [score, quiz_questions.size()]
 			next_button.text = "FINISH"
 			next_button.disabled = false
-			print("[TUTORIAL] Section COMPLETE set - FINISH button enabled")
-
+	
+	# Start typing animation
+	if not section_text.is_empty():
+		_type_text(section_text)
 
 func _show_quiz_question() -> void:
 	if current_quiz_index >= quiz_questions.size():
@@ -268,8 +561,11 @@ func _show_quiz_question() -> void:
 		button.pressed.connect(_on_quiz_option_selected.bind(i))
 		option_container.add_child(button)
 	
+	# Disable NEXT button until answer is selected
 	next_button.disabled = true
-
+	
+	# Keep back button disabled during quiz
+	back_button.disabled = true
 
 func _on_quiz_option_selected(option_index: int) -> void:
 	var q = quiz_questions[current_quiz_index]
@@ -327,7 +623,7 @@ func _on_next_pressed() -> void:
 				push_error("[TUTORIAL] TutorialManager not found!")
 			
 			# Return to landing page
-			get_tree().change_scene_to_file("res://scene/landing.tscn")
+			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 
 func _on_back_pressed() -> void:
@@ -641,7 +937,7 @@ func _create_integrity_diagram() -> void:
 	hash_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hash_value.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))
 	hash_value.add_theme_font_size_override("font_size", 16)
-	var hash_font = load("res://asset/fonts/NicoMoji-Regular.ttf")
+	var hash_font = load("res://asset/fonts/CONSOLA.TTF")
 	if hash_font:
 		hash_value.add_theme_font_override("font", hash_font)
 	hash_vbox.add_child(hash_value)
@@ -1311,3 +1607,27 @@ func _create_device_node(label_text: String, color: Color, pos: Vector2) -> Pane
 	panel.add_child(label)
 	
 	return panel
+
+func _on_close_button_pressed() -> void:
+	# Show confirmation popup
+	confirm_overlay.visible = true
+	
+	# Animate popup entrance
+	confirm_popup.scale = Vector2.ZERO
+	confirm_popup.pivot_offset = confirm_popup.size / 2
+	
+	var tween := create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_BACK)
+	tween.tween_property(confirm_popup, "scale", Vector2.ONE, 0.3)
+
+func _on_confirm_yes_pressed() -> void:
+	# User confirmed - go back to mode selection
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+
+func _on_confirm_no_pressed() -> void:
+	# User cancelled - hide popup with animation
+	var tween := create_tween()
+	tween.tween_property(confirm_popup, "scale", Vector2.ZERO, 0.2)
+	await tween.finished
+	confirm_overlay.visible = false

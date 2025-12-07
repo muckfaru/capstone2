@@ -102,21 +102,34 @@ func _check_firestore_username_and_route():
 	http.request_completed.connect(func(_result, response_code, _headers_r, body_r, req=http):
 		req.queue_free()
 		var text = body_r.get_string_from_utf8()
-		print("Firestore check: ", response_code, " | ", text)
+		print("🔍 Firestore check: ", response_code, " | ", text)
 
 		if response_code == 200:
+			# ✅ User document exists
 			var resp = JSON.parse_string(text)
-			if typeof(resp) == TYPE_DICTIONARY and resp.has("fields") and resp["fields"].has("username"):
-				# ✅ EXISTING USER with username - Go directly to landing page
-				print("✅ Existing user found, going to landing page")
-				get_tree().change_scene_to_file("res://scene/landing.tscn")
+			print("📦 Parsed response type: ", typeof(resp))
+			print("📦 Response data: ", resp)
+			
+			# Check if username field exists and has a value
+			if typeof(resp) == TYPE_DICTIONARY and resp.has("fields"):
+				var fields = resp["fields"]
+				print("📦 Fields: ", fields)
+				
+				if fields.has("username") and fields["username"].has("stringValue"):
+					var username = fields["username"]["stringValue"]
+					print("✅ Existing user found with username: ", username)
+					# Existing user with username - go to landing
+					get_tree().change_scene_to_file("res://scene/landing.tscn")
+				else:
+					print("🆕 User document exists but no username found")
+					# User exists but no username - go to intro
+					get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 			else:
-				# 🆕 USER EXISTS but NO USERNAME - Go to intro scene
-				print("🆕 User exists but no username, showing intro scene")
+				print("⚠️ Invalid response structure")
 				get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 		else:
-			# 🆕 USER NOT FOUND (404) - This shouldn't happen on login, but go to intro just in case
-			print("⚠️ User document not found, showing intro scene")
+			# 🆕 User document doesn't exist (404 or other error)
+			print("🆕 User document not found (", response_code, "), showing intro scene")
 			get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 	)
 	http.request(url, headers, HTTPClient.METHOD_GET)

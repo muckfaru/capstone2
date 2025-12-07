@@ -12,6 +12,8 @@ extends Control
 @onready var term_definition: Label = $DarkOverlay/TermPopup/VBox/TermDefinition
 @onready var term_close_btn: Button = $DarkOverlay/TermPopup/VBox/CloseBtn
 @onready var dark_overlay: ColorRect = $DarkOverlay
+@onready var confirm_overlay: ColorRect = $ConfirmOverlay
+@onready var confirm_popup: PanelContainer = $ConfirmOverlay/ConfirmPopup
 
 # Game State
 enum GameState { BRIEFING, PASSWORD_BUILD, BATTLE, VICTORY, DEFEAT }
@@ -24,12 +26,22 @@ var player_password := ""
 var player_health := 100.0
 var bot_health := 100.0
 var attack_timer := 0.0
-var attack_interval := 0.5  # Bot attacks every 0.5 seconds
+var attack_interval := 0.5
 var player_score := 0
 var battle_active := false
 var attempts_shown := 0
+var completed_waves := []
 
-# Fake password attempts for realistic display
+# CMD Interface
+var typing_speed := 0.015
+var current_text := ""
+var target_text := ""
+var typing_tween: Tween = null
+var cursor_blink_tween: Tween = null
+var cursor_label: Label = null
+var cmd_prefix_label: Label = null
+
+# Fake password attempts
 var common_attempts := [
 	"password", "123456", "admin", "qwerty", "letmein", 
 	"welcome", "monkey", "dragon", "master", "sunshine",
@@ -38,9 +50,9 @@ var common_attempts := [
 ]
 
 # Password Strength Metrics
-var password_strength := 0  # 0-100
+var password_strength := 0
 var unlocked_features := {
-	"lowercase": true,  # Always available
+	"lowercase": true,
 	"uppercase": false,
 	"numbers": false,
 	"special": false,
@@ -64,25 +76,100 @@ var terms := {
 	"Password Manager": "A secure app that remembers all your passwords for you, so you only need to remember ONE master password."
 }
 
-
 func _ready() -> void:
 	_initialize_waves()
-	_start_wave(current_wave)
+	_setup_cmd_interface()
 	_setup_signals()
-	back_button.disabled = false  # Enable back button on first screen
+	_start_wave(current_wave)
 	print("✅ Password Fortress Defender Ready!")
-
 
 func _process(delta: float) -> void:
 	if current_state == GameState.BATTLE and battle_active:
 		_update_battle(delta)
 
+func _setup_cmd_interface() -> void:
+	var content_panel = $WindowDialog/VBox/ContentPanel
+	
+	# CMD-style background (pure black like terminal)
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.0, 0.0, 0.0, 1.0)
+	style.border_width_left = 3
+	style.border_width_top = 3
+	style.border_width_right = 3
+	style.border_width_bottom = 3
+	style.border_color = Color(0.15, 0.35, 0.15, 1)
+	content_panel.add_theme_stylebox_override("panel", style)
+	
+	# Setup content text with CMD styling (green text on black)
+	content_text.add_theme_color_override("default_color", Color(0.4, 0.85, 0.4, 1))
+	content_text.add_theme_font_size_override("normal_font_size", 17)
+	
+	var mono_font = load("res://asset/fonts/CONSOLA.TTF")
+	if not mono_font:
+		mono_font = load("res://asset/fonts/ABeeZee-Regular.ttf")
+	if mono_font:
+		content_text.add_theme_font_override("normal_font", mono_font)
+	
+	_style_cmd_buttons()
+
+func _style_cmd_buttons() -> void:
+	# Style NEXT button - green CMD style
+	var next_style = StyleBoxFlat.new()
+	next_style.bg_color = Color(0.08, 0.18, 0.08, 1)
+	next_style.border_color = Color(0.4, 0.85, 0.4, 1)
+	next_style.border_width_left = 2
+	next_style.border_width_top = 2
+	next_style.border_width_right = 2
+	next_style.border_width_bottom = 2
+	next_button.add_theme_stylebox_override("normal", next_style)
+	next_button.add_theme_stylebox_override("hover", next_style)
+	next_button.add_theme_color_override("font_color", Color(0.5, 0.9, 0.5, 1))
+	next_button.add_theme_color_override("font_hover_color", Color(0.6, 1.0, 0.6, 1))
+	
+	# Style BACK button - red CMD style
+	var back_style = StyleBoxFlat.new()
+	back_style.bg_color = Color(0.18, 0.08, 0.08, 1)
+	back_style.border_color = Color(0.85, 0.4, 0.4, 1)
+	back_style.border_width_left = 2
+	back_style.border_width_top = 2
+	back_style.border_width_right = 2
+	back_style.border_width_bottom = 2
+	back_button.add_theme_stylebox_override("normal", back_style)
+	back_button.add_theme_stylebox_override("hover", back_style)
+	back_button.add_theme_color_override("font_color", Color(0.9, 0.5, 0.5, 1))
+	back_button.add_theme_color_override("font_hover_color", Color(1.0, 0.6, 0.6, 1))
+
+func _type_text(text: String) -> void:
+	if typing_tween:
+		typing_tween.kill()
+	
+	target_text = text
+	current_text = ""
+	content_text.clear()
+	
+	typing_tween = create_tween()
+	
+	for i in range(text.length()):
+		typing_tween.tween_callback(func():
+			if i < target_text.length():
+				current_text += target_text[i]
+				content_text.clear()
+				content_text.append_text(current_text + "█")
+		)
+		var delay = typing_speed
+		if i < text.length() and text[i] == '\n':
+			delay = 0.05
+		typing_tween.tween_interval(delay)
+	
+	typing_tween.tween_callback(func():
+		content_text.clear()
+		content_text.append_text(current_text)
+	)
 
 func _setup_signals() -> void:
 	next_button.pressed.connect(_on_next_pressed)
 	back_button.pressed.connect(_on_back_pressed)
 	term_close_btn.pressed.connect(_close_term_popup)
-
 
 func _initialize_waves() -> void:
 	waves = [
@@ -92,25 +179,34 @@ func _initialize_waves() -> void:
 			"title": "🏰 WELCOME TO PASSWORD FORTRESS DEFENDER",
 			"enemy_name": "Tutorial",
 			"state": GameState.BRIEFING,
-			"content": """[center][b][color=cyan]MISSION BRIEFING[/color][/b][/center]
+			"content": """[color=#00ff00]> SYSTEM INITIALIZING...[/color]
+[color=#00ff00]> LOADING PASSWORD DEFENSE PROTOCOL...[/color]
+[color=#ffff00]> STATUS: READY[/color]
 
-Welcome, Security Cadet! You've been recruited to defend the Digital Fortress against an army of password-cracking bots!
+[color=#00ffff]========================================[/color]
+[color=#00ffff]  PASSWORD FORTRESS DEFENDER v1.0[/color]
+[color=#00ffff]========================================[/color]
 
-[b]YOUR MISSION:[/b]
-🛡️ Build strong [color=blue][url=Password]passwords[/url][/color] to defend against waves of attacks
-⚔️ Each wave brings a new type of [color=blue][url=Hacker]hacker[/url][/color] attack
-🎯 Learn WHY passwords fail and HOW to stop them
-🏆 Earn unlocks to build even stronger defenses
+[color=#ffffff]Welcome, Security Cadet![/color]
 
-[b]HOW TO PLAY:[/b]
-1️⃣ [color=yellow]BRIEFING[/color] - Learn about the incoming attack
-2️⃣ [color=yellow]BUILD[/color] - Create a password strong enough to defend
-3️⃣ [color=yellow]BATTLE[/color] - Watch your defense hold (or crumble!)
-4️⃣ [color=yellow]VICTORY[/color] - Unlock new password weapons!
+[color=#ffff00]MISSION BRIEFING:[/color]
+You've been recruited to defend the Digital Fortress against password-cracking bots!
 
-[color=red][b]WARNING:[/b][/color] Each attack gets smarter and more powerful!
+[color=#ffff00]YOUR OBJECTIVES:[/color]
+• Build strong passwords to defend against waves of attacks
+• Learn WHY passwords fail and HOW to stop them
+• Earn unlocks to build even stronger defenses
+• Achieve the highest security score possible
 
-Are you ready to defend the fortress? Click NEXT to face your first enemy! →""",
+[color=#ffff00]HOW TO PLAY:[/color]
+1. [color=#00ffff]BRIEFING[/color] - Learn about the incoming attack
+2. [color=#00ffff]BUILD[/color] - Create a password strong enough to defend
+3. [color=#00ffff]BATTLE[/color] - Watch your defense hold (or crumble!)
+4. [color=#00ffff]VICTORY[/color] - Unlock new password weapons!
+
+[color=#ff0000]WARNING:[/color] Each attack gets smarter and more powerful!
+
+[color=#00ff00]> Press NEXT to face your first enemy...[/color]""",
 			"interactive": false
 		},
 		
@@ -122,31 +218,36 @@ Are you ready to defend the fortress? Click NEXT to face your first enemy! →""
 			"bot_power": 30,
 			"attack_speed": 0.8,
 			"state": GameState.BRIEFING,
-			"content": """[center][b][color=red]🤖 INCOMING THREAT: DICTIONARY ATTACK BOT[/color][/b][/center]
+			"content": """[color=#ff0000]> THREAT DETECTED![/color]
+[color=#ff0000]> ANALYZING ENEMY...[/color]
 
-[b]ENEMY ANALYSIS:[/b]
-📖 Uses a list of 10,000+ common passwords
-💨 Tries 100 passwords per second
-🎯 Targets: "password", "123456", "welcome", "qwerty"
+[color=#00ffff]========================================[/color]
+[color=#ff0000]  ENEMY: DICTIONARY ATTACK BOT[/color]
+[color=#00ffff]========================================[/color]
 
-[b]HOW [color=blue][url=Dictionary Attack]DICTIONARY ATTACKS[/url][/color] WORK:[/b]
+[color=#ffff00]ENEMY SPECIFICATIONS:[/color]
+• Database: 10,000+ common passwords
+• Attack Speed: 100 passwords/second
+• Target List: "password", "123456", "welcome", "qwerty"
+
+[color=#ffff00]ATTACK METHOD:[/color]
 Imagine a robot flipping through a dictionary trying every word as your password. It also tries:
 • Common names (john, sarah, mike)
 • Simple words (love, happy, football)
 • Easy patterns (abc123, password1)
 
-[color=yellow][b]REAL-WORLD STATS:[/b][/color]
+[color=#ffff00]REAL-WORLD STATISTICS:[/color]
 • 80% of people use dictionary words
-• "123456" is still the #1 most used password
-• Average crack time: INSTANT (less than 1 second!)
+• "123456" is STILL the #1 most used password
+• Average crack time: INSTANT (< 1 second!)
 
-[b]HOW TO DEFEND:[/b]
-✅ Use at least 8 [color=blue][url=Character]characters[/url][/color]
-✅ Mix uppercase and lowercase letters
-✅ Don't use real dictionary words
-✅ Add numbers and symbols
+[color=#ffff00]DEFENSE REQUIREMENTS:[/color]
+• Minimum 8 characters
+• Mix uppercase and lowercase letters
+• Don't use real dictionary words
+• Add numbers and symbols
 
-[color=green]Click NEXT to build your defense! →[/color]""",
+[color=#00ff00]> Press NEXT to build your defense...[/color]""",
 			"interactive": false,
 			"min_length": 8,
 			"requires": ["lowercase"],
@@ -161,34 +262,38 @@ Imagine a robot flipping through a dictionary trying every word as your password
 			"bot_power": 50,
 			"attack_speed": 0.6,
 			"state": GameState.BRIEFING,
-			"content": """[center][b][color=red]🤖 INCOMING THREAT: BRUTE FORCE ATTACK BOT[/color][/b][/center]
+			"content": """[color=#ff0000]> NEW THREAT DETECTED![/color]
+[color=#ff0000]> THREAT LEVEL: ELEVATED[/color]
 
-[b]ENEMY ANALYSIS:[/b]
-💪 Tries EVERY possible character combination
-🚀 Tests 1,000,000 passwords per second
-🎯 Never gives up until it cracks your password
+[color=#00ffff]========================================[/color]
+[color=#ff0000]  ENEMY: BRUTE FORCE ATTACK BOT[/color]
+[color=#00ffff]========================================[/color]
 
-[b]HOW [color=blue][url=Brute Force Attack]BRUTE FORCE ATTACKS[/url][/color] WORK:[/b]
-Think of a bike lock with numbers 0-9. A brute force attack tries:
+[color=#ffff00]ENEMY SPECIFICATIONS:[/color]
+• Method: Tries EVERY possible combination
+• Attack Speed: 1,000,000 passwords/second
+• Persistence: Never stops until success
+
+[color=#ffff00]ATTACK METHOD:[/color]
+Think of a bike lock with numbers 0-9. Brute force tries:
 0000, 0001, 0002... 9998, 9999
 
-With passwords, it tries:
+With passwords it tries:
 a, b, c... aa, ab, ac... aaa, aab... until it finds yours!
 
-[color=yellow][b]CRACK TIME EXAMPLES:[/b][/color]
-• 6 characters (lowercase only): 2 seconds
-• 8 characters (lowercase + uppercase): 1 hour
-• 10 characters (letters + numbers): 3 weeks
-• 12 characters (letters + numbers + symbols): 34,000 YEARS!
+[color=#ffff00]CRACK TIME EXAMPLES:[/color]
+• 6 chars (lowercase only): 2 seconds
+• 8 chars (lowercase + uppercase): 1 hour
+• 10 chars (letters + numbers): 3 weeks
+• 12 chars (letters + numbers + symbols): 34,000 YEARS!
 
-[b]HOW TO DEFEND:[/b]
-✅ Use at least 12 [color=blue][url=Character]characters[/url][/color] (CRITICAL!)
-✅ Mix uppercase, lowercase, numbers, AND [color=blue][url=Special Characters]special characters[/url][/color]
-✅ More length = exponentially stronger!
+[color=#ffff00]DEFENSE REQUIREMENTS:[/color]
+• Minimum 12 characters (CRITICAL!)
+• Mix uppercase, lowercase, numbers, AND symbols
+• More length = exponentially stronger!
 
-[color=red][b]UNLOCK EARNED:[/b][/color] You can now use UPPERCASE letters!
-
-[color=green]Click NEXT to build an unbreakable defense! →[/color]""",
+[color=#00ff00]> UNLOCK EARNED: UPPERCASE letters enabled![/color]
+[color=#00ff00]> Press NEXT to build an unbreakable defense...[/color]""",
 			"interactive": false,
 			"min_length": 12,
 			"requires": ["lowercase", "uppercase", "numbers"],
@@ -203,34 +308,38 @@ a, b, c... aa, ab, ac... aaa, aab... until it finds yours!
 			"bot_power": 60,
 			"attack_speed": 0.5,
 			"state": GameState.BRIEFING,
-			"content": """[center][b][color=red]🤖 INCOMING THREAT: PATTERN RECOGNITION BOT[/color][/b][/center]
+			"content": """[color=#ff0000]> ADVANCED THREAT DETECTED![/color]
+[color=#ff0000]> AI-POWERED ATTACK INCOMING[/color]
 
-[b]ENEMY ANALYSIS:[/b]
-🧠 AI-powered pattern detection
-⌨️ Looks for keyboard patterns and sequences
-🎯 Targets: "qwerty", "12345", "asdfgh", "abc123"
+[color=#00ffff]========================================[/color]
+[color=#ff0000]  ENEMY: PATTERN RECOGNITION BOT[/color]
+[color=#00ffff]========================================[/color]
 
-[b]HOW [color=blue][url=Pattern Attack]PATTERN ATTACKS[/url][/color] WORK:[/b]
+[color=#ffff00]ENEMY SPECIFICATIONS:[/color]
+• AI-powered pattern detection
+• Keyboard pattern recognition
+• Target List: "qwerty", "12345", "asdfgh", "abc123"
+
+[color=#ffff00]ATTACK METHOD:[/color]
 Hackers know humans are lazy! We type patterns on the keyboard:
 • Rows: qwertyuiop, asdfghjkl
 • Columns: 1qaz, 2wsx, 3edc
 • Sequences: 123456, abcdef
 • Repeating: aaaaaa, 111111
 
-[color=yellow][b]SURPRISING FACTS:[/b][/color]
+[color=#ffff00]SURPRISING STATISTICS:[/color]
 • "qwerty" is the 4th most common password
 • 15% of passwords are keyboard patterns
 • Adding "123" to a word doesn't help!
 
-[b]HOW TO DEFEND:[/b]
-✅ Avoid keyboard rows/columns
-✅ Don't use sequential numbers or letters
-✅ Mix characters randomly throughout
-✅ Use [color=blue][url=Special Characters]special characters[/url][/color] between letters
+[color=#ffff00]DEFENSE REQUIREMENTS:[/color]
+• Avoid keyboard rows/columns
+• Don't use sequential numbers or letters
+• Mix characters randomly throughout
+• Use special characters between letters
 
-[color=red][b]UNLOCK EARNED:[/b][/color] You can now use NUMBERS!
-
-[color=green]Click NEXT to outsmart the AI! →[/color]""",
+[color=#00ff00]> UNLOCK EARNED: NUMBERS enabled![/color]
+[color=#00ff00]> Press NEXT to outsmart the AI...[/color]""",
 			"interactive": false,
 			"min_length": 12,
 			"requires": ["lowercase", "uppercase", "numbers"],
@@ -245,14 +354,19 @@ Hackers know humans are lazy! We type patterns on the keyboard:
 			"bot_power": 70,
 			"attack_speed": 0.4,
 			"state": GameState.BRIEFING,
-			"content": """[center][b][color=red]🤖 INCOMING THREAT: PERSONAL INFO SNIPER BOT[/color][/b][/center]
+			"content": """[color=#ff0000]> CRITICAL THREAT DETECTED![/color]
+[color=#ff0000]> SOCIAL ENGINEERING ATTACK[/color]
 
-[b]ENEMY ANALYSIS:[/b]
-🕵️ Scrapes your social media profiles
-🎂 Uses your birthday, pet names, favorite things
-🎯 Targets: "john2010", "fluffy123", "soccer2024"
+[color=#00ffff]========================================[/color]
+[color=#ff0000]  ENEMY: PERSONAL INFO SNIPER BOT[/color]
+[color=#00ffff]========================================[/color]
 
-[b]HOW [color=blue][url=Personal Info Attack]PERSONAL INFO ATTACKS[/url][/color] WORK:[/b]
+[color=#ffff00]ENEMY SPECIFICATIONS:[/color]
+• Data Source: Social media scraping
+• Intelligence: Uses birthday, pet names, hobbies
+• Target Examples: "john2010", "fluffy123", "soccer2024"
+
+[color=#ffff00]ATTACK METHOD:[/color]
 Hackers research YOU before attacking:
 • Facebook: Your birthday, pet names, school
 • Instagram: Your hobbies, favorite bands
@@ -264,20 +378,19 @@ Then they try passwords like:
 • Pet + Year: "max2020"
 • Hobby + Number: "soccer7"
 
-[color=yellow][b]SCARY STATS:[/b][/color]
+[color=#ffff00]SCARY STATISTICS:[/color]
 • 50% of people use personal info in passwords
 • Average person has 100+ facts online
 • Hackers can crack these in minutes
 
-[b]HOW TO DEFEND:[/b]
-✅ NEVER use your name, birthday, or pet names
-✅ Don't use info from your social media
-✅ Use random, unrelated words + symbols
-✅ Think: "Would a stranger know this about me?"
+[color=#ffff00]DEFENSE REQUIREMENTS:[/color]
+• NEVER use your name, birthday, or pet names
+• Don't use info from your social media
+• Use random, unrelated words + symbols
+• Think: "Would a stranger know this about me?"
 
-[color=red][b]UNLOCK EARNED:[/b][/color] You can now use SPECIAL CHARACTERS (!@#$%)!
-
-[color=green]Click NEXT to become invisible! →[/color]""",
+[color=#00ff00]> UNLOCK EARNED: SPECIAL CHARACTERS (!@#$%) enabled![/color]
+[color=#00ff00]> Press NEXT to become invisible...[/color]""",
 			"interactive": false,
 			"min_length": 14,
 			"requires": ["lowercase", "uppercase", "numbers", "special"],
@@ -292,125 +405,41 @@ Then they try passwords like:
 			"bot_power": 85,
 			"attack_speed": 0.3,
 			"state": GameState.BRIEFING,
-			"content": """[center][b][color=red]🤖 INCOMING THREAT: RAINBOW TABLE ASSASSIN[/color][/b][/center]
+			"content": """[color=#ff0000]> MAXIMUM THREAT LEVEL![/color]
+[color=#ff0000]> RAINBOW TABLE ATTACK IMMINENT[/color]
 
-[b]ENEMY ANALYSIS:[/b]
-🌈 Uses pre-computed hash databases
-⚡ Can crack billions of passwords instantly
-🎯 Targets: Weak passwords with common patterns
+[color=#00ffff]========================================[/color]
+[color=#ff0000]  ENEMY: RAINBOW TABLE ASSASSIN[/color]
+[color=#00ffff]========================================[/color]
 
-[b]HOW [color=blue][url=Rainbow Table]RAINBOW TABLE ATTACKS[/url][/color] WORK:[/b]
+[color=#ffff00]ENEMY SPECIFICATIONS:[/color]
+• Database: Pre-computed hash tables
+• Coverage: Billions of passwords
+• Attack Speed: INSTANT lookup
+
+[color=#ffff00]ATTACK METHOD:[/color]
 When websites store passwords, they "hash" them (encrypt):
 • "password" → "5f4dcc3b5aa765d61d8327deb882cf99"
 • "123456" → "e10adc3949ba59abbe56e057f20f883e"
 
-Hackers create MASSIVE databases with billions of pre-cracked hashes. Instead of guessing, they just LOOK UP your password's hash!
+Hackers create MASSIVE databases with billions of pre-cracked hashes.
+Instead of guessing, they just LOOK UP your password's hash!
 
-[color=yellow][b]TECHNICAL REALITY:[/b][/color]
+[color=#ffff00]TECHNICAL REALITY:[/color]
 • Rainbow tables contain 100+ billion hashes
 • Can crack simple passwords in milliseconds
 • Only unique, complex passwords survive
 
-[b]HOW TO DEFEND:[/b]
-✅ Use 16+ [color=blue][url=Character]characters[/url][/color] (rainbow tables can't pre-compute that many!)
-✅ Maximum randomness and complexity
-✅ Every character type (aAbB12!@)
-✅ Truly unique - never reused anywhere
+[color=#ffff00]DEFENSE REQUIREMENTS:[/color]
+• Minimum 16+ characters (rainbow tables can't pre-compute that many!)
+• Maximum randomness and complexity
+• Every character type (aAbB12!@)
+• Truly unique - never reused anywhere
 
-[color=red][b]UNLOCK EARNED:[/b][/color] Extended length limit (16+ chars)!
-
-[color=green]Click NEXT to face the ultimate defense! →[/color]""",
+[color=#00ff00]> UNLOCK EARNED: Extended length limit (16+ chars)![/color]
+[color=#00ff00]> Press NEXT to face the ultimate defense...[/color]""",
 			"interactive": false,
 			"min_length": 16,
-			"requires": ["lowercase", "uppercase", "numbers", "special"],
-			"recommended": []
-		},
-		
-		# WAVE 6: AI-Powered Attack
-		{
-			"wave_num": 6,
-			"title": "⚔️ WAVE 6: AI-POWERED MEGA BOT",
-			"enemy_name": "AI Neural Network",
-			"bot_power": 95,
-			"attack_speed": 0.2,
-			"state": GameState.BRIEFING,
-			"content": """[center][b][color=red]🤖 INCOMING THREAT: AI-POWERED MEGA BOT[/color][/b][/center]
-
-[b]ENEMY ANALYSIS:[/b]
-🧠 Machine learning password predictor
-🎯 Learns from millions of leaked passwords
-⚡ Adapts and evolves during attacks
-
-[b]HOW MODERN AI ATTACKS WORK:[/b]
-The bot has analyzed 15 BILLION leaked passwords and learned:
-• Common substitutions (a→@, e→3, o→0)
-• Popular phrases and how people modify them
-• Psychological patterns humans use
-• Language-specific password habits
-
-It predicts your NEXT character based on previous ones!
-
-Example: You type "Pass" → AI predicts "word123" (90% chance)
-
-[color=yellow][b]2025 REALITY:[/b][/color]
-• AI can crack 80% of "modified" passwords
-• "P@ssw0rd!" is instantly detected
-• Human patterns = predictable to AI
-
-[b]HOW TO DEFEND:[/b]
-✅ Think BEYOND human patterns
-✅ Use completely random character placement
-✅ Mix unrelated words + symbols + numbers
-✅ Example: "7!Moon$Carpet#3Piano@"
-
-[color=green]Click NEXT to prove you're smarter than AI! →[/color]""",
-			"interactive": false,
-			"min_length": 16,
-			"requires": ["lowercase", "uppercase", "numbers", "special"],
-			"recommended": []
-		},
-		
-		# WAVE 7: FINAL BOSS - Quantum Computer
-		{
-			"wave_num": 7,
-			"title": "🔥 FINAL BOSS: QUANTUM SUPERCOMPUTER",
-			"enemy_name": "Quantum Processor",
-			"bot_power": 100,
-			"attack_speed": 0.1,
-			"state": GameState.BRIEFING,
-			"content": """[center][b][color=purple]⚡ FINAL BOSS: QUANTUM SUPERCOMPUTER ⚡[/color][/b][/center]
-
-[b]ENEMY ANALYSIS:[/b]
-⚛️ Quantum computing technology
-🌌 Processes infinite possibilities simultaneously
-💀 The ultimate password destroyer
-
-[b]THE QUANTUM THREAT:[/b]
-Regular computers try passwords one at a time:
-password1 → password2 → password3...
-
-[color=purple]QUANTUM computers try ALL passwords AT ONCE![/color]
-
-They use "quantum superposition" to exist in multiple states, testing millions of passwords SIMULTANEOUSLY.
-
-[color=yellow][b]THE FUTURE IS HERE:[/b][/color]
-• Google's quantum computer: 100 million times faster
-• Can crack encryption that would take regular computers 10,000 years
-• Expected to break current encryption by 2030
-
-[b]HOW TO DEFEND:[/b]
-✅ Maximum length (20+ characters)
-✅ Complete randomness
-✅ Every character type multiple times
-✅ Basically unguessable by any means
-
-[b][color=cyan]BONUS TIP:[/b][/color] Use a [color=blue][url=Password Manager]Password Manager[/url][/color] to generate TRUE random passwords!
-
-[color=red][b]THIS IS IT![/b][/color] Can you create a password strong enough to stop a quantum computer?
-
-[color=green]Click NEXT for the ultimate challenge! →[/color]""",
-			"interactive": false,
-			"min_length": 20,
 			"requires": ["lowercase", "uppercase", "numbers", "special"],
 			"recommended": []
 		},
@@ -421,42 +450,44 @@ They use "quantum superposition" to exist in multiple states, testing millions o
 			"title": "🏆 FORTRESS DEFENDER - MISSION COMPLETE!",
 			"enemy_name": "Victory",
 			"state": GameState.BRIEFING,
-			"content": """[center][b][color=green]🎉 CONGRATULATIONS, FORTRESS DEFENDER! 🎉[/color][/b][/center]
+			"content": """[color=#00ff00]> ALL THREATS NEUTRALIZED[/color]
+[color=#00ff00]> FORTRESS STATUS: SECURE[/color]
 
-You've successfully defended the Digital Fortress against ALL password-cracking attacks!
+[color=#00ffff]========================================[/color]
+[color=#00ff00]  MISSION COMPLETE - VICTORY![/color]
+[color=#00ffff]========================================[/color]
 
-[b]🏅 WHAT YOU'VE MASTERED:[/b]
-✅ [color=blue][url=Dictionary Attack]Dictionary Attacks[/url][/color] - Beat common word lists
-✅ [color=blue][url=Brute Force Attack]Brute Force Attacks[/url][/color] - Made passwords exponentially harder
-✅ [color=blue][url=Pattern Attack]Pattern Attacks[/url][/color] - Outsmarted keyboard patterns
-✅ Personal Info Attacks - Protected your digital identity
-✅ [color=blue][url=Rainbow Table]Rainbow Tables[/url][/color] - Used unique, long passwords
-✅ AI-Powered Attacks - Thought beyond human patterns
-✅ Quantum Computing - Prepared for the future!
+[color=#ffffff]Congratulations, Fortress Defender![/color]
 
-[b]🎯 YOUR TOTAL SCORE: [SCORE_PLACEHOLDER][/b]
+[color=#ffff00]SKILLS MASTERED:[/color]
+• Dictionary Attacks - Beat common word lists
+• Brute Force Attacks - Made passwords exponentially harder
+• Pattern Attacks - Outsmarted keyboard patterns
+• Personal Info Attacks - Protected your digital identity
+• Rainbow Tables - Used unique, long passwords
 
-[b][color=cyan]REAL-WORLD PASSWORD TIPS:[/color][/b]
-1️⃣ Use a [color=blue][url=Password Manager]Password Manager[/url][/color] (1Password, Bitwarden, LastPass)
-2️⃣ Never reuse passwords across sites
-3️⃣ Change passwords if you suspect a breach
-4️⃣ Enable 2-Factor Authentication (2FA) everywhere
-5️⃣ Minimum 12 characters for regular accounts
-6️⃣ Minimum 16 characters for important accounts (email, banking)
+[color=#ffff00]YOUR TOTAL SCORE: [SCORE_PLACEHOLDER] points[/color]
 
-[color=yellow][b]PASSWORD STRENGTH FORMULA:[/b][/color]
+[color=#ffff00]REAL-WORLD PASSWORD TIPS:[/color]
+1. Use a Password Manager (1Password, Bitwarden, LastPass)
+2. Never reuse passwords across sites
+3. Change passwords if you suspect a breach
+4. Enable 2-Factor Authentication (2FA) everywhere
+5. Minimum 12 characters for regular accounts
+6. Minimum 16 characters for important accounts (email, banking)
+
+[color=#00ff00]PASSWORD STRENGTH FORMULA:[/color]
 Length > Complexity > Everything Else
 
 A 16-character password with only lowercase is stronger than an 8-character password with everything!
 
-[b]Remember:[/b] You're now a certified [color=green]Password Fortress Defender[/color]!
-Share your knowledge and help others stay safe online! 🛡️
+[color=#00ff00]> You're now a certified Password Fortress Defender![/color]
+[color=#00ff00]> Share your knowledge and help others stay safe online![/color]
 
-[color=green]Click BACK TO MENU to return to the tutorial hub →[/color]""",
+[color=#00ff00]> Press BACK TO MENU to return...[/color]""",
 			"interactive": false
 		}
 	]
-
 
 func _start_wave(wave_index: int) -> void:
 	if wave_index < 0 or wave_index >= waves.size():
@@ -472,15 +503,14 @@ func _start_wave(wave_index: int) -> void:
 	if wave_index == waves.size() - 1:
 		content_to_show = content_to_show.replace("[SCORE_PLACEHOLDER]", str(player_score))
 	
-	content_text.append_text(content_to_show)
+	# Type the text with CMD effect
+	_type_text(content_to_show)
 	
 	# Clear previous interactive content
 	for child in interactive_content.get_children():
 		child.queue_free()
 	
 	interactive_panel.visible = false
-	
-	# Update button states - keep back button enabled on wave 0 to allow exit
 	back_button.disabled = false
 	
 	if wave_index == waves.size() - 1:
@@ -490,28 +520,25 @@ func _start_wave(wave_index: int) -> void:
 	else:
 		next_button.text = "NEXT →"
 
-
 func _generate_password_guess(wave: Dictionary, attempt_num: int) -> String:
 	var wave_num: int = wave.get("wave_num", 1)
 	var guess := ""
 	
 	match wave_num:
-		1:  # Dictionary Attack - try common passwords
+		1:
 			guess = common_attempts[randi() % common_attempts.size()]
-		2:  # Brute Force - systematic combinations
+		2:
 			guess = _generate_brute_force_guess(attempt_num)
-		3:  # Pattern Attack - keyboard patterns
+		3:
 			guess = _generate_pattern_guess(attempt_num)
-		4, 5, 6, 7:  # Advanced attacks - smarter guessing
+		4, 5, 6, 7:
 			guess = _generate_smart_guess(attempt_num)
 		_:
 			guess = common_attempts[randi() % common_attempts.size()]
 	
 	return guess
 
-
 func _generate_brute_force_guess(attempt: int) -> String:
-	# Systematic brute force (simplified)
 	var chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%"
 	var length: int = min(4 + int(attempt / 10.0), 12)
 	var result := ""
@@ -519,16 +546,12 @@ func _generate_brute_force_guess(attempt: int) -> String:
 		result += chars[(attempt + i) % chars.length()]
 	return result
 
-
 func _generate_pattern_guess(attempt: int) -> String:
-	# Keyboard patterns
 	var patterns := ["qwerty", "asdfgh", "zxcvbn", "123456", "qwerty123", 
 					 "asdf1234", "1qaz2wsx", "qwertyuiop", "12345678"]
 	return patterns[attempt % patterns.size()] + str(randi() % 100)
 
-
 func _generate_smart_guess(attempt: int) -> String:
-	# Mix of strategies - tries to adapt
 	if attempt % 3 == 0:
 		return common_attempts[randi() % common_attempts.size()]
 	elif attempt % 3 == 1:
@@ -536,48 +559,39 @@ func _generate_smart_guess(attempt: int) -> String:
 	else:
 		return _generate_pattern_guess(attempt)
 
-
 func _calculate_match_percentage(actual_password: String, guess: String) -> float:
-	# Calculate how close the guess is to the actual password
 	if actual_password == guess:
-		return 100.0  # Perfect match!
+		return 100.0
 	
 	var matches := 0
 	var max_len: int = max(actual_password.length(), guess.length())
 	var min_len: int = min(actual_password.length(), guess.length())
 	
-	# Check character-by-character matches
 	for i in range(min_len):
 		if actual_password[i] == guess[i]:
-			matches += 2  # Correct position = 2 points
+			matches += 2
 		elif guess.contains(actual_password[i]):
-			matches += 1  # Contains character = 1 point
+			matches += 1
 	
-	# Length similarity bonus
 	if actual_password.length() == guess.length():
 		matches += 2
 	
 	var percentage := (float(matches) / float(max_len * 2)) * 100.0
 	return clamp(percentage, 0.0, 100.0)
 
-
 func _format_guess_display(actual_password: String, guess: String) -> String:
-	# Format guess with matched characters highlighted
-	var result := "[color=#999999]'"
+	var result := "[color=#666666]'"
 	
 	for i in range(guess.length()):
 		if i < actual_password.length() and actual_password[i] == guess[i]:
-			# Exact match at this position
-			result += "[color=#ff0000]" + guess[i] + "[/color][color=#999999]"
+			result += "[color=#ff0000]" + guess[i] + "[/color][color=#666666]"
 		elif actual_password.contains(guess[i]):
-			# Character exists but wrong position
-			result += "[color=#ff9900]" + guess[i] + "[/color][color=#999999]"
+			result += "[color=#ff9900]" + guess[i] + "[/color][color=#666666]"
 		else:
 			result += guess[i]
 	
 	result += "'[/color]"
 	return result
-
 
 func _generate_fake_hash() -> String:
 	var chars := "0123456789abcdef"
@@ -586,80 +600,61 @@ func _generate_fake_hash() -> String:
 		hash_str += chars[randi() % chars.length()]
 	return hash_str
 
-
 func _advance_to_next_wave() -> void:
-	# Clean up battle UI
 	for child in interactive_content.get_children():
 		child.queue_free()
 	interactive_panel.visible = false
 	content_text.visible = true
 	next_button.visible = true
 	
-	# Move to next wave
 	current_wave += 1
 	if current_wave < waves.size():
 		_start_wave(current_wave)
 	else:
-		# Game complete
-		get_tree().change_scene_to_file("res://scene/landing.tscn")
-
+		get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 func _on_next_pressed() -> void:
-	# Get current wave FIRST before any modifications
 	var wave: Dictionary = waves[current_wave]
 	
-	# If final wave (congratulations screen), save and return to menu
 	if current_wave == waves.size() - 1:
 		print("[TUTORIAL] Password Basic completed!")
 		print("[TUTORIAL] Final Score: %d" % player_score)
 		
-		# Calculate final score (player_score is already accumulated throughout waves)
-		# Max score is approximately 280 points (40 points per wave × 7 waves)
-		var max_score := 280
-		
+		var max_score := 200
 		print("[TUTORIAL] Calculated Score: %d / Max: %d" % [player_score, max_score])
 		
-		# Save tutorial result
 		var tutorial_mgr = get_node("/root/TutorialManager")
 		if tutorial_mgr:
 			print("[TUTORIAL] TutorialManager found, saving result...")
 			tutorial_mgr.save_tutorial_result("beginner_password", player_score, max_score)
-			
-			# Wait for Firestore save to complete before navigating
 			print("[TUTORIAL] Waiting for Firestore save to complete...")
 			await tutorial_mgr.save_completed
 			print("[TUTORIAL] Save confirmed, navigating to landing...")
 		else:
 			push_error("[TUTORIAL] TutorialManager not found!")
 		
-		# Return to landing page
-		get_tree().change_scene_to_file("res://scene/landing.tscn")
+		get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 		return
 	
-	# If defeated, retry the same wave
 	if current_state == GameState.DEFEAT:
 		_enter_password_build_phase()
 		return
 	
-	# If in briefing of a combat wave, go to password building
 	if wave.get("state") == GameState.BRIEFING and current_wave > 0 and current_wave < waves.size() - 1:
 		_enter_password_build_phase()
 	else:
-		# Otherwise advance to next wave
 		current_wave += 1
 		_start_wave(current_wave)
 
-
 func _on_back_pressed() -> void:
-	# Only allow going back on the first wave (tutorial intro)
 	if current_wave == 0:
 		get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
-	elif current_state == GameState.DEFEAT:
-		# If defeated, go back to the current wave's briefing to try again
+	elif current_state == GameState.DEFEAT or current_state == GameState.PASSWORD_BUILD or current_state == GameState.BATTLE:
 		content_text.visible = true
 		interactive_panel.visible = false
 		next_button.visible = true
 		battle_active = false
+
 		_start_wave(current_wave)  # Reload current wave's briefing
 	elif current_state == GameState.PASSWORD_BUILD or current_state == GameState.BATTLE:
 		# If in password build or battle phase, go back to the current wave's briefing
@@ -1129,8 +1124,8 @@ func _end_battle(victory: bool, wave: Dictionary) -> void:
 	
 	if victory:
 		current_state = GameState.VICTORY
-		var points: int = min(40, int(password_strength * 0.4))  # Max 40 points based on strength
-		player_score += points
+		var wave_num = wave.get("wave_num", 0)
+		var points: int = min(40, int(password_strength * 0.4))
 		
 		# Clear old battle messages
 		log_label.clear()
@@ -1143,7 +1138,16 @@ func _end_battle(victory: bool, wave: Dictionary) -> void:
 		log_label.append_text("[color=#00ffff]  - Total attempts: %d[/color]\n" % attempts_shown)
 		log_label.append_text("[color=#00ffff]  - Password strength: %d%%[/color]\n" % int(password_strength))
 		log_label.append_text("[color=#00ffff]  - Bot defeated: %s[/color]\n\n" % wave.enemy_name)
-		log_label.append_text("[color=#ffff00]> REWARD: +%d points[/color]\n\n" % points)
+		
+		# 🛡️ ANTI-CHEAT: Only award points once per wave
+		if wave_num not in completed_waves:
+			player_score += points
+			completed_waves.append(wave_num)
+			log_label.append_text("[color=#ffff00]> REWARD: +%d points[/color]\n\n" % points)
+		else:
+			log_label.append_text("[color=#ffff00]> Wave already completed (0 points)[/color]\n")
+			log_label.append_text("[color=#00ffff]> Great practice! Try the next wave for points.[/color]\n\n")
+		
 		log_label.append_text("[color=#00ff00]> Advancing to next wave...[/color]\n")
 		
 		# Unlock new features based on wave
@@ -1174,7 +1178,6 @@ func _end_battle(victory: bool, wave: Dictionary) -> void:
 		next_button.visible = true
 		next_button.text = "TRY AGAIN"
 
-
 # Handle clickable terms
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -1194,3 +1197,27 @@ func _show_term_definition(term: String) -> void:
 func _close_term_popup() -> void:
 	dark_overlay.visible = false
 	term_popup.visible = false
+
+func _on_close_button_pressed() -> void:
+	# Show confirmation popup
+	confirm_overlay.visible = true
+	
+	# Animate popup entrance
+	confirm_popup.scale = Vector2.ZERO
+	confirm_popup.pivot_offset = confirm_popup.size / 2
+	
+	var tween := create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_BACK)
+	tween.tween_property(confirm_popup, "scale", Vector2.ONE, 0.3)
+
+func _on_confirm_yes_pressed() -> void:
+	# User confirmed - go back to mode selection
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+
+func _on_confirm_no_pressed() -> void:
+	# User cancelled - hide popup with animation
+	var tween := create_tween()
+	tween.tween_property(confirm_popup, "scale", Vector2.ZERO, 0.2)
+	await tween.finished
+	confirm_overlay.visible = false
