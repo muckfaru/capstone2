@@ -1,9 +1,14 @@
-[gd_scene load_steps=17 format=3 uid="uid://b1ngbpq5ojqqk"]
+[gd_scene load_steps=22 format=3 uid="uid://b1ngbpq5ojqqk"]
 
 [ext_resource type="Script" uid="uid://dw7agivap55un" path="res://script/code_breaker_arena.gd" id="1_18ytm"]
 [ext_resource type="Texture2D" uid="uid://d4ddfveb65kqw" path="res://asset/background/Code Breaker Arena Background.png" id="2_e4tay"]
 [ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="3_e4tay"]
 [ext_resource type="AudioStream" uid="uid://chstil5w3lvp6" path="res://asset/audio/sound effects/Pop Sound Effects (mp3cut.net).mp3" id="4_pop"]
+[ext_resource type="Texture2D" uid="uid://kgkyttgrlp71" path="res://asset/code breaker/panels/heal panel().png" id="4_qu5hw"]
+[ext_resource type="Texture2D" uid="uid://dchp7lrupxdel" path="res://asset/code breaker/panels/freez time (ice blue) panel.png" id="5_357ew"]
+[ext_resource type="Texture2D" uid="uid://cs8t0so4cgohx" path="res://asset/code breaker/panels/normal panel.png" id="5_normal_panel"]
+[ext_resource type="Texture2D" uid="uid://dddfr5tjq8ay5" path="res://asset/code breaker/panels/extend time(yellow) panel.png" id="6_qnug1"]
+[ext_resource type="Texture2D" uid="uid://d0v2uekxdy55w" path="res://asset/code breaker/panels/Defensive panel (grey).png" id="7_n0mag"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n4nb7"]
 bg_color = Color(0, 0, 0, 0.619608)
@@ -88,19 +93,17 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="code_panel_style"]
-bg_color = Color(0.356863, 0.47451, 0.878431, 0)
+bg_color = Color(0, 0, 0, 0)
+draw_center = false
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0, 0.82, 1, 1)
+border_color = Color(0, 0.819608, 1, 0)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
-shadow_color = Color(0, 0, 0, 0.7)
-shadow_size = 12
-shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_180ra"]
 bg_color = Color(0, 0, 0, 1)
@@ -132,8 +135,10 @@ texture = ExtResource("2_e4tay")
 
 [node name="Panel" type="Panel" parent="NinePatchRect"]
 layout_mode = 0
-offset_right = 1157.0
-offset_bottom = 655.0
+offset_left = -19.0
+offset_top = -11.0
+offset_right = 1175.0
+offset_bottom = 663.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_n4nb7")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
@@ -358,29 +363,40 @@ anchor_left = 0.05
 anchor_top = 0.25
 anchor_right = 0.95
 anchor_bottom = 0.65
-offset_left = 187.9
-offset_top = -233.5
-offset_right = -258.9
-offset_bottom = -222.1
+offset_left = 183.9
+offset_top = -254.5
+offset_right = -262.9
+offset_bottom = -243.1
 theme_override_styles/panel = SubResource("code_panel_style")
 
-[node name="CodeDisplay" type="RichTextLabel" parent="VBox/CodeDisplayPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 11.0
-offset_top = -1.0
-offset_right = -21.0
-offset_bottom = -21.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/default_color = Color(0, 1, 0.5, 1)
-theme_override_font_sizes/normal_font_size = 18
-bbcode_enabled = true
-text = "Waiting for code snippet..."
-scroll_active = false
-vertical_alignment = 1
+[node name="DefaultPanel" type="Sprite2D" parent="VBox/CodeDisplayPanel"]
+position = Vector2(203.75, 37.5)
+scale = Vector2(0.510254, 0.198242)
+texture = ExtResource("5_normal_panel")
+
+[node name="HealPanel()" type="Sprite2D" parent="VBox/CodeDisplayPanel"]
+visible = false
+position = Vector2(201.5, 31)
+scale = Vector2(0.551758, 0.433594)
+texture = ExtResource("4_qu5hw")
+
+[node name="FreezTime(iceBlue)Panel" type="Sprite2D" parent="VBox/CodeDisplayPanel"]
+visible = false
+position = Vector2(197, 32)
+scale = Vector2(0.511719, 0.243164)
+texture = ExtResource("5_357ew")
+
+[node name="ExtendTime(yellow)Panel" type="Sprite2D" parent="VBox/CodeDisplayPanel"]
+visible = false
+position = Vector2(203.5, 27)
+scale = Vector2(0.477539, 0.195312)
+texture = ExtResource("6_qnug1")
+
+[node name="DefensivePanel(grey)" type="Sprite2D" parent="VBox/CodeDisplayPanel"]
+visible = false
+position = Vector2(195, 29.5)
+scale = Vector2(0.484375, 0.202148)
+texture = ExtResource("7_n0mag")
 
 [node name="SnippetTimer" type="Label" parent="VBox/CodeDisplayPanel"]
 layout_mode = 1
@@ -392,15 +408,34 @@ anchor_bottom = 1.0
 offset_left = -76.0
 offset_top = -35.0
 offset_right = -9.0
-offset_bottom = -0.999992
+offset_bottom = -0.999985
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 24
 text = "15.0s"
 horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CodeDisplay" type="RichTextLabel" parent="VBox/CodeDisplayPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 25.0
+offset_top = -15.0
+offset_right = -9.0
+offset_bottom = -35.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = true
+text = "Waiting for code snippet..."
+scroll_active = false
 vertical_alignment = 1
 
 [node name="InputField" type="LineEdit" parent="VBox"]

@@ -32,6 +32,13 @@ extends Control
 @onready var _code_panel: Panel = $VBox/CodeDisplayPanel
 @onready var _snippet_timer_label: Label = $VBox/CodeDisplayPanel/SnippetTimer
 
+# Power-up Panels
+@onready var _default_panel: Sprite2D = $VBox/CodeDisplayPanel/DefaultPanel
+@onready var _heal_panel: Sprite2D = $"VBox/CodeDisplayPanel/HealPanel()"
+@onready var _freeze_panel: Sprite2D = $"VBox/CodeDisplayPanel/FreezTime(iceBlue)Panel"
+@onready var _extend_panel: Sprite2D = $"VBox/CodeDisplayPanel/ExtendTime(yellow)Panel"
+@onready var _defensive_panel: Sprite2D = $"VBox/CodeDisplayPanel/DefensivePanel(grey)"
+
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const ROOMS_PATH := "/codebreaker_rooms"
 const GAME_DURATION := 240.0  # 4 minute match (or until someone dies)
@@ -42,6 +49,26 @@ const SCORE_CORRECT := 100           # Points for correct submission
 const DAMAGE_TO_ENEMY := 10         # HP damage to opponent on correct
 const SELF_DAMAGE_PENALTY := 8     # HP damage to self on wrong submission
 const STARTING_HEALTH := 100       # Starting health for both players
+
+# POWER-UP SYSTEM
+enum PowerUpType { NORMAL, HEAL, FREEZE_TIME, EXTEND_TIME, SHIELD }
+const HEAL_BONUS := 10              # HP restored on heal power-up
+const HEAL_CHANCE := 0.30           # 30% chance for heal power-up
+const FREEZE_CHANCE := 0.10         # 10% chance for freeze time power-up
+const FREEZE_DURATION := 15.0       # 15 seconds of frozen time (carries across snippets!)
+const EXTEND_CHANCE := 0.25         # 25% chance for extend time power-up
+const EXTEND_SNIPPET_TIME := 15.0   # +15 seconds to snippet timer
+const EXTEND_MAIN_TIME := 8.0       # +8 seconds to main match timer
+const EXTEND_BUFF_DURATION := 20.0  # 20 seconds of extend time buff
+const SHIELD_CHANCE := 0.10         # 10% chance for defensive shield power-up
+const SHIELD_DURATION := 15.0       # 15 seconds of invincibility (carries across snippets!)
+var _current_powerup: PowerUpType = PowerUpType.NORMAL
+var _time_frozen: bool = false      # Is time currently frozen?
+var _freeze_time_remaining: float = 0.0  # How much freeze time left
+var _extend_time_active: bool = false    # Is extend time buff active?
+var _extend_time_remaining: float = 0.0  # How much extend buff time left
+var _shield_active: bool = false         # Is defensive shield active?
+var _shield_time_remaining: float = 0.0  # How much shield time left
 
 # Game state
 var _room_id: String = ""
@@ -209,6 +236,19 @@ func _ready() -> void:
 	if _code_panel:
 		_original_panel_position = _code_panel.position
 		print("[Arena] 📍 Stored original panel position: %s" % _original_panel_position)
+	
+	# Initialize power-up panels (start with default visible)
+	if _default_panel:
+		_default_panel.visible = true
+	if _heal_panel:
+		_heal_panel.visible = false
+	if _freeze_panel:
+		_freeze_panel.visible = false
+	if _extend_panel:
+		_extend_panel.visible = false
+	if _defensive_panel:
+		_defensive_panel.visible = false
+	print("[Arena] 💊 Power-up panels initialized")
 	
 	# Set health bar colors: Cyan (#00d1ff) for self, Pink-Red (#ff596e) for opponent
 	# Create StyleBoxFlat for custom colors
@@ -441,6 +481,17 @@ func _send_damage_to_opponent(damage: int) -> void:
 
 func _receive_damage(damage: int) -> void:
 	"""Receive damage from opponent"""
+	# 🛡️ SHIELD: Block all damage if shield is active!
+	if _shield_active:
+		print("[Arena] 🛡️ SHIELD BLOCKED %d damage!" % damage)
+		# Flash indicator to show shield blocked attack
+		if _ws_indicator:
+			var original_color = _ws_indicator.color
+			_ws_indicator.color = Color.WHITE
+			await get_tree().create_timer(0.2).timeout
+			_ws_indicator.color = original_color
+		return  # No damage taken!
+	
 	player_health -= damage
 	print("[Arena] 💥 Took %d damage! Health: %d" % [damage, player_health])
 	
@@ -805,9 +856,39 @@ func _on_input_submitted(submitted_text: String) -> void:
 			var particle_pos = _code_display.global_position + _code_display.size / 2
 			_spawn_success_particles(particle_pos)
 		
-		var progress_text = "✅ CORRECT! (%d/%d) | +100 Score | Enemy -10 HP" % [
+		# 💊 POWER-UP BONUS: Apply power-up effects
+		var bonus_text = ""
+		if _current_powerup == PowerUpType.HEAL:
+			player_health += HEAL_BONUS
+			bonus_text = " | 💚 +10 HP HEAL!"
+			print("[Arena] 💚 HEAL BONUS! +%d HP" % HEAL_BONUS)
+			# Update display immediately
+			_update_my_health_display()
+		elif _current_powerup == PowerUpType.FREEZE_TIME:
+			# Activate time freeze for 15 seconds!
+			_time_frozen = true
+			_freeze_time_remaining = FREEZE_DURATION
+			bonus_text = " | 🧊 TIME FROZEN 15s!"
+			print("[Arena] 🧊 FREEZE TIME ACTIVATED! Timer paused for %.0fs" % FREEZE_DURATION)
+		elif _current_powerup == PowerUpType.EXTEND_TIME:
+			# Activate extend time buff for 20 seconds!
+			_extend_time_active = true
+			_extend_time_remaining = EXTEND_BUFF_DURATION
+			_snippet_time_remaining += EXTEND_SNIPPET_TIME  # Immediate +15s to current snippet
+			_game_start_time += EXTEND_MAIN_TIME  # One-time +8s to main timer
+			bonus_text = " | 🟡 TIME BUFF 20s! (+15s per snippet)"
+			print("[Arena] 🟡 EXTEND TIME BUFF ACTIVATED! 20s duration, +%.0fs per snippet, +%.0fs main" % [EXTEND_SNIPPET_TIME, EXTEND_MAIN_TIME])
+		elif _current_powerup == PowerUpType.SHIELD:
+			# Activate defensive shield for 15 seconds!
+			_shield_active = true
+			_shield_time_remaining = SHIELD_DURATION
+			bonus_text = " | 🛡️ SHIELD 15s! (0 damage)"
+			print("[Arena] 🛡️ DEFENSIVE SHIELD ACTIVATED! 15s invincibility")
+		
+		var progress_text = "✅ CORRECT! (%d/%d) | +100 Score | Enemy -10 HP%s" % [
 			_my_snippet_index + 1,
-			_snippet_list.size()
+			_snippet_list.size(),
+			bonus_text
 		]
 		_status_label.text = progress_text
 		
@@ -820,12 +901,23 @@ func _on_input_submitted(submitted_text: String) -> void:
 		# Reset snippet timer for new snippet
 		_snippet_time_remaining = SNIPPET_TIME_LIMIT
 		
+		# 🟡 EXTEND TIME BUFF: Apply bonus if buff still active
+		if _extend_time_active:
+			_snippet_time_remaining += EXTEND_SNIPPET_TIME
+			print("[Arena] 🟡 Extend buff active! New snippet starts at %.1fs" % _snippet_time_remaining)
+		
 		# Clear input for next round
 		_input_field.text = ""
 	else:
 		# ❌ WRONG SUBMISSION!
 		print("[Arena] ❌ INCORRECT COMMAND! System compromised, taking damage")
-		player_health -= SELF_DAMAGE_PENALTY
+		
+		# 🛡️ SHIELD: Block self-damage penalty if shield is active!
+		if _shield_active:
+			print("[Arena] 🛡️ SHIELD ABSORBED self-damage penalty!")
+			# No HP loss, but still advance to next snippet
+		else:
+			player_health -= SELF_DAMAGE_PENALTY
 		
 		# Update MY health display immediately
 		_update_my_health_display()
@@ -869,6 +961,11 @@ func _on_input_submitted(submitted_text: String) -> void:
 		
 		# Reset snippet timer for new snippet
 		_snippet_time_remaining = SNIPPET_TIME_LIMIT
+		
+		# 🟡 EXTEND TIME BUFF: Apply bonus if buff still active
+		if _extend_time_active:
+			_snippet_time_remaining += EXTEND_SNIPPET_TIME
+			print("[Arena] 🟡 Extend buff active! New snippet starts at %.1fs" % _snippet_time_remaining)
 		
 		# Clear input to try again
 		_input_field.text = ""
@@ -1039,6 +1136,7 @@ func _update_my_health_display() -> void:
 
 func _on_display_timer_timeout() -> void:
 	"""Update countdown timer display every 100ms"""
+	# Normal main timer update (ALWAYS RUNNING - never frozen!)
 	var elapsed = Time.get_unix_time_from_system() - _game_start_time
 	var remaining = max(0.0, GAME_DURATION - elapsed)
 	
@@ -1047,24 +1145,59 @@ func _on_display_timer_timeout() -> void:
 	var secs: int = total_secs % 60
 	_timer_label.text = "%02d:%02d" % [mins, secs]
 	
-	# Update snippet timer (15 seconds per snippet)
-	if _snippet_timer_active:
-		_snippet_time_remaining -= 0.1
+	# 🧊 FREEZE TIME LOGIC: Only affects snippet timer!
+	if _time_frozen:
+		_freeze_time_remaining -= 0.1
 		
+		# Update snippet timer to show frozen (no countdown display)
 		if _snippet_timer_label:
-			_snippet_timer_label.text = "%.1fs" % max(0.0, _snippet_time_remaining)
-			
-			# Color changes based on remaining time
-			if _snippet_time_remaining > 10.0:
-				_snippet_timer_label.add_theme_color_override("font_color", Color(0, 1, 1))  # Cyan
-			elif _snippet_time_remaining > 5.0:
-				_snippet_timer_label.add_theme_color_override("font_color", Color(1, 1, 0))  # Yellow
-			else:
-				_snippet_timer_label.add_theme_color_override("font_color", Color(1, 0, 0))  # Red
+			_snippet_timer_label.text = "⏸️ FROZEN"
+			_snippet_timer_label.add_theme_color_override("font_color", Color(0.5, 0.8, 1.0))  # Ice blue
 		
-		# Time's up for this snippet!
-		if _snippet_time_remaining <= 0.0:
-			_on_snippet_timeout()
+		# Check if freeze time expired (15s total, carries across snippets)
+		if _freeze_time_remaining <= 0.0:
+			_time_frozen = false
+			print("[Arena] 🧊 Freeze buff expired! Snippet timer resumed.")
+		
+		# Don't countdown snippet timer while frozen!
+		# But still check for game timeout below...
+	else:
+		# 🟡 EXTEND TIME BUFF: Countdown buff duration (20s total, carries across snippets)
+		if _extend_time_active:
+			_extend_time_remaining -= 0.1
+			
+			# Check if extend buff expired
+			if _extend_time_remaining <= 0.0:
+				_extend_time_active = false
+				print("[Arena] 🟡 Extend time buff expired!")
+		
+		# 🛡️ SHIELD BUFF: Countdown shield duration (15s total, carries across snippets)
+		if _shield_active:
+			_shield_time_remaining -= 0.1
+			
+			# Check if shield buff expired
+			if _shield_time_remaining <= 0.0:
+				_shield_active = false
+				print("[Arena] 🛡️ Shield buff expired!")
+		
+		# Update snippet timer (15 seconds per snippet) - ONLY WHEN NOT FROZEN
+		if _snippet_timer_active:
+			_snippet_time_remaining -= 0.1
+			
+			if _snippet_timer_label:
+				_snippet_timer_label.text = "%.1fs" % max(0.0, _snippet_time_remaining)
+				
+				# Color changes based on remaining time
+				if _snippet_time_remaining > 10.0:
+					_snippet_timer_label.add_theme_color_override("font_color", Color(0, 1, 1))  # Cyan
+				elif _snippet_time_remaining > 5.0:
+					_snippet_timer_label.add_theme_color_override("font_color", Color(1, 1, 0))  # Yellow
+				else:
+					_snippet_timer_label.add_theme_color_override("font_color", Color(1, 0, 0))  # Red
+			
+			# Time's up for this snippet!
+			if _snippet_time_remaining <= 0.0:
+				_on_snippet_timeout()
 	
 	# Check if time's up (timeout = highest score wins)
 	if remaining <= 0.0:
@@ -1269,6 +1402,79 @@ func _popin_code_display_with_text(new_text: String) -> void:
 	# Swap text while invisible
 	if _code_display:
 		_code_display.text = new_text
+	
+	# 💊 POWER-UP SYSTEM: Randomly select power-up type and show corresponding panel
+	var rand_value = randf()
+	if rand_value < SHIELD_CHANCE:
+		# SHIELD power-up! (10% chance - RARE!)
+		_current_powerup = PowerUpType.SHIELD
+		if _defensive_panel:
+			_defensive_panel.visible = true
+		if _freeze_panel:
+			_freeze_panel.visible = false
+		if _heal_panel:
+			_heal_panel.visible = false
+		if _extend_panel:
+			_extend_panel.visible = false
+		if _default_panel:
+			_default_panel.visible = false
+		print("[Arena] 🛡️ DEFENSIVE SHIELD POWER-UP! (15s invincibility on correct)")
+	elif rand_value < (SHIELD_CHANCE + FREEZE_CHANCE):
+		# FREEZE TIME power-up! (10% chance - RARE!)
+		_current_powerup = PowerUpType.FREEZE_TIME
+		if _freeze_panel:
+			_freeze_panel.visible = true
+		if _defensive_panel:
+			_defensive_panel.visible = false
+		if _heal_panel:
+			_heal_panel.visible = false
+		if _extend_panel:
+			_extend_panel.visible = false
+		if _default_panel:
+			_default_panel.visible = false
+		print("[Arena] 🧊 FREEZE TIME POWER-UP! (15s timer freeze on correct)")
+	elif rand_value < (SHIELD_CHANCE + FREEZE_CHANCE + EXTEND_CHANCE):
+		# EXTEND TIME power-up! (25% chance)
+		_current_powerup = PowerUpType.EXTEND_TIME
+		if _extend_panel:
+			_extend_panel.visible = true
+		if _defensive_panel:
+			_defensive_panel.visible = false
+		if _freeze_panel:
+			_freeze_panel.visible = false
+		if _heal_panel:
+			_heal_panel.visible = false
+		if _default_panel:
+			_default_panel.visible = false
+		print("[Arena] 🟡 EXTEND TIME POWER-UP! (+15s snippet, +8s main timer on correct)")
+	elif rand_value < (SHIELD_CHANCE + FREEZE_CHANCE + EXTEND_CHANCE + HEAL_CHANCE):
+		# HEAL power-up! (30% chance)
+		_current_powerup = PowerUpType.HEAL
+		if _heal_panel:
+			_heal_panel.visible = true
+		if _defensive_panel:
+			_defensive_panel.visible = false
+		if _freeze_panel:
+			_freeze_panel.visible = false
+		if _extend_panel:
+			_extend_panel.visible = false
+		if _default_panel:
+			_default_panel.visible = false
+		print("[Arena] 💚 HEAL POWER-UP! (+10 HP on correct)")
+	else:
+		# Normal snippet (25% chance)
+		_current_powerup = PowerUpType.NORMAL
+		if _default_panel:
+			_default_panel.visible = true
+		if _heal_panel:
+			_heal_panel.visible = false
+		if _defensive_panel:
+			_defensive_panel.visible = false
+		if _freeze_panel:
+			_freeze_panel.visible = false
+		if _extend_panel:
+			_extend_panel.visible = false
+		print("[Arena] ⚪ Normal snippet")
 	
 	# 🆕 POSITION SHUFFLE: Move to random position!
 	if _position_shuffle_enabled and _code_panel:

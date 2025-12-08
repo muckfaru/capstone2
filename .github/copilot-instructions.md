@@ -311,8 +311,19 @@ _relay_client.message_received.connect(_on_relay_message)
      - ❌ Wrong submission: -8 self HP (penalty)
      - First to 0 HP = LOSE
      - Case-sensitive, exact match required
+   - **🎁 POWER-UP SYSTEM (Random per snippet):**
+     - 🛡️ **10% SHIELD** (grey panel) - 15s invincibility: blocks all damage + self-damage penalty
+     - 🧊 **10% FREEZE_TIME** (ice blue panel) - 15s snippet timer freeze (main timer keeps running)
+     - 🟡 **25% EXTEND_TIME** (yellow panel) - 20s buff: +15s per snippet, +8s main timer (one-time)
+     - 💚 **30% HEAL** (green panel) - +10 HP on correct answer
+     - ⚪ **25% NORMAL** (white panel) - no bonus
+   - **Power-Up Effects:**
+     - Shield: Enemy damage = 0, wrong answer = 0 penalty, 15s carry-over
+     - Freeze: Snippet timer shows "⏸️ FROZEN", no countdown, 15s carry-over
+     - Extend: Snippet timer gets +15s bonus, main timer +8s, 20s carry-over across snippets
+     - Heal: Instant +10 HP when correct (no carry-over, one-time per snippet)
    - **Gameplay via relay messages:**
-     - Type correct → `damage` message to opponent
+     - Type correct → `damage` message to opponent (or blocked if shield active)
      - Stats sync: `stats_update` (score, health) every 0.5s
      - Game end: `player_died` or `player_finished`
    - **Visual Effects:**
@@ -323,6 +334,7 @@ _relay_client.message_received.connect(_on_relay_message)
      - Panel shadows for depth (8-12px shadows)
      - Text outlines on countdown (8px black outline + cyan shadow)
      - Pop/bubble animations on code panel (3 presets: subtle/normal/dramatic)
+     - Panel color changes show active power-up (different Sprite2D visible per type)
    - **Battle Music:** Auto-fade in on start, stops on leave
    - Game ends → **returns to room** (NOT landing)
    - Relay connection preserved throughout
@@ -396,6 +408,57 @@ Arena → Room: (if rematch) Reparent to root
 - Server deletes rooms with no heartbeat > 90s
 - Heartbeat stops when room scene unloads
 
+## 🎁 Power-Up System (Arena)
+
+**Random Power-Ups** - Each snippet randomly gets a power-up type (shown via colored panel). Correct answer = activate power-up buff!
+
+### Power-Up Distribution
+| Type | Chance | Panel | Effect | Duration |
+|------|--------|-------|--------|----------|
+| **SHIELD** 🛡️ | 10% | Grey | 0 damage from attacks + 0 penalty on wrong | 15s carry-over |
+| **FREEZE_TIME** 🧊 | 10% | Ice Blue | Snippet timer frozen (main timer running) | 15s carry-over |
+| **EXTEND_TIME** 🟡 | 25% | Yellow | +15s per snippet, +8s main timer (one-time) | 20s carry-over |
+| **HEAL** 💚 | 30% | Green | +10 HP instant | One-time per snippet |
+| **NORMAL** ⚪ | 25% | White | No bonus | N/A |
+
+### Power-Up Logic
+```gdscript
+// During pop animation, randomly select power-up:
+var rand_value = randf()
+if rand_value < 0.10:
+    _current_powerup = PowerUpType.SHIELD
+elif rand_value < 0.20:
+    _current_powerup = PowerUpType.FREEZE_TIME
+elif rand_value < 0.45:
+    _current_powerup = PowerUpType.EXTEND_TIME
+elif rand_value < 0.75:
+    _current_powerup = PowerUpType.HEAL
+else:
+    _current_powerup = PowerUpType.NORMAL
+
+// On correct answer, apply power-up effect
+match _current_powerup:
+    PowerUpType.SHIELD:
+        _shield_active = true
+        _shield_time_remaining = 15.0
+    PowerUpType.FREEZE_TIME:
+        _time_frozen = true
+        _freeze_time_remaining = 15.0
+    PowerUpType.EXTEND_TIME:
+        _extend_time_active = true
+        _extend_time_remaining = 20.0
+        _snippet_time_remaining += 15.0
+        _game_start_time += 8.0
+    PowerUpType.HEAL:
+        player_health += 10
+```
+
+### Power-Up Effects Details
+- **SHIELD (Grey Panel):** Blocks enemy damage + self-damage penalty for 15 seconds. Persists across multiple snippets.
+- **FREEZE_TIME (Ice Blue Panel):** Pauses snippet timer (not main timer) for 15 seconds. Allows unlimited time to type current snippets. Persists across multiple snippets.
+- **EXTEND_TIME (Yellow Panel):** Gives 20-second buff where every new snippet starts with +15s (30s instead of 15s). One-time +8s bonus to main match timer.
+- **HEAL (Green Panel):** Restores +10 HP when correct answer submitted. No carry-over, one-time per snippet.
+
 
 ## 🛠️ Developer Workflows
 
@@ -430,7 +493,7 @@ var current_mode: Mode = Mode.PRODUCTION  # Render.com
 | **Lobby** | `script/code_breaker_lobby.gd` | Room list polling (5s), create/join rooms |
 | **Room** | `script/code_breaker_room.gd` | Room state polling (2s), relay setup, ready system, heartbeat |
 | **Loading** | `script/code_breaker_loading.gd` | Player sync screen, progress bars, 30s timeout, relay preservation |
-| **Arena** | `script/code_breaker_arena.gd` | 1v1 submit-based typing combat, damage system (±10 HP correct, -8 HP wrong), stats sync (0.5s), relay messages, animations, particles, music |
+| **Arena** | `script/code_breaker_arena.gd` | 1v1 submit-based typing combat, power-up system (5 types), damage system (±10 HP), shield/freeze/extend/heal buffs, stats sync (0.5s), relay messages, animations, particles, music |
 | **Lobby Server** | `server/server.js` | Express + express-ws, REST API + WebSocket relay, in-memory rooms |
 
 ### Arena Animation Functions
@@ -517,7 +580,7 @@ Phone (Mobile Data) ────────────────────
 
 ---
 
-**Latest Updates (Dec 6, 2025):**
+**Latest Updates (Dec 8, 2025):**
 - ✅ **Tutorial System Overhaul:** Complete XP-based progression system with 9 ranks (Iron to Challenger)
 - ✅ **TutorialManager Singleton:** Autoload that tracks completion, XP, ranks, and game unlocks
 - ✅ **Tutorial Categories:** Beginner (4 tutorials), Intermediate (2 tutorials), Advanced (2 tutorials)
@@ -537,5 +600,14 @@ Phone (Mobile Data) ────────────────────
 - ✅ **UI Polish:** Panel shadows (8-12px), text outlines on countdown (8px outline + cyan shadow)
 - ✅ **Battle Music:** Auto-fade in on arena start (-80dB → -5dB over 2s), stops cleanly on leave
 - ✅ **Menu System:** Toggle menu panel with hamburger button
+- ✅ **POWER-UP SYSTEM (NEW!):** 5 random power-up types per snippet:
+  - 🛡️ **SHIELD** (10%): 15s invincibility, blocks enemy damage + self-damage penalty
+  - 🧊 **FREEZE_TIME** (10%): 15s snippet timer freeze (main timer keeps running)
+  - 🟡 **EXTEND_TIME** (25%): 20s buff with +15s per snippet, +8s main timer (one-time)
+  - 💚 **HEAL** (30%): +10 HP instant on correct answer
+  - ⚪ **NORMAL** (25%): No bonus
+- ✅ **Power-Up Panel System:** Color-coded panels (grey/ice-blue/yellow/green/white) shown during pop animation
+- ✅ **Power-Up Carry-Over:** Shield, Freeze, and Extend buffs persist across multiple snippets
+- ✅ **Damage Blocking:** Shield blocks both enemy attacks AND self-damage penalties during 15s duration
 
 
