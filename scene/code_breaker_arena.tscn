@@ -520,7 +520,7 @@ offset_right = 2.0
 offset_bottom = 2.0
 
 [node name="BattleMusic" type="AudioStreamPlayer" parent="."]
-volume_db = -78.98
+volume_db = -63.255
 pitch_scale = 0.14
 autoplay = true
 

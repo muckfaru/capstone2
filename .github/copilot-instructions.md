@@ -59,10 +59,117 @@ Complete Challenge (timed/scored)
     ↓
 TutorialManager.complete_tutorial(id, score, max_score)
     ↓
+Calculate Grade & XP:
+  - Score 90%+ → 200 XP (A)
+  - Score 80-89% → 150 XP (B)
+  - Score 70-79% → 100 XP (C)
+  - Score 50-69% → 50 XP (D)
+  - Score <50% → 0 XP (F - fail)
+    ↓
 Save to Firestore → Award XP → Check rank up → Check game unlocks
+    ↓
+Emit Signals:
+  - xp_updated(new_xp)
+  - rank_up(new_rank) [if ranking up]
+  - game_unlocked(game_name) [if unlocking game]
     ↓
 Return to Mode Selection
 ```
+
+### Tutorial Manager API
+```gdscript
+# Core Methods
+TutorialManager.complete_tutorial(tutorial_id: String, score: int, max_score: int) → void
+TutorialManager.load_user_data() → void (from Firestore)
+TutorialManager.save_user_data() → void (to Firestore)
+TutorialManager.get_rank() → Dictionary  # {rank_number, rank_name, xp_progress}
+TutorialManager.is_game_unlocked(game_name: String) → bool
+
+# Properties
+TutorialManager.total_xp → int
+TutorialManager.current_rank → String
+TutorialManager.unlocked_games → Array[String]
+TutorialManager.completed_tutorials → Dictionary
+```
+
+### Game Unlock Thresholds
+| Game | XP Required | Status |
+|------|-------------|--------|
+| Akashic TCG | 0 XP | Always unlocked |
+| Code Breaker | 500 XP | Unlock via tutorials |
+| Game 3 | 1500 XP | Future |
+
+### Rank Progression (9 Levels)
+| Rank | XP Range | Status |
+|------|----------|--------|
+| 1. Iron | 0 - 199 | Beginner |
+| 2. Bronze | 200 - 399 | Progressing |
+| 3. Silver | 400 - 699 | Code Breaker Unlocked! 🔓 |
+| 4. Gold | 700 - 1099 | Advanced |
+| 5. Platinum | 1100 - 1599 | Expert |
+| 6. Diamond | 1600 - 2299 | Master |
+| 7. Master | 2300 - 3199 | Elite |
+| 8. Grandmaster | 3200 - 4499 | Legendary |
+| 9. Challenger | 4500+ | Peak |
+
+### Tutorial Leveling System Flow
+
+```
+Complete Tutorial
+    ↓
+Calculate Score (%)
+    ↓
+Grade Assignment:
+  - 90%+ → 200 XP (A) - Excellent
+  - 80-89% → 150 XP (B) - Good
+  - 70-79% → 100 XP (C) - Pass
+  - 50-69% → 50 XP (D) - Attempted
+  - <50% → 0 XP (F) - Failed
+    ↓
+Get Old Rank (before XP)
+    ↓
+Add XP: total_xp += xp_earned
+    ↓
+Get New Rank (after XP)
+    ↓
+Rank Up? (emit rank_up signal if new rank)
+    ↓
+Check Game Unlocks:
+  - Akashic TCG: 0 XP (always unlocked)
+  - Code Breaker: 500 XP ✓
+  - Game 3: 1500 XP (future)
+    ↓
+Save All to Firestore:
+  - User XP & rank
+  - Completed tutorials
+  - Unlocked games
+    ↓
+Emit Signals:
+  - xp_updated(new_xp)
+  - rank_up(new_rank) [if ranking up]
+  - game_unlocked(game_name) [if unlocking]
+  - save_completed()
+```
+
+### Leveling Mechanics
+- **XP Accumulates:** Never resets, only increases
+- **Rank Based on Total XP:** Check which bracket (0-199, 200-399, etc.)
+- **Progress Bar:** Shows XP progress within current rank bracket
+- **One-Time Per Tutorial:** Can't farm same tutorial multiple times for XP
+- **Firestore Persistence:** All progress saved to Firebase (uid-based)
+
+### Rank Icons & Colors
+| Rank | Color | Icon |
+|------|-------|------|
+| Iron | Grey | IRON.png |
+| Bronze | Bronze | BRONZE.png |
+| Silver | Silver | SILVER.png |
+| Gold | Gold | GOLD.png |
+| Platinum | Cyan | PLATINUM.png |
+| Diamond | Blue | DIAMOND.png |
+| Master | Purple | MASTER.png |
+| Grandmaster | Red | GRAND MASTER.png |
+| Challenger | Cyan | CHALLENGER.png |
 
 ### Signals
 - `xp_updated(new_xp: int)` - XP changed

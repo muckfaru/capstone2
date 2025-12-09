@@ -2,12 +2,12 @@ extends Control
 
 # UI References
 @onready var _host_username: Label = $HostCard/HostUsername
-@onready var _host_avatar: Label = $HostCard/HostAvatar
+@onready var _host_avatar: Sprite2D = $HostCard/Avatar1
 @onready var _host_status: Label = $HostCard/HostStatus
 @onready var _host_progress: ProgressBar = $HostCard/HostProgressBar
 
 @onready var _client_username: Label = $ClientCard/ClientUsername
-@onready var _client_avatar: Label = $ClientCard/ClientAvatar
+@onready var _client_avatar: Sprite2D = $ClientCard/Avatar1
 @onready var _client_status: Label = $ClientCard/ClientStatus
 @onready var _client_progress: ProgressBar = $ClientCard/ClientProgressBar
 
@@ -106,26 +106,22 @@ func _setup_ui() -> void:
 	if _is_host:
 		# I am host - show myself on left, client on right
 		_host_username.text = str(_host_data.get("username", "Host"))
-		_host_avatar.text = "👤"
 		_host_status.text = "⏳ Loading..."
 		_host_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_host_progress.value = 0.0
 		
 		_client_username.text = str(_client_data.get("username", "Client"))
-		_client_avatar.text = "👤"
 		_client_status.text = "⏳ Loading..."
 		_client_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_client_progress.value = 0.0
 	else:
 		# I am client - show myself on left, host on right
 		_host_username.text = str(_client_data.get("username", "Client"))
-		_host_avatar.text = "👤"
 		_host_status.text = "⏳ Loading..."
 		_host_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_host_progress.value = 0.0
 		
 		_client_username.text = str(_host_data.get("username", "Host"))
-		_client_avatar.text = "👤"
 		_client_status.text = "⏳ Loading..."
 		_client_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_client_progress.value = 0.0
