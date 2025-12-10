@@ -451,14 +451,14 @@ func _show_tutorial_menu(level: String) -> void:
 	
 	# Main dialog panel
 	var dialog_panel = Panel.new()
-	dialog_panel.custom_minimum_size = Vector2(680, 580)
+	dialog_panel.custom_minimum_size = Vector2(720, 580)
 	dialog_panel.anchor_left = 0.5
 	dialog_panel.anchor_top = 0.5
 	dialog_panel.anchor_right = 0.5
 	dialog_panel.anchor_bottom = 0.5
-	dialog_panel.offset_left = -340
+	dialog_panel.offset_left = -360
 	dialog_panel.offset_top = -290
-	dialog_panel.offset_right = 340
+	dialog_panel.offset_right = 360
 	dialog_panel.offset_bottom = 290
 	dialog_panel.z_index = 100
 	
@@ -484,15 +484,24 @@ func _show_tutorial_menu(level: String) -> void:
 	_add_corner_decorations(dialog_panel)
 	
 	# Close button (X)
+# Close button (X)
 	var close_btn = Button.new()
 	close_btn.text = "✕"
-	close_btn.position = Vector2(630, 8)
-	close_btn.size = Vector2(40, 40)
+	close_btn.custom_minimum_size = Vector2(40, 40)
 	close_btn.add_theme_font_size_override("font_size", 28)
 	close_btn.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
 	close_btn.add_theme_color_override("font_hover_color", Color(1, 0, 0))
+
+	# Position it in the top-right corner using anchors instead of absolute position
+	close_btn.anchor_left = 1.0
+	close_btn.anchor_right = 1.0
+	close_btn.offset_left = -60  # 50 pixels from right edge (40px button + 10px margin)
+	close_btn.offset_right = -20  # 10px margin from right
+	close_btn.offset_top = 18
+	close_btn.offset_bottom = 48
+
 	close_btn.z_index = 200
-	
+
 	# Create custom style for button
 	var close_style = StyleBoxFlat.new()
 	close_style.bg_color = Color(0.2, 0, 0, 0.3)
@@ -506,22 +515,23 @@ func _show_tutorial_menu(level: String) -> void:
 	close_style.corner_radius_bottom_left = 5
 	close_style.corner_radius_bottom_right = 5
 	close_btn.add_theme_stylebox_override("normal", close_style)
-	
+
 	var close_hover = close_style.duplicate()
 	close_hover.bg_color = Color(0.4, 0, 0, 0.6)
 	close_btn.add_theme_stylebox_override("hover", close_hover)
-	
+
 	close_btn.pressed.connect(func(): 
 		print("🔴 Close button pressed!")
 		overlay.queue_free()
 	)
+	
 	dialog_panel.add_child(close_btn)
 	
 	# Content container
 	var margin_container = MarginContainer.new()
 	margin_container.add_theme_constant_override("margin_left", 30)
 	margin_container.add_theme_constant_override("margin_top", 55)
-	margin_container.add_theme_constant_override("margin_right", 30)
+	margin_container.add_theme_constant_override("margin_right", 25)  # Changed from 30 to 25
 	margin_container.add_theme_constant_override("margin_bottom", 20)
 	margin_container.set_anchors_preset(Control.PRESET_FULL_RECT)
 	margin_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -560,18 +570,85 @@ func _show_tutorial_menu(level: String) -> void:
 	separator.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	main_vbox.add_child(separator)
 	
-	# Scrollable container for tutorials
+# Scrollable container for tutorials
 	var scroll = ScrollContainer.new()
 	scroll.custom_minimum_size = Vector2(0, 380)
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	main_vbox.add_child(scroll)
-	
+
+	# CYBERPUNK SCROLLBAR STYLING
+	var scrollbar = scroll.get_v_scroll_bar()
+
+	# Scrollbar background (track)
+	var scrollbar_bg = StyleBoxFlat.new()
+	scrollbar_bg.bg_color = Color(0.05, 0.1, 0.15, 0.8)  # Dark background
+	scrollbar_bg.border_width_left = 1
+	scrollbar_bg.border_width_right = 1
+	scrollbar_bg.border_color = Color(0, 1, 1, 0.3)  # Cyan border
+	scrollbar_bg.corner_radius_top_left = 4
+	scrollbar_bg.corner_radius_top_right = 4
+	scrollbar_bg.corner_radius_bottom_left = 4
+	scrollbar_bg.corner_radius_bottom_right = 4
+	scrollbar.add_theme_stylebox_override("scroll", scrollbar_bg)
+
+	# Scrollbar grabber (the draggable part) - Normal state
+	var scrollbar_grabber = StyleBoxFlat.new()
+	scrollbar_grabber.bg_color = Color(0, 0.8, 1, 0.6)  # Cyan
+	scrollbar_grabber.border_width_left = 2
+	scrollbar_grabber.border_width_right = 2
+	scrollbar_grabber.border_color = Color(0, 1, 1, 1)  # Bright cyan border
+	scrollbar_grabber.corner_radius_top_left = 4
+	scrollbar_grabber.corner_radius_top_right = 4
+	scrollbar_grabber.corner_radius_bottom_left = 4
+	scrollbar_grabber.corner_radius_bottom_right = 4
+	scrollbar_grabber.shadow_color = Color(0, 1, 1, 0.5)  # Cyan glow
+	scrollbar_grabber.shadow_size = 5
+	scrollbar.add_theme_stylebox_override("grabber", scrollbar_grabber)
+
+	# Scrollbar grabber - Hover state
+	var scrollbar_grabber_hover = StyleBoxFlat.new()
+	scrollbar_grabber_hover.bg_color = Color(0, 1, 1, 0.8)  # Brighter cyan
+	scrollbar_grabber_hover.border_width_left = 2
+	scrollbar_grabber_hover.border_width_right = 2
+	scrollbar_grabber_hover.border_color = Color(0.5, 1, 1, 1)  # Lighter cyan border
+	scrollbar_grabber_hover.corner_radius_top_left = 4
+	scrollbar_grabber_hover.corner_radius_top_right = 4
+	scrollbar_grabber_hover.corner_radius_bottom_left = 4
+	scrollbar_grabber_hover.corner_radius_bottom_right = 4
+	scrollbar_grabber_hover.shadow_color = Color(0, 1, 1, 0.8)  # Stronger glow
+	scrollbar_grabber_hover.shadow_size = 8
+	scrollbar.add_theme_stylebox_override("grabber_highlight", scrollbar_grabber_hover)
+
+	# Scrollbar grabber - Pressed state
+	var scrollbar_grabber_pressed = StyleBoxFlat.new()
+	scrollbar_grabber_pressed.bg_color = Color(0, 1, 1, 1)  # Full bright cyan
+	scrollbar_grabber_pressed.border_width_left = 2
+	scrollbar_grabber_pressed.border_width_right = 2
+	scrollbar_grabber_pressed.border_color = Color(1, 1, 1, 1)  # White border
+	scrollbar_grabber_pressed.corner_radius_top_left = 4
+	scrollbar_grabber_pressed.corner_radius_top_right = 4
+	scrollbar_grabber_pressed.corner_radius_bottom_left = 4
+	scrollbar_grabber_pressed.corner_radius_bottom_right = 4
+	scrollbar_grabber_pressed.shadow_color = Color(0, 1, 1, 1)  # Maximum glow
+	scrollbar_grabber_pressed.shadow_size = 10
+	scrollbar.add_theme_stylebox_override("grabber_pressed", scrollbar_grabber_pressed)
+
+	# Customize scrollbar width
+	scrollbar.custom_minimum_size.x = 12  # Width of scrollbar
+
+	# Add margin container INSIDE scroll to create padding for scrollbar
+	var scroll_content_margin = MarginContainer.new()
+	scroll_content_margin.add_theme_constant_override("margin_right", 15)  # Space for scrollbar
+	scroll_content_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(scroll_content_margin)
+
 	var tutorials_vbox = VBoxContainer.new()
 	tutorials_vbox.add_theme_constant_override("separation", 12)
 	tutorials_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(tutorials_vbox)
-	
-	# Add tutorial cards
+	scroll_content_margin.add_child(tutorials_vbox)
+		# Add tutorial cards
 	for tutorial in tutorials:
 		var card = _create_tutorial_card(tutorial, level_int, overlay)
 		tutorials_vbox.add_child(card)
@@ -668,7 +745,7 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	
 	# Card container
 	var card = PanelContainer.new()
-	card.custom_minimum_size = Vector2(580, 95)
+	card.custom_minimum_size = Vector2(600, 95)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
 	var card_style = StyleBoxFlat.new()

@@ -279,7 +279,9 @@ func _check_phase_completion() -> void:
 				score += 150
 				await get_tree().create_timer(1.0).timeout
 				_start_phase(Phase.COMPLETE)
-
+				
+func _on_header_back_pressed() -> void:
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 func _show_help() -> void:
 	var help_text := """
