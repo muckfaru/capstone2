@@ -248,7 +248,7 @@ func _create_new_user(username: String) -> void:
 			# 🆕 UPDATED: Redirect to tutorial instead of landing
 			await get_tree().create_timer(2.0).timeout
 			print("🎓 Redirecting to landing_tutorial.tscn...")
-			get_tree().change_scene_to_file("res://scene/landing_tutorial.tscn")
+			get_tree().change_scene_to_file("res://scene/landing.tscn")
 		else:
 			dialogue_label.text = "❌ Failed to create profile (%s)" % code
 			push_warning(text)

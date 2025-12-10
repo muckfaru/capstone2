@@ -1,0 +1,172 @@
+[gd_scene load_steps=2 format=3 uid="uid://cxj0cnmoaf4dg"]
+
+[ext_resource type="Script" uid="uid://bm2j2cfkg0sqq" path="res://scene/ranso_simulation.gd" id="1_script"]
+
+[node name="DesktopSimulation" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.05, 0.05, 0.2, 1)
+
+[node name="Computer" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = 140.0
+offset_bottom = 160.0
+metadata/_edit_use_anchors_ = true
+
+[node name="IconLabel" type="Label" parent="Computer"]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 10.0
+offset_right = 75.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 48
+text = "🖥️"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="NameLabel" type="Label" parent="Computer"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 80.0
+offset_right = 110.0
+offset_bottom = 100.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Computer"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="TotallyLegitGame" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 160.0
+offset_top = 40.0
+offset_right = 260.0
+offset_bottom = 160.0
+metadata/_edit_use_anchors_ = true
+
+[node name="IconLabel" type="Label" parent="TotallyLegitGame"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 11.0
+offset_right = 81.0
+offset_bottom = 78.0
+theme_override_font_sizes/font_size = 48
+text = "🎮"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="NameLabel" type="Label" parent="TotallyLegitGame"]
+layout_mode = 0
+offset_top = 80.0
+offset_right = 100.0
+offset_bottom = 115.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Totally
+Legit Game"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="TaskManager" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 40.0
+offset_top = 180.0
+offset_right = 140.0
+offset_bottom = 300.0
+metadata/_edit_use_anchors_ = true
+
+[node name="IconLabel" type="Label" parent="TaskManager"]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 10.0
+offset_right = 75.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 48
+text = "📊"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="NameLabel" type="Label" parent="TaskManager"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 80.0
+offset_right = 110.0
+offset_bottom = 117.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Task
+Manager"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Documents" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 40.0
+offset_top = 320.0
+offset_right = 140.0
+offset_bottom = 440.0
+metadata/_edit_use_anchors_ = true
+
+[node name="IconLabel" type="Label" parent="Documents"]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 10.0
+offset_right = 75.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 48
+text = "📄"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="NameLabel" type="Label" parent="Documents"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 80.0
+offset_right = 108.0
+offset_bottom = 100.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Documents"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Calculator" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 40.0
+offset_top = 460.0
+offset_right = 140.0
+offset_bottom = 580.0
+metadata/_edit_use_anchors_ = true
+
+[node name="IconLabel" type="Label" parent="Calculator"]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 10.0
+offset_right = 75.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 48
+text = "🔢"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="NameLabel" type="Label" parent="Calculator"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 80.0
+offset_right = 108.0
+offset_bottom = 100.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Calculator"
+horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true

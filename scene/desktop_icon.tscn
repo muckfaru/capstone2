@@ -1,0 +1,411 @@
+[gd_scene load_steps=2 format=3 uid="uid://cjcl420hmrv1l"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar"]
+bg_color = Color(0.176, 0.192, 0.259, 1)
+
+[node name="RansomwareSimulation" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.039, 0.039, 0.102, 1)
+
+[node name="Desktop" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -400.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DesktopIcons" type="GridContainer" parent="Desktop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 40.0
+offset_right = -40.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 30
+theme_override_constants/v_separation = 30
+columns = 4
+
+[node name="Sidebar" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -400.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar")
+
+[node name="MarginContainer" type="MarginContainer" parent="Sidebar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 30
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Sidebar/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="Sidebar/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "Introduction"
+
+[node name="Separator" type="HSeparator" parent="Sidebar/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="InstructionText" type="RichTextLabel" parent="Sidebar/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "This demonstration will guide you through a simulated ransomware attack.
+
+Before activating the malware, take a look through the documents and programs on this simulated desktop environment.
+
+First, double click on the documents folder and look through some of the text and image files."
+fit_content = true
+scroll_active = false
+
+[node name="CreditsButton" type="Button" parent="Sidebar/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_font_sizes/font_size = 18
+text = "🦠 Credits"
+
+[node name="DocumentWindow" type="Window" parent="."]
+title = "Documents"
+initial_position = 1
+size = Vector2i(600, 500)
+visible = false
+transient = true
+exclusive = true
+
+[node name="WindowContent" type="MarginContainer" parent="DocumentWindow"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DocumentWindow/WindowContent"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Title" type="Label" parent="DocumentWindow/WindowContent/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "📁 Documents Folder"
+
+[node name="FileList" type="VBoxContainer" parent="DocumentWindow/WindowContent/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="CloseButton" type="Button" parent="DocumentWindow/WindowContent/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Close"
+
+[node name="FileViewer" type="Window" parent="."]
+title = "File Viewer"
+initial_position = 1
+size = Vector2i(700, 600)
+visible = false
+transient = true
+exclusive = true
+
+[node name="WindowContent" type="MarginContainer" parent="FileViewer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="FileViewer/WindowContent"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="FileName" type="Label" parent="FileViewer/WindowContent/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "filename.txt"
+
+[node name="FileContent" type="RichTextLabel" parent="FileViewer/WindowContent/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+
+[node name="CloseButton" type="Button" parent="FileViewer/WindowContent/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Close"
+
+[node name="GameWindow" type="Window" parent="."]
+title = "Totally Legit Game"
+initial_position = 1
+size = Vector2i(500, 400)
+visible = false
+transient = true
+exclusive = true
+
+[node name="WindowContent" type="MarginContainer" parent="GameWindow"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 30
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameWindow/WindowContent"]
+layout_mode = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="Icon" type="Label" parent="GameWindow/WindowContent/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 80
+text = "🎮"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="GameWindow/WindowContent/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Totally Legit Game"
+horizontal_alignment = 1
+
+[node name="Description" type="Label" parent="GameWindow/WindowContent/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Click the button below to install and play this amazing game!"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="WarningLabel" type="Label" parent="GameWindow/WindowContent/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+theme_override_font_sizes/font_size = 12
+text = "⚠️ Warning: This will trigger the ransomware simulation"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="InstallButton" type="Button" parent="GameWindow/WindowContent/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 20
+text = "▶ Install & Play"
+
+[node name="CloseButton" type="Button" parent="GameWindow/WindowContent/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Cancel"
+
+[node name="RansomwareScreen" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.8, 0, 0, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="RansomwareScreen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="RansomwareScreen/CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="Skull" type="Label" parent="RansomwareScreen/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 120
+text = "☠️"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="RansomwareScreen/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 48
+text = "YOUR FILES ARE ENCRYPTED!"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="RansomwareScreen/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(800, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "All your documents, photos, and files have been encrypted.
+To decrypt your files, you must pay 500 Bitcoin to:
+1A2B3C4D5E6F7G8H9I0J
+
+You have 48 hours before files are permanently deleted."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Timer" type="Label" parent="RansomwareScreen/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_font_sizes/font_size = 36
+text = "47:59:32"
+horizontal_alignment = 1
+
+[node name="LearnButton" type="Button" parent="RansomwareScreen/CenterContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "🛡️ Learn How to Defend"
+
+[node name="DefenseLesson" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.1, 0.95)
+
+[node name="CenterContainer" type="CenterContainer" parent="DefenseLesson"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="DefenseLesson/CenterContainer"]
+custom_minimum_size = Vector2(900, 700)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="DefenseLesson/CenterContainer/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DefenseLesson/CenterContainer/Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 25
+
+[node name="Title" type="Label" parent="DefenseLesson/CenterContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 36
+text = "🛡️ HOW TO DEFEND AGAINST RANSOMWARE"
+horizontal_alignment = 1
+
+[node name="LessonContent" type="RichTextLabel" parent="DefenseLesson/CenterContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = true
+text = "[b]Prevention Strategies:[/b]
+
+✅ [b]Regular Backups:[/b] Keep offline backups of important files (3-2-1 rule: 3 copies, 2 different media, 1 offsite)
+
+✅ [b]Email Awareness:[/b] Never open suspicious attachments or click unknown links
+
+✅ [b]Software Updates:[/b] Keep your OS and all software up to date with security patches
+
+✅ [b]Download Sources:[/b] Only download software from official, trusted sources
+
+✅ [b]Antivirus Software:[/b] Use reputable antivirus with real-time protection
+
+✅ [b]Network Security:[/b] Use firewalls and segment your network
+
+✅ [b]User Permissions:[/b] Don't use administrator accounts for daily tasks
+
+✅ [b]Education:[/b] Train yourself and others to recognize social engineering
+
+[b]If Infected:[/b]
+🔴 Disconnect from network immediately
+🔴 Don't pay the ransom (no guarantee of file recovery)
+🔴 Report to authorities
+🔴 Restore from clean backups"
+fit_content = true
+
+[node name="ButtonContainer" type="HBoxContainer" parent="DefenseLesson/CenterContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="RetryButton" type="Button" parent="DefenseLesson/CenterContainer/Panel/MarginContainer/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(180, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "🔄 Retry Simulation"
+
+[node name="MenuButton" type="Button" parent="DefenseLesson/CenterContainer/Panel/MarginContainer/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(180, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "🏠 Main Menu"
+
+[connection signal="pressed" from="Sidebar/MarginContainer/VBoxContainer/CreditsButton" to="." method="_on_credits_pressed"]
+[connection signal="close_requested" from="DocumentWindow" to="." method="_on_document_window_close"]
+[connection signal="pressed" from="DocumentWindow/WindowContent/VBoxContainer/CloseButton" to="." method="_on_document_window_close"]
+[connection signal="close_requested" from="FileViewer" to="." method="_on_file_viewer_close"]
+[connection signal="pressed" from="FileViewer/WindowContent/VBoxContainer/CloseButton" to="." method="_on_file_viewer_close"]
+[connection signal="close_requested" from="GameWindow" to="." method="_on_game_window_close"]
+[connection signal="pressed" from="GameWindow/WindowContent/VBoxContainer/InstallButton" to="." method="_on_install_game_pressed"]
+[connection signal="pressed" from="GameWindow/WindowContent/VBoxContainer/CloseButton" to="." method="_on_game_window_close"]
+[connection signal="pressed" from="RansomwareScreen/CenterContainer/VBoxContainer/LearnButton" to="." method="_on_learn_defense_pressed"]
+[connection signal="pressed" from="DefenseLesson/CenterContainer/Panel/MarginContainer/VBoxContainer/ButtonContainer/RetryButton" to="." method="_on_retry_pressed"]
+[connection signal="pressed" from="DefenseLesson/CenterContainer/Panel/MarginContainer/VBoxContainer/ButtonContainer/MenuButton" to="." method="_on_menu_pressed"]
