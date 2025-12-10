@@ -32,6 +32,13 @@ extends Control
 @onready var _code_panel: Panel = $VBox/CodeDisplayPanel
 @onready var _snippet_timer_label: Label = $VBox/CodeDisplayPanel/SnippetTimer
 
+# Power-up Panels
+@onready var _default_panel: Sprite2D = $VBox/CodeDisplayPanel/DefaultPanel
+@onready var _heal_panel: Sprite2D = $"VBox/CodeDisplayPanel/HealPanel()"
+@onready var _freeze_panel: Sprite2D = $"VBox/CodeDisplayPanel/FreezTime(iceBlue)Panel"
+@onready var _extend_panel: Sprite2D = $"VBox/CodeDisplayPanel/ExtendTime(yellow)Panel"
+@onready var _defensive_panel: Sprite2D = $"VBox/CodeDisplayPanel/DefensivePanel(grey)"
+
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const ROOMS_PATH := "/codebreaker_rooms"
 const GAME_DURATION := 240.0  # 4 minute match (or until someone dies)
@@ -43,12 +50,36 @@ const DAMAGE_TO_ENEMY := 10         # HP damage to opponent on correct
 const SELF_DAMAGE_PENALTY := 8     # HP damage to self on wrong submission
 const STARTING_HEALTH := 100       # Starting health for both players
 
+# POWER-UP SYSTEM
+enum PowerUpType { NORMAL, HEAL, FREEZE_TIME, EXTEND_TIME, SHIELD }
+const HEAL_BONUS := 10              # HP restored on heal power-up
+const HEAL_CHANCE := 0.30           # 30% chance for heal power-up
+const FREEZE_CHANCE := 0.10         # 10% chance for freeze time power-up
+const FREEZE_DURATION := 15.0       # 15 seconds of frozen time (carries across snippets!)
+const EXTEND_CHANCE := 0.25         # 25% chance for extend time power-up
+const EXTEND_SNIPPET_TIME := 15.0   # +15 seconds to snippet timer
+const EXTEND_MAIN_TIME := 8.0       # +8 seconds to main match timer
+const EXTEND_BUFF_DURATION := 20.0  # 20 seconds of extend time buff
+const SHIELD_CHANCE := 0.10         # 10% chance for defensive shield power-up
+const SHIELD_DURATION := 15.0       # 15 seconds of invincibility (carries across snippets!)
+var _current_powerup: PowerUpType = PowerUpType.NORMAL
+var _time_frozen: bool = false      # Is time currently frozen?
+var _freeze_time_remaining: float = 0.0  # How much freeze time left
+var _extend_time_active: bool = false    # Is extend time buff active?
+var _extend_time_remaining: float = 0.0  # How much extend buff time left
+var _shield_active: bool = false         # Is defensive shield active?
+var _shield_time_remaining: float = 0.0  # How much shield time left
+var _powerups_used: int = 0              # Count of power-ups used in this game
+
 # Game state
 var _room_id: String = ""
 var _is_host: bool = false
 var _player_id: String = ""
+var _opponent_id: String = ""
 var _host_username: String = "Player 1"
 var _client_username: String = "Player 2"
+var _host_data: Dictionary = {}
+var _client_data: Dictionary = {}
 var _game_start_time: float = 0.0
 # var _peer_id: int = 1  # Unused - relay handles peer IDs
 
@@ -81,6 +112,7 @@ var _opponent_alive: bool = true
 # Multiplayer - WebSocket Relay (Option B)
 var _relay_client: Node = null
 var _sync_timer: Timer
+var _stats_sync_timer: Timer
 var _game_active: bool = false
 var _lobby_server_url: String = ""
 
@@ -144,10 +176,11 @@ func _ready() -> void:
 	_is_host = bool(init.get("is_host", false))
 	_lobby_server_url = str(init.get("lobby_server_url", ""))
 	
-	var host_data = init.get("host_data", {})
-	var client_data = init.get("client_data", {})
-	_host_username = str(host_data.get("username", "Player 1"))
-	_client_username = str(client_data.get("username", "Player 2"))
+	_host_data = init.get("host_data", {})
+	_client_data = init.get("client_data", {})
+	_host_username = str(_host_data.get("username", "Player 1"))
+	_client_username = str(_client_data.get("username", "Player 2"))
+	_opponent_id = str(_client_data.get("player_id", "") if _is_host else _host_data.get("player_id", ""))
 	_game_start_time = float(init.get("game_start_time", 0))
 	
 	print("[Arena] 📊 Room: %s | Is Host: %s | Host: %s | Client: %s" % [
@@ -186,12 +219,12 @@ func _ready() -> void:
 	# Timer will start AFTER countdown in _start_typing_game()
 	
 	# Setup stats sync timer (send stats every 0.5s during gameplay)
-	var stats_sync_timer = Timer.new()
-	stats_sync_timer.wait_time = 0.5
-	stats_sync_timer.autostart = false
-	stats_sync_timer.timeout.connect(_send_stats_update)
-	add_child(stats_sync_timer)
-	stats_sync_timer.start()
+	_stats_sync_timer = Timer.new()
+	_stats_sync_timer.wait_time = 0.5
+	_stats_sync_timer.autostart = false
+	_stats_sync_timer.timeout.connect(_send_stats_update)
+	add_child(_stats_sync_timer)
+	# DON'T start yet - will start in _start_typing_game() after countdown
 	
 	# Connect input field signals ONCE in _ready()
 	if _input_field:
@@ -209,6 +242,19 @@ func _ready() -> void:
 	if _code_panel:
 		_original_panel_position = _code_panel.position
 		print("[Arena] 📍 Stored original panel position: %s" % _original_panel_position)
+	
+	# Initialize power-up panels (start with default visible)
+	if _default_panel:
+		_default_panel.visible = true
+	if _heal_panel:
+		_heal_panel.visible = false
+	if _freeze_panel:
+		_freeze_panel.visible = false
+	if _extend_panel:
+		_extend_panel.visible = false
+	if _defensive_panel:
+		_defensive_panel.visible = false
+	print("[Arena] 💊 Power-up panels initialized")
 	
 	# Set health bar colors: Cyan (#00d1ff) for self, Pink-Red (#ff596e) for opponent
 	# Create StyleBoxFlat for custom colors
@@ -276,6 +322,17 @@ func _ready() -> void:
 	
 	print("[Arena] 🎨 All UI colors updated - Cyan: YOU | Pink-Red: OPPONENT")
 	
+	# Initialize health bars to 100
+	if _p1_health:
+		_p1_health.min_value = 0
+		_p1_health.max_value = STARTING_HEALTH
+		_p1_health.value = STARTING_HEALTH
+	if _p2_health:
+		_p2_health.min_value = 0
+		_p2_health.max_value = STARTING_HEALTH
+		_p2_health.value = STARTING_HEALTH
+	print("[Arena] 🏥 Health bars initialized to %d/100" % STARTING_HEALTH)
+	
 	# Fade in battle music
 	if _battle_music:
 		_battle_music.volume_db = -80
@@ -284,13 +341,16 @@ func _ready() -> void:
 	
 	# Generate snippet list (host generates, then syncs to client via relay)
 	if _is_host:
+		print("[Arena] 🎮 INITIALIZING GAME - Host will generate snippets")
 		_generate_snippet_list()
 		# Send snippet list to client
 		await get_tree().create_timer(0.5).timeout
+		print("[Arena] 📤 Sending snippet list to client...")
 		_send_snippet_list_via_relay()
 	else:
 		# Client waits for snippet list from host
 		_status_label.text = "Waiting for code from host..."
+		print("[Arena] 🎮 INITIALIZING GAME - Client waiting for snippets from host")
 
 func _wait_for_client() -> void:
 	"""Host waits for client to connect before starting"""
@@ -347,8 +407,11 @@ func _on_relay_message(data: Dictionary) -> void:
 		
 		"stats_update":
 			# Opponent sent their current stats
+			var old_opp_health = _opponent_health
 			_opponent_score = int(data.get("score", 0))
 			_opponent_health = int(data.get("health", 0))
+			if _opponent_health != old_opp_health:
+				print("[Arena] 📥 OPPONENT HEALTH CHANGED: %d → %d" % [old_opp_health, _opponent_health])
 			print("[Arena] 📥 Received opponent stats: Score=%d HP=%d" % [_opponent_score, _opponent_health])
 			_update_opponent_display()
 		
@@ -441,6 +504,17 @@ func _send_damage_to_opponent(damage: int) -> void:
 
 func _receive_damage(damage: int) -> void:
 	"""Receive damage from opponent"""
+	# 🛡️ SHIELD: Block all damage if shield is active!
+	if _shield_active:
+		print("[Arena] 🛡️ SHIELD BLOCKED %d damage!" % damage)
+		# Flash indicator to show shield blocked attack
+		if _ws_indicator:
+			var original_color = _ws_indicator.color
+			_ws_indicator.color = Color.WHITE
+			await get_tree().create_timer(0.2).timeout
+			_ws_indicator.color = original_color
+		return  # No damage taken!
+	
 	player_health -= damage
 	print("[Arena] 💥 Took %d damage! Health: %d" % [damage, player_health])
 	
@@ -684,9 +758,12 @@ func _start_typing_game() -> void:
 		_status_label.text = "ERROR: No code snippet received!"
 		return
 	
+	print("[Arena] 🎮 _start_typing_game() called - initializing game")
+	
 	# Initialize scores/health but DON'T start game yet
 	player_score = 0
 	player_health = STARTING_HEALTH
+	print("[Arena] 🏥 Health initialized to: %d" % player_health)
 	
 	# Display code snippet but keep input disabled during countdown
 	if _code_display:
@@ -733,14 +810,19 @@ func _start_typing_game() -> void:
 		_countdown_label.visible = false
 	
 	# NOW start the actual game and timer
-	# CRITICAL: Reset _game_start_time to NOW (after countdown)
-	_game_start_time = Time.get_unix_time_from_system()
+	# CRITICAL: Reset _game_start_time to NOW (after countdown) in MILLISECONDS for consistency
+	_game_start_time = Time.get_ticks_msec() / 1000.0
 	_start_time = Time.get_unix_time_from_system()
 	_game_active = true
+	print("[Arena] ✅ GAME ACTIVE - starting timers and accepting input!")
 	
 	# RESUME the timer after countdown
 	if _sync_timer:
 		_sync_timer.start()
+	
+	# START stats sync timer (now that game is active)
+	if _stats_sync_timer:
+		_stats_sync_timer.start()
 	
 	# Start snippet timer
 	_snippet_time_remaining = SNIPPET_TIME_LIMIT
@@ -805,9 +887,43 @@ func _on_input_submitted(submitted_text: String) -> void:
 			var particle_pos = _code_display.global_position + _code_display.size / 2
 			_spawn_success_particles(particle_pos)
 		
-		var progress_text = "✅ CORRECT! (%d/%d) | +100 Score | Enemy -10 HP" % [
+		# 💊 POWER-UP BONUS: Apply power-up effects
+		var bonus_text = ""
+		if _current_powerup == PowerUpType.HEAL:
+			player_health += HEAL_BONUS
+			bonus_text = " | 💚 +10 HP HEAL!"
+			_powerups_used += 1
+			print("[Arena] 💚 HEAL BONUS! +%d HP" % HEAL_BONUS)
+			# Update display immediately
+			_update_my_health_display()
+		elif _current_powerup == PowerUpType.FREEZE_TIME:
+			# Activate time freeze for 15 seconds!
+			_time_frozen = true
+			_freeze_time_remaining = FREEZE_DURATION
+			bonus_text = " | 🧊 TIME FROZEN 15s!"
+			_powerups_used += 1
+			print("[Arena] 🧊 FREEZE TIME ACTIVATED! Timer paused for %.0fs" % FREEZE_DURATION)
+		elif _current_powerup == PowerUpType.EXTEND_TIME:
+			# Activate extend time buff for 20 seconds!
+			_extend_time_active = true
+			_extend_time_remaining = EXTEND_BUFF_DURATION
+			_snippet_time_remaining += EXTEND_SNIPPET_TIME  # Immediate +15s to current snippet
+			_game_start_time += EXTEND_MAIN_TIME  # One-time +8s to main timer
+			bonus_text = " | 🟡 TIME BUFF 20s! (+15s per snippet)"
+			_powerups_used += 1
+			print("[Arena] 🟡 EXTEND TIME BUFF ACTIVATED! 20s duration, +%.0fs per snippet, +%.0fs main" % [EXTEND_SNIPPET_TIME, EXTEND_MAIN_TIME])
+		elif _current_powerup == PowerUpType.SHIELD:
+			# Activate defensive shield for 15 seconds!
+			_shield_active = true
+			_shield_time_remaining = SHIELD_DURATION
+			bonus_text = " | 🛡️ SHIELD 15s! (0 damage)"
+			_powerups_used += 1
+			print("[Arena] 🛡️ DEFENSIVE SHIELD ACTIVATED! 15s invincibility")
+		
+		var progress_text = "✅ CORRECT! (%d/%d) | +100 Score | Enemy -10 HP%s" % [
 			_my_snippet_index + 1,
-			_snippet_list.size()
+			_snippet_list.size(),
+			bonus_text
 		]
 		_status_label.text = progress_text
 		
@@ -820,12 +936,23 @@ func _on_input_submitted(submitted_text: String) -> void:
 		# Reset snippet timer for new snippet
 		_snippet_time_remaining = SNIPPET_TIME_LIMIT
 		
+		# 🟡 EXTEND TIME BUFF: Apply bonus if buff still active
+		if _extend_time_active:
+			_snippet_time_remaining += EXTEND_SNIPPET_TIME
+			print("[Arena] 🟡 Extend buff active! New snippet starts at %.1fs" % _snippet_time_remaining)
+		
 		# Clear input for next round
 		_input_field.text = ""
 	else:
 		# ❌ WRONG SUBMISSION!
 		print("[Arena] ❌ INCORRECT COMMAND! System compromised, taking damage")
-		player_health -= SELF_DAMAGE_PENALTY
+		
+		# 🛡️ SHIELD: Block self-damage penalty if shield is active!
+		if _shield_active:
+			print("[Arena] 🛡️ SHIELD ABSORBED self-damage penalty!")
+			# No HP loss, but still advance to next snippet
+		else:
+			player_health -= SELF_DAMAGE_PENALTY
 		
 		# Update MY health display immediately
 		_update_my_health_display()
@@ -869,6 +996,11 @@ func _on_input_submitted(submitted_text: String) -> void:
 		
 		# Reset snippet timer for new snippet
 		_snippet_time_remaining = SNIPPET_TIME_LIMIT
+		
+		# 🟡 EXTEND TIME BUFF: Apply bonus if buff still active
+		if _extend_time_active:
+			_snippet_time_remaining += EXTEND_SNIPPET_TIME
+			print("[Arena] 🟡 Extend buff active! New snippet starts at %.1fs" % _snippet_time_remaining)
 		
 		# Clear input to try again
 		_input_field.text = ""
@@ -915,6 +1047,11 @@ func _on_typing_finished() -> void:
 
 func _on_player_died() -> void:
 	"""NEW: Player health reached 0 - GAME OVER"""
+	# Prevent multiple calls
+	if not _game_active:
+		print("[Arena] ⚠️ _on_player_died called but game not active, ignoring")
+		return
+	
 	_game_active = false
 	_snippet_timer_active = false
 	
@@ -1039,7 +1176,8 @@ func _update_my_health_display() -> void:
 
 func _on_display_timer_timeout() -> void:
 	"""Update countdown timer display every 100ms"""
-	var elapsed = Time.get_unix_time_from_system() - _game_start_time
+	# Normal main timer update (ALWAYS RUNNING - never frozen!)
+	var elapsed = Time.get_ticks_msec() / 1000.0 - _game_start_time
 	var remaining = max(0.0, GAME_DURATION - elapsed)
 	
 	var total_secs = int(remaining)
@@ -1047,24 +1185,59 @@ func _on_display_timer_timeout() -> void:
 	var secs: int = total_secs % 60
 	_timer_label.text = "%02d:%02d" % [mins, secs]
 	
-	# Update snippet timer (15 seconds per snippet)
-	if _snippet_timer_active:
-		_snippet_time_remaining -= 0.1
+	# 🧊 FREEZE TIME LOGIC: Only affects snippet timer!
+	if _time_frozen:
+		_freeze_time_remaining -= 0.1
 		
+		# Update snippet timer to show frozen (no countdown display)
 		if _snippet_timer_label:
-			_snippet_timer_label.text = "%.1fs" % max(0.0, _snippet_time_remaining)
-			
-			# Color changes based on remaining time
-			if _snippet_time_remaining > 10.0:
-				_snippet_timer_label.add_theme_color_override("font_color", Color(0, 1, 1))  # Cyan
-			elif _snippet_time_remaining > 5.0:
-				_snippet_timer_label.add_theme_color_override("font_color", Color(1, 1, 0))  # Yellow
-			else:
-				_snippet_timer_label.add_theme_color_override("font_color", Color(1, 0, 0))  # Red
+			_snippet_timer_label.text = "⏸️ FROZEN"
+			_snippet_timer_label.add_theme_color_override("font_color", Color(0.5, 0.8, 1.0))  # Ice blue
 		
-		# Time's up for this snippet!
-		if _snippet_time_remaining <= 0.0:
-			_on_snippet_timeout()
+		# Check if freeze time expired (15s total, carries across snippets)
+		if _freeze_time_remaining <= 0.0:
+			_time_frozen = false
+			print("[Arena] 🧊 Freeze buff expired! Snippet timer resumed.")
+		
+		# Don't countdown snippet timer while frozen!
+		# But still check for game timeout below...
+	else:
+		# 🟡 EXTEND TIME BUFF: Countdown buff duration (20s total, carries across snippets)
+		if _extend_time_active:
+			_extend_time_remaining -= 0.1
+			
+			# Check if extend buff expired
+			if _extend_time_remaining <= 0.0:
+				_extend_time_active = false
+				print("[Arena] 🟡 Extend time buff expired!")
+		
+		# 🛡️ SHIELD BUFF: Countdown shield duration (15s total, carries across snippets)
+		if _shield_active:
+			_shield_time_remaining -= 0.1
+			
+			# Check if shield buff expired
+			if _shield_time_remaining <= 0.0:
+				_shield_active = false
+				print("[Arena] 🛡️ Shield buff expired!")
+		
+		# Update snippet timer (15 seconds per snippet) - ONLY WHEN NOT FROZEN
+		if _snippet_timer_active:
+			_snippet_time_remaining -= 0.1
+			
+			if _snippet_timer_label:
+				_snippet_timer_label.text = "%.1fs" % max(0.0, _snippet_time_remaining)
+				
+				# Color changes based on remaining time
+				if _snippet_time_remaining > 10.0:
+					_snippet_timer_label.add_theme_color_override("font_color", Color(0, 1, 1))  # Cyan
+				elif _snippet_time_remaining > 5.0:
+					_snippet_timer_label.add_theme_color_override("font_color", Color(1, 1, 0))  # Yellow
+				else:
+					_snippet_timer_label.add_theme_color_override("font_color", Color(1, 0, 0))  # Red
+			
+			# Time's up for this snippet!
+			if _snippet_time_remaining <= 0.0:
+				_on_snippet_timeout()
 	
 	# Check if time's up (timeout = highest score wins)
 	if remaining <= 0.0:
@@ -1153,20 +1326,204 @@ func _end_game_timeout() -> void:
 	_leave_arena()
 
 func _leave_arena() -> void:
-	"""Clean up and return to room"""
+	"""Clean up and transition to PostGame screen"""
 	# Stop battle music
 	if _battle_music:
 		_battle_music.stop()
 	
-	# Disconnect multiplayer
-	if multiplayer.multiplayer_peer:
+	# Disconnect multiplayer (safe check)
+	if multiplayer and multiplayer.multiplayer_peer:
 		multiplayer.multiplayer_peer.close()
 		multiplayer.multiplayer_peer = null
 	
-	# Return to room scene
-	var room_scene := load("res://scene/code_breaker_room.tscn")
-	if room_scene:
-		get_tree().change_scene_to_packed(room_scene)
+	# Determine if we won
+	var we_won = false
+	var is_draw = false
+	
+	if player_health > _opponent_health:
+		we_won = true
+	elif player_health == _opponent_health:
+		if player_score > _opponent_score:
+			we_won = true
+		elif player_score == _opponent_score:
+			is_draw = true
+	
+	# Calculate XP earned
+	var xp_earned = 500 if we_won else 0
+	
+	print("[Arena] 💾 Saving XP: +%d (Winner: %s)" % [xp_earned, "YES" if we_won else "NO"])
+	
+	# Determine winner/loser names and result
+	var winner_name = _host_username if we_won == _is_host else _client_username
+	var loser_name = _client_username if we_won == _is_host else _host_username
+	var game_duration_str = _format_game_duration(Time.get_ticks_msec() / 1000.0 - _game_start_time)
+	
+	# Save XP to Firestore
+	if Auth.current_id_token:
+		_save_xp_to_firestore(xp_earned)
+		# Also save match history
+		_save_match_history(winner_name, loser_name, player_score, _opponent_score, game_duration_str, _powerups_used)
+	
+	# Reparent relay_client to root
+	if _relay_client and _relay_client.get_parent():
+		_relay_client.get_parent().remove_child(_relay_client)
+		if get_tree():
+			get_tree().root.add_child(_relay_client)
+	
+	# Prepare PostGame init data
+	# Calculate which health is whose based on current perspective
+	var my_health = player_health
+	var opp_health = _opponent_health
+	var my_id = _player_id
+	var opp_id = _opponent_id
+	
+	# Determine winner: whoever has health > 0, or if both > 0, higher score
+	var winner_player_id: String = ""
+	if my_health > 0 and opp_health <= 0:
+		winner_player_id = my_id
+	elif opp_health > 0 and my_health <= 0:
+		winner_player_id = opp_id
+	elif my_health > 0 and opp_health > 0:
+		# Both alive (shouldn't happen) - use score as tiebreaker
+		winner_player_id = my_id if player_score >= _opponent_score else opp_id
+	else:
+		# Both dead (shouldn't happen) - draw
+		winner_player_id = ""
+	
+	print("[Arena] 💾 Winner determination: MY HP=%d OPP HP=%d -> WINNER=%s" % [my_health, opp_health, winner_player_id])
+	
+	var postgame_init := {
+		"room_id": _room_id,
+		"relay_client": _relay_client,
+		"player_id": _player_id,
+		"is_host": _is_host,
+		"host_data": {
+			"username": _host_username,
+			"player_id": _host_data.get("player_id", "") if _is_host else _opponent_id
+		},
+		"client_data": {
+			"username": _client_username,
+			"player_id": _client_data.get("player_id", "") if not _is_host else _opponent_id
+		},
+		"lobby_server_url": _lobby_server_url,
+		"winner_id": winner_player_id,
+		"host_score": player_score if _is_host else _opponent_score,
+		"client_score": _opponent_score if _is_host else player_score,
+		"host_health": player_health if _is_host else _opponent_health,
+		"client_health": _opponent_health if _is_host else player_health,
+		"game_duration": Time.get_ticks_msec() / 1000.0 - _game_start_time,
+		"host_powerups_used": _powerups_used if _is_host else 0,
+		"client_powerups_used": 0 if _is_host else _powerups_used,
+		"xp_earned": xp_earned
+	}
+	
+	print("[Arena] 💾 PostGame Init:")
+	print("  Winner ID: %s" % postgame_init.get("winner_id", ""))
+	print("  Host Player ID: %s" % postgame_init.get("host_data", {}).get("player_id", ""))
+	print("  Client Player ID: %s" % postgame_init.get("client_data", {}).get("player_id", ""))
+	print("  Winner by health: Host Health=%d vs Client Health=%d" % [postgame_init.get("host_health", 0), postgame_init.get("client_health", 0)])
+	
+	if get_tree():
+		get_tree().set_meta("code_breaker_postgame_init", postgame_init)
+	
+	# Load PostGame scene
+	var postgame_scene := load("res://scene/code_breaker_postgame.tscn")
+	if postgame_scene and get_tree():
+		get_tree().change_scene_to_packed(postgame_scene)
+	else:
+		push_error("[Arena] Failed to load postgame scene or get_tree() is null!")
+		# Fallback: return to room
+		if get_tree():
+			var room_scene := load("res://scene/code_breaker_room.tscn")
+			if room_scene:
+				get_tree().change_scene_to_packed(room_scene)
+
+func _save_xp_to_firestore(xp_earned: int) -> void:
+	"""Save XP earned to Firestore total_xp field"""
+	if not Auth.current_id_token:
+		push_error("[Arena] No auth token for Firestore!")
+		return
+	
+	# Safety check: if scene is being freed, don't attempt to save
+	if not is_node_ready():
+		print("[Arena] ⚠️ Scene is shutting down, skipping XP save")
+		return
+	
+	print("[Arena] 📝 Saving XP to Firestore: +%d XP" % xp_earned)
+	
+	# Create HTTP request
+	var http := HTTPRequest.new()
+	if is_node_ready():
+		add_child(http)
+	
+	var uid = Auth.current_local_id
+	var firestore_url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % uid
+	
+	# Get current XP first, then add earned XP
+	var headers = PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % Auth.current_id_token
+	])
+	
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		
+		if code == 200:
+			# Parse current data
+			var response_text = body.get_string_from_utf8()
+			var json = JSON.new()
+			var result = json.parse(response_text)
+			
+			if result == OK:
+				var current_data = json.data
+				var fields = current_data.get("fields", {})
+				var current_xp = int(fields.get("total_xp", {}).get("integerValue", 0))
+				
+				# Add earned XP
+				var new_xp = current_xp + xp_earned
+				print("[Arena] ✅ Current XP: %d | Earned: %d | New Total: %d" % [current_xp, xp_earned, new_xp])
+				
+				# Update with new XP
+				_update_xp_in_firestore(new_xp)
+			else:
+				print("[Arena] ⚠️ Failed to parse Firestore response")
+		else:
+			print("[Arena] ⚠️ Failed to fetch user data: %d" % code)
+	)
+	
+	http.request(firestore_url, headers, HTTPClient.METHOD_GET)
+
+func _update_xp_in_firestore(new_xp: int) -> void:
+	"""Update total_xp field in Firestore"""
+	var http := HTTPRequest.new()
+	add_child(http)
+	
+	var uid = Auth.current_local_id
+	var firestore_url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s?updateMask.fieldPaths=total_xp" % uid
+	
+	var headers = PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % Auth.current_id_token
+	])
+	
+	var payload = {
+		"fields": {
+			"total_xp": {
+				"integerValue": str(new_xp)
+			}
+		}
+	}
+	
+	http.request_completed.connect(func(_r, code, _h, _body):
+		http.queue_free()
+		
+		if code == 200:
+			print("[Arena] ✅ XP saved to Firestore! New total: %d" % new_xp)
+		else:
+			print("[Arena] ⚠️ Failed to update XP in Firestore: %d" % code)
+	)
+	
+	http.request(firestore_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(payload))
 
 # =============================================================================
 # MENU PANEL TOGGLE
@@ -1270,6 +1627,79 @@ func _popin_code_display_with_text(new_text: String) -> void:
 	if _code_display:
 		_code_display.text = new_text
 	
+	# 💊 POWER-UP SYSTEM: Randomly select power-up type and show corresponding panel
+	var rand_value = randf()
+	if rand_value < SHIELD_CHANCE:
+		# SHIELD power-up! (10% chance - RARE!)
+		_current_powerup = PowerUpType.SHIELD
+		if _defensive_panel:
+			_defensive_panel.visible = true
+		if _freeze_panel:
+			_freeze_panel.visible = false
+		if _heal_panel:
+			_heal_panel.visible = false
+		if _extend_panel:
+			_extend_panel.visible = false
+		if _default_panel:
+			_default_panel.visible = false
+		print("[Arena] 🛡️ DEFENSIVE SHIELD POWER-UP! (15s invincibility on correct)")
+	elif rand_value < (SHIELD_CHANCE + FREEZE_CHANCE):
+		# FREEZE TIME power-up! (10% chance - RARE!)
+		_current_powerup = PowerUpType.FREEZE_TIME
+		if _freeze_panel:
+			_freeze_panel.visible = true
+		if _defensive_panel:
+			_defensive_panel.visible = false
+		if _heal_panel:
+			_heal_panel.visible = false
+		if _extend_panel:
+			_extend_panel.visible = false
+		if _default_panel:
+			_default_panel.visible = false
+		print("[Arena] 🧊 FREEZE TIME POWER-UP! (15s timer freeze on correct)")
+	elif rand_value < (SHIELD_CHANCE + FREEZE_CHANCE + EXTEND_CHANCE):
+		# EXTEND TIME power-up! (25% chance)
+		_current_powerup = PowerUpType.EXTEND_TIME
+		if _extend_panel:
+			_extend_panel.visible = true
+		if _defensive_panel:
+			_defensive_panel.visible = false
+		if _freeze_panel:
+			_freeze_panel.visible = false
+		if _heal_panel:
+			_heal_panel.visible = false
+		if _default_panel:
+			_default_panel.visible = false
+		print("[Arena] 🟡 EXTEND TIME POWER-UP! (+15s snippet, +8s main timer on correct)")
+	elif rand_value < (SHIELD_CHANCE + FREEZE_CHANCE + EXTEND_CHANCE + HEAL_CHANCE):
+		# HEAL power-up! (30% chance)
+		_current_powerup = PowerUpType.HEAL
+		if _heal_panel:
+			_heal_panel.visible = true
+		if _defensive_panel:
+			_defensive_panel.visible = false
+		if _freeze_panel:
+			_freeze_panel.visible = false
+		if _extend_panel:
+			_extend_panel.visible = false
+		if _default_panel:
+			_default_panel.visible = false
+		print("[Arena] 💚 HEAL POWER-UP! (+10 HP on correct)")
+	else:
+		# Normal snippet (25% chance)
+		_current_powerup = PowerUpType.NORMAL
+		if _default_panel:
+			_default_panel.visible = true
+		if _heal_panel:
+			_heal_panel.visible = false
+		if _defensive_panel:
+			_defensive_panel.visible = false
+		if _freeze_panel:
+			_freeze_panel.visible = false
+		if _extend_panel:
+			_extend_panel.visible = false
+		print("[Arena] ⚪ Normal snippet")
+	
 	# 🆕 POSITION SHUFFLE: Move to random position!
 	if _position_shuffle_enabled and _code_panel:
 		var new_position_index = _last_position_index
@@ -1360,3 +1790,85 @@ func _spawn_damage_explosion(at_position: Vector2, is_critical: bool = false) ->
 		
 		# Cleanup
 		tween.finished.connect(func(): particle.queue_free())
+
+func _format_game_duration(seconds: float) -> String:
+	"""Format duration to M:SS format"""
+	var mins = int(seconds) / 60
+	var secs = int(seconds) % 60
+	return "%d:%02d" % [mins, secs]
+
+func _save_match_history(winner_name: String, loser_name: String, winner_score: int, loser_score: int, duration: String, powerups_count: int) -> void:
+	"""Save match history to Firestore under match_history collection"""
+	if not Auth.current_id_token:
+		push_error("[Arena] No auth token for Firestore!")
+		return
+	
+	# Safety check: if scene is being freed, don't attempt to save
+	if not is_node_ready():
+		print("[Arena] ⚠️ Scene is shutting down, skipping match history save")
+		return
+	
+	print("[Arena] 📝 Saving match history...")
+	
+	# Generate unique match ID (timestamp-based)
+	var match_id = "%d_%s" % [Time.get_ticks_msec(), Auth.current_local_id]
+	
+	# Create match document
+	var match_data = {
+		"host": winner_name,
+		"client": loser_name,
+		winner_name: winner_score,
+		loser_name: loser_score,
+		winner_name + "_result": "win",
+		loser_name + "_result": "lose",
+		winner_name + "_powerups": powerups_count,
+		loser_name + "_powerups": 0,
+		"winner": winner_name,
+		"loser": loser_name,
+		"time_ended": duration,
+		"timestamp": Time.get_ticks_msec(),
+		"game_type": "code_breaker"
+	}
+	
+	# Create HTTP request
+	var http := HTTPRequest.new()
+	if is_node_ready():
+		add_child(http)
+	
+	var firestore_url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/match_history?documentId=%s" % match_id
+	var headers = PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % Auth.current_id_token
+	])
+	
+	# Format payload for Firestore
+	var payload = _format_firestore_payload(match_data)
+	
+	http.request_completed.connect(func(_r, code, _h, _body):
+		http.queue_free()
+		
+		if code == 200:
+			print("[Arena] ✅ Match history saved! ID: %s" % match_id)
+		else:
+			print("[Arena] ⚠️ Failed to save match history: %d" % code)
+	)
+	
+	http.request(firestore_url, headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+
+func _format_firestore_payload(data: Dictionary) -> Dictionary:
+	"""Convert data dictionary to Firestore document format"""
+	var fields = {}
+	
+	for key in data.keys():
+		var value = data[key]
+		
+		if value is String:
+			fields[key] = {"stringValue": value}
+		elif value is int:
+			fields[key] = {"integerValue": str(value)}
+		elif value is float:
+			fields[key] = {"doubleValue": value}
+		elif value is bool:
+			fields[key] = {"booleanValue": value}
+	
+	return {"fields": fields}

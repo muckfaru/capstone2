@@ -2,12 +2,12 @@ extends Control
 
 # UI References
 @onready var _host_username: Label = $HostCard/HostUsername
-@onready var _host_avatar: Label = $HostCard/HostAvatar
+@onready var _host_avatar: Sprite2D = $HostCard/Avatar1
 @onready var _host_status: Label = $HostCard/HostStatus
 @onready var _host_progress: ProgressBar = $HostCard/HostProgressBar
 
 @onready var _client_username: Label = $ClientCard/ClientUsername
-@onready var _client_avatar: Label = $ClientCard/ClientAvatar
+@onready var _client_avatar: Sprite2D = $ClientCard/Avatar1
 @onready var _client_status: Label = $ClientCard/ClientStatus
 @onready var _client_progress: ProgressBar = $ClientCard/ClientProgressBar
 
@@ -37,9 +37,15 @@ var _countdown_started: bool = false
 var _progress_timer: Timer
 var _timeout_timer: Timer
 var _transition_timer: Timer
+var _retry_timer: Timer
 
-const LOADING_TIMEOUT := 30.0  # 30 seconds max (increased for debugging)
+const LOADING_TIMEOUT := 45.0  # Increased from 30s to 45s for better stability
 const TRANSITION_DELAY := 2.0  # Wait 2s after both ready
+const RETRY_INTERVAL := 2.0    # Retry message every 2 seconds
+const MAX_RETRIES := 3         # Retry up to 3 times before timeout
+
+var _retry_count: int = 0      # How many times we've retried
+var _message_sent: bool = false # Did we already send loading status?
 
 func _ready() -> void:
 	print("[Loading] Scene initialized")
@@ -98,6 +104,11 @@ func _ready() -> void:
 	# Start loading simulation
 	_simulate_loading()
 	
+	# IMPORTANT: Wait for relay to be fully connected before sending first message
+	# This prevents race condition where message arrives before opponent's relay is ready
+	await get_tree().create_timer(0.5).timeout
+	print("[Loading] ✅ Relay settling delay complete, now sending loading status...")
+	
 	# Send "I'm loading" message
 	_send_loading_status("loading")
 
@@ -106,26 +117,22 @@ func _setup_ui() -> void:
 	if _is_host:
 		# I am host - show myself on left, client on right
 		_host_username.text = str(_host_data.get("username", "Host"))
-		_host_avatar.text = "👤"
 		_host_status.text = "⏳ Loading..."
 		_host_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_host_progress.value = 0.0
 		
 		_client_username.text = str(_client_data.get("username", "Client"))
-		_client_avatar.text = "👤"
 		_client_status.text = "⏳ Loading..."
 		_client_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_client_progress.value = 0.0
 	else:
 		# I am client - show myself on left, host on right
 		_host_username.text = str(_client_data.get("username", "Client"))
-		_host_avatar.text = "👤"
 		_host_status.text = "⏳ Loading..."
 		_host_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_host_progress.value = 0.0
 		
 		_client_username.text = str(_host_data.get("username", "Host"))
-		_client_avatar.text = "👤"
 		_client_status.text = "⏳ Loading..."
 		_client_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_client_progress.value = 0.0
@@ -142,7 +149,7 @@ func _setup_timers() -> void:
 	_progress_timer.timeout.connect(_on_progress_tick)
 	add_child(_progress_timer)
 	
-	# Timeout timer (15s max)
+	# Timeout timer (45s max with buffer)
 	_timeout_timer = Timer.new()
 	_timeout_timer.wait_time = LOADING_TIMEOUT
 	_timeout_timer.autostart = true
@@ -157,6 +164,14 @@ func _setup_timers() -> void:
 	_transition_timer.one_shot = true
 	_transition_timer.timeout.connect(_transition_to_arena)
 	add_child(_transition_timer)
+	
+	# Retry timer (resend loading status if needed)
+	_retry_timer = Timer.new()
+	_retry_timer.wait_time = RETRY_INTERVAL
+	_retry_timer.autostart = false
+	_retry_timer.one_shot = false
+	_retry_timer.timeout.connect(_on_retry_timeout)
+	add_child(_retry_timer)
 
 func _simulate_loading() -> void:
 	"""Simulate loading progress with progress bar animation"""
@@ -207,7 +222,14 @@ func _send_loading_status(status: String) -> void:
 			"player_id": _player_id,
 			"status": status
 		})
-		print("[Loading] Sent status: %s" % status)
+		print("[Loading] 📤 Sent status: %s (attempt %d)" % [status, _retry_count + 1])
+		_message_sent = true
+		
+		# Start retry timer if not already running and we haven't exceeded max retries
+		if _retry_timer.is_stopped() and _retry_count < MAX_RETRIES:
+			_retry_timer.start()
+	else:
+		push_error("[Loading] ❌ No relay client to send message!")
 
 func _on_relay_message(data: Dictionary) -> void:
 	"""Handle relay messages from opponent"""
@@ -261,6 +283,7 @@ func _check_both_ready() -> void:
 		_countdown_started = true
 		_progress_timer.stop()
 		_timeout_timer.stop()
+		_retry_timer.stop()  # Stop retrying once both are ready
 		
 		print("[Loading] ✅ Both players ready! Starting in %ds..." % TRANSITION_DELAY)
 		_status_message.text = "Both players ready! Starting match..."
@@ -268,12 +291,29 @@ func _check_both_ready() -> void:
 		# Start transition countdown
 		_transition_timer.start()
 
+func _on_retry_timeout() -> void:
+	"""Retry sending loading status if opponent hasn't responded"""
+	if _countdown_started or not _message_sent:
+		_retry_timer.stop()
+		return  # Already transitioned or haven't sent initial message
+	
+	_retry_count += 1
+	
+	if _retry_count < MAX_RETRIES:
+		print("[Loading] 🔄 Retry #%d: Re-sending loading status..." % _retry_count)
+		_send_loading_status("loading" if not _self_loaded else "ready")
+	else:
+		print("[Loading] ⚠️ Max retries exceeded! Waiting for timeout...")
+		_retry_timer.stop()
+
 func _on_loading_timeout() -> void:
-	"""Handle loading timeout (15 seconds)"""
+	"""Handle loading timeout (45 seconds)"""
 	if _countdown_started:
 		return  # Already transitioning
 	
-	print("[Loading] ⏰ Loading timeout!")
+	_retry_timer.stop()
+	
+	print("[Loading] ⏰ Loading timeout after %ds!" % LOADING_TIMEOUT)
 	_status_message.text = "Loading timeout. Returning to room..."
 	
 	await get_tree().create_timer(2.0).timeout
