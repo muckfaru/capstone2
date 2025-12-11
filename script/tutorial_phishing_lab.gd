@@ -1,25 +1,48 @@
 extends Control
 
 # ============================================
-# PHISHING LAB - Email Security Training
-# Students identify phishing vs legitimate emails
-# Critical skill: 90% of breaches start with phishing!
+# PHISHING LAB - Gmail-Style Email Interface
 # ============================================
 
-@onready var timer_label: Label = $WindowDialog/VBox/TitleBar/MarginContainer/HBox/TimerLabel
-@onready var progress_label: Label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ProgressLabel
-@onready var from_label: Label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/EmailPanel/MarginContainer/EmailContent/FromLabel
-@onready var subject_label: Label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/EmailPanel/MarginContainer/EmailContent/SubjectLabel
-@onready var body_label: Label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/EmailPanel/MarginContainer/EmailContent/BodyScroll/BodyLabel
-@onready var safe_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/SafeButton
-@onready var phishing_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/PhishingButton
-@onready var back_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/BottomButtons/BackButton
-@onready var feedback_popup: PanelContainer = $DarkOverlay/FeedbackPopup
-@onready var feedback_icon: Label = $DarkOverlay/FeedbackPopup/VBox/IconLabel
-@onready var feedback_message: Label = $DarkOverlay/FeedbackPopup/VBox/MessageLabel
-@onready var red_flags_label: Label = $DarkOverlay/FeedbackPopup/VBox/RedFlagsLabel
-@onready var ok_button: Button = $DarkOverlay/FeedbackPopup/VBox/OKButton
-@onready var dark_overlay: ColorRect = $DarkOverlay
+@onready var timer_label: Label = $TopBar/HBox/TimerLabel
+@onready var progress_label: Label = $TopBar/HBox/ProgressLabel
+@onready var back_button: Button = $TopBar/HBox/BackButton
+
+# Gmail header elements
+@onready var email_subject: Label = $EmailViewer/VBox/SubjectLine
+@onready var sender_avatar: ColorRect = $EmailViewer/VBox/EmailHeader/HBox/Avatar
+@onready var sender_name: Label = $EmailViewer/VBox/EmailHeader/HBox/SenderInfo/NameRow/SenderName
+@onready var sender_email: Label = $EmailViewer/VBox/EmailHeader/HBox/SenderInfo/EmailRow/SenderEmail
+@onready var to_me_label: Label = $EmailViewer/VBox/EmailHeader/HBox/SenderInfo/EmailRow/ToMe
+@onready var timestamp_label: Label = $EmailViewer/VBox/EmailHeader/HBox/Timestamp
+@onready var star_button: Button = $EmailViewer/VBox/EmailHeader/HBox/Actions/StarButton
+@onready var reply_icon_button: Button = $EmailViewer/VBox/EmailHeader/HBox/Actions/ReplyButton
+@onready var more_button: Button = $EmailViewer/VBox/EmailHeader/HBox/Actions/MoreButton
+
+# Email body
+@onready var email_body: Label = $EmailViewer/VBox/ScrollContainer/BodyContainer/BodyText
+
+# Action buttons (Gmail style at bottom)
+@onready var reply_button: Button = $EmailViewer/VBox/ActionBar/HBox/ReplyBtn
+@onready var spam_button: Button = $EmailViewer/VBox/ActionBar/HBox/SpamBtn
+@onready var delete_button: Button = $EmailViewer/VBox/ActionBar/HBox/DeleteBtn
+
+# Reply form popup
+@onready var reply_overlay: ColorRect = $ReplyOverlay
+@onready var reply_popup: PanelContainer = $ReplyOverlay/ReplyPopup
+@onready var name_input: LineEdit = $ReplyOverlay/ReplyPopup/VBox/FormFields/VBox/NameField/Input
+@onready var email_input: LineEdit = $ReplyOverlay/ReplyPopup/VBox/FormFields/VBox/EmailField/Input
+@onready var address_input: LineEdit = $ReplyOverlay/ReplyPopup/VBox/FormFields/VBox/AddressField/Input
+@onready var password_input: LineEdit = $ReplyOverlay/ReplyPopup/VBox/FormFields/VBox/PasswordField/Input
+@onready var submit_reply_button: Button = $ReplyOverlay/ReplyPopup/VBox/ButtonContainer/SubmitButton
+@onready var cancel_reply_button: Button = $ReplyOverlay/ReplyPopup/VBox/ButtonContainer/CancelButton
+
+# Feedback popup
+@onready var feedback_overlay: ColorRect = $FeedbackOverlay
+@onready var feedback_popup: PanelContainer = $FeedbackOverlay/FeedbackPopup
+@onready var feedback_icon: Label = $FeedbackOverlay/FeedbackPopup/VBox/IconLabel
+@onready var feedback_message: Label = $FeedbackOverlay/FeedbackPopup/VBox/MessageLabel
+@onready var ok_button: Button = $FeedbackOverlay/FeedbackPopup/VBox/OKButton
 
 # Game state
 const TIME_LIMIT := 90.0
@@ -29,11 +52,14 @@ var total_emails := 8
 var current_email_index := 0
 var score := 0
 
-# Email data
+# Email data with realistic Gmail formatting
 var emails := [
 	{
-		"from": "security@paypa1-secure.tk",
+		"from_name": "PayPal Security",
+		"from_email": "security@paypa1-secure.tk",
+		"to": "you@yourcompany.com",
 		"subject": "🚨 URGENT: Verify Your Account Now!",
+		"timestamp": "9:29 PM (20 hours ago)",
 		"body": "Dear Customer,\n\nYour PayPal account will be SUSPENDED in 24 hours if you don't verify your identity immediately!\n\nClick here to verify: http://paypal-verify.tk/login\n\nBest regards,\nPayPal Security Team",
 		"is_phishing": true,
 		"red_flags": [
@@ -45,8 +71,11 @@ var emails := [
 		]
 	},
 	{
-		"from": "noreply@netflix.com",
+		"from_name": "Netflix",
+		"from_email": "noreply@netflix.com",
+		"to": "sarah.johnson@email.com",
 		"subject": "Your Netflix receipt",
+		"timestamp": "Nov 29 (2 days ago)",
 		"body": "Hi Sarah,\n\nYour $15.99 payment for Netflix Premium was processed successfully on November 29, 2025.\n\nWatch history this month:\n- Stranger Things S4\n- The Crown S6\n\nThank you for being a member!\n\nThe Netflix Team",
 		"is_phishing": false,
 		"legitimate_signs": [
@@ -58,8 +87,11 @@ var emails := [
 		]
 	},
 	{
-		"from": "it-support@company-email.com",
+		"from_name": "IT Support",
+		"from_email": "it-support@company-email.com",
+		"to": "employees@company.com",
 		"subject": "Password Expiration Warning",
+		"timestamp": "Dec 10 (1 day ago)",
 		"body": "Your company password will expire tomorrow.\n\nPlease click this link to update your password: http://bit.ly/pwdreset2025\n\nIT Support",
 		"is_phishing": true,
 		"red_flags": [
@@ -71,8 +103,11 @@ var emails := [
 		]
 	},
 	{
-		"from": "support@amazon.com",
+		"from_name": "Amazon",
+		"from_email": "support@amazon.com",
+		"to": "john.doe@email.com",
 		"subject": "Your Amazon.com order #402-1849302-7829103",
+		"timestamp": "Dec 1 (10 days ago)",
 		"body": "Hello John,\n\nYour order has been shipped!\n\nOrder Details:\n- Wireless Mouse (Black) - $24.99\n- Delivery: Dec 2, 2025\n- Track package: [View in Amazon account]\n\nAmazon Customer Service",
 		"is_phishing": false,
 		"legitimate_signs": [
@@ -84,8 +119,11 @@ var emails := [
 		]
 	},
 	{
-		"from": "prize-winner@lottery-international.org",
+		"from_name": "International Lottery Commission",
+		"from_email": "prize-winner@lottery-international.org",
+		"to": "lucky.winner@email.com",
 		"subject": "🎉 YOU'VE WON $1,000,000! Claim Now!",
+		"timestamp": "Dec 9 (2 days ago)",
 		"body": "CONGRATULATIONS!\n\nYou have been selected as the WINNER of our International Lottery!\n\nPrize: $1,000,000 USD\n\nTo claim your prize, send your:\n- Full name\n- Address\n- Bank account number\n- Social security number\n\nReply within 48 hours or forfeit!",
 		"is_phishing": true,
 		"red_flags": [
@@ -98,8 +136,11 @@ var emails := [
 		]
 	},
 	{
-		"from": "notifications@github.com",
+		"from_name": "GitHub",
+		"from_email": "notifications@github.com",
+		"to": "developer@email.com",
 		"subject": "[GitHub] Password changed successfully",
+		"timestamp": "Nov 29 (12 days ago)",
 		"body": "Hi @username,\n\nYour GitHub password was changed on November 29, 2025 at 10:45 AM PST.\n\nIf you didn't make this change, please secure your account immediately:\nhttps://github.com/settings/security\n\nGitHub Security Team",
 		"is_phishing": false,
 		"legitimate_signs": [
@@ -111,8 +152,11 @@ var emails := [
 		]
 	},
 	{
-		"from": "ceo@company.com",
+		"from_name": "CEO",
+		"from_email": "ceo@company.com",
+		"to": "finance@company.com",
 		"subject": "URGENT: Wire Transfer Needed",
+		"timestamp": "10:15 AM (3 hours ago)",
 		"body": "I'm in a meeting and need you to process an urgent wire transfer immediately.\n\nAmount: $50,000\nAccount: [Bank details attached]\n\nThis is confidential. Don't discuss with anyone.\n\n- CEO",
 		"is_phishing": true,
 		"red_flags": [
@@ -125,8 +169,11 @@ var emails := [
 		]
 	},
 	{
-		"from": "team@slack.com",
+		"from_name": "Slack",
+		"from_email": "team@slack.com",
+		"to": "alex.chen@company.com",
 		"subject": "You're invited to join Engineering Team workspace",
+		"timestamp": "Dec 8 (3 days ago)",
 		"body": "Hi Alex,\n\nJohn Doe invited you to join the 'Engineering Team' workspace on Slack.\n\nClick to join: https://slack.com/accept-invite/T01234/B56789\n\nWorkspace: Engineering Team (acme-corp.slack.com)\n\nThe Slack Team",
 		"is_phishing": false,
 		"legitimate_signs": [
@@ -139,23 +186,54 @@ var emails := [
 	}
 ]
 
-
 func _ready() -> void:
-	print("🎣 Phishing Lab Ready")
+	print("📧 Gmail-Style Phishing Lab Ready")
 	
-	# Shuffle emails for variety
+	if not _verify_nodes():
+		push_error("Critical nodes missing! Check scene structure.")
+		return
+	
 	emails.shuffle()
 	
-	# Setup UI
-	dark_overlay.visible = false
+	reply_overlay.visible = false
+	feedback_overlay.visible = false
 	_update_progress_label()
 	
-	# Show first email
 	_show_email(0)
 	
-	# Connect OK button (not in scene file)
-	ok_button.pressed.connect(_on_ok_pressed)
+	# Connect buttons
+	reply_button.pressed.connect(_on_reply_pressed)
 
+	spam_button.pressed.connect(_on_spam_pressed)
+	delete_button.pressed.connect(_on_delete_pressed)
+	submit_reply_button.pressed.connect(_on_submit_reply_pressed)
+	cancel_reply_button.pressed.connect(_on_cancel_reply_pressed)
+	ok_button.pressed.connect(_on_ok_pressed)
+	back_button.pressed.connect(_on_back_pressed)
+
+func _verify_nodes() -> bool:
+	var nodes_to_check = [
+		["timer_label", timer_label],
+		["progress_label", progress_label],
+		["email_subject", email_subject],
+		["sender_name", sender_name],
+		["sender_email", sender_email],
+		["to_me_label", to_me_label],
+		["timestamp_label", timestamp_label],
+		["email_body", email_body],
+		["reply_button", reply_button],
+		["spam_button", spam_button],
+		["delete_button", delete_button],
+		["back_button", back_button]
+	]
+	
+	var all_valid = true
+	for node_info in nodes_to_check:
+		if node_info[1] == null:
+			push_error("Node '%s' is null!" % node_info[0])
+			all_valid = false
+	
+	return all_valid
 
 func _process(delta: float) -> void:
 	if time_remaining > 0 and emails_analyzed < total_emails:
@@ -165,7 +243,6 @@ func _process(delta: float) -> void:
 		if time_remaining <= 0:
 			_on_time_expired()
 
-
 func _show_email(index: int) -> void:
 	if index >= emails.size():
 		return
@@ -173,76 +250,163 @@ func _show_email(index: int) -> void:
 	current_email_index = index
 	var email = emails[index]
 	
-	# Update existing labels
-	from_label.text = "From: " + email["from"]
-	subject_label.text = "Subject: " + email["subject"]
-	body_label.text = email["body"]
+	if email_subject:
+		email_subject.text = email["subject"]
+	if sender_name:
+		sender_name.text = email["from_name"]
+	if sender_email:
+		sender_email.text = "<" + email["from_email"] + ">"
+	if to_me_label:
+		to_me_label.text = "to me"
+	if timestamp_label:
+		timestamp_label.text = email["timestamp"]
+	if email_body:
+		email_body.text = email["body"]
 	
-	# Enable classification buttons
-	safe_button.disabled = false
-	phishing_button.disabled = false
-
-
-func _on_safe_pressed() -> void:
-	_check_answer(false)
-
-
-func _on_phishing_pressed() -> void:
-	_check_answer(true)
-
-
-func _on_ok_pressed() -> void:
-	# Hide feedback popup
-	dark_overlay.visible = false
+	# Set avatar color based on sender
+	if sender_avatar:
+		var hash_val = email["from_name"].hash()
+		var colors = [
+			Color(0.2, 0.6, 0.9),  # Blue
+			Color(0.9, 0.3, 0.3),  # Red
+			Color(0.3, 0.8, 0.4),  # Green
+			Color(0.9, 0.7, 0.2),  # Yellow
+			Color(0.7, 0.3, 0.9),  # Purple
+		]
+		sender_avatar.color = colors[hash_val % colors.size()]
 	
-	# Check if we need to move to next email or show results
-	if emails_analyzed >= total_emails:
-		_show_final_results()
+	# Enable buttons
+	if reply_button:
+		reply_button.disabled = false
+	if spam_button:
+		spam_button.disabled = false
+	if delete_button:
+		delete_button.disabled = false
+
+func _on_reply_pressed() -> void:
+	_show_reply_form()
+
+func _on_spam_pressed() -> void:
+	_check_answer_action("spam")
+
+func _on_delete_pressed() -> void:
+	_check_answer_action("delete")
+
+func _show_reply_form() -> void:
+	if reply_overlay:
+		reply_overlay.visible = true
+	if name_input:
+		name_input.text = ""
+		name_input.grab_focus()
+		name_input.text_changed.connect(_on_form_field_changed)
+	if email_input:
+		email_input.text = ""
+		email_input.text_changed.connect(_on_form_field_changed)
+	if address_input:
+		address_input.text = ""
+		address_input.text_changed.connect(_on_form_field_changed)
+	if password_input:
+		password_input.text = ""
+		password_input.text_changed.connect(_on_form_field_changed)
+	
+	if submit_reply_button:
+		submit_reply_button.disabled = true
+	
+	_validate_form()
+
+func _on_submit_reply_pressed() -> void:
+	var email = emails[current_email_index]
+	
+	if reply_overlay:
+		reply_overlay.visible = false
+	
+	_disconnect_form_signals()
+	
+	if email["is_phishing"]:
+		_check_answer_action("replied_with_info")
 	else:
-		# Move to next email
-		_show_email(current_email_index + 1)
+		_check_answer_action("reply")
 
+func _on_cancel_reply_pressed() -> void:
+	if reply_overlay:
+		reply_overlay.visible = false
+	_disconnect_form_signals()
 
-func _check_answer(user_said_phishing: bool) -> void:
-	safe_button.disabled = true
-	phishing_button.disabled = true
+func _check_answer_action(action: String) -> void:
+	if reply_button:
+		reply_button.disabled = true
+	if spam_button:
+		spam_button.disabled = true
+	if delete_button:
+		delete_button.disabled = true
 	
 	var email = emails[current_email_index]
-	var correct = (user_said_phishing == email["is_phishing"])
+	var correct = false
+	var explanation = ""
 	
-	if correct:
-		score += 150
-		emails_analyzed += 1
-		_update_progress_label()
+	match action:
+		"replied_with_info":
+			correct = false
+			score -= 100
+			explanation = "⚠️ DANGER! You gave your information to a PHISHING email!\n\n"
+			explanation += "Never share personal info via email reply!\n\n"
+			explanation += "Red Flags you missed:\n" + "\n".join(email["red_flags"])
 		
-		var explanation = ""
-		if email["is_phishing"]:
-			explanation = "🚨 CORRECT! This WAS phishing!\n\nRed Flags:\n" + "\n".join(email["red_flags"])
-		else:
-			explanation = "✅ CORRECT! This email was legitimate.\n\nLegitimate Signs:\n" + "\n".join(email["legitimate_signs"])
+		"reply":
+			if email["is_phishing"]:
+				correct = false
+				score -= 50
+				explanation = "❌ WRONG! You replied to a PHISHING email!\n\n"
+				explanation += "Red Flags:\n" + "\n".join(email["red_flags"])
+			else:
+				correct = true
+				score += 150
+				emails_analyzed += 1
+				explanation = "✅ CORRECT! Safe to reply to legitimate email.\n\n"
+				explanation += "Legitimate Signs:\n" + "\n".join(email["legitimate_signs"])
 		
-		_show_feedback(true, explanation)
-		# OK button will advance to next email
-	else:
-		score -= 50
-		var explanation = ""
-		if email["is_phishing"]:
-			explanation = "❌ WRONG! This WAS phishing!\n\nYou missed these red flags:\n" + "\n".join(email["red_flags"])
-		else:
-			explanation = "❌ WRONG! This was legitimate!\n\nLegitimate signs:\n" + "\n".join(email["legitimate_signs"])
+		"delete":
+			if email["is_phishing"]:
+				correct = true
+				score += 100
+				emails_analyzed += 1
+				explanation = "✅ GOOD! Deleting suspicious emails is smart!\n\n"
+				explanation += "Red Flags you spotted:\n" + "\n".join(email["red_flags"])
+			else:
+				correct = false
+				score -= 25
+				explanation = "❌ Be careful! This was a legitimate email.\n\n"
+				explanation += "Legitimate Signs:\n" + "\n".join(email["legitimate_signs"])
 		
-		_show_feedback(false, explanation)
-		# OK button will advance to next email
-
+		"spam":
+			if email["is_phishing"]:
+				correct = true
+				score += 150
+				emails_analyzed += 1
+				explanation = "✅ EXCELLENT! Marking phishing as spam protects you!\n\n"
+				explanation += "Red Flags you spotted:\n" + "\n".join(email["red_flags"])
+			else:
+				correct = false
+				score -= 50
+				explanation = "❌ WRONG! This was legitimate, not spam.\n\n"
+				explanation += "Legitimate Signs:\n" + "\n".join(email["legitimate_signs"])
+	
+	_update_progress_label()
+	_show_feedback(correct, explanation)
 
 func _show_feedback(correct: bool, message: String) -> void:
-	dark_overlay.visible = true
+	if not feedback_overlay or not feedback_popup:
+		return
+	
+	feedback_overlay.visible = true
 	
 	if correct:
-		feedback_icon.text = "✓"
-		feedback_icon.add_theme_color_override("font_color", Color(0, 0.8, 0))
-		feedback_message.text = message
-		feedback_message.add_theme_color_override("font_color", Color(0, 0.6, 0))
+		if feedback_icon:
+			feedback_icon.text = "✓"
+			feedback_icon.add_theme_color_override("font_color", Color(0, 0.8, 0))
+		if feedback_message:
+			feedback_message.text = message
+			feedback_message.add_theme_color_override("font_color", Color(0, 0.6, 0))
 		
 		var style = StyleBoxFlat.new()
 		style.bg_color = Color(0.8, 1, 0.8)
@@ -251,12 +415,18 @@ func _show_feedback(correct: bool, message: String) -> void:
 		style.border_width_right = 4
 		style.border_width_bottom = 4
 		style.border_color = Color(0, 0.6, 0)
+		style.corner_radius_top_left = 10
+		style.corner_radius_top_right = 10
+		style.corner_radius_bottom_left = 10
+		style.corner_radius_bottom_right = 10
 		feedback_popup.add_theme_stylebox_override("panel", style)
 	else:
-		feedback_icon.text = "✗"
-		feedback_icon.add_theme_color_override("font_color", Color(0.8, 0, 0))
-		feedback_message.text = message
-		feedback_message.add_theme_color_override("font_color", Color(0.6, 0, 0))
+		if feedback_icon:
+			feedback_icon.text = "✗"
+			feedback_icon.add_theme_color_override("font_color", Color(0.8, 0, 0))
+		if feedback_message:
+			feedback_message.text = message
+			feedback_message.add_theme_color_override("font_color", Color(0.6, 0, 0))
 		
 		var style = StyleBoxFlat.new()
 		style.bg_color = Color(1, 0.8, 0.8)
@@ -265,18 +435,27 @@ func _show_feedback(correct: bool, message: String) -> void:
 		style.border_width_right = 4
 		style.border_width_bottom = 4
 		style.border_color = Color(0.8, 0, 0)
+		style.corner_radius_top_left = 10
+		style.corner_radius_top_right = 10
+		style.corner_radius_bottom_left = 10
+		style.corner_radius_bottom_right = 10
 		feedback_popup.add_theme_stylebox_override("panel", style)
-	
-	feedback_popup.scale = Vector2.ZERO
-	var tween = create_tween()
-	tween.set_ease(Tween.EASE_OUT)
-	tween.set_trans(Tween.TRANS_BACK)
-	tween.tween_property(feedback_popup, "scale", Vector2.ONE, 0.3)
 
+func _on_ok_pressed() -> void:
+	if feedback_overlay:
+		feedback_overlay.visible = false
+	
+	if emails_analyzed >= total_emails:
+		_show_final_results()
+	else:
+		_show_email(current_email_index + 1)
 
 func _update_timer_display() -> void:
+	if not timer_label:
+		return
+	
 	var seconds = int(time_remaining)
-	timer_label.text = "%ds" % seconds
+	timer_label.text = "⏱ %ds" % seconds
 	
 	if time_remaining > 60:
 		timer_label.add_theme_color_override("font_color", Color(0, 0.8, 0))
@@ -285,17 +464,13 @@ func _update_timer_display() -> void:
 	else:
 		timer_label.add_theme_color_override("font_color", Color(1, 0, 0))
 
-
 func _update_progress_label() -> void:
-	progress_label.text = "Emails Analyzed: %d/%d | Score: %d" % [emails_analyzed, total_emails, score]
-
-
-func _on_all_emails_analyzed() -> void:
-	print("[Phishing Lab] All emails analyzed! Score:", score)
-
+	if progress_label:
+		progress_label.text = "📧 %d/%d | Score: %d" % [emails_analyzed, total_emails, score]
 
 func _show_final_results() -> void:
-	var percentage = (score * 100.0) / (total_emails * 150)  # Max: 150 per email
+	var max_score = total_emails * 150
+	var percentage = (float(score) / max_score) * 100.0 if score > 0 else 0.0
 	var grade = "F"
 	
 	if percentage >= 90:
@@ -324,47 +499,76 @@ Click OK to return to menu.""" % [
 		"NEEDS IMPROVEMENT. Review the red flags!"
 	]
 	
-	feedback_icon.text = "🎓"
-	feedback_icon.add_theme_color_override("font_color", Color(0, 0.5, 1))
-	feedback_message.text = message
-	feedback_message.add_theme_color_override("font_color", Color.BLACK)
-	red_flags_label.visible = false
-	dark_overlay.visible = true
+	if feedback_icon:
+		feedback_icon.text = "🎓"
+		feedback_icon.add_theme_color_override("font_color", Color(0, 0.5, 1))
+	if feedback_message:
+		feedback_message.text = message
+		feedback_message.add_theme_color_override("font_color", Color.BLACK)
+	if feedback_overlay:
+		feedback_overlay.visible = true
 	
-	# Save tutorial result
-	var tutorial_mgr = get_node("/root/TutorialManager")
+	var tutorial_mgr = get_node_or_null("/root/TutorialManager")
 	if tutorial_mgr:
-		tutorial_mgr.save_tutorial_result("beginner_phishing", score, total_emails * 150)
-		await tutorial_mgr.save_completed
+		tutorial_mgr.save_tutorial_result("beginner_phishing", score, max_score)
+		if tutorial_mgr.has_signal("save_completed"):
+			await tutorial_mgr.save_completed
 	
-	# Disconnect OK button from next email, connect to exit
-	if ok_button.pressed.is_connected(_on_ok_pressed):
+	if ok_button and ok_button.pressed.is_connected(_on_ok_pressed):
 		ok_button.pressed.disconnect(_on_ok_pressed)
-	ok_button.pressed.connect(_on_back_pressed)
-
+	if ok_button:
+		ok_button.pressed.connect(_on_back_pressed)
 
 func _on_time_expired() -> void:
 	time_remaining = 0
-	timer_label.text = "0s"
-	safe_button.disabled = true
-	phishing_button.disabled = true
+	if timer_label:
+		timer_label.text = "⏱ 0s"
+	if reply_button:
+		reply_button.disabled = true
+	if spam_button:
+		spam_button.disabled = true
+	if delete_button:
+		delete_button.disabled = true
 	
-	feedback_icon.text = "⏰"
-	feedback_message.text = "TIME'S UP!\n\nYou analyzed %d/%d emails.\nFinal Score: %d\n\nPhishing is dangerous - take your time in real life!" % [emails_analyzed, total_emails, score]
-	_show_feedback(false, "")
+	_show_feedback(false, "⏰ TIME'S UP!\n\nYou analyzed %d/%d emails.\nFinal Score: %d\n\nPhishing is dangerous - take your time in real life!" % [emails_analyzed, total_emails, score])
 	
 	await get_tree().create_timer(3.0).timeout
-	get_tree().change_scene_to_file("res://scene/landing.tscn")
-
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://scene/landing.tscn")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
+func _on_form_field_changed(_new_text: String) -> void:
+	_validate_form()
 
-func _on_next_pressed() -> void:
-	# Save tutorial result
-	var tutorial_mgr = get_node("/root/TutorialManager")
-	tutorial_mgr.save_tutorial_result("beginner_phishing", score, total_emails * 150)
+func _validate_form() -> void:
+	if not submit_reply_button:
+		return
 	
-	# Go to next tutorial
-	get_tree().change_scene_to_file("res://scene/tutorial_malware_types.tscn")
+	var all_filled = true
+	
+	if name_input and name_input.text.strip_edges() == "":
+		all_filled = false
+	if email_input and email_input.text.strip_edges() == "":
+		all_filled = false
+	if address_input and address_input.text.strip_edges() == "":
+		all_filled = false
+	if password_input and password_input.text.strip_edges() == "":
+		all_filled = false
+	
+	submit_reply_button.disabled = not all_filled
+	
+	if all_filled:
+		submit_reply_button.modulate = Color(1, 1, 1, 1)
+	else:
+		submit_reply_button.modulate = Color(0.7, 0.7, 0.7, 0.8)
+
+func _disconnect_form_signals() -> void:
+	if name_input and name_input.text_changed.is_connected(_on_form_field_changed):
+		name_input.text_changed.disconnect(_on_form_field_changed)
+	if email_input and email_input.text_changed.is_connected(_on_form_field_changed):
+		email_input.text_changed.disconnect(_on_form_field_changed)
+	if address_input and address_input.text_changed.is_connected(_on_form_field_changed):
+		address_input.text_changed.disconnect(_on_form_field_changed)
+	if password_input and password_input.text_changed.is_connected(_on_form_field_changed):
+		password_input.text_changed.disconnect(_on_form_field_changed)
