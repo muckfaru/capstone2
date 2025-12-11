@@ -18,10 +18,11 @@ const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/%s/database
 
 # Dialogue configuration
 var dialogues := [
-	"This is CA a Private Organization.",
-	"We've been watching you...",
-	"Your skills are... interesting.",
-	"Identify yourself."
+	"This is CyberArena, a private organization.",
+	"Your early skills caught our attention",
+	"You're not an expert yet… but your potential is clear.",
+	"We've seen enough to know your capabilities so far.",
+	"Every operative chooses their code name. Identify yourself."
 ]
 
 # State variables
@@ -181,12 +182,12 @@ func _on_confirm_pressed() -> void:
 	dialogue_label.text = "⏳ Checking existing profile..."
 	
 	var url: String = "%s/users/%s" % [FIRESTORE_URL, Auth.current_local_id]
-	var headers: Array = ["Authorization: Bearer %s" % Auth.current_id_token]
+	var headers: PackedStringArray = ["Authorization: Bearer %s" % Auth.current_id_token]
 	
 	var req := HTTPRequest.new()
 	add_child(req)
 	
-	req.request_completed.connect(func(_r, code, _h, _body):
+	req.request_completed.connect(func(_r: int, code: int, _h: PackedStringArray, body: PackedByteArray):
 		req.queue_free()
 		
 		if code == 200:
@@ -194,7 +195,7 @@ func _on_confirm_pressed() -> void:
 			get_tree().change_scene_to_file("res://scene/landing.tscn")
 			return
 		
-		print("🆕 No existing user found, creating new Firestore doc...")
+		print("🆕 No existing user found (code: %s), creating new Firestore doc..." % code)
 		_create_new_user(username)
 	)
 	
@@ -209,23 +210,23 @@ func _on_confirm_pressed() -> void:
 func _create_new_user(username: String) -> void:
 	dialogue_label.text = "⏳ Creating new profile..."
 	
-	# 🔹 UPDATED: Added tutorial_completed field
+	# Create the Firestore document structure
 	var body := {
 		"fields": {
 			"username": {"stringValue": username},
 			"avatar": {"stringValue": "default.png"},
-			"wins": {"integerValue": 0},
-			"losses": {"integerValue": 0},
-			"level": {"integerValue": 1},
+			"wins": {"integerValue": "0"},
+			"losses": {"integerValue": "0"},
+			"level": {"integerValue": "1"},
 			"friends": {"arrayValue": {"values": []}},
 			"requests_received": {"arrayValue": {"values": []}},
 			"first_login": {"booleanValue": true},
-			"tutorial_completed": {"booleanValue": false}  # 🆕 NEW FIELD
+			"tutorial_completed": {"booleanValue": false}
 		}
 	}
 	
 	var url: String = "%s/users?documentId=%s" % [FIRESTORE_URL, Auth.current_local_id]
-	var headers: Array = [
+	var headers: PackedStringArray = [
 		"Content-Type: application/json",
 		"Authorization: Bearer %s" % Auth.current_id_token
 	]
@@ -233,11 +234,11 @@ func _create_new_user(username: String) -> void:
 	var http := HTTPRequest.new()
 	add_child(http)
 	
-	http.request_completed.connect(func(_r, code, _h, _response_body):
+	http.request_completed.connect(func(_r: int, code: int, _h: PackedStringArray, response_body: PackedByteArray):
 		http.queue_free()
 		
-		var text: String = _response_body.get_string_from_utf8()
-		print("Firestore Response:", code, text)
+		var text: String = response_body.get_string_from_utf8()
+		print("Firestore Response: Code=%s, Body=%s" % [code, text])
 		
 		if code == 200 or code == 201:
 			dialogue_label.text = "✅ Profile created successfully!"
@@ -245,18 +246,21 @@ func _create_new_user(username: String) -> void:
 			await get_tree().create_timer(1.0).timeout
 			dialogue_label.text = "Welcome, %s!" % username
 			
-			# 🆕 UPDATED: Redirect to tutorial instead of landing
+			# Redirect to tutorial for new users
 			await get_tree().create_timer(2.0).timeout
-			print("🎓 Redirecting to landing_tutorial.tscn...")
+			print("🎓 Redirecting to landing.tscn...")
 			get_tree().change_scene_to_file("res://scene/landing.tscn")
 		else:
-			dialogue_label.text = "❌ Failed to create profile (%s)" % code
-			push_warning(text)
+			dialogue_label.text = "❌ Failed to create profile (Error %s)" % code
+			push_warning("Firestore error: %s" % text)
 			username_input.editable = true
 			confirm_button.disabled = false
 	)
 	
-	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	var json_string := JSON.stringify(body)
+	print("Sending to Firestore: ", json_string)
+	
+	var err := http.request(url, headers, HTTPClient.METHOD_POST, json_string)
 	if err != OK:
 		push_error("Failed to start Firestore POST request: %s" % err)
 		http.queue_free()
