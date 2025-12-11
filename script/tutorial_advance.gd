@@ -341,7 +341,7 @@ func _on_next_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	# Return to landing
-	get_tree().change_scene_to_file("res://scene/landing.tscn")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 
 # ============================================
@@ -355,3 +355,7 @@ func _animate_alert_panel() -> void:
 	tween.tween_property(alert_panel, "scale", Vector2(1.0, 1.0), 0.6)
 	
 	# No pulse animation - static warning icon
+
+
+func _on_back_button_pressed() -> void:
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")

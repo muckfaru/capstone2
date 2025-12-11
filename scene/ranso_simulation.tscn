@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://cxj0cnmoaf4dg"]
+[gd_scene load_steps=3 format=3 uid="uid://cxj0cnmoaf4dg"]
 
 [ext_resource type="Script" uid="uid://bm2j2cfkg0sqq" path="res://scene/ranso_simulation.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_3dnim"]
 
 [node name="DesktopSimulation" type="Node2D"]
 script = ExtResource("1_script")
@@ -9,6 +10,20 @@ script = ExtResource("1_script")
 offset_right = 1152.0
 offset_bottom = 648.0
 color = Color(0.05, 0.05, 0.2, 1)
+
+[node name="BackButton" type="Button" parent="Background"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -123.0
+offset_top = 596.0
+offset_right = -23.0
+offset_bottom = 636.0
+grow_horizontal = 0
+theme_override_fonts/font = ExtResource("2_3dnim")
+theme_override_font_sizes/font_size = 16
+text = "🏠 BACK"
 
 [node name="Computer" type="Control" parent="."]
 layout_mode = 3
@@ -170,3 +185,5 @@ theme_override_font_sizes/font_size = 12
 text = "Calculator"
 horizontal_alignment = 1
 metadata/_edit_use_anchors_ = true
+
+[connection signal="pressed" from="Background/BackButton" to="." method="_on_back_button_pressed"]
