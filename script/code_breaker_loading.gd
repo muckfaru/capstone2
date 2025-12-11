@@ -39,10 +39,11 @@ var _timeout_timer: Timer
 var _transition_timer: Timer
 var _retry_timer: Timer
 
-const LOADING_TIMEOUT := 45.0  # Increased from 30s to 45s for better stability
+const LOADING_TIMEOUT := 60.0  # Increased to 60s for better stability
 const TRANSITION_DELAY := 2.0  # Wait 2s after both ready
 const RETRY_INTERVAL := 2.0    # Retry message every 2 seconds
-const MAX_RETRIES := 3         # Retry up to 3 times before timeout
+const MAX_RETRIES := 5         # Retry up to 5 times before timeout
+const RELAY_SETTLING_DELAY := 1.5  # Wait 1.5s for relay to stabilize
 
 var _retry_count: int = 0      # How many times we've retried
 var _message_sent: bool = false # Did we already send loading status?
@@ -104,9 +105,10 @@ func _ready() -> void:
 	# Start loading simulation
 	_simulate_loading()
 	
-	# IMPORTANT: Wait for relay to be fully connected before sending first message
+	# IMPORTANT: Wait longer for relay to be fully connected before sending first message
 	# This prevents race condition where message arrives before opponent's relay is ready
-	await get_tree().create_timer(0.5).timeout
+	print("[Loading] ⏳ Waiting 1.5s for relay to stabilize...")
+	await get_tree().create_timer(1.5).timeout
 	print("[Loading] ✅ Relay settling delay complete, now sending loading status...")
 	
 	# Send "I'm loading" message
@@ -220,9 +222,15 @@ func _send_loading_status(status: String) -> void:
 		_relay_client.send_message({
 			"type": "loading_status",
 			"player_id": _player_id,
-			"status": status
+			"status": status,
+			"timestamp": Time.get_ticks_msec()
 		})
-		print("[Loading] 📤 Sent status: %s (attempt %d)" % [status, _retry_count + 1])
+		print("[Loading] 📤 Sent status: %s (attempt %d/%d) connected=%s" % [
+			status, 
+			_retry_count + 1, 
+			MAX_RETRIES,
+			_relay_client.is_relay_connected()
+		])
 		_message_sent = true
 		
 		# Start retry timer if not already running and we haven't exceeded max retries
@@ -234,7 +242,9 @@ func _send_loading_status(status: String) -> void:
 func _on_relay_message(data: Dictionary) -> void:
 	"""Handle relay messages from opponent"""
 	var msg_type = data.get("type", "")
-	print("[Loading] 📨 Received relay message: %s" % msg_type)
+	var msg_timestamp = data.get("timestamp", 0)
+	var delay_ms = Time.get_ticks_msec() - msg_timestamp if msg_timestamp > 0 else 0
+	print("[Loading] 📨 Received relay message: %s (delay: %dms)" % [msg_type, delay_ms])
 	
 	match msg_type:
 		"loading_status":
