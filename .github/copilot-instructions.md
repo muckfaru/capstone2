@@ -394,7 +394,7 @@ _relay_client.message_received.connect(_on_relay_message)
    - **Relay client reparented to root** before scene change
    - Both transition to **loading screen**
 
-3. **Loading Screen** (`code_breaker_loading.gd`) **[NEW!]**
+3. **Loading Screen** (`code_breaker_loading.gd`) **[IMPROVED!]**
    - Receives `relay_client` from room (adopts from root)
    - Shows two player cards with progress bars
    - **Left card = YOU, Right card = OPPONENT** (perspective-based)
@@ -402,13 +402,19 @@ _relay_client.message_received.connect(_on_relay_message)
    - Sends `loading_status: "ready"` via relay when complete
    - Waits for opponent's ready message
    - When both ready: 2s countdown → Arena
-   - **Timeout:** 30s max, returns to room if sync fails
+   - **Timeout:** 60s max (increased from 45s), returns to room if sync fails
+   - **Retry System:** 5 retry attempts (increased from 3), every 2s
+   - **Settling Delay:** 1.5s initial wait (increased from 0.5s) before first message
+   - **Verbose Logging:** Timestamps on all messages, connection status tracking, message delay measurement
    - **Relay client reparented to root** before arena transition
 
 4. **Arena Scene** (`code_breaker_arena.gd`)
    - Receives `relay_client` from loading (adopts from root)
+   - **Health Bar Initialization:** Explicitly sets min/max/value to 100 on scene start
    - **3-2-1 Countdown:** Centered countdown with bounce animation before game starts
    - **Timer Pause:** 3-minute timer paused during countdown, starts after "TYPE!"
+   - **Stats Sync Timer:** Only starts AFTER countdown (prevents premature stats updates)
+   - **Game Timer Fix:** Uses `Time.get_ticks_msec() / 1000.0` for consistency (not unix time)
    - Host generates snippet list → sends via relay
    - Client receives snippets → sends `client_ready`
    - Host receives ready → starts game for both
@@ -443,8 +449,23 @@ _relay_client.message_received.connect(_on_relay_message)
      - Pop/bubble animations on code panel (3 presets: subtle/normal/dramatic)
      - Panel color changes show active power-up (different Sprite2D visible per type)
    - **Battle Music:** Auto-fade in on start, stops on leave
-   - Game ends → **returns to room** (NOT landing)
-   - Relay connection preserved throughout
+   - Game ends → **transitions to post-game analytics** (NOT room/landing)
+   - Relay connection cleaned up on game end
+
+5. **Post-Game Analytics** (`code_breaker_postgame.gd`) **[NEW!]**
+   - Shows match results with animated card reveal
+   - **Winner Determination:** Based on health comparison (consistent for both players)
+   - **Data Display:**
+     - Winner badge (🏆 WINNER) - only ONE player gets this
+     - Status: ✅ VICTORY or ❌ DEFEATED
+     - XP earned: +500 (winner) or +0 (loser)
+     - Game duration: formatted as "Xm Ys"
+     - Power-ups used: count of activated buffs
+   - **Firestore Integration:**
+     - Saves XP to `users/{uid}/total_xp`
+     - Records match history to `match_history/{match_id}`
+   - **Back to Landing:** Button navigates to landing hub (NOT lobby)
+   - Relay connection freed on exit
 
 ### Relay Client Lifecycle (Node Preservation)
 ```
@@ -479,7 +500,7 @@ Arena → Room: (if rematch) Reparent to root
 
 **Loading Screen Messages:**
 ```json
-{"type": "loading_status", "status": "loading|ready", "player_id": "..."}
+{"type": "loading_status", "status": "loading|ready", "player_id": "...", "timestamp": 1234567890}
 ```
 
 **Arena Messages:**
@@ -488,7 +509,7 @@ Arena → Room: (if rematch) Reparent to root
 {"type": "client_ready", "player_id": "..."}
 {"type": "game_start", "player_id": "..."}
 {"type": "damage", "damage": 10, "player_id": "..."}
-{"type": "stats_update", "score": 100, "health": 92, "player_id": "..."}
+{"type": "stats_update", "score": 100, "health": 92, "player_id": "...", "timestamp": 1234567890}
 {"type": "player_died", "player_id": "..."}
 {"type": "player_finished", "time": 45.2, "wpm": 68}
 ```
@@ -687,7 +708,24 @@ Phone (Mobile Data) ────────────────────
 
 ---
 
-**Latest Updates (Dec 8, 2025):**
+**Latest Updates (Dec 11, 2025):**
+- ✅ **Post-Game Analytics Scene:** Complete results screen with winner/loser cards, XP awards, match duration
+- ✅ **Winner Determination Fix:** Health-based logic ensures only ONE winner per match (no double winners bug)
+- ✅ **Firestore XP Integration:** Auto-saves +500 XP for winner, +0 for loser to `users/{uid}/total_xp`
+- ✅ **Match History Recording:** Saves detailed match data to `match_history/{match_id}` collection
+- ✅ **Back to Landing Button:** Post-game returns to landing hub (not lobby)
+- ✅ **Health Bar Initialization:** Explicit min/max/value setup (0-100) prevents display bugs
+- ✅ **Stats Sync Timer Fix:** Only starts AFTER countdown completes, prevents premature stats updates
+- ✅ **Game Timer Consistency:** Uses `Time.get_ticks_msec() / 1000.0` throughout for accurate duration tracking
+- ✅ **Loading Screen Improvements:**
+  - Timeout increased: 45s → 60s
+  - Retry attempts: 3 → 5
+  - Settling delay: 0.5s → 1.5s
+  - Verbose logging with timestamps and message delay tracking
+- ✅ **Race Condition Mitigation:** Longer settling delays and more retries improve sync reliability
+- ✅ **Debug Logging Enhanced:** All relay messages now include timestamps for delay measurement
+
+**Previous Updates (Dec 8, 2025):**
 - ✅ **Tutorial System Overhaul:** Complete XP-based progression system with 9 ranks (Iron to Challenger)
 - ✅ **TutorialManager Singleton:** Autoload that tracks completion, XP, ranks, and game unlocks
 - ✅ **Tutorial Categories:** Beginner (4 tutorials), Intermediate (2 tutorials), Advanced (2 tutorials)
