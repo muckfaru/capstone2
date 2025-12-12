@@ -333,24 +333,45 @@ func _ready() -> void:
 		_p2_health.value = STARTING_HEALTH
 	print("[Arena] 🏥 Health bars initialized to %d/100" % STARTING_HEALTH)
 	
-	# Fade in battle music
+	# Start battle music (volume starts at -80, will fade in during countdown)
 	if _battle_music:
 		_battle_music.volume_db = -80
-		var tween = create_tween()
-		tween.tween_property(_battle_music, "volume_db", -5.0, 2.0)
+		_battle_music.play()
+		print("[Arena] 🎵 Battle music started (will fade in)")
 	
 	# Generate snippet list (host generates, then syncs to client via relay)
 	if _is_host:
 		print("[Arena] 🎮 INITIALIZING GAME - Host will generate snippets")
 		_generate_snippet_list()
-		# Send snippet list to client
-		await get_tree().create_timer(0.5).timeout
-		print("[Arena] 📤 Sending snippet list to client...")
-		_send_snippet_list_via_relay()
+		# Wait longer for client relay to be fully ready (increased from 0.5s to 2.0s)
+		await get_tree().create_timer(2.0).timeout
+		
+		# Double-check relay is connected before sending
+		if _relay_client and _relay_client.is_relay_connected():
+			print("[Arena] 📤 Sending snippet list to client (relay confirmed connected)...")
+			_send_snippet_list_via_relay()
+		else:
+			push_error("[Arena] ❌ Relay not connected! Cannot send snippets.")
+			_status_label.text = "Connection lost!"
 	else:
 		# Client waits for snippet list from host
 		_status_label.text = "Waiting for code from host..."
 		print("[Arena] 🎮 INITIALIZING GAME - Client waiting for snippets from host")
+		
+		# Start timeout timer for client (30 seconds max wait)
+		var timeout_timer = Timer.new()
+		timeout_timer.wait_time = 30.0
+		timeout_timer.one_shot = true
+		add_child(timeout_timer)
+		timeout_timer.timeout.connect(func():
+			if _snippet_list.is_empty():
+				push_error("[Arena] ❌ Client timeout: Never received snippets from host!")
+				_status_label.text = "Connection timeout - returning to room..."
+				await get_tree().create_timer(2.0).timeout
+				_leave_arena()
+		)
+		timeout_timer.start()
+		print("[Arena] ⏱️ Client timeout timer started (30s)")
 
 func _wait_for_client() -> void:
 	"""Host waits for client to connect before starting"""
@@ -447,16 +468,28 @@ func _on_relay_message(data: Dictionary) -> void:
 # =============================================================================
 
 func _send_snippet_list_via_relay() -> void:
-	"""Host sends snippet list to client via relay"""
+	"""Host sends snippet list to client via relay with retry logic"""
 	if not _relay_client or not _is_host:
 		return
 	
-	print("[Arena] 📤 Sending snippet list to client (%d snippets)..." % _snippet_list.size())
-	_relay_client.send_message({
-		"type": "snippet_list",
-		"snippets": _snippet_list,
-		"player_id": _player_id
-	})
+	# Try sending up to 3 times with delays
+	for attempt in range(3):
+		if not _relay_client.is_relay_connected():
+			print("[Arena] ⚠️ Relay not connected on attempt %d, waiting..." % (attempt + 1))
+			await get_tree().create_timer(1.0).timeout
+			continue
+		
+		print("[Arena] 📤 Sending snippet list to client (%d snippets) - attempt %d..." % [_snippet_list.size(), attempt + 1])
+		_relay_client.send_message({
+			"type": "snippet_list",
+			"snippets": _snippet_list,
+			"player_id": _player_id
+		})
+		return  # Success, exit function
+	
+	# If we get here, all attempts failed
+	push_error("[Arena] ❌ Failed to send snippet list after 3 attempts!")
+	_status_label.text = "Failed to sync with client!"
 
 func _receive_snippet_list(snippets: Array) -> void:
 	"""Client receives snippet list from host"""
@@ -779,6 +812,12 @@ func _start_typing_game() -> void:
 	# Timer is not running yet (will start after countdown)
 	
 	# 3-2-1 COUNTDOWN! (Show in center of screen with BOUNCE effect)
+	# Start fading in battle music during countdown
+	if _battle_music:
+		var tween = create_tween()
+		tween.tween_property(_battle_music, "volume_db", -5.0, 2.0)
+		print("[Arena] 🎵 Battle music fading in...")
+	
 	if _countdown_label:
 		_countdown_label.visible = true
 		_countdown_label.text = "GET READY!"
