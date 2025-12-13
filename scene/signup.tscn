@@ -396,9 +396,8 @@ sprite_frames = SubResource("SpriteFrames_s68ax")
 autoplay = "default"
 frame_progress = 0.744939
 
-[connection signal="pressed" from="VideoStreamPlayer/BackButton" to="." method="_on_back_button_pressed"]
 [connection signal="toggled" from="VideoStreamPlayer/TermsCheckBox" to="." method="_on_terms_check_box_toggled"]
 [connection signal="pressed" from="VideoStreamPlayer/TermsLink" to="." method="_on_terms_link_pressed"]
 [connection signal="pressed" from="VideoStreamPlayer/PrivacyLink" to="." method="_on_privacy_link_pressed"]
-[connection signal="pressed" from="VideoStreamPlayer/SignUpButton" to="." method="_on_register_button_pressed"]
+[connection signal="pressed" from="VideoStreamPlayer/SignUpButton" to="." method="_on_signup_pressed"]
 [connection signal="pressed" from="VideoStreamPlayer/ChangeToLoginButton" to="." method="_on_change_to_login_button_pressed"]

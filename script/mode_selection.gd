@@ -26,7 +26,7 @@ const TUTORIAL_METADATA := {
 	"beginner_network": {"time": "12-18 min", "xp_range": "100-200 XP", "difficulty": 3},
 	"beginner_password": {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3},
 	"beginner_malware": {"time": "10-15 min", "xp_range": "100-200 XP", "difficulty": 2},
-	"intermediate_phishing": {"time": "20-25 min", "xp_range": "100-200 XP", "difficulty": 4},
+	"intermediate_phishing": {"time": "20-25 min", "xp_range": "50-100 XP", "difficulty": 4},
 	"intermediate_trojan": {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3},
 	"intermediate_defense": {"time": "18-25 min", "xp_range": "100-200 XP", "difficulty": 4},
 	"intermediate_lab": {"time": "20-30 min", "xp_range": "100-200 XP", "difficulty": 4},
@@ -416,7 +416,7 @@ func _show_tutorial_menu(level: String) -> void:
 		"intermediate":
 			level_int = 2
 			tutorials = [
-				{"name": "🎣 Phishing Detection Lab", "scene": "res://scene/tutorial_phishing_lab.tscn", "id": "intermediate_phishing"},
+				{"name": "🎣 Phishing Detection Lab", "scene": "res://scene/phishing_intro.tscn", "id": "intermediate_phishing"},
 				{"name": "🛡️ Interactive Defense Training", "scene": "res://scene/tutorial_advance_interactive.tscn", "id": "intermediate_defense"},
 				{"name": "🔬 Advanced Malware Lab", "scene": "res://scene/malware_tutorial_menu.tscn", "id": "intermediate_lab"}
 			]

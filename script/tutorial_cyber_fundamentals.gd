@@ -32,12 +32,6 @@ var quiz_answers := {}
 @onready var back_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton
 @onready var confirm_overlay: ColorRect = $ConfirmOverlay
 @onready var confirm_popup: PanelContainer = $ConfirmOverlay/ConfirmPopup
-@onready var simulation_overlay: ColorRect = $SimulationOverlay
-@onready var simulation_popup: PanelContainer = $SimulationOverlay/SimulationPopup
-@onready var sim_title: Label = $SimulationOverlay/SimulationPopup/VBox/TitleBar/HBox/Title
-@onready var sim_close_btn: Button = $SimulationOverlay/SimulationPopup/VBox/TitleBar/HBox/CloseButton
-@onready var tab_container: TabContainer = $SimulationOverlay/SimulationPopup/VBox/Content/TabContainer
-
 
 # Interactive diagram components
 var diagram_container: Control = null
@@ -383,12 +377,12 @@ Cybersecurity = Protecting computers, networks, and data from attacks.
 
 Before learning about malware and hacking techniques, you need to understand the FOUNDATION:
 
-📚 The CIA Triad - 3 core principles of security:
-   • Confidentiality (keeping secrets)
-   • Integrity (preventing tampering)
-   • Availability (keeping services running)
+	The CIA Triad - 3 core principles of security:
+   • Confidentiality 
+   • Integrity
+   • Availability
 
-🎯 Threat Model - Understanding attackers:
+ 	Threat Model - Understanding attackers:
    • What is a Threat?
    • What is a Vulnerability?
    • What is Risk?

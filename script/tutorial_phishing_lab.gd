@@ -2,6 +2,7 @@ extends Control
 
 # ============================================
 # PHISHING LAB - Gmail-Style Email Interface
+# WITH XP TRACKING SYSTEM
 # ============================================
 
 @onready var timer_label: Label = $TopBar/HBox/TimerLabel
@@ -46,11 +47,13 @@ extends Control
 
 # Game state
 const TIME_LIMIT := 90.0
+const TUTORIAL_ID := "intermediate_phishing"  # Tutorial identifier for XP system
 var time_remaining := TIME_LIMIT
 var emails_analyzed := 0
 var total_emails := 8
 var current_email_index := 0
 var score := 0
+var max_score := 0  # Will be calculated based on total emails
 
 # Email data with realistic Gmail formatting
 var emails := [
@@ -195,6 +198,9 @@ func _ready() -> void:
 	
 	emails.shuffle()
 	
+	# Calculate max possible score
+	max_score = total_emails * 150  # Best action is 150 points per email
+	
 	reply_overlay.visible = false
 	feedback_overlay.visible = false
 	_update_progress_label()
@@ -203,7 +209,6 @@ func _ready() -> void:
 	
 	# Connect buttons
 	reply_button.pressed.connect(_on_reply_pressed)
-
 	spam_button.pressed.connect(_on_spam_pressed)
 	delete_button.pressed.connect(_on_delete_pressed)
 	submit_reply_button.pressed.connect(_on_submit_reply_pressed)
@@ -267,11 +272,11 @@ func _show_email(index: int) -> void:
 	if sender_avatar:
 		var hash_val = email["from_name"].hash()
 		var colors = [
-			Color(0.2, 0.6, 0.9),  # Blue
-			Color(0.9, 0.3, 0.3),  # Red
-			Color(0.3, 0.8, 0.4),  # Green
-			Color(0.9, 0.7, 0.2),  # Yellow
-			Color(0.7, 0.3, 0.9),  # Purple
+			Color(0.2, 0.6, 0.9),
+			Color(0.9, 0.3, 0.3),
+			Color(0.3, 0.8, 0.4),
+			Color(0.9, 0.7, 0.2),
+			Color(0.7, 0.3, 0.9),
 		]
 		sender_avatar.color = colors[hash_val % colors.size()]
 	
@@ -468,9 +473,21 @@ func _update_progress_label() -> void:
 	if progress_label:
 		progress_label.text = "📧 %d/%d | Score: %d" % [emails_analyzed, total_emails, score]
 
+func _calculate_xp(final_score: int, max_possible_score: int) -> int:
+	"""
+	Calculate XP based on performance
+	XP Range: 100-200 based on percentage score
+	"""
+	var percentage = (float(final_score) / max_possible_score) * 100.0 if final_score > 0 else 0.0
+	percentage = clamp(percentage, 0.0, 100.0)
+	
+	# Linear scale from 100 XP (0%) to 200 XP (100%)
+	var xp = int(100 + (percentage / 100.0) * 100)
+	return clamp(xp, 100, 200)
+
 func _show_final_results() -> void:
-	var max_score = total_emails * 150
 	var percentage = (float(score) / max_score) * 100.0 if score > 0 else 0.0
+	percentage = clamp(percentage, 0.0, 100.0)
 	var grade = "F"
 	
 	if percentage >= 90:
@@ -482,38 +499,90 @@ func _show_final_results() -> void:
 	elif percentage >= 60:
 		grade = "D"
 	
+	# Calculate XP earned
+	var xp_earned = _calculate_xp(score, max_score)
+	
+	# Determine pass/fail
+	var passed = percentage >= 70.0
+	var status_emoji = "🎉" if passed else "📚"
+	var status_text = "PASSED!" if passed else "NEEDS IMPROVEMENT"
+	
 	var message = """🎓 PHISHING LAB COMPLETE!
 
-Final Score: %d points
+Final Score: %d / %d points
 Accuracy: %.1f%%
 Grade: %s
+
+💎 XP Earned: %d XP
+
+%s %s
 
 %s
 
 Click OK to return to menu.""" % [
 		score,
+		max_score,
 		percentage,
 		grade,
+		xp_earned,
+		status_emoji,
+		status_text,
 		"EXCELLENT! You're a phishing detection expert!" if grade == "A" else
 		"GOOD JOB! Keep practicing!" if grade in ["B", "C"] else
-		"NEEDS IMPROVEMENT. Review the red flags!"
+		"Review the red flags and try again!"
 	]
 	
 	if feedback_icon:
-		feedback_icon.text = "🎓"
-		feedback_icon.add_theme_color_override("font_color", Color(0, 0.5, 1))
+		if passed:
+			feedback_icon.text = "🎉"
+			feedback_icon.add_theme_color_override("font_color", Color(0, 0.8, 0))
+		else:
+			feedback_icon.text = "📚"
+			feedback_icon.add_theme_color_override("font_color", Color(1, 0.6, 0))
+	
 	if feedback_message:
 		feedback_message.text = message
 		feedback_message.add_theme_color_override("font_color", Color.BLACK)
+	
 	if feedback_overlay:
 		feedback_overlay.visible = true
 	
+	# Style the popup based on pass/fail
+	var style = StyleBoxFlat.new()
+	if passed:
+		style.bg_color = Color(0.9, 1, 0.9)
+		style.border_color = Color(0, 0.8, 0)
+	else:
+		style.bg_color = Color(1, 0.95, 0.8)
+		style.border_color = Color(1, 0.6, 0)
+	style.border_width_left = 4
+	style.border_width_top = 4
+	style.border_width_right = 4
+	style.border_width_bottom = 4
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_left = 10
+	style.corner_radius_bottom_right = 10
+	feedback_popup.add_theme_stylebox_override("panel", style)
+	
+	# Save results to TutorialManager
+	print("📊 Saving tutorial results...")
+	print("   Tutorial ID: %s" % TUTORIAL_ID)
+	print("   Score: %d / %d" % [score, max_score])
+	print("   Percentage: %.1f%%" % percentage)
+	print("   XP Earned: %d" % xp_earned)
+	print("   Passed: %s" % passed)
+	
 	var tutorial_mgr = get_node_or_null("/root/TutorialManager")
 	if tutorial_mgr:
-		tutorial_mgr.save_tutorial_result("beginner_phishing", score, max_score)
+		tutorial_mgr.save_tutorial_result(TUTORIAL_ID, score, max_score)
 		if tutorial_mgr.has_signal("save_completed"):
 			await tutorial_mgr.save_completed
+			print("✅ Tutorial results saved successfully!")
+	else:
+		push_error("❌ TutorialManager not found!")
 	
+	# Reconnect OK button to return to menu
 	if ok_button and ok_button.pressed.is_connected(_on_ok_pressed):
 		ok_button.pressed.disconnect(_on_ok_pressed)
 	if ok_button:
@@ -530,13 +599,11 @@ func _on_time_expired() -> void:
 	if delete_button:
 		delete_button.disabled = true
 	
-	_show_feedback(false, "⏰ TIME'S UP!\n\nYou analyzed %d/%d emails.\nFinal Score: %d\n\nPhishing is dangerous - take your time in real life!" % [emails_analyzed, total_emails, score])
-	
-	await get_tree().create_timer(3.0).timeout
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	# Show final results when time expires
+	_show_final_results()
 
 func _on_back_pressed() -> void:
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	get_tree().change_scene_to_file("res://scene/phishing_intro.tscn")
 
 func _on_form_field_changed(_new_text: String) -> void:
 	_validate_form()

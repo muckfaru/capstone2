@@ -1,0 +1,142 @@
+[gd_scene load_steps=7 format=3 uid="uid://cxyjeljphxhd5"]
+
+[ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="1_bg"]
+[ext_resource type="Script" uid="uid://usesj4ggy5ke" path="res://scene/email_verification.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="3_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0, 0, 0, 0.7)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.917647, 0.0666667, 0.211765, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[node name="EmailVerification" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
+layout_mode = 2
+offset_left = -8.0
+offset_top = -10.0
+offset_right = 1239.0
+offset_bottom = 713.0
+stream = ExtResource("1_bg")
+autoplay = true
+expand = true
+loop = true
+
+[node name="Panel" type="PanelContainer" parent="VideoStreamPlayer"]
+layout_mode = 0
+offset_left = 288.0
+offset_top = 150.0
+offset_right = 933.0
+offset_bottom = 550.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VideoStreamPlayer/Panel"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 32
+text = "📧 Verify Your Email"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="InstructionLabel" type="Label" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 18
+text = "We've sent a verification email to your inbox.
+Please check your email/spam and click the verification link."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Spacer2" type="Control" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="EmailLabel" type="Label" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.917647, 0.0666667, 0.211765, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "user@example.com"
+horizontal_alignment = 1
+
+[node name="Spacer3" type="Control" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.8)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 16
+text = "⏳ Waiting for verification..."
+horizontal_alignment = 1
+
+[node name="Spacer4" type="Control" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="CheckButton" type="Button" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/hover = SubResource("StyleBoxFlat_button")
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "✓ I've Verified My Email"
+
+[node name="Spacer5" type="Control" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="ResendButton" type="Button" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_panel")
+text = "Didn't receive email? Resend"
+flat = true
+
+[node name="Spacer6" type="Control" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="VideoStreamPlayer/Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 0.6)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "← Back to Login"
+flat = true
+
+[connection signal="pressed" from="VideoStreamPlayer/Panel/VBoxContainer/CheckButton" to="." method="_on_check_button_pressed"]
+[connection signal="pressed" from="VideoStreamPlayer/Panel/VBoxContainer/ResendButton" to="." method="_on_resend_button_pressed"]
+[connection signal="pressed" from="VideoStreamPlayer/Panel/VBoxContainer/BackButton" to="." method="_on_back_button_pressed"]

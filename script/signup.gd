@@ -39,6 +39,9 @@ extends Control
 
 var email_regex := RegEx.new()
 var is_loading := true
+var is_google_signup := false
+var pending_signup_email := ""  # Store email for 2FA verification
+var pending_signup_password := ""  # Store password temporarily
 
 func _ready():
 	_hide_form_elements()
@@ -53,7 +56,9 @@ func _ready():
 	oauth_helper.token_received.connect(_on_google_code_received)
 	Auth.auth_response.connect(_on_auth_response)
 
-	signup_button.pressed.connect(_on_signup_pressed)
+	if not signup_button.pressed.is_connected(_on_signup_pressed):
+		signup_button.pressed.connect(_on_signup_pressed)
+	
 	google_signup_btn.pressed.connect(_on_google_signup_pressed)
 
 	email_regex.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
@@ -109,6 +114,7 @@ func _on_loading_complete():
 # 🔹 Google OAuth2 Sign Up Flow
 # ------------------------------------------------------
 func _on_google_signup_pressed():
+	is_google_signup = true
 	message_label.text = "⏳ Opening Google Sign-In..."
 	oauth_helper.start_google_login()
 	message_label.text = "🌐 Waiting for browser to redirect..."
@@ -140,40 +146,50 @@ func _validate_inputs(_t: String = ""):
 
 
 func _on_signup_pressed():
+	print("🔘 Sign up button pressed!")
+	is_google_signup = false
 	var email = email_input.text.strip_edges()
 	var password = password_input.text.strip_edges()
 	var repeat = repeat_password_input.text.strip_edges()
+	
+	print("Email:", email)
+	print("Password length:", password.length())
+	print("Repeat password length:", repeat.length())
 
 	if email == "" or password == "" or repeat == "":
 		message_label.text = "⚠️ Please enter credentials"
+		print("⚠️ Empty fields detected")
 		return
 
 	if not email_regex.search(email):
 		message_label.text = "⚠️ Invalid email format"
+		print("⚠️ Invalid email format")
 		return
 
 	if password != repeat:
 		message_label.text = "❌ Passwords do not match!"
+		print("❌ Passwords don't match")
 		return
 
+	# Store credentials for after verification
+	pending_signup_email = email
+	pending_signup_password = password
+	
 	message_label.text = "⏳ Creating account..."
-	
-	var tween = create_tween()
-	tween.set_trans(Tween.TRANS_QUAD)
-	tween.set_ease(Tween.EASE_IN)
-	tween.tween_property(self, "scale", Vector2(1.2, 1.2), 0.3)
-	tween.tween_property(self, "modulate:a", 0.0, 0.2)
-	
-	await tween.finished
+	print("✅ Validation passed, calling Auth.sign_up()...")
 	
 	Auth.sign_up(email, password)
 
 
 # ------------------------------------------------------
-# 🔹 FIXED: Auth Response Handling
+# 🔹 Auth Response Handling with 2FA
 # ------------------------------------------------------
 func _on_auth_response(response_code: int, response: Dictionary):
-	print("Auth response:", response_code, response)
+	print("=== AUTH RESPONSE DEBUG ===")
+	print("Response code:", response_code)
+	print("Response data:", response)
+	print("Is Google signup:", is_google_signup)
+	print("=========================")
 
 	if response_code == 200:
 		if response.has("idToken"):
@@ -184,32 +200,47 @@ func _on_auth_response(response_code: int, response: Dictionary):
 			# Mark user as online
 			Auth.set_user_online()
 			
-			# 🔹 GOOGLE SIGN-IN: Check if user exists in Firestore
-			if response.has("providerId") and response["providerId"] == "google.com":
+			if is_google_signup:
+				# Google OAuth - check Firestore
 				message_label.text = "✅ Google Sign-In Success!"
 				_check_firestore_username_and_route()
-				return
-			
-			# 🔹 EMAIL/PASSWORD SIGN-UP: New account created
-			# Send verification email and go to intro scene
-			message_label.text = "✅ Account created! Redirecting..."
-			Auth.send_verification_email(response["idToken"])
-			
-			# Wait a moment then redirect to intro scene
-			await get_tree().create_timer(1.0).timeout
-			get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
+			else:
+				# Email/Password signup - send verification email
+				message_label.text = "✅ Account created!"
+				
+				# Send Firebase verification email (built-in)
+				Auth.send_verification_email(response["idToken"])
+				
+				# Wait then go to 2FA verification scene
+				await get_tree().create_timer(1.0).timeout
+				message_label.text = "📧 Verification email sent!"
+				
+				await get_tree().create_timer(1.5).timeout
+				
+				# Reset visuals
+				modulate.a = 1.0
+				scale = Vector2(1.0, 1.0)
+				
+				# Go to email verification scene
+				print("🎬 Redirecting to email verification scene")
+				get_tree().change_scene_to_file("res://scene/email_verification.tscn")
 		else:
 			message_label.text = "❌ Unexpected response: " + str(response)
+			print("⚠️ Missing idToken in response:", response)
 	else:
-		message_label.text = "❌ Signup failed: " + str(response.get("error", {}).get("message", "Unknown error"))
+		var error_msg = response.get("error", {}).get("message", "Unknown error")
+		message_label.text = "❌ Signup failed: " + error_msg
+		print("❌ Auth error:", error_msg)
 
 
 # ------------------------------------------------------
 # 🔹 Check Firestore for existing user (Google OAuth only)
 # ------------------------------------------------------
 func _check_firestore_username_and_route():
+	print("🔍 Starting Firestore check...")
 	if Auth.current_local_id == "" or Auth.current_id_token == "":
 		push_error("Missing auth state after Google sign-in")
+		message_label.text = "❌ Auth error. Please try again."
 		return
 
 	const PROJECT_ID := "capstone-823dc"
@@ -222,40 +253,40 @@ func _check_firestore_username_and_route():
 
 	var http := HTTPRequest.new()
 	add_child(http)
-	http.request_completed.connect(func(_result, response_code, _headers_r, body_r, req=http):
-		req.queue_free()
+	http.request_completed.connect(func(_result, response_code, _headers_r, body_r):
+		http.queue_free()
 		var text = body_r.get_string_from_utf8()
 		print("🔍 Firestore check (Google): ", response_code, " | ", text)
 		
 		if response_code == 200:
-			# ✅ User document exists
 			var resp = JSON.parse_string(text)
-			print("📦 Parsed response type: ", typeof(resp))
-			print("📦 Response data: ", resp)
 			
-			# Check if username field exists and has a value
 			if typeof(resp) == TYPE_DICTIONARY and resp.has("fields"):
 				var fields = resp["fields"]
-				print("📦 Fields: ", fields)
 				
 				if fields.has("username") and fields["username"].has("stringValue"):
 					var username = fields["username"]["stringValue"]
 					print("✅ Existing Google user with username: ", username)
-					# Existing Google user - go to landing
+					print("🏠 Changing to landing.tscn...")
 					get_tree().change_scene_to_file("res://scene/landing.tscn")
 				else:
 					print("🆕 Google user exists but no username")
-					# Google user without username - go to intro
+					print("📝 Changing to intro_scene.tscn...")
 					get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 			else:
 				print("⚠️ Invalid response structure")
 				get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 		else:
-			# 🆕 New Google user (404)
 			print("🆕 New Google user (", response_code, "), showing intro scene")
 			get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 	)
-	http.request(url, headers, HTTPClient.METHOD_GET)
+	
+	var err = http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		push_error("Failed to check Firestore: ", err)
+		http.queue_free()
+		message_label.text = "❌ Connection error"
+
 
 func _on_change_to_login_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scene/login.tscn")

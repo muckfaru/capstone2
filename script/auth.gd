@@ -1,6 +1,8 @@
 extends Node
 
 signal auth_response(response_code: int, response: Dictionary)
+signal email_verification_sent(success: bool)
+signal email_verification_status(is_verified: bool)
 
 # 🔹 Firebase & Google OAuth config
 const API_KEY: String = "AIzaSyAZvW_4HWndG-Spu5eUrxSf_yRKbpswm3Q"
@@ -12,8 +14,10 @@ const REDIRECT_URI: String = "http://127.0.0.1:8765"
 
 # 🔸 Auth Data (accessible globally)
 var current_id_token: String = ""
+var current_refresh_token: String = ""  # ✨ Added for email verification
 var current_local_id: String = ""
 var current_username: String = ""
+var current_user_email: String = ""  # ✨ Added to store user email
 var current_avatar: String = ""
 var current_level: int = 0
 
@@ -34,6 +38,7 @@ func _ready() -> void:
 # -------------------------
 func sign_up(email: String, password: String) -> void:
 	print("[AUTH] Signing up:", email)
+	current_user_email = email  # ✨ Store email
 	_request(
 		"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=%s" % API_KEY,
 		{
@@ -48,6 +53,7 @@ func sign_up(email: String, password: String) -> void:
 # -------------------------
 func login(email: String, password: String) -> void:
 	print("[AUTH] Logging in:", email)
+	current_user_email = email  # ✨ Store email
 	_request(
 		"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=%s" % API_KEY,
 		{
@@ -119,27 +125,122 @@ func exchange_google_code(code: String) -> void:
 		req.queue_free()
 
 # -------------------------
-# 📧 SEND EMAIL VERIFICATION
+# 📧 SEND EMAIL VERIFICATION (Updated)
 # -------------------------
 func send_verification_email(id_token: String) -> void:
-	print("[AUTH] Sending verification email...")
-	_request(
-		"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=%s" % API_KEY,
-		{
-			"requestType": "VERIFY_EMAIL",
-			"idToken": id_token
-		}
+	print("[AUTH] 📧 Sending verification email...")
+	
+	var url = "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=%s" % API_KEY
+	var headers = ["Content-Type: application/json"]
+	var body = JSON.stringify({
+		"requestType": "VERIFY_EMAIL",
+		"idToken": id_token
+	})
+	
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(func(_result, response_code, _headers, body_data):
+		req.queue_free()
+		
+		if response_code == 200:
+			print("[AUTH] ✅ Verification email sent successfully!")
+			emit_signal("email_verification_sent", true)
+		else:
+			var response = JSON.parse_string(body_data.get_string_from_utf8())
+			print("[AUTH] ❌ Failed to send verification email:", response)
+			emit_signal("email_verification_sent", false)
 	)
+	
+	var err = req.request(url, headers, HTTPClient.METHOD_POST, body)
+	if err != OK:
+		print("[AUTH] ❌ Failed to send verification email request:", err)
+		emit_signal("email_verification_sent", false)
 
 # -------------------------
-# 🔍 CHECK EMAIL VERIFIED
+# 🔍 CHECK EMAIL VERIFIED (Updated with callback)
 # -------------------------
-func check_email_verified(id_token: String) -> void:
-	print("[AUTH] Checking email verification...")
-	_request(
-		"https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=%s" % API_KEY,
-		{"idToken": id_token}
+func check_email_verified(id_token: String, callback: Callable = Callable()) -> void:
+	print("[AUTH] 🔍 Checking email verification status...")
+	
+	var url = "https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=%s" % API_KEY
+	var headers = ["Content-Type: application/json"]
+	var body = JSON.stringify({"idToken": id_token})
+	
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(func(_result, response_code, _headers, body_data):
+		req.queue_free()
+		
+		if response_code == 200:
+			var response = JSON.parse_string(body_data.get_string_from_utf8())
+			if response.has("users") and response["users"].size() > 0:
+				var user = response["users"][0]
+				var is_verified = user.get("emailVerified", false)
+				
+				print("[AUTH] Email verified status:", is_verified)
+				emit_signal("email_verification_status", is_verified)
+				
+				if callback.is_valid():
+					callback.call(is_verified)
+			else:
+				print("[AUTH] ⚠️ No user data found")
+				emit_signal("email_verification_status", false)
+				if callback.is_valid():
+					callback.call(false)
+		else:
+			print("[AUTH] ❌ Verification check failed:", response_code)
+			emit_signal("email_verification_status", false)
+			if callback.is_valid():
+				callback.call(false)
 	)
+	
+	req.request(url, headers, HTTPClient.METHOD_POST, body)
+
+# -------------------------
+# 🔄 REFRESH ID TOKEN (New - needed for verification)
+# -------------------------
+func refresh_id_token(callback: Callable = Callable()) -> void:
+	if current_refresh_token == "":
+		print("[AUTH] ⚠️ No refresh token available")
+		if callback.is_valid():
+			callback.call(false, "")
+		return
+	
+	print("[AUTH] 🔄 Refreshing ID token...")
+	
+	var url = "https://securetoken.googleapis.com/v1/token?key=%s" % API_KEY
+	var headers = ["Content-Type: application/json"]
+	var body = JSON.stringify({
+		"grant_type": "refresh_token",
+		"refresh_token": current_refresh_token
+	})
+	
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(func(_result, response_code, _headers, body_data):
+		req.queue_free()
+		
+		if response_code == 200:
+			var response = JSON.parse_string(body_data.get_string_from_utf8())
+			if response.has("id_token"):
+				current_id_token = response["id_token"]
+				if response.has("refresh_token"):
+					current_refresh_token = response["refresh_token"]
+				
+				print("[AUTH] ✅ Token refreshed successfully")
+				if callback.is_valid():
+					callback.call(true, current_id_token)
+			else:
+				print("[AUTH] ❌ Token refresh failed - missing id_token")
+				if callback.is_valid():
+					callback.call(false, "")
+		else:
+			print("[AUTH] ❌ Token refresh failed:", response_code)
+			if callback.is_valid():
+				callback.call(false, "")
+	)
+	
+	req.request(url, headers, HTTPClient.METHOD_POST, body)
 
 # -------------------------
 # 🔹 Realtime Database config for presence
@@ -194,7 +295,7 @@ func _request(url: String, body: Dictionary) -> void:
 		emit_signal("auth_response", 0, {"error": "Request failed: %s" % err})
 
 # -------------------------
-# 📬 RESPONSE HANDLER
+# 📬 RESPONSE HANDLER (Updated to store refresh token)
 # -------------------------
 func _on_request_completed(_result: int, response_code: int, _h: PackedStringArray, body: PackedByteArray) -> void:
 	var response := {}
@@ -204,14 +305,22 @@ func _on_request_completed(_result: int, response_code: int, _h: PackedStringArr
 		if parsed is Dictionary:
 			response = parsed
 
+	# ✨ Store tokens
 	if response.has("idToken"):
 		current_id_token = str(response["idToken"])
 	if response.has("localId"):
 		current_local_id = str(response["localId"])
+	if response.has("refreshToken"):  # ✨ Store refresh token
+		current_refresh_token = str(response["refreshToken"])
+	if response.has("email"):  # ✨ Store email from response
+		current_user_email = str(response["email"])
 
 	print("\n[AUTH RESPONSE]")
 	print("Code:", response_code)
 	print("Local ID:", current_local_id)
-	print("ID Token:", current_id_token.left(25), "...\n")
+	print("Email:", current_user_email)
+	print("ID Token:", current_id_token.left(25), "...")
+	print("Has Refresh Token:", current_refresh_token != "")
+	print()
 
 	emit_signal("auth_response", response_code, response)

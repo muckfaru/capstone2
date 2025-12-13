@@ -9,6 +9,8 @@ extends Control
 enum Section {
 	INTRO,
 	IP_ADDRESSES,
+	NAT_EXPLAINED,      # NEW: Added NAT section
+	SUBNET_MASKS,       # NEW: Added Subnet Masks section
 	PORTS,
 	PROTOCOLS,
 	QUIZ,
@@ -36,6 +38,7 @@ var current_quiz_index := 0
 # Interactive diagram components
 var diagram_container: Control = null
 var packet_sprite: Control = null  # Can be TextureRect or ColorRect
+var packet_label: Label = null  # NEW: Shows IP:Port on packet during animation
 var animation_tween: Tween = null
 var typing_speed := 0.015  # Seconds per character
 var current_text := ""
@@ -48,6 +51,26 @@ var cmd_prefix_label: Label = null
 # Quiz data
 var quiz_questions := [
 	{
+		"question": "Your device is 192.168.1.50. Malware connects to 45.33.32.156:4444. Where is the attacker?",
+		"options": [
+			"On my local network",
+			"On the internet (external)",
+			"In my router"
+		],
+		"correct": 1,
+		"explanation": "45.x.x.x is a PUBLIC IP! If it was 192.168.1.x, the attacker would be on YOUR network (worse!)."
+	},
+	{
+		"question": "What does NAT (Network Address Translation) do?",
+		"options": [
+			"Encrypts your traffic",
+			"Translates private IPs to public IP",
+			"Blocks all malware"
+		],
+		"correct": 1,
+		"explanation": "NAT lets multiple devices share ONE public IP by translating private IPs at the router!"
+	},
+	{
 		"question": "You see traffic to 45.33.32.156:4444. What does port 4444 indicate?",
 		"options": [
 			"Normal web browsing",
@@ -58,14 +81,14 @@ var quiz_questions := [
 		"explanation": "Port 4444 is commonly used by backdoor trojans! Port 80/443 = web, Port 4444 = suspicious!"
 	},
 	{
-		"question": "What's the difference between public and private IP addresses?",
+		"question": "Which IP range is private (local network only)?",
 		"options": [
-			"Public = internet, Private = local network only",
-			"They are the same",
-			"Private = faster, Public = slower"
+			"192.168.0.0 to 192.168.255.255",
+			"45.0.0.0 to 45.255.255.255",
+			"8.8.8.8"
 		],
 		"correct": 0,
-		"explanation": "Private IPs (192.168.x.x) work only on local network. Public IPs are visible to the entire internet!"
+		"explanation": "192.168.x.x is a private range! 45.x.x.x and 8.8.8.8 are PUBLIC IPs visible to the internet."
 	},
 	{
 		"question": "Which protocol is secure (encrypted)?",
@@ -74,7 +97,6 @@ var quiz_questions := [
 		"explanation": "HTTPS uses encryption (the 'S' = Secure). HTTP sends data in plaintext - anyone can read it!"
 	}
 ]
-
 func _setup_cmd_interface() -> void:
 	var content_panel = $WindowDialog/VBox/ContentPanel
 	
@@ -325,10 +347,10 @@ func _start_section(section: Section) -> void:
 
 Before analyzing malware and attacks, you need to understand how computers communicate:
 
-🌐 Topics we'll cover:
-   • IP Addresses (computer addresses on networks)
-   • Ports (doors for different services)
-   • Protocols (languages computers speak)
+ Topics we'll cover:
+   • IP Addresses 
+   • Ports 
+   • Protocols
 
 Why this matters:
 • Malware connects to Command & Control (C2) servers
@@ -342,14 +364,20 @@ Type 'next' to learn about IP addresses →"""
 		Section.IP_ADDRESSES:
 			section_label.text = "IP Addresses - Computer Street Addresses"
 			section_text = """WHAT IS AN IP ADDRESS?
-
+			
 IP Address = Unique identifier for computers on a network
 Think of it like a street address for your computer!
+
+FORMAT: Four numbers (0-255) separated by dots
+Example: 192.168.1.100 = 192 | 168 | 1 | 100
+Why 0-255? Each section = 8 bits = 2⁸ = 256 possible values
 
 TWO TYPES:
 
 1️⃣ PRIVATE IP (Local Network Only)
-   • 192.168.x.x, 10.x.x.x, 172.16-31.x.x
+   • 10.0.0.0 to 10.255.255.255 (Class A - large networks)
+   • 172.16.0.0 to 172.31.255.255 (Class B - medium networks)
+   • 192.168.0.0 to 192.168.255.255 (Class C - home networks)
    • Only visible on your home/office network
    • Router assigns these
    • Example: Your laptop = 192.168.1.100
@@ -359,6 +387,14 @@ TWO TYPES:
    • ISP assigns one per router
    • Example: Your home router = 45.67.89.123
    • All devices in your home share this PUBLIC IP
+
+SPECIAL IPs:
+   • 127.0.0.1 = Localhost (your own computer)
+   • 0.0.0.0 = Any address (server configs)
+
+MALWARE EXAMPLE:
+"Connection to 45.33.32.156" means malware is talking to an internet server (likely attacker's Command & Control server!)
+
 
 MALWARE EXAMPLE:
 "Connection to 45.33.32.156" means malware is talking to an internet server (likely attacker's Command & Control server!)

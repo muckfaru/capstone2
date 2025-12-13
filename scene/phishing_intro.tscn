@@ -1,0 +1,307 @@
+[gd_scene load_steps=7 format=3 uid="uid://1fxs4c1gfkv2"]
+
+[ext_resource type="Script" uid="uid://bgvi2criolac8" path="res://scene/phishing_intro.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_container"]
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.5, 0.8, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+shadow_color = Color(0, 0, 0, 0.2)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tip_box"]
+bg_color = Color(1, 0.95, 0.8, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.7, 0.2, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.3, 0.7, 1, 1)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.2, 0.6, 0.9, 1)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+
+[node name="PhishingIntro" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.9, 0.93, 0.96, 1)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+follow_focus = true
+
+[node name="MainContainer" type="MarginContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="ScrollContainer/MainContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Header" type="VBoxContainer" parent="ScrollContainer/MainContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="IconLabel" type="Label" parent="ScrollContainer/MainContainer/VBox/Header"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 48
+text = "🎣"
+horizontal_alignment = 1
+
+[node name="TitleLabel" type="Label" parent="ScrollContainer/MainContainer/VBox/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 28
+text = "What is Phishing?"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="ScrollContainer/MainContainer/VBox/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+text = "Learn to spot fake emails before they hook you!"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ContentPanel" type="PanelContainer" parent="ScrollContainer/MainContainer/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_container")
+
+[node name="ContentMargin" type="MarginContainer" parent="ScrollContainer/MainContainer/VBox/ContentPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 20
+
+[node name="ContentVBox" type="VBoxContainer" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="WhatIs" type="VBoxContainer" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/WhatIs"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.5, 0.8, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "📧 What is Phishing?"
+
+[node name="Description" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/WhatIs"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "Phishing is a type of cyber attack where criminals send fake emails pretending to be from trusted organizations (like banks, tech companies, or even your workplace). Their goal is to trick you into revealing personal information, clicking malicious links, or downloading harmful files."
+autowrap_mode = 3
+
+[node name="Spacer1" type="Control" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+
+[node name="RedFlags" type="VBoxContainer" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Title" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "🚩 Red Flags to Watch For:"
+
+[node name="Flag1" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "• Urgent language: \"Act now!\" \"Account suspended!\" \"Verify immediately!\""
+autowrap_mode = 3
+
+[node name="Flag2" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "• Generic greetings: \"Dear Customer\" instead of your actual name"
+autowrap_mode = 3
+
+[node name="Flag3" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "• Suspicious sender addresses: Look closely at the email domain (paypa1.com vs paypal.com)"
+autowrap_mode = 3
+
+[node name="Flag4" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "• Requests for personal information: Banks will NEVER ask for passwords via email"
+autowrap_mode = 3
+
+[node name="Flag5" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "• Suspicious links: Hover over links to see where they really go before clicking"
+autowrap_mode = 3
+
+[node name="Flag6" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "• Too good to be true: \"You won a prize!\" from a contest you never entered"
+autowrap_mode = 3
+
+[node name="Spacer2" type="Control" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+
+[node name="TipBox" type="PanelContainer" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tip_box")
+
+[node name="TipMargin" type="MarginContainer" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/TipBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="TipVBox" type="VBoxContainer" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/TipBox/TipMargin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TipTitle" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/TipBox/TipMargin/TipVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.4, 0, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+text = "💡 Pro Tip"
+
+[node name="TipText" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/TipBox/TipMargin/TipVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "When in doubt, don't click! Contact the company directly through their official website or phone number, not through links in the email."
+autowrap_mode = 3
+
+[node name="Stats" type="VBoxContainer" parent="ScrollContainer/MainContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StatsTitle" type="Label" parent="ScrollContainer/MainContainer/VBox/Stats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "📊 Did You Know?"
+horizontal_alignment = 1
+
+[node name="Stat1" type="Label" parent="ScrollContainer/MainContainer/VBox/Stats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "• Over 3.4 billion phishing emails are sent every day"
+horizontal_alignment = 1
+
+[node name="Stat2" type="Label" parent="ScrollContainer/MainContainer/VBox/Stats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "• 1 in 4 people have clicked on a phishing link"
+horizontal_alignment = 1
+
+[node name="Stat3" type="Label" parent="ScrollContainer/MainContainer/VBox/Stats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "• Phishing attacks cost businesses over $10 billion annually"
+horizontal_alignment = 1
+
+[node name="ButtonContainer" type="HBoxContainer" parent="ScrollContainer/MainContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="BackButton" type="Button" parent="ScrollContainer/MainContainer/VBox/ButtonContainer"]
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 17
+text = "← Back"
+
+[node name="StartButton" type="Button" parent="ScrollContainer/MainContainer/VBox/ButtonContainer"]
+custom_minimum_size = Vector2(240, 48)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 17
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "Start the Lab! 🎮"
+
+[node name="BottomSpacer" type="Control" parent="ScrollContainer/MainContainer/VBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
