@@ -157,6 +157,7 @@ caret_blink = true
 secret = true
 
 [node name="EmailLabel" type="Label" parent="VideoStreamPlayer/PasswordLineEdit"]
+visible = false
 layout_mode = 0
 offset_left = 328.0
 offset_top = 45.0
