@@ -404,7 +404,7 @@ _relay_client.message_received.connect(_on_relay_message)
    - When both ready: 2s countdown → Arena
    - **Timeout:** 60s max (increased from 45s), returns to room if sync fails
    - **Retry System:** 5 retry attempts (increased from 3), every 2s
-   - **Settling Delay:** 1.5s initial wait (increased from 0.5s) before first message
+   - **Settling Delay:** 4.0s initial wait (increased from 0.5s) before first message
    - **Verbose Logging:** Timestamps on all messages, connection status tracking, message delay measurement
    - **Relay client reparented to root** before arena transition
 

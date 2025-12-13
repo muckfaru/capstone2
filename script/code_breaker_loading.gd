@@ -43,7 +43,7 @@ const LOADING_TIMEOUT := 60.0  # Increased to 60s for better stability
 const TRANSITION_DELAY := 2.0  # Wait 2s after both ready
 const RETRY_INTERVAL := 2.0    # Retry message every 2 seconds
 const MAX_RETRIES := 5         # Retry up to 5 times before timeout
-const RELAY_SETTLING_DELAY := 1.5  # Wait 1.5s for relay to stabilize
+const RELAY_SETTLING_DELAY := 10.0 # Wait 10s for relay to stabilize
 
 var _retry_count: int = 0      # How many times we've retried
 var _message_sent: bool = false # Did we already send loading status?
