@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://cf6ekdbvv71l2"]
+[gd_scene load_steps=3 format=3 uid="uid://cxj0cnmoaf4dg"]
 
 [ext_resource type="Script" uid="uid://bm2j2cfkg0sqq" path="res://scene/ranso_simulation.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_3dnim"]
