@@ -189,9 +189,11 @@ Emit Signals:
 - **Endpoints:**
   - `POST /api/rooms/create` - Register room (no IP/port needed)
   - `GET /api/rooms/list` - List active rooms
+  - `GET /api/rooms/:id` - Get room details (includes `status`)
   - `POST /api/rooms/:id/join` - Join as client
   - `POST /api/rooms/:id/leave` - Leave room (with host promotion)
   - `POST /api/rooms/:id/heartbeat` - Keep room alive (30s interval)
+  - `POST /api/rooms/:id/status` - Update room `status` (`waiting|in_game|finished`)
   - `WS /ws/relay/:room_id` - WebSocket relay for gameplay
 
 ### Room Lifecycle
@@ -201,7 +203,7 @@ Emit Signals:
 3. Both: WS /ws/relay/:room_id → connected
 4. Host: Clicks START → both transition to arena
 5. Arena: WebSocket relays game actions (typing, damage, etc.)
-6. Game ends → both return to room (with relay preserved)
+6. Game ends → both transition to Post-Game Analytics; room `status` becomes `finished`
 7. Either: POST /leave → room deleted OR host promoted
 ```
 
@@ -373,6 +375,27 @@ _relay_client.connect_to_relay(relay_url, room_id, player_id, username)
 _relay_client.message_received.connect(_on_relay_message)
 ```
 
+## ♻️ Reconnect + Session Persistence (Code Breaker)
+
+**Goal:** LoL-style resume after crash/relogin without desync.
+
+### Session Store
+- **File:** `script/CodeBreakerSessionStore.gd`
+- **Persistence:** `ConfigFile` saved to `user://code_breaker_session.cfg`
+- **Saved fields (typical):** `room_id`, `lobby_url`, `player_id` (may be empty), `phase` (`room|loading|arena`), `timestamp`
+- **Important rule:** never persist placeholder `player_id == "unknown"` (store as empty) to avoid false mismatch wipes.
+
+### Status-Aware Resume Routing
+After auth, the client validates the session via `GET /api/rooms/:id` and routes by `status`:
+- `waiting` → go to Room
+- `in_game` → go to Reconnect
+- `finished` → go to Postgame (`result_unknown` is allowed on resume)
+- `404` / room missing → clear session and stay on Landing
+
+### Landing Resume Safety Net
+- Landing retry logic avoids clearing sessions on transient network failures.
+- When resuming, it will try both the **saved lobby URL** (from the session) and the **current URL** (from `MultiplayerConfig`) to handle `localhost` ↔ `production` mismatches.
+
 ## 🌐 Code Breaker Multiplayer Flow
 
 ### Lobby → Room → Loading → Arena (Complete Flow)
@@ -402,10 +425,12 @@ _relay_client.message_received.connect(_on_relay_message)
    - Sends `loading_status: "ready"` via relay when complete
    - Waits for opponent's ready message
    - When both ready: 2s countdown → Arena
-   - **Timeout:** 60s max (increased from 45s), returns to room if sync fails
+  - **Timeout:** 60s max, returns to room if sync fails
    - **Retry System:** 5 retry attempts (increased from 3), every 2s
    - **Settling Delay:** 4.0s initial wait (increased from 0.5s) before first message
    - **Verbose Logging:** Timestamps on all messages, connection status tracking, message delay measurement
+  - **Self-healing sync:** uses `loading_status_request` to re-announce state after reconnect/message loss
+  - **Robust handling:** ignores self-echo relay messages; on relay reconnect it re-sends own status + requests opponent status
    - **Relay client reparented to root** before arena transition
 
 4. **Arena Scene** (`code_breaker_arena.gd`)
@@ -450,7 +475,12 @@ _relay_client.message_received.connect(_on_relay_message)
      - Panel color changes show active power-up (different Sprite2D visible per type)
    - **Battle Music:** Auto-fade in on start, stops on leave
    - Game ends → **transitions to post-game analytics** (NOT room/landing)
+  - **Room status:** on match end/leave, posts `POST /api/rooms/:id/status` with `finished` to prevent reconnect loops into dead sessions
    - Relay connection cleaned up on game end
+
+6. **Reconnect Scene** (`code_breaker_reconnect.gd`)
+  - Used when a player relogs mid-match (`status == in_game`).
+  - Re-establishes relay connection, then forces a sync path into Loading/Arena using relay messages.
 
 5. **Post-Game Analytics** (`code_breaker_postgame.gd`) **[NEW!]**
    - Shows match results with animated card reveal
@@ -501,6 +531,7 @@ Arena → Room: (if rematch) Reparent to root
 **Loading Screen Messages:**
 ```json
 {"type": "loading_status", "status": "loading|ready", "player_id": "...", "timestamp": 1234567890}
+{"type": "loading_status_request", "player_id": "...", "timestamp": 1234567890}
 ```
 
 **Arena Messages:**
@@ -640,8 +671,10 @@ scene/
 ├─ landing.tscn (hub with visibility toggles)
 ├─ code_breaker_lobby.tscn
 ├─ code_breaker_room.tscn
-├─ code_breaker_loading.tscn ← NEW!
-└─ code_breaker_arena.tscn
+├─ code_breaker_reconnect.tscn
+├─ code_breaker_loading.tscn
+├─ code_breaker_arena.tscn
+└─ code_breaker_postgame.tscn
 ```
 
 ### Server Endpoints (server.js)
@@ -653,6 +686,7 @@ GET    /api/rooms/:id         → Get room details
 POST   /api/rooms/:id/join    → Join as client
 POST   /api/rooms/:id/leave   → Leave (with host promotion logic)
 POST   /api/rooms/:id/heartbeat → Keep-alive (host only, 30s)
+POST   /api/rooms/:id/status  → Update room status (waiting|in_game|finished)
 DELETE /api/rooms/:id         → Delete room
 
 // WebSocket Relay
@@ -672,7 +706,9 @@ WS     /ws/relay/:room_id?player_id=X&username=Y
 - [x] Leave: Handle 3 scenarios (client leaves, host leaves, host alone)
 - [x] Heartbeat: Host only, 30s interval, stops on scene unload
 - [x] Reparenting: Move relay_client to root before `change_scene_to_packed()`
-- [x] Loading: 30s timeout, returns to room on failure
+- [x] Loading: 60s timeout, returns to room on failure
+- [x] Resume routing: `GET /api/rooms/:id` decides Room/Reconnect/Postgame/Landing
+- [x] Room status: set `finished` on match end to stop reconnect loops
 - [x] Stats Sync: Send on BOTH correct (damage) and wrong (self-damage)
 - [x] Periodic Sync: Timer sends stats every 0.5s during gameplay
 - [x] Countdown: 3-2-1-TYPE centered with bounce animations, timer paused during countdown
@@ -724,6 +760,12 @@ Phone (Mobile Data) ────────────────────
   - Verbose logging with timestamps and message delay tracking
 - ✅ **Race Condition Mitigation:** Longer settling delays and more retries improve sync reliability
 - ✅ **Debug Logging Enhanced:** All relay messages now include timestamps for delay measurement
+
+**Latest Updates (Dec 14, 2025):**
+- ✅ **Reconnect/Resume Stability:** Status-aware routing (`waiting|in_game|finished|404`) prevents reconnect loops after match end or room deletion
+- ✅ **Loading Sync Reliability:** Self-healing handshake via `loading_status_request` reduces “stuck on loading” deadlocks
+- ✅ **Lobby URL Mismatch Hardening:** Resume tries saved lobby URL + current `MultiplayerConfig` URL (localhost ↔ production)
+- ✅ **Match Completion State:** Arena posts `finished` to `/api/rooms/:id/status` so late relogs don’t rejoin dead `in_game` sessions
 
 **Previous Updates (Dec 8, 2025):**
 - ✅ **Tutorial System Overhaul:** Complete XP-based progression system with 9 ranks (Iron to Challenger)
