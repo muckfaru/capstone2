@@ -587,6 +587,28 @@ app.ws('/ws/relay/:room_id', (ws, req) => {
   }
   
   const roomConnections = wsConnections.get(room_id);
+
+  // If the same player_id reconnects (e.g., reconnect from another device),
+  // replace the old connection instead of rejecting due to room full.
+  // This prevents the "stuck in loading / stuck waiting for snippet" split-brain.
+  let replacedConnection = null;
+  for (const existing of roomConnections) {
+    if (existing.player_id === player_id) {
+      replacedConnection = existing;
+      break;
+    }
+  }
+  if (replacedConnection) {
+    console.log(`[WebSocket] Replacing existing session for ${username} (${player_id}) in room ${room_id}`);
+    // Mark so the old socket's close handler won't broadcast a disconnect.
+    replacedConnection.replaced = true;
+    try {
+      replacedConnection.ws.close();
+    } catch (e) {
+      // ignore
+    }
+    roomConnections.delete(replacedConnection);
+  }
   
   // Check if room is full (max 2 players)
   if (roomConnections.size >= 2) {
@@ -631,14 +653,17 @@ app.ws('/ws/relay/:room_id', (ws, req) => {
   ws.on('close', () => {
     console.log(`[WebSocket] ${username} disconnected from room ${room_id}`);
     roomConnections.delete(connection);
-    
-    // Notify other players
-    broadcastToRoom(room_id, {
-      type: 'player_disconnected',
-      player_id: player_id,
-      username: username,
-      players_count: roomConnections.size
-    });
+
+    // If this socket was replaced by a reconnect, don't broadcast a disconnect.
+    if (!connection.replaced) {
+      // Notify other players
+      broadcastToRoom(room_id, {
+        type: 'player_disconnected',
+        player_id: player_id,
+        username: username,
+        players_count: roomConnections.size
+      });
+    }
     
     // Clean up empty rooms
     if (roomConnections.size === 0) {

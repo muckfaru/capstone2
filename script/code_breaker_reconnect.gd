@@ -109,6 +109,14 @@ func _reconnect_flow() -> void:
 		
 		if status == "in_game":
 			_status_label.text = "Match in progress. Rejoining…"
+			# Ask the other client (even if currently in Arena) to return to Loading
+			# so both players re-enter Arena together after a reconnect.
+			if _relay_client and _relay_client.has_method("is_relay_connected") and _relay_client.is_relay_connected():
+				_relay_client.send_message({
+					"type": "force_loading_sync",
+					"player_id": _player_id,
+					"timestamp": Time.get_ticks_msec()
+				})
 			_go_to_loading(room_data)
 			return
 		

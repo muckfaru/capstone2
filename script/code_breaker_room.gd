@@ -267,8 +267,8 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 	
 	# If we see host now equals our uid, flip _is_host (promoted)
 	if host_present:
-		var host_uid := str(host_val.get("uid", ""))
-		if host_uid == current_uid and not _is_host:
+		var host_player_id := str(host_val.get("player_id", ""))
+		if host_player_id == current_uid and not _is_host:
 			_is_host = true
 			_message_label.text = "You are the host now."
 			_configure_buttons()
@@ -674,11 +674,13 @@ func _transition_to_loading() -> void:
 	
 	# Use stored room data (from latest lobby server snapshot)
 	var host_data := {
+		"player_id": str(_latest_host_data.get("player_id", "")),
 		"username": str(_latest_host_data.get("username", "Host")),
 		"level": int(_latest_host_data.get("level", 1))
 	}
 	
 	var client_data := {
+		"player_id": str(_latest_client_data.get("player_id", "")),
 		"username": str(_latest_client_data.get("username", "Client")),
 		"level": int(_latest_client_data.get("level", 1))
 	}

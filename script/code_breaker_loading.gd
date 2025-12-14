@@ -256,12 +256,35 @@ func _on_relay_message(data: Dictionary) -> void:
 				print("[Loading] ✅ Opponent is ready!")
 				_update_opponent_status()
 				_check_both_ready()
+
+		"force_loading_sync":
+			# Opponent is (re)joining and wants BOTH clients to sync via Loading.
+			# If we were about to transition, cancel and wait again.
+			print("[Loading] 🔁 Received force_loading_sync - resetting ready state")
+			if _transition_timer and not _transition_timer.is_stopped():
+				_transition_timer.stop()
+			_countdown_started = false
+			_opponent_loaded = false
+			_update_opponent_loading()
+			_status_message.text = "Resyncing players…"
+			_send_loading_status("loading" if not _self_loaded else "ready")
 		
 		"player_disconnected":
 			print("[Loading] ⚠️ Opponent disconnected!")
 			_status_message.text = "Opponent disconnected. Reconnecting..."
 			await get_tree().create_timer(1.0).timeout
 			_go_to_reconnect("Opponent disconnected")
+
+func _update_opponent_loading() -> void:
+	"""Update opponent status to LOADING"""
+	if _is_host:
+		_client_status.text = "⏳ Loading..."
+		_client_status.add_theme_color_override("font_color", COLOR_LOADING)
+		_client_progress.value = 0.0
+	else:
+		_host_status.text = "⏳ Loading..."
+		_host_status.add_theme_color_override("font_color", COLOR_LOADING)
+		_host_progress.value = 0.0
 
 func _update_self_status() -> void:
 	"""Update own status to READY"""
