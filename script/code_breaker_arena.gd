@@ -1413,6 +1413,9 @@ func _end_game_timeout() -> void:
 
 func _leave_arena() -> void:
 	"""Clean up and transition to PostGame screen"""
+	# Update lobby room status so relogin/reconnect does not loop forever.
+	_set_lobby_room_status("finished")
+	
 	# Stop battle music
 	if _battle_music:
 		_battle_music.stop()
@@ -1523,6 +1526,22 @@ func _leave_arena() -> void:
 			var room_scene := load("res://scene/code_breaker_room.tscn")
 			if room_scene:
 				get_tree().change_scene_to_packed(room_scene)
+
+
+func _set_lobby_room_status(new_status: String) -> void:
+	if _lobby_server_url.strip_edges() == "" or _room_id.strip_edges() == "":
+		return
+	if not ["waiting", "in_game", "finished"].has(new_status):
+		return
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, _code, _h, _body: PackedByteArray):
+		http.queue_free()
+	)
+	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/status"
+	var headers := ["Content-Type: application/json"]
+	var body := JSON.stringify({"status": new_status})
+	http.request(url, headers, HTTPClient.METHOD_POST, body)
 
 func _save_xp_to_firestore(xp_earned: int) -> void:
 	"""Save XP earned to Firestore total_xp field"""
