@@ -133,6 +133,7 @@ func _ready() -> void:
 func _on_relay_connected_for_loading() -> void:
 	# When relay becomes connected (or re-connected), re-send current state.
 	_send_loading_status("loading" if not _self_loaded else "ready")
+	_send_status_request()
 
 func _setup_ui() -> void:
 	"""Setup player cards - Left is YOU, Right is OPPONENT"""
@@ -218,6 +219,7 @@ func _simulate_loading() -> void:
 	_self_loaded = true
 	print("[Loading] ✅ Self loaded! Sending ready status...")
 	_send_loading_status("ready")
+	_send_status_request()
 	_update_self_status()
 	_check_both_ready()  # Check if opponent is already ready
 	
@@ -253,11 +255,21 @@ func _send_loading_status(status: String) -> void:
 		])
 		_message_sent = true
 		
-		# Start retry timer if not already running and we haven't exceeded max retries
-		if _retry_timer.is_stopped() and _retry_count < MAX_RETRIES:
+		# Keep retry timer running until sync or timeout
+		if _retry_timer.is_stopped():
 			_retry_timer.start()
 	else:
 		push_error("[Loading] ❌ No relay client to send message!")
+
+
+func _send_status_request() -> void:
+	"""Ask opponent to re-announce their current loading/ready state."""
+	if _relay_client:
+		_relay_client.send_message({
+			"type": "loading_status_request",
+			"player_id": _player_id,
+			"timestamp": Time.get_ticks_msec()
+		})
 
 func _on_relay_message(data: Dictionary) -> void:
 	"""Handle relay messages from opponent"""
@@ -284,6 +296,10 @@ func _on_relay_message(data: Dictionary) -> void:
 				_update_opponent_status()
 				_check_both_ready()
 
+		"loading_status_request":
+			# Opponent is asking us to re-send our current state.
+			_send_loading_status("loading" if not _self_loaded else "ready")
+
 		"force_loading_sync":
 			# Opponent is (re)joining and wants BOTH clients to sync via Loading.
 			# If we were about to transition, cancel and wait again.
@@ -295,6 +311,7 @@ func _on_relay_message(data: Dictionary) -> void:
 			_update_opponent_loading()
 			_status_message.text = "Resyncing players…"
 			_send_loading_status("loading" if not _self_loaded else "ready")
+			_send_status_request()
 		
 		"player_disconnected":
 			print("[Loading] ⚠️ Opponent disconnected!")
@@ -344,8 +361,9 @@ func _on_retry_timeout() -> void:
 		return  # Already transitioned or haven't sent initial message
 	
 	_retry_count += 1
-	print("[Loading] 🔄 Retry #%d: Re-sending loading status..." % _retry_count)
+	print("[Loading] 🔄 Retry #%d: Re-sending loading status + requesting opponent state..." % _retry_count)
 	_send_loading_status("loading" if not _self_loaded else "ready")
+	_send_status_request()
 
 func _on_loading_timeout() -> void:
 	"""Handle loading timeout (45 seconds)"""
