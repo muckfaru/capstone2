@@ -1,5 +1,7 @@
 extends Control
 
+const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+
 # UI References
 @onready var _host_username: Label = $HostCard/HostUsername
 @onready var _host_status: Label = $HostCard/HostStatus
@@ -199,6 +201,8 @@ func _format_time(seconds: float) -> String:
 func _on_back_to_landing_pressed() -> void:
 	"""Handle back to landing button press"""
 	print("[PostGame] 🔙 Back to Landing pressed")
+	# Postgame means the session is over; don't attempt to auto-resume.
+	_SessionStore.clear_session()
 	
 	# Clean up relay connection
 	if _relay_client:

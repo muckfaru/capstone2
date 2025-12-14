@@ -1,5 +1,7 @@
 extends Control
 
+const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+
 @onready var _status_label: Label = $StatusLabel
 @onready var _retry_button: Button = $RetryButton
 @onready var _back_button: Button = $BackButton
@@ -42,6 +44,14 @@ func _ready() -> void:
 		_username = Auth.current_username if Auth else "Player"
 	if _player_id == "":
 		_player_id = Auth.current_local_id if Auth else "unknown"
+	# Persist last known session so relogin can resume here
+	_SessionStore.save_session(
+		_room_id,
+		_lobby_server_url,
+		_player_id,
+		_username,
+		"reconnect"
+	)
 
 	_retry_button.pressed.connect(_on_retry_pressed)
 	_back_button.pressed.connect(_on_back_pressed)
@@ -101,6 +111,10 @@ func _reconnect_flow() -> void:
 			return
 		
 		var status := str(room_data.get("status", "waiting"))
+		# Update role based on authoritative lobby snapshot
+		var host_dict = room_data.get("host", null)
+		if typeof(host_dict) == TYPE_DICTIONARY:
+			_is_host = (str(host_dict.get("player_id", "")) == _player_id)
 		if status == "waiting":
 			_status_label.text = "Room is waiting. You can return to room."
 			_retry_button.disabled = false

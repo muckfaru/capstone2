@@ -1,5 +1,7 @@
 extends Control
 
+const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+
 ## CODE BREAKER ARENA - Submit-Based Typing Combat
 ## 🎮 NEW MECHANICS (v3.0):
 ## - Type code in input field, press ENTER to submit
@@ -175,6 +177,14 @@ func _ready() -> void:
 	_player_id = str(init.get("player_id", ""))
 	_is_host = bool(init.get("is_host", false))
 	_lobby_server_url = str(init.get("lobby_server_url", ""))
+	# Persist last known session so relogin can resume to reconnect
+	_SessionStore.save_session(
+		_room_id,
+		_lobby_server_url,
+		_player_id,
+		Auth.current_username if Auth else "Player",
+		"arena"
+	)
 	
 	_host_data = init.get("host_data", {})
 	_client_data = init.get("client_data", {})

@@ -1,5 +1,7 @@
 extends Control
 
+const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+
 # UI References
 @onready var _host_username: Label = $HostCard/HostUsername
 @onready var _host_status: Label = $HostCard/HostStatus
@@ -63,6 +65,14 @@ func _ready() -> void:
 	_client_data = init.get("client_data", {})
 	_game_start_time = int(init.get("game_start_time", 0))
 	_lobby_server_url = str(init.get("lobby_server_url", ""))
+	# Persist last known session so relogin can resume to reconnect
+	_SessionStore.save_session(
+		_room_id,
+		_lobby_server_url,
+		_player_id,
+		Auth.current_username if Auth else "Player",
+		"loading"
+	)
 	
 	print("[Loading] 🎮 Init data:")
 	print("  Player ID: %s" % _player_id)

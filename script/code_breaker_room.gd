@@ -1,5 +1,7 @@
 extends Control
 
+const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+
 @onready var _room_id_label: Label = $RoomHeader/RoomIDLabel
 @onready var _room_state_label: Label = $RoomHeader/RoomStateLabel
 @onready var _host_username: Label = $CardsContainer/HostCard/Username
@@ -70,6 +72,14 @@ func _ready() -> void:
 	
 	# Initialize lobby server URL for heartbeat
 	_initialize_lobby_config()
+	# Persist last known session so relogin can resume to reconnect
+	_SessionStore.save_session(
+		_room_id,
+		_lobby_server_url,
+		Auth.current_local_id if Auth else "unknown",
+		Auth.current_username if Auth else "Player",
+		"room"
+	)
 
 	# Initially hide the randomized room id; will set actual room name after first fetch
 	_room_id_label.text = ""
@@ -491,6 +501,8 @@ func _on_ready_toggled(pressed: bool) -> void:
 
 func _leave_room() -> void:
 	print("[CodeBreakerRoom] Leave Room pressed")
+	# Intentional leave: clear resume session
+	_SessionStore.clear_session()
 	
 	# Stop heartbeat if host
 	if _is_host:
@@ -554,6 +566,8 @@ func _go_to_landing() -> void:
 	# Stop heartbeat before leaving
 	if _is_host:
 		_stop_heartbeat()
+	# Intentional landing route: clear resume session
+	_SessionStore.clear_session()
 	
 	var landing := load("res://scene/landing.tscn")
 	if landing:
