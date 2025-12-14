@@ -106,6 +106,10 @@ func _ready() -> void:
 	# Connect relay signals
 	if not _relay_client.message_received.is_connected(_on_relay_message):
 		_relay_client.message_received.connect(_on_relay_message)
+	# If relay reconnects while we're on Loading, re-announce our current state.
+	if _relay_client.has_signal("connected_to_relay"):
+		if not _relay_client.connected_to_relay.is_connected(_on_relay_connected_for_loading):
+			_relay_client.connected_to_relay.connect(_on_relay_connected_for_loading)
 	
 	# Setup timers
 	_setup_timers()
@@ -115,12 +119,20 @@ func _ready() -> void:
 	
 	# IMPORTANT: Wait longer for relay to be fully connected before sending first message
 	# This prevents race condition where message arrives before opponent's relay is ready
-	print("[Loading] ⏳ Waiting 1.5s for relay to stabilize...")
+	print("[Loading] ⏳ Waiting for relay to stabilize...")
 	await get_tree().create_timer(1.5).timeout
-	print("[Loading] ✅ Relay settling delay complete, now sending loading status...")
+	print("[Loading] ✅ Settling delay complete, now sending loading status...")
 	
 	# Send "I'm loading" message
 	_send_loading_status("loading")
+	# Keep retrying until we sync or timeout
+	if _retry_timer and _retry_timer.is_stopped():
+		_retry_timer.start()
+
+
+func _on_relay_connected_for_loading() -> void:
+	# When relay becomes connected (or re-connected), re-send current state.
+	_send_loading_status("loading" if not _self_loaded else "ready")
 
 func _setup_ui() -> void:
 	"""Setup player cards - Left is YOU, Right is OPPONENT"""
@@ -256,12 +268,17 @@ func _on_relay_message(data: Dictionary) -> void:
 	
 	match msg_type:
 		"loading_status":
-			var status = data.get("status", "")
-			var _sender_id = data.get("player_id", "")
+			var status := str(data.get("status", ""))
+			var sender_id := str(data.get("player_id", ""))
+			# Ignore self-echo (if server ever broadcasts back)
+			if sender_id != "" and sender_id == _player_id:
+				return
 			
 			print("[Loading] Opponent status: %s" % status)
-			
-			if status == "ready":
+			if status == "loading":
+				_opponent_loaded = false
+				_update_opponent_loading()
+			elif status == "ready":
 				_opponent_loaded = true
 				print("[Loading] ✅ Opponent is ready!")
 				_update_opponent_status()
@@ -287,36 +304,24 @@ func _on_relay_message(data: Dictionary) -> void:
 
 func _update_opponent_loading() -> void:
 	"""Update opponent status to LOADING"""
-	if _is_host:
-		_client_status.text = "⏳ Loading..."
-		_client_status.add_theme_color_override("font_color", COLOR_LOADING)
-		_client_progress.value = 0.0
-	else:
-		_host_status.text = "⏳ Loading..."
-		_host_status.add_theme_color_override("font_color", COLOR_LOADING)
-		_host_progress.value = 0.0
+	# Right card is always opponent
+	_client_status.text = "⏳ Loading..."
+	_client_status.add_theme_color_override("font_color", COLOR_LOADING)
+	_client_progress.value = 0.0
 
 func _update_self_status() -> void:
 	"""Update own status to READY"""
-	if _is_host:
-		_host_status.text = "✅ Ready!"
-		_host_status.add_theme_color_override("font_color", COLOR_READY)
-		_host_progress.value = 100.0
-	else:
-		_client_status.text = "✅ Ready!"
-		_client_status.add_theme_color_override("font_color", COLOR_READY)
-		_client_progress.value = 100.0
+	# Left card is always YOU
+	_host_status.text = "✅ Ready!"
+	_host_status.add_theme_color_override("font_color", COLOR_READY)
+	_host_progress.value = 100.0
 
 func _update_opponent_status() -> void:
 	"""Update opponent status to READY"""
-	if _is_host:
-		_client_status.text = "✅ Ready!"
-		_client_status.add_theme_color_override("font_color", COLOR_READY)
-		_client_progress.value = 100.0
-	else:
-		_host_status.text = "✅ Ready!"
-		_host_status.add_theme_color_override("font_color", COLOR_READY)
-		_host_progress.value = 100.0
+	# Right card is always opponent
+	_client_status.text = "✅ Ready!"
+	_client_status.add_theme_color_override("font_color", COLOR_READY)
+	_client_progress.value = 100.0
 
 func _check_both_ready() -> void:
 	"""Check if both players are ready, then transition"""
@@ -339,13 +344,8 @@ func _on_retry_timeout() -> void:
 		return  # Already transitioned or haven't sent initial message
 	
 	_retry_count += 1
-	
-	if _retry_count < MAX_RETRIES:
-		print("[Loading] 🔄 Retry #%d: Re-sending loading status..." % _retry_count)
-		_send_loading_status("loading" if not _self_loaded else "ready")
-	else:
-		print("[Loading] ⚠️ Max retries exceeded! Waiting for timeout...")
-		_retry_timer.stop()
+	print("[Loading] 🔄 Retry #%d: Re-sending loading status..." % _retry_count)
+	_send_loading_status("loading" if not _self_loaded else "ready")
 
 func _on_loading_timeout() -> void:
 	"""Handle loading timeout (45 seconds)"""
