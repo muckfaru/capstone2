@@ -275,39 +275,31 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 
 func _transition_to_arena_from_poll(room_data: Dictionary) -> void:
 	# Called by polling client when it detects state: "in_game"
+	# IMPORTANT: In relay architecture, we must go Room -> Loading -> Arena.
+	# This also enables "reconnect" if the client missed the game_start relay message.
 	if _transitioning_to_arena:
 		return  # Already transitioning, ignore duplicate calls
 	
 	_transitioning_to_arena = true
-	print("[CodeBreakerRoom] Client detected game start, transitioning to arena")
+	print("[CodeBreakerRoom] Detected in_game via polling, transitioning to loading")
 	
-	# IMPORTANT: Verify multiplayer peer BEFORE transitioning (client path)
-	_setup_multiplayer_peer(room_data)
+	# Capture start time if server provided it
+	var fallback_start_time: int = _game_start_time
+	if fallback_start_time == 0:
+		fallback_start_time = int(Time.get_unix_time_from_system())
+	_game_start_time = int(room_data.get("game_start_time", fallback_start_time))
 	
-	# Prepare arena init data
-	var arena_init := {
-		"room_id": _room_id,
-		"is_host": _is_host,
-		"host_name": str(Auth.current_username if Auth else "Host"),
-		"room_data": room_data,
-		"peer_id": multiplayer.get_unique_id()
-	}
+	# If relay isn't connected, go to reconnect instead of getting stuck
+	if not _relay_client or not _relay_connected:
+		_go_to_reconnect("Detected in_game, relay not connected")
+		return
 	
-	# Stop heartbeat before arena transition
+	# Stop heartbeat before leaving room (host only)
 	if _is_host:
 		_stop_heartbeat()
 	
-	# Store meta data safely
-	if get_tree():
-		get_tree().set_meta("code_breaker_arena_init", arena_init)
-	
-	# Load and transition to arena
-	var arena_scene := load("res://scene/code_breaker_arena.tscn")
-	if arena_scene and get_tree():
-		get_tree().change_scene_to_packed(arena_scene)
-	else:
-		push_error("[CodeBreakerRoom] Failed to transition to arena - scene or tree invalid")
-		_transitioning_to_arena = false
+	# Use existing flow (preserves relay via reparent)
+	_transition_to_loading()
 
 func _apply_room_snapshot(node: Dictionary) -> void:
 	# Check if game has started
@@ -568,6 +560,45 @@ func _go_to_landing() -> void:
 		get_tree().change_scene_to_packed(landing)
 
 
+func _go_to_reconnect(reason: String) -> void:
+	# Stop heartbeat before leaving
+	if _is_host:
+		_stop_heartbeat()
+	
+	if _lobby_server_url == "" or _room_id == "":
+		_go_to_landing()
+		return
+	
+	# Preserve relay across scene change
+	if _relay_client and _relay_client.get_parent():
+		_relay_client.get_parent().remove_child(_relay_client)
+		get_tree().root.add_child(_relay_client)
+	
+	var host_data := _latest_host_data if typeof(_latest_host_data) == TYPE_DICTIONARY else {}
+	var client_data := _latest_client_data if typeof(_latest_client_data) == TYPE_DICTIONARY else {}
+	
+	var init := {
+		"room_id": _room_id,
+		"lobby_server_url": _lobby_server_url,
+		"player_id": Auth.current_local_id if Auth else "unknown",
+		"username": Auth.current_username if Auth else "Player",
+		"is_host": _is_host,
+		"relay_client": _relay_client,
+		"host_data": host_data,
+		"client_data": client_data,
+		"game_start_time": _game_start_time,
+		"reason": reason
+	}
+	get_tree().set_meta("code_breaker_reconnect_init", init)
+	
+	var reconnect_scene := load("res://scene/code_breaker_reconnect.tscn")
+	if reconnect_scene:
+		get_tree().change_scene_to_packed(reconnect_scene)
+	else:
+		push_error("[CodeBreakerRoom] code_breaker_reconnect.tscn not found")
+		_go_to_landing()
+
+
 # =============================================================================
 # GAME START - Host triggers arena transition (RTDB state + ENet P2P)
 # =============================================================================
@@ -765,9 +796,9 @@ func _setup_relay_connection() -> void:
 		# Remove client from server room since connection failed
 		if not _is_host:
 			await _notify_server_client_left()
-		# Wait 3 seconds before returning to lobby
+		# Wait 3 seconds before attempting reconnect
 		await get_tree().create_timer(3.0).timeout
-		_go_to_landing()
+		_go_to_reconnect("Relay timeout")
 		return
 	
 	print("[CodeBreakerRoom] ✅ Connected to relay!")
@@ -786,7 +817,7 @@ func _on_relay_disconnected() -> void:
 	print("[CodeBreakerRoom] Relay connection lost")
 	
 	if not _transitioning_to_arena:
-		_show_connection_error("Connection to relay lost")
+		_go_to_reconnect("Relay disconnected")
 
 
 func _on_relay_message_received(data: Dictionary) -> void:
@@ -892,8 +923,8 @@ func _setup_multiplayer_peer(_room_data: Dictionary) -> void:
 func _show_connection_error(message: String) -> void:
 	"""Show connection error and return to lobby after delay"""
 	_message_label.text = message
-	await get_tree().create_timer(5.0).timeout
-	_go_to_landing()
+	await get_tree().create_timer(2.0).timeout
+	_go_to_reconnect(message)
 
 
 # =============================================================================

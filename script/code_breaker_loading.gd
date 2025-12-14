@@ -2,12 +2,10 @@ extends Control
 
 # UI References
 @onready var _host_username: Label = $HostCard/HostUsername
-@onready var _host_avatar: Sprite2D = $HostCard/Avatar1
 @onready var _host_status: Label = $HostCard/HostStatus
 @onready var _host_progress: ProgressBar = $HostCard/HostProgressBar
 
 @onready var _client_username: Label = $ClientCard/ClientUsername
-@onready var _client_avatar: Sprite2D = $ClientCard/Avatar1
 @onready var _client_status: Label = $ClientCard/ClientStatus
 @onready var _client_progress: ProgressBar = $ClientCard/ClientProgressBar
 
@@ -43,14 +41,14 @@ const LOADING_TIMEOUT := 60.0  # Increased to 60s for better stability
 const TRANSITION_DELAY := 2.0  # Wait 2s after both ready
 const RETRY_INTERVAL := 2.0    # Retry message every 2 seconds
 const MAX_RETRIES := 5         # Retry up to 5 times before timeout
-const RELAY_SETTLING_DELAY := 10.0 # Wait 10s for relay to stabilize
+const RELAY_SETTLING_DELAY := 0.5 # Wait 1s for relay to stabilize
 
 var _retry_count: int = 0      # How many times we've retried
 var _message_sent: bool = false # Did we already send loading status?
 
 func _ready() -> void:
 	print("[Loading] Scene initialized")
-	
+	 
 	# Get init data from room
 	var init: Dictionary = {}
 	if get_tree().has_meta("code_breaker_loading_init"):
@@ -73,8 +71,8 @@ func _ready() -> void:
 	print("  Client Data: %s" % _client_data)
 	
 	if _relay_client == null:
-		push_error("[Loading] No relay client! Returning to room...")
-		_return_to_room()
+		push_error("[Loading] No relay client! Going to reconnect...")
+		_go_to_reconnect("Missing relay client")
 		return
 	
 	# Adopt relay_client if it's attached to root
@@ -261,9 +259,9 @@ func _on_relay_message(data: Dictionary) -> void:
 		
 		"player_disconnected":
 			print("[Loading] ⚠️ Opponent disconnected!")
-			_status_message.text = "Opponent disconnected. Returning to room..."
-			await get_tree().create_timer(2.0).timeout
-			_return_to_room()
+			_status_message.text = "Opponent disconnected. Reconnecting..."
+			await get_tree().create_timer(1.0).timeout
+			_go_to_reconnect("Opponent disconnected")
 
 func _update_self_status() -> void:
 	"""Update own status to READY"""
@@ -324,10 +322,43 @@ func _on_loading_timeout() -> void:
 	_retry_timer.stop()
 	
 	print("[Loading] ⏰ Loading timeout after %ds!" % LOADING_TIMEOUT)
-	_status_message.text = "Loading timeout. Returning to room..."
+	_status_message.text = "Loading timeout. Reconnecting..."
 	
-	await get_tree().create_timer(2.0).timeout
-	_return_to_room()
+	await get_tree().create_timer(1.0).timeout
+	_go_to_reconnect("Loading timeout")
+
+func _go_to_reconnect(reason: String) -> void:
+	print("[Loading] 🔄 Going to reconnect scene. Reason: ", reason)
+	
+	# Disconnect relay signals
+	if _relay_client and _relay_client.message_received.is_connected(_on_relay_message):
+		_relay_client.message_received.disconnect(_on_relay_message)
+	
+	# Preserve relay client if present
+	if _relay_client and _relay_client.get_parent():
+		_relay_client.get_parent().remove_child(_relay_client)
+		get_tree().root.add_child(_relay_client)
+	
+	var init := {
+		"room_id": _room_id,
+		"lobby_server_url": _lobby_server_url,
+		"player_id": _player_id,
+		"username": Auth.current_username if Auth else "Player",
+		"is_host": _is_host,
+		"relay_client": _relay_client,
+		"host_data": _host_data,
+		"client_data": _client_data,
+		"game_start_time": _game_start_time,
+		"reason": reason
+	}
+	get_tree().set_meta("code_breaker_reconnect_init", init)
+	
+	var reconnect_scene := load("res://scene/code_breaker_reconnect.tscn")
+	if reconnect_scene:
+		get_tree().change_scene_to_packed(reconnect_scene)
+	else:
+		push_error("[Loading] code_breaker_reconnect.tscn not found; returning to room")
+		_return_to_room()
 
 func _transition_to_arena() -> void:
 	"""Transition to arena scene"""
