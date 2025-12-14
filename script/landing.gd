@@ -94,7 +94,7 @@ func _try_resume_code_breaker_session() -> void:
 
 	# Ignore stale sessions from other accounts
 	var session_player_id := str(session.get("player_id", ""))
-	if session_player_id != "" and session_player_id != Auth.current_local_id:
+	if session_player_id != "" and session_player_id != "unknown" and session_player_id != Auth.current_local_id:
 		_SessionStore.clear_session()
 		return
 

@@ -1,5 +1,7 @@
 extends Control
 
+const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+
 @onready var email_input: LineEdit = $VideoStreamPlayer/EmailLineEdit
 @onready var password_input: LineEdit = $VideoStreamPlayer/PasswordLineEdit
 @onready var message_label: Label = $VideoStreamPlayer/MessageLabel
@@ -118,7 +120,9 @@ func _check_firestore_username_and_route():
 				if fields.has("username") and fields["username"].has("stringValue"):
 					var username = fields["username"]["stringValue"]
 					print("✅ Existing user found with username: ", username)
-					# Existing user with username - go to landing
+					# Existing user with username - try to resume any Code Breaker session first
+					if _maybe_resume_code_breaker_session():
+						return
 					get_tree().change_scene_to_file("res://scene/landing.tscn")
 				else:
 					print("🆕 User document exists but no username found")
@@ -133,6 +137,53 @@ func _check_firestore_username_and_route():
 			get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
 	)
 	http.request(url, headers, HTTPClient.METHOD_GET)
+
+
+func _maybe_resume_code_breaker_session() -> bool:
+	if not Auth or Auth.current_local_id == "":
+		return false
+
+	var session := _SessionStore.load_session()
+	if session.is_empty():
+		return false
+
+	var room_id := str(session.get("room_id", "")).strip_edges()
+	if room_id == "":
+		return false
+
+	var session_player_id := str(session.get("player_id", ""))
+	if session_player_id != "" and session_player_id != "unknown" and session_player_id != Auth.current_local_id:
+		# Belongs to another account; clear and ignore.
+		_SessionStore.clear_session()
+		return false
+
+	var lobby_url := ""
+	if typeof(MultiplayerConfig) != TYPE_NIL and MultiplayerConfig:
+		lobby_url = str(MultiplayerConfig.get_lobby_url())
+	if lobby_url.strip_edges() == "":
+		lobby_url = str(session.get("lobby_server_url", ""))
+	if lobby_url.strip_edges() == "":
+		return false
+
+	print("[Login] 🔄 Resuming Code Breaker session into reconnect. Room: ", room_id)
+	var init := {
+		"room_id": room_id,
+		"lobby_server_url": lobby_url,
+		"player_id": Auth.current_local_id,
+		"username": Auth.current_username,
+		"is_host": false,
+		"relay_client": null,
+		"host_data": {},
+		"client_data": {},
+		"game_start_time": 0,
+		"reason": "Resume after relogin"
+	}
+	get_tree().set_meta("code_breaker_reconnect_init", init)
+	var reconnect_scene := load("res://scene/code_breaker_reconnect.tscn")
+	if reconnect_scene:
+		get_tree().change_scene_to_packed(reconnect_scene)
+		return true
+	return false
 
 
 # ------------------------------------------------------
