@@ -1,6 +1,9 @@
 extends Control
 
 # === UI References ===
+@onready var news_panel = $VideoStreamPlayer/HomePanel/NewsPanel
+@onready var mission_button: Button
+@onready var welcome_ui := $PokemonStyleWelcomeUI
 @onready var username_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/usernameInput
 @onready var level_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/levelInput
 @onready var wins_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/winsInput
@@ -13,7 +16,6 @@ extends Control
 @onready var change_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/ChangeAvatarButton
 @onready var save_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/SaveProfile
 @onready var tutorial_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/TutorialButton
-@onready var reset_stats_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/ResetStatsButton
 @onready var avatar_picker: PopupPanel = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker
 @onready var avatar_grid: GridContainer = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/GridContainer
 @onready var menu_panel: Control = $MenuPanel
@@ -23,19 +25,16 @@ var avatars: Dictionary = {}
 var selected_avatar: String = ""
 var last_avatar_change: int = 0
 var avatar_cooldown: int = 2592000 # 30 days
+var first_mission_active: bool = false
 
-# Firestore base
 var firestore_base_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users"
-
-# Reusable HTTP node for requests
 var http: HTTPRequest
+
+# ✅ CRITICAL: Flag to prevent duplicate welcome bonus
+var welcome_bonus_awarded: bool = false
 
 # === Lifecycle ===
 func _ready() -> void:
-	#print("Setting fullscreen...")
-	#DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-
-	# Create reusable HTTPRequest node
 	http = HTTPRequest.new()
 	add_child(http)
 
@@ -43,93 +42,572 @@ func _ready() -> void:
 	change_btn.pressed.connect(_on_change_avatar_pressed)
 	save_btn.pressed.connect(_on_save_profile_pressed)
 	tutorial_btn.pressed.connect(_on_tutorial_pressed)
-	reset_stats_btn.pressed.connect(_on_reset_stats_pressed)
-	_load_user_data()
-
-	# Load and instance ChatPanel
+	
+	# ✅ OPTIMIZATION: Load user data first (includes welcome tutorial check)
+	_load_user_data_and_check_tutorial()
+	
 	_instantiate_chat_panel()
-
-	# mark presence online when entering landing
 	Auth.set_user_online()
 	
-	# Connect to XP update signals FIRST (before loading data)
-	TutorialManager.xp_updated.connect(_on_xp_updated)
-	TutorialManager.rank_up.connect(_on_rank_up)
-	TutorialManager.data_loaded.connect(_update_xp_display)
+	# ✅ Connect XP signals
+	if not TutorialManager.xp_updated.is_connected(_on_xp_updated):
+		TutorialManager.xp_updated.connect(_on_xp_updated)
+	if not TutorialManager.rank_up.is_connected(_on_rank_up):
+		TutorialManager.rank_up.connect(_on_rank_up)
+	if not TutorialManager.data_loaded.is_connected(_update_xp_display):
+		TutorialManager.data_loaded.connect(_update_xp_display)
 	
-	# Load tutorial/XP data for game unlocks (signal will fire after load completes)
 	TutorialManager.load_user_data()
-	
-	# Also update display immediately if TutorialManager already has data
-	# (in case of hot reload or scene re-entry)
-	# Use call_deferred to ensure UI nodes are fully ready
 	call_deferred("_update_xp_display")
-
-	# === Navigation setup ===
-	_setup_navigation()
-
-	_check_tutorial_status()
 	
+	_setup_navigation()
+	_setup_mission_system()
+
+	# ===== POKEMON WELCOME UI SETUP =====
+	if welcome_ui:
+		print("[Landing] ✅ PokemonStyleWelcomeUI found in scene tree")
+		welcome_ui.layer = 100
+		welcome_ui.visible = false
+		
+		# ✅ Disconnect any existing connections first
+		if welcome_ui.tutorial_completed.is_connected(_on_welcome_tutorial_completed):
+			welcome_ui.tutorial_completed.disconnect(_on_welcome_tutorial_completed)
+		
+		# Connect with ONE_SHOT to prevent multiple calls
+		welcome_ui.tutorial_completed.connect(_on_welcome_tutorial_completed, CONNECT_ONE_SHOT)
+		print("[Landing] ✅ Connected tutorial_completed signal (ONE_SHOT)")
+	else:
+		push_error("[Landing] ❌ PokemonStyleWelcomeUI node not found!")
+	
+func _setup_mission_system() -> void:
+	"""Setup the first mission as clickable label in NewsPanel"""
+	if not news_panel:
+		push_error("[Landing] NewsPanel not found!")
+		return
+	
+	# Create clickable mission label (simple text style)
+	mission_button = Button.new()
+	mission_button.name = "FirstMissionButton"
+	mission_button.text = "URGENT: Task Awaits!"
+	mission_button.custom_minimum_size = Vector2(380, 80)
+	mission_button.position = Vector2(10, 65)
+	mission_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	# Make button completely transparent (plain text style)
+	var btn_style = StyleBoxEmpty.new()
+	
+	mission_button.add_theme_stylebox_override("normal", btn_style)
+	mission_button.add_theme_stylebox_override("hover", btn_style)
+	mission_button.add_theme_stylebox_override("pressed", btn_style)
+	mission_button.add_theme_stylebox_override("focus", btn_style)
+	mission_button.add_theme_font_size_override("font_size", 16)
+	mission_button.add_theme_color_override("font_color", Color.WHITE)
+	mission_button.add_theme_color_override("font_hover_color", Color.WHITE)  # No color change on hover
+	mission_button.add_theme_color_override("font_pressed_color", Color.WHITE)
+	mission_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	mission_button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	mission_button.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	
+	# Add black divider line below
+	var divider = ColorRect.new()
+	divider.name = "MissionDivider"
+	divider.size = Vector2(380, 2)
+	divider.position = Vector2(10, 115)  # Below the text
+	divider.color = Color(0, 0, 0, 1)  # Black color
+	
+	# Connect button click
+	mission_button.pressed.connect(_on_mission_button_pressed)
+	
+	# Add to NewsPanel
+	news_panel.add_child(mission_button)
+	news_panel.add_child(divider)
+	
+	# Initially hidden
+	mission_button.visible = false
+	divider.visible = false
+	
+	print("[Landing] ✅ Mission system initialized")
+
+
+# === Call this after welcome tutorial completes ===
+func _activate_first_mission() -> void:
+	"""Activate the first mission for new players"""
+	if not mission_button:
+		push_error("[Landing] Mission button not initialized!")
+		return
+	
+	print("[Landing] 🎯 Activating first mission!")
+	first_mission_active = true
+	mission_button.visible = true
+	
+	# Show divider
+	var divider = news_panel.get_node_or_null("MissionDivider")
+	if divider:
+		divider.visible = true
+	
+	# Animate button to draw attention
+	_animate_mission_button()
+
+
+func _animate_mission_button() -> void:
+	"""Pulse animation for mission button"""
+	if not mission_button:
+		return
+	
+	var tween = create_tween()
+	tween.set_loops(5)  # Pulse 5 times
+	tween.tween_property(mission_button, "modulate:a", 0.6, 0.5)
+	tween.tween_property(mission_button, "modulate:a", 1.0, 0.5)
+
+
+func _on_mission_button_pressed() -> void:
+	"""Show mission details popup"""
+	print("[Landing] 🎯 Mission button clicked!")
+	
+	# Create custom dialog panel
+	var dialog_panel = Panel.new()
+	dialog_panel.custom_minimum_size = Vector2(700, 450)
+	dialog_panel.position = Vector2(
+		(get_viewport().size.x - 700) / 2,
+		(get_viewport().size.y - 450) / 2
+	)
+	
+	# Style the panel (matching mode_selection style)
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.05, 0.1, 0.15, 0.95)  # Dark blue-ish background
+	panel_style.border_width_left = 2
+	panel_style.border_width_top = 2
+	panel_style.border_width_right = 2
+	panel_style.border_width_bottom = 2
+	panel_style.border_color = Color(0, 0.9, 1, 0.8)  # Cyan border
+	panel_style.corner_radius_top_left = 8
+	panel_style.corner_radius_top_right = 8
+	panel_style.corner_radius_bottom_left = 8
+	panel_style.corner_radius_bottom_right = 8
+	panel_style.shadow_color = Color(0, 1, 1, 0.3)
+	panel_style.shadow_size = 15
+	dialog_panel.add_theme_stylebox_override("panel", panel_style)
+	
+	# Title
+	var title_label = Label.new()
+	title_label.text = "Task Awaits"
+	title_label.position = Vector2(0, 10)
+	title_label.size = Vector2(700, 40)
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1))
+	title_label.add_theme_font_size_override("font_size", 18)
+	dialog_panel.add_child(title_label)
+	
+	# Mission Title
+	var mission_title = Label.new()
+	mission_title.text = "Task 00: Learn"
+	mission_title.position = Vector2(0, 50)
+	mission_title.size = Vector2(700, 40)
+	mission_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mission_title.add_theme_color_override("font_color", Color(0, 1, 1, 1))  # Cyan
+	mission_title.add_theme_font_size_override("font_size", 28)
+	dialog_panel.add_child(mission_title)
+	
+	# Description
+	var description = Label.new()
+	description.text = "Your First Cyber Arena Mission is to learn the basics of cybersecurity and \nhow to protect yourself online against threats!"
+	description.position = Vector2(40, 110)
+	description.size = Vector2(620, 80)
+	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	description.autowrap_mode = TextServer.AUTOWRAP_WORD
+	description.add_theme_color_override("font_color", Color(0, 1, 1, 1))  # Cyan
+	description.add_theme_font_size_override("font_size", 16)
+	dialog_panel.add_child(description)
+	
+	# Mission objectives
+	var mission_label = Label.new()
+	mission_label.text = """Your Objectives:
+• Navigate to MODULE section
+• Complete security training tutorials
+• Learn how to defend against cyber threats
+• Earn XP to unlock advanced security tools"""
+	mission_label.position = Vector2(40, 190)
+	mission_label.size = Vector2(620, 120)
+	mission_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	mission_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))  # Cyan
+	mission_label.add_theme_font_size_override("font_size", 16)
+	dialog_panel.add_child(mission_label)
+	
+	# Reward
+	var reward_label = Label.new()
+	reward_label.text = "REWARD: 50 XP"
+	reward_label.position = Vector2(40, 310)
+	reward_label.size = Vector2(620, 30)
+	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	reward_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))  # Cyan
+	reward_label.add_theme_font_size_override("font_size", 18)
+	dialog_panel.add_child(reward_label)
+	
+	# Challenge text
+	var challenge_label = Label.new()
+	challenge_label.text = "This is your first real test, Agent. Can you handle it?"
+	challenge_label.position = Vector2(40, 345)
+	challenge_label.size = Vector2(620, 30)
+	challenge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	challenge_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))  # Cyan
+	challenge_label.add_theme_font_size_override("font_size", 16)
+	dialog_panel.add_child(challenge_label)
+	
+	# Accept Mission Button (centered)
+	var accept_btn = Button.new()
+	accept_btn.text = "Accept Mission"
+	accept_btn.custom_minimum_size = Vector2(200, 40)
+	accept_btn.position = Vector2(175, 395)  # Centered: (700 - 450) / 2 = 125, then 125 + 50 = 175
+	accept_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	var btn_style_normal = StyleBoxFlat.new()
+	btn_style_normal.bg_color = Color(0, 0, 0, 0.8)
+	btn_style_normal.border_width_left = 2
+	btn_style_normal.border_width_top = 2
+	btn_style_normal.border_width_right = 2
+	btn_style_normal.border_width_bottom = 2
+	btn_style_normal.border_color = Color(0, 0.9, 1, 0.8)
+	btn_style_normal.corner_radius_top_left = 5
+	btn_style_normal.corner_radius_top_right = 5
+	btn_style_normal.corner_radius_bottom_left = 5
+	btn_style_normal.corner_radius_bottom_right = 5
+	
+	var btn_style_hover = btn_style_normal.duplicate()
+	btn_style_hover.bg_color = Color(0, 0.6, 0.7, 0.9)
+	
+	accept_btn.add_theme_stylebox_override("normal", btn_style_normal)
+	accept_btn.add_theme_stylebox_override("hover", btn_style_hover)
+	accept_btn.add_theme_stylebox_override("pressed", btn_style_hover)
+	accept_btn.add_theme_color_override("font_color", Color.WHITE)
+	accept_btn.add_theme_font_size_override("font_size", 16)
+	
+	accept_btn.pressed.connect(func():
+		print("[Landing] Mission accepted! Going to Module...")
+		dialog_panel.queue_free()
+		_complete_first_mission()
+		get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	)
+	dialog_panel.add_child(accept_btn)
+	
+	# Later Button (centered next to Accept)
+	var later_btn = Button.new()
+	later_btn.text = "Later"
+	later_btn.custom_minimum_size = Vector2(200, 40)
+	later_btn.position = Vector2(395, 395)  # 175 + 200 (button width) + 20 (gap) = 395
+	later_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	later_btn.add_theme_stylebox_override("normal", btn_style_normal)
+	later_btn.add_theme_stylebox_override("hover", btn_style_hover)
+	later_btn.add_theme_stylebox_override("pressed", btn_style_hover)
+	later_btn.add_theme_color_override("font_color", Color.WHITE)
+	later_btn.add_theme_font_size_override("font_size", 16)
+	
+	later_btn.pressed.connect(func():
+		print("[Landing] Mission postponed")
+		dialog_panel.queue_free()
+	)
+	dialog_panel.add_child(later_btn)
+	
+	# Close button (X)
+	var close_btn = Button.new()
+	close_btn.text = "✕"
+	close_btn.custom_minimum_size = Vector2(30, 30)
+	close_btn.position = Vector2(660, 10)
+	close_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	var close_style = StyleBoxFlat.new()
+	close_style.bg_color = Color(0, 0, 0, 0)
+	close_btn.add_theme_stylebox_override("normal", close_style)
+	close_btn.add_theme_stylebox_override("hover", close_style)
+	close_btn.add_theme_color_override("font_color", Color(1, 0, 0, 1))
+	close_btn.add_theme_color_override("font_hover_color", Color(1, 0.5, 0.5, 1))
+	close_btn.add_theme_font_size_override("font_size", 24)
+	
+	close_btn.pressed.connect(func():
+		dialog_panel.queue_free()
+	)
+	dialog_panel.add_child(close_btn)
+	
+	add_child(dialog_panel)
+
+
+func _complete_first_mission() -> void:
+	"""Mark first mission as completed"""
+	first_mission_active = false
+	
+	if mission_button:
+		mission_button.visible = false
+	
+	var divider = news_panel.get_node_or_null("MissionDivider")
+	if divider:
+		divider.visible = false
+	
+	# Save to Firestore
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	
+	if user_id == "" or id_token == "":
+		return
+	
+	var url = "%s/%s?updateMask.fieldPaths=first_mission_completed" % [firestore_base_url, user_id]
+	var body = {
+		"fields": {
+			"first_mission_completed": { "booleanValue": true }
+		}
+	}
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	
+	var http_mission = HTTPRequest.new()
+	add_child(http_mission)
+	http_mission.request_completed.connect(func(_r, code, _h, _b):
+		http_mission.queue_free()
+		if code == 200:
+			print("[Landing] ✅ First mission marked complete")
+	)
+	http_mission.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+
+
+
+
+
+# ===== COMBINED: LOAD USER DATA + CHECK WELCOME TUTORIAL =====
+func _load_user_data_and_check_tutorial() -> void:
+	"""Load user data and check welcome tutorial in ONE request"""
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	
+	if user_id == "" or id_token == "":
+		print("[Landing] No auth info")
+		return
+	
+	# ✅ INSTANT CHECK: Use cached status if already loaded
+	if Auth.welcome_tutorial_loaded:
+		print("[Landing] === USING CACHED WELCOME TUTORIAL STATUS ===")
+		# Still need to load user profile data
+		_load_user_data()
+		# Check tutorial from cache
+		if not Auth.welcome_tutorial_completed:
+			print("[Landing] 🎉 NEW USER (cached) - Starting Pokemon Welcome Tutorial")
+			_start_welcome_tutorial()
+		else:
+			print("[Landing] ✅ Welcome tutorial already completed (cached)")
+		return
+
+	# ✅ ONE REQUEST: Load everything at once
+	print("[Landing] === LOADING USER DATA + WELCOME STATUS ===")
+	var url = "%s/%s" % [firestore_base_url, user_id]
+	var headers = ["Authorization: Bearer %s" % id_token]
+
+	if http.request_completed.is_connected(_on_combined_data_response):
+		http.request_completed.disconnect(_on_combined_data_response)
+	http.request_completed.connect(_on_combined_data_response)
+
+	http.request(url, headers, HTTPClient.METHOD_GET)
+
+
+func _on_combined_data_response(_result, response_code, _headers, body) -> void:
+	"""Handle combined user data + welcome tutorial check"""
+	if response_code != 200:
+		print("[Landing] Failed to load data:", response_code)
+		# Assume new user
+		Auth.set_welcome_tutorial_status(false)
+		_start_welcome_tutorial()
+		return
+
+	var data = JSON.parse_string(body.get_string_from_utf8())
+	if not data.has("fields"):
+		Auth.set_welcome_tutorial_status(false)
+		_start_welcome_tutorial()
+		return
+
+	var f = data["fields"]
+	
+	# ✅ Load user profile data
+	if f.has("avatar"):
+		selected_avatar = f["avatar"]["stringValue"]
+		if avatars.has(selected_avatar):
+			profile_pic.texture = avatars[selected_avatar]
+			Auth.current_avatar = selected_avatar
+
+	if f.has("last_avatar_change"):
+		last_avatar_change = int(f["last_avatar_change"]["integerValue"])
+
+	if f.has("username"):
+		Auth.current_username = f["username"]["stringValue"]
+		username_input.text = Auth.current_username
+
+	if f.has("level"):
+		var lvl := int(f["level"]["integerValue"])
+		level_input.text = str(lvl)
+		if Auth:
+			Auth.current_level = lvl
+
+	if f.has("wins"):
+		wins_input.text = str(f["wins"]["integerValue"])
+
+	if f.has("losses"):
+		losses_input.text = str(f["losses"]["integerValue"])
+	
+	if match_played_input:
+		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
+		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
+		match_played_input.text = str(wins + losses)
+	
+	# ✅ Check welcome tutorial status
+	var welcome_completed := true  # Default for existing users
+	if f.has("welcome_tutorial_completed"):
+		welcome_completed = f["welcome_tutorial_completed"].get("booleanValue", true)
+		print("[Landing] welcome_tutorial_completed:", welcome_completed)
+	else:
+		print("[Landing] welcome_tutorial_completed field NOT found - NEW USER!")
+		welcome_completed = false
+	
+	# ✅ Cache the status
+	Auth.set_welcome_tutorial_status(welcome_completed)
+	
+	# ✅ Show Pokemon UI if new user
+	if not welcome_completed:
+		print("[Landing] 🎉 NEW USER DETECTED - Starting Pokemon Welcome Tutorial")
+		_start_welcome_tutorial()
+	else:
+		print("[Landing] ✅ Welcome tutorial already completed")
+
+
+# ===== REMOVE OLD FUNCTIONS - REPLACED BY COMBINED VERSION =====
+# _check_and_start_welcome_tutorial() is now replaced by _load_user_data_and_check_tutorial()
+# _load_user_data() is now only called if cache exists
+
+
+func _start_welcome_tutorial() -> void:
+	"""Start the Pokemon-style welcome tutorial overlay"""
+	if not welcome_ui:
+		push_error("[Landing] Cannot start tutorial - welcome_ui is null!")
+		return
+	
+	print("[Landing] ========== STARTING POKEMON WELCOME TUTORIAL ==========")
+	
+	# Ensure the welcome UI is on top of everything
+	welcome_ui.layer = 100
+	welcome_ui.visible = true
+	welcome_ui.show()
+	
+	print("[Landing] Welcome UI visible:", welcome_ui.visible)
+	print("[Landing] Welcome UI layer:", welcome_ui.layer)
+	
+	# Start the tutorial sequence
+	welcome_ui.start_tutorial()
+	print("[Landing] ✅ Pokemon Tutorial started!")
+
+
+func _on_welcome_tutorial_completed() -> void:
+	"""Called when the Pokemon-style welcome tutorial is completed"""
+	print("[Landing] ========== TUTORIAL COMPLETED SIGNAL RECEIVED ==========")
+	
+	# ✅ CRITICAL: Check if we already awarded the bonus
+	if welcome_bonus_awarded:
+		print("[Landing] ⚠️ Welcome bonus already awarded! Ignoring duplicate call.")
+		return
+	
+	welcome_bonus_awarded = true
+	print("[Landing] ✅ Pokemon Welcome tutorial completed! (First time)")
+	
+	# ✅ Mark as completed in Auth cache
+	Auth.mark_welcome_tutorial_complete()
+	
+	# ✅ Use call_deferred to avoid any conflicts
+	call_deferred("_show_welcome_reward")
+	call_deferred("_activate_first_mission")
+
+func _show_welcome_reward() -> void:
+	"""Show a reward dialog after completing the tutorial"""
+	print("[Landing] ========== SHOW WELCOME REWARD ==========")
+	print("[Landing] Current XP BEFORE reward: %d" % TutorialManager.total_xp)
+	
+	# ✅ Double-check we haven't awarded this already
+	if TutorialManager.total_xp >= 50:
+		print("[Landing] ⚠️ User already has XP, might be duplicate call. Current XP: %d" % TutorialManager.total_xp)
+	
+	# Award XP FIRST
+	print("[Landing] Awarding welcome bonus XP (+50)...")
+	TutorialManager.add_xp(50, "Tutorial Completion Bonus")
+	
+	# Wait a frame to ensure all XP processing is done
+	await get_tree().process_frame
+	
+	print("[Landing] Current XP AFTER reward: %d" % TutorialManager.total_xp)
+	
+	var dialog := AcceptDialog.new()
+	dialog.title = "🎉 Welcome Bonus!"
+	dialog.dialog_text = "Congratulations on completing the tutorial!\n\nYou've earned:\n• 50 XP\n• Beginner Badge\n\nGood luck in Cyber Arena!"
+	dialog.min_size = Vector2(400, 250)
+	dialog.exclusive = false  # ✅ Allow other windows
+	add_child(dialog)
+	dialog.popup_centered()
+	
+	# Simple one-shot connection that only closes the dialog
+	dialog.confirmed.connect(func(): 
+		print("[Landing] Dialog closed")
+		dialog.queue_free()
+	, CONNECT_ONE_SHOT)
 
 
 # === Update XP Display ===
 func _update_xp_display() -> void:
 	print("[Landing] ========== UPDATING XP DISPLAY ==========")
 	print("[Landing] Total XP: %d" % TutorialManager.total_xp)
-	print("[Landing] Completed Tutorials: %d" % TutorialManager.completed_tutorials.size())
 	
 	if xp_input:
-		xp_input.text = "XP : %d" % TutorialManager.total_xp
-		print("[Landing] ✅ XP Label updated to: %s" % xp_input.text)
-	else:
-		push_error("[Landing] xp_input label not found!")
+		xp_input.text = " %d" % TutorialManager.total_xp
+		print("[Landing] ✅ XP Label updated")
 	
-	# Update rank display
 	var rank: Dictionary = TutorialManager.get_rank()
-	print("[Landing] Rank: %s %s" % [rank["icon"], rank["name"]])
-	
 	if rank_label:
 		rank_label.text = "%s %s" % [rank["icon"], rank["name"]]
 		rank_label.add_theme_color_override("font_color", rank["color"])
-		rank_label.tooltip_text = "XP: %d/%d (%.0f%% to next rank)" % [rank["current_xp"], rank["max_xp"], rank["progress"]]
-		print("[Landing] ✅ Rank Label updated to: %s" % rank_label.text)
+		rank_label.tooltip_text = " %d/%d (%.0f%% to next rank)" % [rank["current_xp"], rank["max_xp"], rank["progress"]]
 	
-	# Update match played display
 	if match_played_input and wins_input and losses_input:
 		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
 		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
-		var total_matches = wins + losses
-		match_played_input.text = str(total_matches)
-		print("[Landing] ✅ Match Played updated to: %d" % total_matches)
+		match_played_input.text = str(wins + losses)
+
 
 func _on_xp_updated(new_xp: int) -> void:
-	if xp_input:
-		xp_input.text = "XP %d" % new_xp
-		print("🎉 XP Updated: ", new_xp)
+	print("[Landing] 🎉 XP Updated: %d" % new_xp)
 	
-	# Update rank
+	if xp_input:
+		xp_input.text = " %d" % new_xp
+	
 	var rank: Dictionary = TutorialManager.get_rank(new_xp)
 	if rank_label:
 		rank_label.text = "%s %s" % [rank["icon"], rank["name"]]
 		rank_label.add_theme_color_override("font_color", rank["color"])
 
+
 func _on_rank_up(new_rank: Dictionary) -> void:
 	print("🏆 RANK UP! %s %s" % [new_rank["icon"], new_rank["name"]])
 	
-	# Show rank up dialog
+	# ✅ Wait a frame to avoid dialog conflicts
+	await get_tree().process_frame
+	
 	var dialog := AcceptDialog.new()
 	dialog.title = "RANK UP!"
 	dialog.dialog_text = "Congratulations!\n\nYou've been promoted to:\n%s %s\n\nKeep completing tutorials to climb higher!" % [new_rank["icon"], new_rank["name"]]
 	dialog.min_size = Vector2(300, 200)
+	dialog.exclusive = false  # ✅ Allow other windows
 	add_child(dialog)
 	dialog.popup_centered()
-	dialog.confirmed.connect(func(): dialog.queue_free())
+	dialog.confirmed.connect(func(): dialog.queue_free(), CONNECT_ONE_SHOT)
+
 
 # === Load avatars from folder ===
 func _load_avatars() -> void:
 	var dir := DirAccess.open("res://asset/avatars")
 	if dir == null:
-		push_error("⚠️ Avatar folder not found: res://asset/avatars")
+		push_error("⚠️ Avatar folder not found")
 		return
 
 	avatars.clear()
@@ -145,7 +623,6 @@ func _load_avatars() -> void:
 				btn.texture_normal = tex
 				btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 				btn.custom_minimum_size = Vector2(64, 64)
-				# capture file_name at connection time
 				var captured_name: String = file_name
 				btn.pressed.connect(func(): _on_avatar_selected(captured_name))
 				avatar_grid.add_child(btn)
@@ -153,7 +630,6 @@ func _load_avatars() -> void:
 	dir.list_dir_end()
 
 
-# === Change avatar button ===
 func _on_change_avatar_pressed() -> void:
 	var current_time = Time.get_unix_time_from_system()
 	if current_time - last_avatar_change < avatar_cooldown:
@@ -163,7 +639,6 @@ func _on_change_avatar_pressed() -> void:
 	avatar_picker.popup_centered()
 
 
-# === User selects avatar ===
 func _on_avatar_selected(file_name: String) -> void:
 	if avatars.has(file_name):
 		profile_pic.texture = avatars[file_name]
@@ -172,12 +647,11 @@ func _on_avatar_selected(file_name: String) -> void:
 		avatar_picker.hide()
 
 
-# === SaveProfile button pressed ===
 func _on_save_profile_pressed() -> void:
 	var user_id = Auth.current_local_id
 	var id_token = Auth.current_id_token
 	if user_id == "" or id_token == "":
-		push_error("⚠️ User not logged in, cannot save profile")
+		push_error("⚠️ User not logged in")
 		return
 
 	last_avatar_change = int(Time.get_unix_time_from_system())
@@ -217,7 +691,6 @@ func _on_save_profile_response(_result, response_code, _headers, body) -> void:
 		push_error("Firestore error: %s" % msg)
 
 
-# === Load user data from Firestore ===
 func _load_user_data() -> void:
 	var user_id = Auth.current_local_id
 	var id_token = Auth.current_id_token
@@ -236,7 +709,7 @@ func _load_user_data() -> void:
 
 func _on_user_data_response(_result, response_code, _headers, body) -> void:
 	if response_code != 200:
-		push_error("⚠️ Failed to load user data: %s" % response_code)
+		push_error("⚠️ Failed to load user data:", response_code)
 		return
 
 	var data = JSON.parse_string(body.get_string_from_utf8())
@@ -270,14 +743,12 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 	if f.has("losses"):
 		losses_input.text = str(f["losses"]["integerValue"])
 	
-	# Update match played count
 	if match_played_input:
 		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
 		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
 		match_played_input.text = str(wins + losses)
 
 
-# === Navigation Logic ===
 func _setup_navigation() -> void:
 	var panel_paths := {
 		"home": "HomePanel",
@@ -292,8 +763,10 @@ func _setup_navigation() -> void:
 	$NavigationPanel/HBoxContainer/ProfileNavigate.pressed.connect(func(): _show_panel(panel_paths, "profile"))
 	$NavigationPanel/HBoxContainer/LogoButton.pressed.connect(func(): _show_panel(panel_paths, "home"))
 	$NavigationPanel/HBoxContainer/MenuButton.pressed.connect(_on_menu_button_pressed)
+	
+	# ✅ Module button navigation
+	$NavigationPanel/HBoxContainer/ModuleNavigate.pressed.connect(_on_module_navigate_pressed)
 
-	# Connect game icons (NinePatchRect - need gui_input)
 	var defuse_trojan = $VideoStreamPlayer/GameSelectPanel/allgame/DefuseTheTrojan
 	if defuse_trojan:
 		defuse_trojan.gui_input.connect(_on_defuse_trojan_gui_input)
@@ -315,56 +788,49 @@ func _setup_navigation() -> void:
 func _on_menu_button_pressed() -> void:
 	if menu_panel:
 		menu_panel.visible = true
-		# Ensure it appears above other controls if overlapped
 		menu_panel.move_to_front()
 
 
+# ✅ Module navigation function
+func _on_module_navigate_pressed() -> void:
+	print("[Landing] Navigating to Mode Selection...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+
+
 func _show_panel(panel_paths: Dictionary, panel_name: String) -> void:
-	# Hide all panels
 	for key in panel_paths.keys():
 		var node = $VideoStreamPlayer.get_node_or_null(panel_paths[key])
 		if node:
 			node.visible = false
-		else:
-			push_warning("Panel node missing (hide): %s" % panel_paths[key])
 
-	# Also hide CodeBreakerLobby when navigating with buttons
 	var code_breaker_lobby = $VideoStreamPlayer.get_node_or_null("CodeBreakerLobby")
 	if code_breaker_lobby:
 		code_breaker_lobby.visible = false
 
-	# Hide AkashicLobby as well when navigating
 	var akashic_lobby = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
 	if akashic_lobby:
 		akashic_lobby.visible = false
 
-	# Show target panel
 	var node_to_show = $VideoStreamPlayer.get_node_or_null(panel_paths.get(panel_name, ""))
 	if node_to_show:
 		node_to_show.visible = true
-	else:
-		push_warning("Panel node not found to show: %s" % panel_name)
 
-	# Friend list visibility
 	var friend_list = $VideoStreamPlayer.get_node_or_null("FriendListPanel")
 	if friend_list:
 		friend_list.visible = (panel_name != "game")
 
 
-# === Reset Match Stats ===
 func _on_reset_stats_pressed() -> void:
 	print("[Landing] Resetting match statistics...")
 	
-	# Reset UI
 	wins_input.text = "0"
 	losses_input.text = "0"
 	match_played_input.text = "0"
 	
-	# Save to Firestore
 	var user_id = Auth.current_local_id
 	var id_token = Auth.current_id_token
 	if user_id == "" or id_token == "":
-		push_error("⚠️ User not logged in, cannot reset stats")
+		push_error("⚠️ User not logged in")
 		return
 	
 	var url = "%s/%s?updateMask.fieldPaths=wins&updateMask.fieldPaths=losses" % [firestore_base_url, user_id]
@@ -386,7 +852,6 @@ func _on_reset_stats_pressed() -> void:
 		http_reset.queue_free()
 		if code == 200:
 			status_label.text = "✅ Match stats reset!"
-			print("[Landing] ✅ Match stats reset successfully")
 		else:
 			var msg = response_body.get_string_from_utf8() if response_body.size() > 0 else "Unknown error"
 			status_label.text = "❌ Failed to reset stats"
@@ -396,20 +861,15 @@ func _on_reset_stats_pressed() -> void:
 	http_reset.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
 
 
-# === Tutorial Button ===
 func _on_tutorial_pressed() -> void:
-	print("[Landing] Opening tutorials...")
+	print("[Landing] Opening module selection...")
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 
-# === Logout Logic ===
 func _on_logout_pressed() -> void:
 	print("Logging out...")
-	Auth.set_user_offline()  # 🔴 mark offline before exit
-	
-	# Clear TutorialManager data on logout
+	Auth.set_user_offline()
 	TutorialManager.reset_data()
-	
 	get_tree().change_scene_to_file("res://scene/login.tscn")
 
 
@@ -418,138 +878,66 @@ func _instantiate_chat_panel() -> void:
 	if chat_scene:
 		var chat_panel = chat_scene.instantiate()
 		add_child(chat_panel)
-		print("[Landing] ChatPanel instantiated and added to scene")
+		print("[Landing] ChatPanel instantiated")
 	else:
 		push_error("[Landing] Failed to load chat.tscn")
 
 
-# === Defuse The Trojan Handler ===
 func _on_defuse_trojan_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("[Landing] Defuse The Trojan clicked")
-		# TODO: Add logic to show Defuse The Trojan game/lobby
 
 
-# === Akashic TCG Handler ===
 func _on_akashic_tcg_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		print("[Landing] Akashic TCG clicked - showing lobby")
-		# Hide GameSelectPanel
+		print("[Landing] Akashic TCG clicked")
 		var game_select_panel = $VideoStreamPlayer/GameSelectPanel
 		if game_select_panel:
 			game_select_panel.visible = false
 
-		# Hide CodeBreakerLobby if visible
 		var code_breaker_lobby = $VideoStreamPlayer.get_node_or_null("CodeBreakerLobby")
 		if code_breaker_lobby:
 			code_breaker_lobby.visible = false
 
-		# Show AkashicLobby
 		var akashic_lobby = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
 		if akashic_lobby:
 			akashic_lobby.visible = true
-			print("[Landing] AkashicLobby is now visible")
-		else:
-			push_error("[Landing] Akashic Lobby node not found")
 
 
-# === Code Breaker NinePatchRect Handler ===
 func _on_code_breaker_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("[Landing] Code Breaker clicked")
 		
-		# Check if game is unlocked
 		if not TutorialManager.is_game_unlocked("code_breaker"):
 			_show_locked_game_dialog("Code Breaker", 500)
 			return
 		
-		print("[Landing] Code Breaker unlocked - showing lobby")
-		
-		# Hide GameSelectPanel
 		var game_select_panel = $VideoStreamPlayer/GameSelectPanel
 		if game_select_panel:
 			game_select_panel.visible = false
 		
-		# Hide AkashicLobby if visible
 		var akashic_lobby2 = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
 		if akashic_lobby2:
 			akashic_lobby2.visible = false
 		
-		# Show CodeBreakerLobby
 		var code_breaker_lobby = $VideoStreamPlayer/CodeBreakerLobby
 		if code_breaker_lobby:
 			code_breaker_lobby.visible = true
-			print("[Landing] CodeBreakerLobby is now visible")
-		else:
-			push_error("[Landing] Code Breaker Lobby node not found")
 
 
-# === Show Locked Game Dialog ===
 func _show_locked_game_dialog(game_name: String, required_xp: int) -> void:
 	var current_xp: int = TutorialManager.total_xp
 	var xp_needed: int = required_xp - current_xp
 	
 	var dialog := AcceptDialog.new()
 	dialog.title = "🔒 Game Locked"
-	dialog.dialog_text = "%s is locked!\n\nYour XP: %d\nRequired XP: %d\nNeeded: %d more XP\n\nComplete tutorials in Mode Selection to earn XP and unlock games." % [game_name, current_xp, required_xp, xp_needed]
+	dialog.dialog_text = "%s is locked!\n\nYour XP: %d\nRequired XP: %d\nNeeded: %d more XP\n\nComplete tutorials in Mode Selection to earn XP." % [game_name, current_xp, required_xp, xp_needed]
 	dialog.ok_button_text = "Go to Mode Selection"
-	dialog.canceled.connect(func(): dialog.queue_free())
+	dialog.exclusive = false  # ✅ Allow other windows
+	dialog.canceled.connect(func(): dialog.queue_free(), CONNECT_ONE_SHOT)
 	dialog.confirmed.connect(func():
 		dialog.queue_free()
 		get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
-	)
+	, CONNECT_ONE_SHOT)
 	add_child(dialog)
 	dialog.popup_centered()
-func _check_tutorial_status() -> void:
-	"""
-	Checks if user has completed tutorial.
-	If tutorial_completed is false, redirect to landing_tutorial.tscn
-	This handles cases where users closed the app during tutorial.
-	"""
-	var user_id := Auth.current_local_id
-	var id_token := Auth.current_id_token
-	
-	if user_id == "" or id_token == "":
-		print("[Landing] No auth info, skipping tutorial check")
-		return
-	
-	var url := "%s/%s" % [firestore_base_url, user_id]
-	var headers := ["Authorization: Bearer %s" % id_token]
-	
-	var http_tutorial := HTTPRequest.new()
-	add_child(http_tutorial)
-	
-	http_tutorial.request_completed.connect(func(_r, code, _h, body):
-		http_tutorial.queue_free()
-		
-		if code != 200:
-			print("[Landing] Failed to check tutorial status: %s" % code)
-			return
-		
-		var data = JSON.parse_string(body.get_string_from_utf8())
-		if not data or not data.has("fields"):
-			print("[Landing] No user data found")
-			return
-		
-		var fields = data["fields"]
-		
-		# Check if tutorial was completed
-		if fields.has("tutorial_completed"):
-			var completed: bool = fields["tutorial_completed"].get("booleanValue", true)
-			
-			if not completed:
-				print("[Landing] 🎓 Tutorial not completed, redirecting to tutorial...")
-				# Small delay to ensure landing scene is fully loaded
-				await get_tree().create_timer(0.5).timeout
-				get_tree().change_scene_to_file("res://scene/landing_tutorial.tscn")
-			else:
-				print("[Landing] ✅ Tutorial already completed")
-		else:
-			# If field doesn't exist, assume old user (no tutorial needed)
-			print("[Landing] Tutorial field not found, assuming existing user")
-	)
-	
-	var err := http_tutorial.request(url, headers, HTTPClient.METHOD_GET)
-	if err != OK:
-		push_error("[Landing] Failed to start tutorial check request: %s" % err)
-		http_tutorial.queue_free()

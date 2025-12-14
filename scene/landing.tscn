@@ -1,5 +1,6 @@
-[gd_scene load_steps=36 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=41 format=3 uid="uid://5o3qtaqdnl8s"]
 
+[ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_86hhj"]
 [ext_resource type="VideoStream" uid="uid://copge130jsikm" path="res://asset/Cyberpunk_City_Video_Generation.ogv" id="2_qr7a0"]
 [ext_resource type="Texture2D" uid="uid://cq7k5uvykyfbt" path="res://asset/icons/code breaker 1.png" id="3_7xp6e"]
 [ext_resource type="PackedScene" uid="uid://bohnaxmk78jfw" path="res://scene/friend_list.tscn" id="3_hlv06"]
@@ -13,438 +14,9 @@
 [ext_resource type="PackedScene" uid="uid://bsi01dt2s0qq7" path="res://scene/view_player_profile.tscn" id="10_xyz99"]
 [ext_resource type="PackedScene" uid="uid://clvghcukrtua8" path="res://scene/akashic_tcg_lobby.tscn" id="11_tgc"]
 [ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="13_aar1m"]
-
-[sub_resource type="GDScript" id="GDScript_soi4p"]
-script/source = "extends Control
-
-# === UI References ===
-@onready var username_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/usernameInput
-@onready var level_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/levelInput
-@onready var wins_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/winsInput
-@onready var losses_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/losesInput
-@onready var xp_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/xpInput
-@onready var rank_label: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/rankLabel
-@onready var match_played_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/MatchPlayedInput
-@onready var status_label: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/StatusLabel
-@onready var profile_pic: TextureRect = $VideoStreamPlayer/ProfilePanel/UserPanel/ProfilePic
-@onready var change_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/ChangeAvatarButton
-@onready var save_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/SaveProfile
-@onready var tutorial_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/TutorialButton
-@onready var winrate_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/winrateInput
-@onready var avatar_picker: PopupPanel = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker
-@onready var avatar_grid: GridContainer = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/GridContainer
-@onready var menu_panel: Control = $MenuPanel
-
-# === Avatars & User Data ===
-var avatars: Dictionary = {}
-var selected_avatar: String = \"\"
-var last_avatar_change: int = 0
-var avatar_cooldown: int = 2592000 # 30 days
-
-# Firestore base
-var firestore_base_url := \"https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users\"
-
-# Reusable HTTP node for requests
-var http: HTTPRequest
-
-# === Lifecycle ===
-func _ready() -> void:
-	#print(\"Setting fullscreen...\")
-	#DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-
-	# Create reusable HTTPRequest node
-	http = HTTPRequest.new()
-	add_child(http)
-
-	_load_avatars()
-	change_btn.pressed.connect(_on_change_avatar_pressed)
-	save_btn.pressed.connect(_on_save_profile_pressed)
-	tutorial_btn.pressed.connect(_on_tutorial_pressed)
-	
-	# Connect TutorialManager signals
-	var tutorial_mgr = get_node_or_null(\"/root/TutorialManager\")
-	if tutorial_mgr:
-		if not tutorial_mgr.data_loaded.is_connected(_update_xp_display):
-			tutorial_mgr.data_loaded.connect(_update_xp_display)
-		if not tutorial_mgr.xp_updated.is_connected(_update_xp_display):
-			tutorial_mgr.xp_updated.connect(_update_xp_display)
-		if not tutorial_mgr.rank_up.is_connected(_on_rank_up):
-			tutorial_mgr.rank_up.connect(_on_rank_up)
-	
-	_load_user_data()
-
-	# Load and instance ChatPanel
-	_instantiate_chat_panel()
-
-	# mark presence online when entering landing
-	Auth.set_user_online()
-
-	# === Navigation setup ===
-	_setup_navigation()
-
-	
-
-
-# === Load avatars from folder ===
-func _load_avatars() -> void:
-	var dir := DirAccess.open(\"res://asset/avatars\")
-	if dir == null:
-		push_error(\"⚠️ Avatar folder not found: res://asset/avatars\")
-		return
-
-	avatars.clear()
-	dir.list_dir_begin()
-	var file_name = dir.get_next()
-
-	while file_name != \"\":
-		if not dir.current_is_dir() and file_name.get_extension() in [\"png\", \"jpg\", \"jpeg\", \"webp\"]:
-			var tex := load(\"res://asset/avatars/\" + file_name)
-			if tex:
-				avatars[file_name] = tex
-				var btn := TextureButton.new()
-				btn.texture_normal = tex
-				btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-				btn.custom_minimum_size = Vector2(64, 64)
-				# capture file_name at connection time
-				var captured_name: String = file_name
-				btn.pressed.connect(func(): _on_avatar_selected(captured_name))
-				avatar_grid.add_child(btn)
-		file_name = dir.get_next()
-	dir.list_dir_end()
-
-
-# === Change avatar button ===
-func _on_change_avatar_pressed() -> void:
-	var current_time = Time.get_unix_time_from_system()
-	if current_time - last_avatar_change < avatar_cooldown:
-		var remaining = int((avatar_cooldown - (current_time - last_avatar_change)) / 86400)
-		status_label.text = \"⏳ You can change avatar again in %d days.\" % remaining
-		return
-	avatar_picker.popup_centered()
-
-
-# === User selects avatar ===
-func _on_avatar_selected(file_name: String) -> void:
-	if avatars.has(file_name):
-		profile_pic.texture = avatars[file_name]
-		selected_avatar = file_name
-		status_label.text = \"✅ Avatar selected (click SaveProfile to apply)\"
-		avatar_picker.hide()
-
-
-# === SaveProfile button pressed ===
-func _on_save_profile_pressed() -> void:
-	var user_id = Auth.current_local_id
-	var id_token = Auth.current_id_token
-	if user_id == \"\" or id_token == \"\":
-		push_error(\"⚠️ User not logged in, cannot save profile\")
-		return
-
-	last_avatar_change = int(Time.get_unix_time_from_system())
-
-	var url = \"%s/%s?updateMask.fieldPaths=username&updateMask.fieldPaths=level&updateMask.fieldPaths=wins&updateMask.fieldPaths=losses&updateMask.fieldPaths=avatar&updateMask.fieldPaths=last_avatar_change\" % [firestore_base_url, user_id]
-	var body = {
-		\"fields\": {
-			\"username\": { \"stringValue\": username_input.text },
-			\"level\": { \"integerValue\": level_input.text },
-			\"wins\": { \"integerValue\": wins_input.text },
-			\"losses\": { \"integerValue\": losses_input.text },
-			\"avatar\": { \"stringValue\": selected_avatar },
-			\"last_avatar_change\": { \"integerValue\": str(last_avatar_change) }
-		}
-	}
-	var headers = [
-		\"Content-Type: application/json\",
-		\"Authorization: Bearer %s\" % id_token
-	]
-
-	if http.request_completed.is_connected(_on_save_profile_response):
-		http.request_completed.disconnect(_on_save_profile_response)
-	http.request_completed.connect(_on_save_profile_response)
-
-	http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
-
-
-func _on_save_profile_response(_result, response_code, _headers, body) -> void:
-	if response_code == 200:
-		status_label.text = \"✅ Profile saved!\"
-		Auth.current_avatar = selected_avatar
-		Auth.current_username = username_input.text
-		_load_user_data()
-	else:
-		var msg = body.get_string_from_utf8() if body.size() > 0 else \"Unknown error\"
-		status_label.text = \"❌ Failed to save profile\"
-		push_error(\"Firestore error: %s\" % msg)
-
-
-# === Load user data from Firestore ===
-func _load_user_data() -> void:
-	var user_id = Auth.current_local_id
-	var id_token = Auth.current_id_token
-	if user_id == \"\" or id_token == \"\":
-		return
-
-	var url = \"%s/%s\" % [firestore_base_url, user_id]
-	var headers = [\"Authorization: Bearer %s\" % id_token]
-
-	if http.request_completed.is_connected(_on_user_data_response):
-		http.request_completed.disconnect(_on_user_data_response)
-	http.request_completed.connect(_on_user_data_response)
-
-	http.request(url, headers, HTTPClient.METHOD_GET)
-
-
-func _on_user_data_response(_result, response_code, _headers, body) -> void:
-	if response_code != 200:
-		push_error(\"⚠️ Failed to load user data: %s\" % response_code)
-		return
-
-	var data = JSON.parse_string(body.get_string_from_utf8())
-	if not data.has(\"fields\"):
-		return
-
-	var f = data[\"fields\"]
-
-	if f.has(\"avatar\"):
-		selected_avatar = f[\"avatar\"][\"stringValue\"]
-		if avatars.has(selected_avatar):
-			profile_pic.texture = avatars[selected_avatar]
-			Auth.current_avatar = selected_avatar
-
-	if f.has(\"last_avatar_change\"):
-		last_avatar_change = int(f[\"last_avatar_change\"][\"integerValue\"])
-
-	if f.has(\"username\"):
-		Auth.current_username = f[\"username\"][\"stringValue\"]
-		username_input.text = Auth.current_username
-
-	if f.has(\"level\"):
-		var lvl := int(f[\"level\"][\"integerValue\"])
-		level_input.text = str(lvl)
-		if Auth:
-			Auth.current_level = lvl
-
-	if f.has(\"wins\"):
-		wins_input.text = str(f[\"wins\"][\"integerValue\"])
-
-	if f.has(\"losses\"):
-		losses_input.text = str(f[\"losses\"][\"integerValue\"])
-	
-	# Update match played and win rate
-	_update_match_played()
-	_update_win_rate()
-	
-	# Update XP and rank display
-	_update_xp_display()
-
-
-# === Update XP Display ===
-func _update_xp_display() -> void:
-	var tutorial_mgr = get_node_or_null(\"/root/TutorialManager\")
-	if not tutorial_mgr:
-		push_warning(\"⚠️ TutorialManager not found\")
-		return
-	
-	# Wait for data to load if not already loaded
-	if not tutorial_mgr.data_has_loaded:
-		push_warning(\"⚠️ TutorialManager data not loaded yet, waiting...\")
-		return
-	
-	# Update XP display
-	if xp_input:
-		xp_input.text = str(tutorial_mgr.total_xp)
-	
-	# Update rank display
-	if rank_label:
-		var rank_info = tutorial_mgr.get_rank()
-		var rank_name = rank_info[\"name\"]
-		var rank_color = rank_info[\"color\"]
-		var rank_icon = rank_info[\"icon\"]
-		
-		# Format: [Icon] RANK_NAME
-		rank_label.text = \"%s %s\" % [rank_icon, rank_name]
-		rank_label.modulate = rank_color
-
-
-# === Update Match Played ===
-func _update_match_played() -> void:
-	if match_played_input:
-		var total_matches = int(wins_input.text) + int(losses_input.text)
-		match_played_input.text = str(total_matches)
-
-
-# === Update Win Rate ===
-func _update_win_rate() -> void:
-	if winrate_input:
-		var total_wins = int(wins_input.text)
-		var total_losses = int(losses_input.text)
-		var total_matches = total_wins + total_losses
-		
-		# If no matches played, show 100%
-		if total_matches == 0:
-			winrate_input.text = \"100%\"
-		else:
-			# Calculate win rate percentage
-			var win_rate = (float(total_wins) / float(total_matches)) * 100.0
-			winrate_input.text = \"%d%%\" % int(win_rate)
-
-
-# === Rank Up Handler ===
-func _on_rank_up(new_rank: String) -> void:
-	_update_xp_display()
-	status_label.text = \"🎉 Rank Up! You are now %s!\" % new_rank
-
-
-# === Tutorial Button Handler ===
-func _on_tutorial_pressed() -> void:
-	get_tree().change_scene_to_file(\"res://scene/mode_selection.tscn\")
-
-
-# === Navigation Logic ===
-func _setup_navigation() -> void:
-	var panel_paths := {
-		\"home\": \"HomePanel\",
-		\"game\": \"GameSelectPanel\",
-		\"ranking\": \"RankingPanel\",
-		\"profile\": \"ProfilePanel\",
-	}
-
-	$NavigationPanel/HBoxContainer/HomeNavigate.pressed.connect(func(): _show_panel(panel_paths, \"home\"))
-	$NavigationPanel/HBoxContainer/GameNavigate.pressed.connect(func(): _show_panel(panel_paths, \"game\"))
-	$NavigationPanel/HBoxContainer/RankingNavigate.pressed.connect(func(): _show_panel(panel_paths, \"ranking\"))
-	$NavigationPanel/HBoxContainer/ProfileNavigate.pressed.connect(func(): _show_panel(panel_paths, \"profile\"))
-	$NavigationPanel/HBoxContainer/ModuleNavigate.pressed.connect(func(): get_tree().change_scene_to_file(\"res://scene/mode_selection.tscn\"))
-	$NavigationPanel/HBoxContainer/LogoButton.pressed.connect(func(): _show_panel(panel_paths, \"home\"))
-	$NavigationPanel/HBoxContainer/MenuButton.pressed.connect(_on_menu_button_pressed)
-
-	# Connect game icons (NinePatchRect - need gui_input)
-	var defuse_trojan = $VideoStreamPlayer/GameSelectPanel/allgame/DefuseTheTrojan
-	if defuse_trojan:
-		defuse_trojan.gui_input.connect(_on_defuse_trojan_gui_input)
-		defuse_trojan.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-
-	var akashic_tcg = $VideoStreamPlayer/GameSelectPanel/allgame/AkashicTCG
-	if akashic_tcg:
-		akashic_tcg.gui_input.connect(_on_akashic_tcg_gui_input)
-		akashic_tcg.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-
-	var code_breaker_icon = $VideoStreamPlayer/GameSelectPanel/allgame/CodeBreaker
-	if code_breaker_icon:
-		code_breaker_icon.gui_input.connect(_on_code_breaker_gui_input)
-		code_breaker_icon.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-
-	_show_panel(panel_paths, \"home\")
-
-
-func _on_menu_button_pressed() -> void:
-	if menu_panel:
-		menu_panel.visible = true
-		# Ensure it appears above other controls if overlapped
-		menu_panel.move_to_front()
-
-
-func _show_panel(panel_paths: Dictionary, panel_name: String) -> void:
-	# Hide all panels
-	for key in panel_paths.keys():
-		var node = $VideoStreamPlayer.get_node_or_null(panel_paths[key])
-		if node:
-			node.visible = false
-		else:
-			push_warning(\"Panel node missing (hide): %s\" % panel_paths[key])
-
-	# Also hide CodeBreakerLobby when navigating with buttons
-	var code_breaker_lobby = $VideoStreamPlayer.get_node_or_null(\"CodeBreakerLobby\")
-	if code_breaker_lobby:
-		code_breaker_lobby.visible = false
-
-	# Hide AkashicLobby as well when navigating
-	var akashic_lobby = $VideoStreamPlayer.get_node_or_null(\"AkashicLobby\")
-	if akashic_lobby:
-		akashic_lobby.visible = false
-
-	# Show target panel
-	var node_to_show = $VideoStreamPlayer.get_node_or_null(panel_paths.get(panel_name, \"\"))
-	if node_to_show:
-		node_to_show.visible = true
-	else:
-		push_warning(\"Panel node not found to show: %s\" % panel_name)
-
-	# Friend list visibility
-	var friend_list = $VideoStreamPlayer.get_node_or_null(\"FriendListPanel\")
-	if friend_list:
-		friend_list.visible = (panel_name != \"game\")
-
-
-# === Logout Logic ===
-func _on_logout_pressed() -> void:
-	print(\"Logging out...\")
-	Auth.set_user_offline()  # 🔴 mark offline before exit
-	get_tree().change_scene_to_file(\"res://scene/login.tscn\")
-
-
-func _instantiate_chat_panel() -> void:
-	var chat_scene = load(\"res://scene/chat.tscn\")
-	if chat_scene:
-		var chat_panel = chat_scene.instantiate()
-		add_child(chat_panel)
-		print(\"[Landing] ChatPanel instantiated and added to scene\")
-	else:
-		push_error(\"[Landing] Failed to load chat.tscn\")
-
-
-# === Defuse The Trojan Handler ===
-func _on_defuse_trojan_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		print(\"[Landing] Defuse The Trojan clicked\")
-		# TODO: Add logic to show Defuse The Trojan game/lobby
-
-
-# === Akashic TCG Handler ===
-func _on_akashic_tcg_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		print(\"[Landing] Akashic TCG clicked - showing lobby\")
-		# Hide GameSelectPanel
-		var game_select_panel = $VideoStreamPlayer/GameSelectPanel
-		if game_select_panel:
-			game_select_panel.visible = false
-
-		# Hide CodeBreakerLobby if visible
-		var code_breaker_lobby = $VideoStreamPlayer.get_node_or_null(\"CodeBreakerLobby\")
-		if code_breaker_lobby:
-			code_breaker_lobby.visible = false
-
-		# Show AkashicLobby
-		var akashic_lobby = $VideoStreamPlayer.get_node_or_null(\"AkashicLobby\")
-		if akashic_lobby:
-			akashic_lobby.visible = true
-			print(\"[Landing] AkashicLobby is now visible\")
-		else:
-			push_error(\"[Landing] Akashic Lobby node not found\")
-
-
-# === Code Breaker NinePatchRect Handler ===
-func _on_code_breaker_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		print(\"[Landing] Code Breaker clicked - showing lobby\")
-		
-		# Hide GameSelectPanel
-		var game_select_panel = $VideoStreamPlayer/GameSelectPanel
-		if game_select_panel:
-			game_select_panel.visible = false
-		
-		# Hide AkashicLobby if visible
-		var akashic_lobby2 = $VideoStreamPlayer.get_node_or_null(\"AkashicLobby\")
-		if akashic_lobby2:
-			akashic_lobby2.visible = false
-		
-		# Show CodeBreakerLobby
-		var code_breaker_lobby = $VideoStreamPlayer/CodeBreakerLobby
-		if code_breaker_lobby:
-			code_breaker_lobby.visible = true
-			print(\"[Landing] CodeBreakerLobby is now visible\")
-		else:
-			push_error(\"[Landing] Code Breaker Lobby node not found\")
-"
+[ext_resource type="Script" uid="uid://c8so1cdb5uoyy" path="res://scene/pokemon_style_welcome_ui.gd" id="14_irntn"]
+[ext_resource type="Texture2D" uid="uid://cd2ubh32mfexb" path="res://asset/icons/AGENT01.png" id="16_ie1g5"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="17_xoh2d"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irntn"]
 bg_color = Color(0.164706, 0.164706, 0.164706, 0)
@@ -568,6 +140,30 @@ content_margin_bottom = 4.0
 bg_color = Color(0, 0, 0, 0)
 border_color = Color(0, 0, 0, 0)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xoh2d"]
+bg_color = Color(0.05, 0.05, 0.1, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0.8, 1, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irb0e"]
+bg_color = Color(0.1, 0.1, 0.15, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.8, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
 [node name="Landing" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -577,7 +173,7 @@ offset_right = 23.0
 offset_bottom = 29.0
 grow_horizontal = 2
 grow_vertical = 2
-script = SubResource("GDScript_soi4p")
+script = ExtResource("1_86hhj")
 
 [node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
 layout_mode = 0
@@ -1083,3 +679,107 @@ offset_bottom = 601.0
 
 [node name="MenuPanel" parent="." instance=ExtResource("13_aar1m")]
 visible = false
+
+[node name="PokemonStyleWelcomeUI" type="CanvasLayer" parent="."]
+script = ExtResource("14_irntn")
+
+[node name="Overlay" type="ColorRect" parent="PokemonStyleWelcomeUI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="DialogueBox" type="Panel" parent="PokemonStyleWelcomeUI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -180.0
+offset_right = 400.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_xoh2d")
+
+[node name="Portrait" type="Panel" parent="PokemonStyleWelcomeUI/DialogueBox"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 90.0
+offset_bottom = 90.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_irb0e")
+
+[node name="TextureRect" type="TextureRect" parent="PokemonStyleWelcomeUI/DialogueBox/Portrait"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("16_ie1g5")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="PokemonStyleWelcomeUI/DialogueBox/Portrait"]
+layout_mode = 0
+offset_left = 19.0
+offset_top = 24.0
+offset_right = 87.0
+offset_bottom = 41.0
+rotation = -0.00308459
+theme_override_colors/font_color = Color(4.81307e-07, 0.680868, 0.800268, 1)
+theme_override_fonts/font = ExtResource("17_xoh2d")
+theme_override_font_sizes/font_size = 19
+text = "              AGENT 00
+"
+horizontal_alignment = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="PokemonStyleWelcomeUI/DialogueBox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 100.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 5
+
+[node name="DialogueText" type="Label" parent="PokemonStyleWelcomeUI/DialogueBox/MarginContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Welcome to Cyber Arena!"
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="ContinueIndicator" type="Label" parent="PokemonStyleWelcomeUI/DialogueBox"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -60.0
+offset_top = -30.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_font_sizes/font_size = 19
+text = "▼ Tap the screen"
+horizontal_alignment = 2

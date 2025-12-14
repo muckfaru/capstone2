@@ -1,4 +1,4 @@
-# intro_scene.gd
+# intro_scene.gd creating username before tutorial
 # Introduction scene with talking guide before username creation
 # UPDATED: Now redirects to landing_tutorial.tscn after username creation
 
@@ -212,18 +212,20 @@ func _create_new_user(username: String) -> void:
 	
 	# Create the Firestore document structure
 	var body := {
-		"fields": {
-			"username": {"stringValue": username},
-			"avatar": {"stringValue": "default.png"},
-			"wins": {"integerValue": "0"},
-			"losses": {"integerValue": "0"},
-			"level": {"integerValue": "1"},
-			"friends": {"arrayValue": {"values": []}},
-			"requests_received": {"arrayValue": {"values": []}},
-			"first_login": {"booleanValue": true},
-			"tutorial_completed": {"booleanValue": false}
+    "fields": {
+        "username": {"stringValue": username},
+        "avatar": {"stringValue": "default.png"},
+        "wins": {"integerValue": "0"},
+        "losses": {"integerValue": "0"},
+        "level": {"integerValue": "1"},
+        "friends": {"arrayValue": {"values": []}},
+        "requests_received": {"arrayValue": {"values": []}},
+        "first_login": {"booleanValue": true},
+        # ✅ CORRECTED FLAGS:
+        "tutorial_completed": {"booleanValue": true},  # Mark as complete so we don't redirect
+        "welcome_tutorial_completed": {"booleanValue": false}  # This triggers Pokemon welcome UI
+    }
 		}
-	}
 	
 	var url: String = "%s/users?documentId=%s" % [FIRESTORE_URL, Auth.current_local_id]
 	var headers: PackedStringArray = [
@@ -246,9 +248,9 @@ func _create_new_user(username: String) -> void:
 			await get_tree().create_timer(1.0).timeout
 			dialogue_label.text = "Welcome, %s!" % username
 			
-			# Redirect to tutorial for new users
+			# Redirect to landing where welcome tutorial will auto-start
 			await get_tree().create_timer(2.0).timeout
-			print("🎓 Redirecting to landing.tscn...")
+			print("🎓 Redirecting to landing.tscn (welcome tutorial will auto-start)...")
 			get_tree().change_scene_to_file("res://scene/landing.tscn")
 		else:
 			dialogue_label.text = "❌ Failed to create profile (Error %s)" % code
@@ -267,6 +269,7 @@ func _create_new_user(username: String) -> void:
 		username_input.editable = true
 		confirm_button.disabled = false
 		dialogue_label.text = "❌ Connection error. Try again."
+
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_accept"):

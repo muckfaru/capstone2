@@ -21,6 +21,10 @@ var current_user_email: String = ""  # ✨ Added to store user email
 var current_avatar: String = ""
 var current_level: int = 0
 
+# ✅ NEW: Welcome Tutorial Cache
+var welcome_tutorial_completed: bool = false
+var welcome_tutorial_loaded: bool = false  # Track if we've loaded this from Firestore
+
 func _ready() -> void:
 	# Connect signal for request
 	if not http_request.request_completed.is_connected(_on_request_completed):
@@ -34,11 +38,32 @@ func _ready() -> void:
 	print("[DEBUG] Auth.gd ready!")
 
 # -------------------------
+# ✅ NEW: WELCOME TUTORIAL CACHE FUNCTIONS
+# -------------------------
+func reset_welcome_cache() -> void:
+	"""Call this when user logs in successfully"""
+	welcome_tutorial_completed = false
+	welcome_tutorial_loaded = false
+	print("[Auth] 🔄 Reset welcome tutorial cache for new login")
+
+func set_welcome_tutorial_status(completed: bool) -> void:
+	"""Call this when loading user data from Firestore"""
+	welcome_tutorial_completed = completed
+	welcome_tutorial_loaded = true
+	print("[Auth] 💾 Welcome tutorial status cached: %s" % ("completed" if completed else "not completed"))
+
+func mark_welcome_tutorial_complete() -> void:
+	"""Call this when user completes the welcome tutorial"""
+	welcome_tutorial_completed = true
+	print("[Auth] ✅ Welcome tutorial marked as completed in cache")
+
+# -------------------------
 # 🔐 SIGN UP
 # -------------------------
 func sign_up(email: String, password: String) -> void:
 	print("[AUTH] Signing up:", email)
 	current_user_email = email  # ✨ Store email
+	reset_welcome_cache()  # ✅ Reset cache on new signup
 	_request(
 		"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=%s" % API_KEY,
 		{
@@ -54,6 +79,7 @@ func sign_up(email: String, password: String) -> void:
 func login(email: String, password: String) -> void:
 	print("[AUTH] Logging in:", email)
 	current_user_email = email  # ✨ Store email
+	reset_welcome_cache()  # ✅ Reset cache on new login
 	_request(
 		"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=%s" % API_KEY,
 		{
@@ -68,6 +94,7 @@ func login(email: String, password: String) -> void:
 # -------------------------
 func login_with_google(id_token: String) -> void:
 	print("[AUTH] Logging in with Google token...")
+	reset_welcome_cache()  # ✅ Reset cache on Google login
 	_request(
 		"https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=%s" % API_KEY,
 		{
@@ -321,6 +348,7 @@ func _on_request_completed(_result: int, response_code: int, _h: PackedStringArr
 	print("Email:", current_user_email)
 	print("ID Token:", current_id_token.left(25), "...")
 	print("Has Refresh Token:", current_refresh_token != "")
+	print("Welcome Cache Loaded:", welcome_tutorial_loaded)  # ✅ NEW: Debug info
 	print()
 
 	emit_signal("auth_response", response_code, response)

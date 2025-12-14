@@ -1,0 +1,73 @@
+[gd_scene load_steps=4 format=3 uid="uid://cj0qwe1ta1yql"]
+
+[ext_resource type="Texture2D" uid="uid://dxrydx6v8dfsl" path="res://asset/icons/hologram_guide.png" id="1_cp0as"]
+[ext_resource type="Script" path="res://scene/welcome_intro_overlay.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cp0as"]
+bg_color = Color(0.00784314, 0.109804, 0.219608, 0.376471)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.603922, 0.796078, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="WelcomeIntroOverlay" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_script")
+
+[node name="OverlayBackground" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.85)
+
+[node name="HologramGuide" type="TextureRect" parent="."]
+offset_left = 255.0
+offset_top = 24.0
+offset_right = 549.0
+offset_bottom = 475.0
+texture = ExtResource("1_cp0as")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DialogueContainer" type="PanelContainer" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 300.0
+offset_top = -200.0
+offset_right = -300.0
+offset_bottom = -50.0
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_cp0as")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DialogueContainer"]
+layout_mode = 2
+
+[node name="DialogueLabel" type="RichTextLabel" parent="DialogueContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = true
+text = "Welcome text will appear here..."
+fit_content = true
+scroll_active = false
+
+[node name="SkipButton" type="Button" parent="DialogueContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 8
+mouse_default_cursor_shape = 2
+theme_override_colors/font_hover_color = Color(0, 1, 1, 1)
+theme_override_colors/font_color = Color(0, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Skip..."
+flat = true

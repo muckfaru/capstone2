@@ -38,7 +38,7 @@ signal xp_updated(new_xp: int)
 signal game_unlocked(game_name: String)
 signal rank_up(new_rank: Dictionary)
 signal data_loaded()
-signal save_completed()  # NEW: Emitted when Firestore save finishes
+signal save_completed()  # Emitted when Firestore save finishes
 
 
 # -------------------------
@@ -134,12 +134,14 @@ func save_tutorial_result(tutorial_id: String, score: int, max_score: int) -> vo
 	}
 	
 	total_xp += xp_earned
-	xp_updated.emit(total_xp)
+	
+	# ✅ DEFER signal emission to prevent UI conflicts
+	call_deferred("_emit_xp_update", total_xp)
 	
 	# Get new rank and check for rank up
 	var new_rank := get_rank(total_xp)
 	if new_rank["name"] != old_rank["name"]:
-		rank_up.emit(new_rank)
+		call_deferred("_emit_rank_up", new_rank)
 		print("🎉 RANK UP! %s → %s %s" % [old_rank["name"], new_rank["icon"], new_rank["name"]])
 	
 	# Check for game unlocks
@@ -147,6 +149,14 @@ func save_tutorial_result(tutorial_id: String, score: int, max_score: int) -> vo
 	
 	# Save to Firestore
 	_save_to_firestore()
+
+
+# ✅ NEW: Deferred signal emitters to prevent conflicts
+func _emit_xp_update(xp: int) -> void:
+	xp_updated.emit(xp)
+
+func _emit_rank_up(rank: Dictionary) -> void:
+	rank_up.emit(rank)
 
 
 # -------------------------
@@ -159,8 +169,11 @@ func _check_game_unlocks() -> void:
 		
 		if total_xp >= XP_THRESHOLDS[game_name]:
 			unlocked_games.append(game_name)
-			game_unlocked.emit(game_name)
+			call_deferred("_emit_game_unlock", game_name)
 			print("🎉 GAME UNLOCKED:", game_name.to_upper())
+
+func _emit_game_unlock(game_name: String) -> void:
+	game_unlocked.emit(game_name)
 
 
 # -------------------------
@@ -180,7 +193,7 @@ func _save_to_firestore() -> void:
 	
 	if Auth.current_local_id == "" or Auth.current_id_token == "":
 		push_error("❌ Cannot save tutorial result: No auth state")
-		save_completed.emit()
+		call_deferred("emit_signal", "save_completed")
 		return
 	
 	# Build ALL tutorial fields to avoid overwriting existing ones
@@ -241,15 +254,15 @@ func _save_to_firestore() -> void:
 		else:
 			push_error("[TutorialManager] ❌ Failed to save tutorial result (%s): %s" % [code, text])
 		
-		# Emit save_completed signal regardless of success/failure
-		save_completed.emit()
+		# ✅ Defer signal emission
+		call_deferred("emit_signal", "save_completed")
 	)
 	
 	var err := http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
 	if err != OK:
 		push_error("Failed to start Firestore PATCH: %s" % err)
 		http.queue_free()
-		save_completed.emit()  # Emit even on immediate failure
+		call_deferred("emit_signal", "save_completed")
 
 
 # -------------------------
@@ -344,4 +357,90 @@ func load_user_data() -> void:
 	var err := http.request(url, headers, HTTPClient.METHOD_GET)
 	if err != OK:
 		push_error("Failed to load user data: %s" % err)
+		http.queue_free()
+
+
+# -------------------------
+# ADD XP (For rewards, bonuses, etc.)
+# -------------------------
+func add_xp(amount: int, reason: String = "Bonus") -> void:
+	print("[TutorialManager] ========== ADD XP ==========")
+	print("[TutorialManager] 🎯 CALL STACK:")
+	var stack = get_stack()
+	for i in range(min(5, stack.size())):  # Show last 5 calls
+		print("    [%d] %s:%d in %s()" % [i, stack[i]["source"], stack[i]["line"], stack[i]["function"]])
+	
+	print("[TutorialManager] Amount: +%d | Reason: %s" % [amount, reason])
+	print("[TutorialManager] XP BEFORE: %d" % total_xp)
+	
+	if amount <= 0:
+		push_warning("[TutorialManager] ⚠️ Cannot add negative or zero XP")
+		return
+	
+	# Get old rank before XP increase
+	var old_rank := get_rank(total_xp)
+	
+	# Add XP
+	total_xp += amount
+	
+	print("[TutorialManager] XP AFTER: %d (+%d)" % [total_xp, amount])
+	
+	# ✅ DEFER signal emission to prevent UI conflicts
+	call_deferred("_emit_xp_update", total_xp)
+	
+	# Get new rank and check for rank up
+	var new_rank := get_rank(total_xp)
+	if new_rank["name"] != old_rank["name"]:
+		call_deferred("_emit_rank_up", new_rank)
+		print("🎉 RANK UP! %s → %s %s" % [old_rank["name"], new_rank["icon"], new_rank["name"]])
+	
+	# Check for game unlocks
+	_check_game_unlocks()
+	
+	# Save to Firestore (update total_xp only, don't touch tutorials)
+	_save_xp_only()
+
+
+# -------------------------
+# SAVE ONLY XP TO FIRESTORE (No tutorial data)
+# -------------------------
+func _save_xp_only() -> void:
+	print("[TutorialManager] 💾 Saving XP update to Firestore...")
+	
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		push_error("❌ Cannot save XP: No auth state")
+		return
+	
+	var url: String = "%s/users/%s?updateMask.fieldPaths=total_xp&updateMask.fieldPaths=unlocked_games" % [FIRESTORE_URL, Auth.current_local_id]
+	var headers: Array = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % Auth.current_id_token
+	]
+	
+	var body := {
+		"fields": {
+			"total_xp": {"integerValue": total_xp},
+			"unlocked_games": {
+				"arrayValue": {
+					"values": unlocked_games.map(func(g): return {"stringValue": g})
+				}
+			}
+		}
+	}
+	
+	var http := HTTPRequest.new()
+	add_child(http)
+	
+	http.request_completed.connect(func(_r, code, _h, body_response):
+		http.queue_free()
+		if code == 200:
+			print("[TutorialManager] ✅ XP saved to Firestore | Total XP: %d" % total_xp)
+		else:
+			var text: String = body_response.get_string_from_utf8()
+			push_error("[TutorialManager] ❌ Failed to save XP (%s): %s" % [code, text])
+	)
+	
+	var err := http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+	if err != OK:
+		push_error("Failed to start XP save request: %s" % err)
 		http.queue_free()
