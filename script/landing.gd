@@ -32,13 +32,11 @@ var first_mission_active: bool = false
 var firestore_base_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users"
 var http: HTTPRequest
 
-<<<<<<< HEAD
 # ✅ CRITICAL: Flag to prevent duplicate welcome bonus
 var welcome_bonus_awarded: bool = false
-=======
+
 # Resume retry guard (prevents infinite loops if server is down)
 var _code_breaker_resume_retries: int = 0
->>>>>>> e3a3f76cad3c741b42a3c84b7c16094dcbdee51e
 
 # === Lifecycle ===
 func _ready() -> void:
@@ -66,16 +64,29 @@ func _ready() -> void:
 	
 	TutorialManager.load_user_data()
 	call_deferred("_update_xp_display")
-<<<<<<< HEAD
-=======
 
-	# === Navigation setup ===
 	_setup_navigation()
+	_setup_mission_system()
 
-	_check_tutorial_status()
 	# If the app was restarted (shutdown/crash) while in a Code Breaker room/match,
 	# attempt to resume by routing into the reconnect flow.
 	call_deferred("_try_resume_code_breaker_session")
+
+	# ===== POKEMON WELCOME UI SETUP =====
+	if welcome_ui:
+		print("[Landing] ✅ PokemonStyleWelcomeUI found in scene tree")
+		welcome_ui.layer = 100
+		welcome_ui.visible = false
+		
+		# ✅ Disconnect any existing connections first
+		if welcome_ui.tutorial_completed.is_connected(_on_welcome_tutorial_completed):
+			welcome_ui.tutorial_completed.disconnect(_on_welcome_tutorial_completed)
+		
+		# Connect with ONE_SHOT to prevent multiple calls
+		welcome_ui.tutorial_completed.connect(_on_welcome_tutorial_completed, CONNECT_ONE_SHOT)
+		print("[Landing] ✅ Connected tutorial_completed signal (ONE_SHOT)")
+	else:
+		push_error("[Landing] ❌ PokemonStyleWelcomeUI node not found!")
 	
 
 func _try_resume_code_breaker_session() -> void:
@@ -235,27 +246,7 @@ func _http_get_json(url: String) -> Dictionary:
 	var body: PackedByteArray = result[3]
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	return {"code": code, "data": parsed}
->>>>>>> e3a3f76cad3c741b42a3c84b7c16094dcbdee51e
-	
-	_setup_navigation()
-	_setup_mission_system()
 
-	# ===== POKEMON WELCOME UI SETUP =====
-	if welcome_ui:
-		print("[Landing] ✅ PokemonStyleWelcomeUI found in scene tree")
-		welcome_ui.layer = 100
-		welcome_ui.visible = false
-		
-		# ✅ Disconnect any existing connections first
-		if welcome_ui.tutorial_completed.is_connected(_on_welcome_tutorial_completed):
-			welcome_ui.tutorial_completed.disconnect(_on_welcome_tutorial_completed)
-		
-		# Connect with ONE_SHOT to prevent multiple calls
-		welcome_ui.tutorial_completed.connect(_on_welcome_tutorial_completed, CONNECT_ONE_SHOT)
-		print("[Landing] ✅ Connected tutorial_completed signal (ONE_SHOT)")
-	else:
-		push_error("[Landing] ❌ PokemonStyleWelcomeUI node not found!")
-	
 func _setup_mission_system() -> void:
 	"""Setup the first mission as clickable label in NewsPanel"""
 	if not news_panel:
