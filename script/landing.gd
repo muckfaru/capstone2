@@ -1,5 +1,7 @@
 extends Control
 
+const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+
 # === UI References ===
 @onready var news_panel = $VideoStreamPlayer/HomePanel/NewsPanel
 @onready var mission_button: Button
@@ -30,8 +32,13 @@ var first_mission_active: bool = false
 var firestore_base_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users"
 var http: HTTPRequest
 
+<<<<<<< HEAD
 # ✅ CRITICAL: Flag to prevent duplicate welcome bonus
 var welcome_bonus_awarded: bool = false
+=======
+# Resume retry guard (prevents infinite loops if server is down)
+var _code_breaker_resume_retries: int = 0
+>>>>>>> e3a3f76cad3c741b42a3c84b7c16094dcbdee51e
 
 # === Lifecycle ===
 func _ready() -> void:
@@ -59,6 +66,176 @@ func _ready() -> void:
 	
 	TutorialManager.load_user_data()
 	call_deferred("_update_xp_display")
+<<<<<<< HEAD
+=======
+
+	# === Navigation setup ===
+	_setup_navigation()
+
+	_check_tutorial_status()
+	# If the app was restarted (shutdown/crash) while in a Code Breaker room/match,
+	# attempt to resume by routing into the reconnect flow.
+	call_deferred("_try_resume_code_breaker_session")
+	
+
+func _try_resume_code_breaker_session() -> void:
+	# Only resume for logged-in users (Auth can be set a frame later)
+	for _i in range(10):
+		if Auth and Auth.current_local_id != "":
+			break
+		await get_tree().create_timer(0.25).timeout
+	if not Auth or Auth.current_local_id == "":
+		return
+
+	var session := _SessionStore.load_session()
+	if session.is_empty():
+		return
+
+	# Ignore stale sessions from other accounts
+	var session_player_id := str(session.get("player_id", ""))
+	if session_player_id != "" and session_player_id != "unknown" and session_player_id != Auth.current_local_id:
+		_SessionStore.clear_session()
+		return
+
+	var room_id := str(session.get("room_id", ""))
+	if room_id.strip_edges() == "":
+		_SessionStore.clear_session()
+		return
+
+	var saved_lobby_url := str(session.get("lobby_server_url", ""))
+	var current_lobby_url := MultiplayerConfig.get_lobby_url() if MultiplayerConfig else ""
+	var lobby_candidates: Array[String] = []
+	if saved_lobby_url.strip_edges() != "":
+		lobby_candidates.append(saved_lobby_url)
+	if current_lobby_url.strip_edges() != "" and (current_lobby_url not in lobby_candidates):
+		lobby_candidates.append(current_lobby_url)
+	if lobby_candidates.is_empty():
+		return
+
+	print("[Landing] 🔄 Found Code Breaker session. Room: %s | Candidates: %s" % [room_id, str(lobby_candidates)])
+
+	var chosen_lobby_url := ""
+	var parsed: Variant = null
+	var saw_404 := false
+	for candidate_url in lobby_candidates:
+		var url := candidate_url + "/api/rooms/" + room_id
+		var res := await _http_get_json(url)
+		var code := int(res.get("code", 0))
+		if code == 404:
+			saw_404 = true
+			continue
+		if code != 200:
+			print("[Landing] ⚠️ Resume check failed against ", candidate_url, " HTTP ", code)
+			continue
+		var data: Variant = res.get("data", null)
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		if data.has("error"):
+			continue
+		chosen_lobby_url = candidate_url
+		parsed = data
+		break
+
+	if parsed == null:
+		# If the room is definitely gone, clear. If it was just a transient network/server issue, keep session and retry.
+		if saw_404:
+			print("[Landing] ℹ️ Room not found (404). Clearing session.")
+			_SessionStore.clear_session()
+			_code_breaker_resume_retries = 0
+			return
+		if _code_breaker_resume_retries < 5:
+			_code_breaker_resume_retries += 1
+			print("[Landing] ⏳ Resume check failed (transient). Retrying in 2s… (", _code_breaker_resume_retries, "/5)")
+			await get_tree().create_timer(2.0).timeout
+			call_deferred("_try_resume_code_breaker_session")
+		return
+
+	_code_breaker_resume_retries = 0
+
+	var status := str(parsed.get("status", "waiting"))
+	var host_dict = parsed.get("host", {})
+	var is_host := false
+	if typeof(host_dict) == TYPE_DICTIONARY:
+		is_host = (str(host_dict.get("player_id", "")) == Auth.current_local_id)
+
+	if status == "in_game":
+		print("[Landing] ✅ Match in progress, routing to reconnect")
+		var init := {
+			"room_id": room_id,
+			"lobby_server_url": chosen_lobby_url,
+			"player_id": Auth.current_local_id,
+			"username": Auth.current_username,
+			"is_host": is_host,
+			"relay_client": null,
+			"host_data": host_dict,
+			"client_data": parsed.get("client", {}) if parsed.get("client", null) != null else {},
+			"game_start_time": int(parsed.get("game_start_time", 0)),
+			"reason": "Resume after relogin"
+		}
+		get_tree().set_meta("code_breaker_reconnect_init", init)
+		var reconnect_scene := load("res://scene/code_breaker_reconnect.tscn")
+		if reconnect_scene:
+			get_tree().change_scene_to_packed(reconnect_scene)
+		return
+
+	if status == "waiting":
+		print("[Landing] ✅ Room still waiting, routing back to room")
+		var room_init := {
+			"room_id": room_id,
+			"host_name": str(host_dict.get("username", "Host")),
+			"is_host": is_host,
+			"lobby_server_url": chosen_lobby_url
+		}
+		get_tree().set_meta("code_breaker_room_init", room_init)
+		var room_scene := load("res://scene/code_breaker_room.tscn")
+		if room_scene:
+			get_tree().change_scene_to_packed(room_scene)
+		return
+
+	if status == "finished":
+		print("[Landing] ✅ Match finished, routing to postgame")
+		var postgame_init := {
+			"room_id": room_id,
+			"relay_client": null,
+			"player_id": Auth.current_local_id,
+			"is_host": is_host,
+			"host_data": host_dict,
+			"client_data": parsed.get("client", {}) if parsed.get("client", null) != null else {},
+			"lobby_server_url": chosen_lobby_url,
+			"winner_id": "",
+			"host_score": 0,
+			"client_score": 0,
+			"host_health": 0,
+			"client_health": 0,
+			"game_duration": 0.0,
+			"host_powerups_used": 0,
+			"client_powerups_used": 0,
+			"result_unknown": true
+		}
+		get_tree().set_meta("code_breaker_postgame_init", postgame_init)
+		var post_scene := load("res://scene/code_breaker_postgame.tscn")
+		if post_scene:
+			get_tree().change_scene_to_packed(post_scene)
+		return
+
+	# Unknown status -> clear and stay on landing
+	_SessionStore.clear_session()
+
+
+func _http_get_json(url: String) -> Dictionary:
+	var http_req := HTTPRequest.new()
+	add_child(http_req)
+	var err := http_req.request(url, [], HTTPClient.METHOD_GET)
+	if err != OK:
+		http_req.queue_free()
+		return {"code": 0, "data": null}
+	var result: Array = await http_req.request_completed
+	http_req.queue_free()
+	var code := int(result[1])
+	var body: PackedByteArray = result[3]
+	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+	return {"code": code, "data": parsed}
+>>>>>>> e3a3f76cad3c741b42a3c84b7c16094dcbdee51e
 	
 	_setup_navigation()
 	_setup_mission_system()

@@ -122,15 +122,19 @@ func _handle_message(data: Dictionary) -> void:
 	match msg_type:
 		"connected":
 			print("[WebSocketRelay] Welcome message received")
+			# Still forward for any scene that wants it
+			message_received.emit(data)
 		
 		"player_connected":
 			var other_player = data.get("username", "Player")
 			var count = data.get("players_count", 0)
 			print("[WebSocketRelay] %s joined the room (%d/2 players)" % [other_player, count])
+			message_received.emit(data)
 		
 		"player_disconnected":
 			var other_player = data.get("username", "Player")
 			print("[WebSocketRelay] %s left the room" % other_player)
+			message_received.emit(data)
 		
 		"error":
 			var err_msg = data.get("message", "Unknown error")

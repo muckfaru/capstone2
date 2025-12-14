@@ -1,13 +1,13 @@
 extends Control
 
+const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+
 # UI References
 @onready var _host_username: Label = $HostCard/HostUsername
-@onready var _host_avatar: Sprite2D = $HostCard/Avatar1
 @onready var _host_status: Label = $HostCard/HostStatus
 @onready var _host_progress: ProgressBar = $HostCard/HostProgressBar
 
 @onready var _client_username: Label = $ClientCard/ClientUsername
-@onready var _client_avatar: Sprite2D = $ClientCard/Avatar1
 @onready var _client_status: Label = $ClientCard/ClientStatus
 @onready var _client_progress: ProgressBar = $ClientCard/ClientProgressBar
 
@@ -43,14 +43,14 @@ const LOADING_TIMEOUT := 60.0  # Increased to 60s for better stability
 const TRANSITION_DELAY := 2.0  # Wait 2s after both ready
 const RETRY_INTERVAL := 2.0    # Retry message every 2 seconds
 const MAX_RETRIES := 5         # Retry up to 5 times before timeout
-const RELAY_SETTLING_DELAY := 1.5  # Wait 1.5s for relay to stabilize
+const RELAY_SETTLING_DELAY := 10.0 # Wait 10s for relay to stabilize
 
 var _retry_count: int = 0      # How many times we've retried
 var _message_sent: bool = false # Did we already send loading status?
 
 func _ready() -> void:
 	print("[Loading] Scene initialized")
-	
+	 
 	# Get init data from room
 	var init: Dictionary = {}
 	if get_tree().has_meta("code_breaker_loading_init"):
@@ -65,6 +65,14 @@ func _ready() -> void:
 	_client_data = init.get("client_data", {})
 	_game_start_time = int(init.get("game_start_time", 0))
 	_lobby_server_url = str(init.get("lobby_server_url", ""))
+	# Persist last known session so relogin can resume to reconnect
+	_SessionStore.save_session(
+		_room_id,
+		_lobby_server_url,
+		_player_id,
+		Auth.current_username if Auth else "Player",
+		"loading"
+	)
 	
 	print("[Loading] 🎮 Init data:")
 	print("  Player ID: %s" % _player_id)
@@ -73,8 +81,8 @@ func _ready() -> void:
 	print("  Client Data: %s" % _client_data)
 	
 	if _relay_client == null:
-		push_error("[Loading] No relay client! Returning to room...")
-		_return_to_room()
+		push_error("[Loading] No relay client! Going to reconnect...")
+		_go_to_reconnect("Missing relay client")
 		return
 	
 	# Adopt relay_client if it's attached to root
@@ -98,6 +106,10 @@ func _ready() -> void:
 	# Connect relay signals
 	if not _relay_client.message_received.is_connected(_on_relay_message):
 		_relay_client.message_received.connect(_on_relay_message)
+	# If relay reconnects while we're on Loading, re-announce our current state.
+	if _relay_client.has_signal("connected_to_relay"):
+		if not _relay_client.connected_to_relay.is_connected(_on_relay_connected_for_loading):
+			_relay_client.connected_to_relay.connect(_on_relay_connected_for_loading)
 	
 	# Setup timers
 	_setup_timers()
@@ -107,12 +119,21 @@ func _ready() -> void:
 	
 	# IMPORTANT: Wait longer for relay to be fully connected before sending first message
 	# This prevents race condition where message arrives before opponent's relay is ready
-	print("[Loading] ⏳ Waiting 1.5s for relay to stabilize...")
+	print("[Loading] ⏳ Waiting for relay to stabilize...")
 	await get_tree().create_timer(1.5).timeout
-	print("[Loading] ✅ Relay settling delay complete, now sending loading status...")
+	print("[Loading] ✅ Settling delay complete, now sending loading status...")
 	
 	# Send "I'm loading" message
 	_send_loading_status("loading")
+	# Keep retrying until we sync or timeout
+	if _retry_timer and _retry_timer.is_stopped():
+		_retry_timer.start()
+
+
+func _on_relay_connected_for_loading() -> void:
+	# When relay becomes connected (or re-connected), re-send current state.
+	_send_loading_status("loading" if not _self_loaded else "ready")
+	_send_status_request()
 
 func _setup_ui() -> void:
 	"""Setup player cards - Left is YOU, Right is OPPONENT"""
@@ -198,6 +219,7 @@ func _simulate_loading() -> void:
 	_self_loaded = true
 	print("[Loading] ✅ Self loaded! Sending ready status...")
 	_send_loading_status("ready")
+	_send_status_request()
 	_update_self_status()
 	_check_both_ready()  # Check if opponent is already ready
 	
@@ -233,11 +255,21 @@ func _send_loading_status(status: String) -> void:
 		])
 		_message_sent = true
 		
-		# Start retry timer if not already running and we haven't exceeded max retries
-		if _retry_timer.is_stopped() and _retry_count < MAX_RETRIES:
+		# Keep retry timer running until sync or timeout
+		if _retry_timer.is_stopped():
 			_retry_timer.start()
 	else:
 		push_error("[Loading] ❌ No relay client to send message!")
+
+
+func _send_status_request() -> void:
+	"""Ask opponent to re-announce their current loading/ready state."""
+	if _relay_client:
+		_relay_client.send_message({
+			"type": "loading_status_request",
+			"player_id": _player_id,
+			"timestamp": Time.get_ticks_msec()
+		})
 
 func _on_relay_message(data: Dictionary) -> void:
 	"""Handle relay messages from opponent"""
@@ -248,44 +280,65 @@ func _on_relay_message(data: Dictionary) -> void:
 	
 	match msg_type:
 		"loading_status":
-			var status = data.get("status", "")
-			var _sender_id = data.get("player_id", "")
+			var status := str(data.get("status", ""))
+			var sender_id := str(data.get("player_id", ""))
+			# Ignore self-echo (if server ever broadcasts back)
+			if sender_id != "" and sender_id == _player_id:
+				return
 			
 			print("[Loading] Opponent status: %s" % status)
-			
-			if status == "ready":
+			if status == "loading":
+				_opponent_loaded = false
+				_update_opponent_loading()
+			elif status == "ready":
 				_opponent_loaded = true
 				print("[Loading] ✅ Opponent is ready!")
 				_update_opponent_status()
 				_check_both_ready()
+
+		"loading_status_request":
+			# Opponent is asking us to re-send our current state.
+			_send_loading_status("loading" if not _self_loaded else "ready")
+
+		"force_loading_sync":
+			# Opponent is (re)joining and wants BOTH clients to sync via Loading.
+			# If we were about to transition, cancel and wait again.
+			print("[Loading] 🔁 Received force_loading_sync - resetting ready state")
+			if _transition_timer and not _transition_timer.is_stopped():
+				_transition_timer.stop()
+			_countdown_started = false
+			_opponent_loaded = false
+			_update_opponent_loading()
+			_status_message.text = "Resyncing players…"
+			_send_loading_status("loading" if not _self_loaded else "ready")
+			_send_status_request()
 		
 		"player_disconnected":
 			print("[Loading] ⚠️ Opponent disconnected!")
-			_status_message.text = "Opponent disconnected. Returning to room..."
-			await get_tree().create_timer(2.0).timeout
-			_return_to_room()
+			_status_message.text = "Opponent disconnected. Reconnecting..."
+			await get_tree().create_timer(1.0).timeout
+			_go_to_reconnect("Opponent disconnected")
+
+func _update_opponent_loading() -> void:
+	"""Update opponent status to LOADING"""
+	# Right card is always opponent
+	_client_status.text = "⏳ Loading..."
+	_client_status.add_theme_color_override("font_color", COLOR_LOADING)
+	_client_progress.value = 0.0
 
 func _update_self_status() -> void:
 	"""Update own status to READY"""
-	if _is_host:
-		_host_status.text = "✅ Ready!"
-		_host_status.add_theme_color_override("font_color", COLOR_READY)
-		_host_progress.value = 100.0
-	else:
-		_client_status.text = "✅ Ready!"
-		_client_status.add_theme_color_override("font_color", COLOR_READY)
-		_client_progress.value = 100.0
+	# Left card is always YOU
+	_host_status.text = "✅ Ready!"
+	_host_status.add_theme_color_override("font_color", COLOR_READY)
+	_host_progress.value = 100.0
 
 func _update_opponent_status() -> void:
 	"""Update opponent status to READY"""
-	if _is_host:
-		_client_status.text = "✅ Ready!"
-		_client_status.add_theme_color_override("font_color", COLOR_READY)
-		_client_progress.value = 100.0
-	else:
-		_host_status.text = "✅ Ready!"
-		_host_status.add_theme_color_override("font_color", COLOR_READY)
-		_host_progress.value = 100.0
+	# Right card is always opponent
+	_client_status.text = "✅ Ready!"
+	_client_status.add_theme_color_override("font_color", COLOR_READY)
+	_client_progress.value = 100.0
 
 func _check_both_ready() -> void:
 	"""Check if both players are ready, then transition"""
@@ -308,13 +361,9 @@ func _on_retry_timeout() -> void:
 		return  # Already transitioned or haven't sent initial message
 	
 	_retry_count += 1
-	
-	if _retry_count < MAX_RETRIES:
-		print("[Loading] 🔄 Retry #%d: Re-sending loading status..." % _retry_count)
-		_send_loading_status("loading" if not _self_loaded else "ready")
-	else:
-		print("[Loading] ⚠️ Max retries exceeded! Waiting for timeout...")
-		_retry_timer.stop()
+	print("[Loading] 🔄 Retry #%d: Re-sending loading status + requesting opponent state..." % _retry_count)
+	_send_loading_status("loading" if not _self_loaded else "ready")
+	_send_status_request()
 
 func _on_loading_timeout() -> void:
 	"""Handle loading timeout (45 seconds)"""
@@ -324,10 +373,43 @@ func _on_loading_timeout() -> void:
 	_retry_timer.stop()
 	
 	print("[Loading] ⏰ Loading timeout after %ds!" % LOADING_TIMEOUT)
-	_status_message.text = "Loading timeout. Returning to room..."
+	_status_message.text = "Loading timeout. Reconnecting..."
 	
-	await get_tree().create_timer(2.0).timeout
-	_return_to_room()
+	await get_tree().create_timer(1.0).timeout
+	_go_to_reconnect("Loading timeout")
+
+func _go_to_reconnect(reason: String) -> void:
+	print("[Loading] 🔄 Going to reconnect scene. Reason: ", reason)
+	
+	# Disconnect relay signals
+	if _relay_client and _relay_client.message_received.is_connected(_on_relay_message):
+		_relay_client.message_received.disconnect(_on_relay_message)
+	
+	# Preserve relay client if present
+	if _relay_client and _relay_client.get_parent():
+		_relay_client.get_parent().remove_child(_relay_client)
+		get_tree().root.add_child(_relay_client)
+	
+	var init := {
+		"room_id": _room_id,
+		"lobby_server_url": _lobby_server_url,
+		"player_id": _player_id,
+		"username": Auth.current_username if Auth else "Player",
+		"is_host": _is_host,
+		"relay_client": _relay_client,
+		"host_data": _host_data,
+		"client_data": _client_data,
+		"game_start_time": _game_start_time,
+		"reason": reason
+	}
+	get_tree().set_meta("code_breaker_reconnect_init", init)
+	
+	var reconnect_scene := load("res://scene/code_breaker_reconnect.tscn")
+	if reconnect_scene:
+		get_tree().change_scene_to_packed(reconnect_scene)
+	else:
+		push_error("[Loading] code_breaker_reconnect.tscn not found; returning to room")
+		_return_to_room()
 
 func _transition_to_arena() -> void:
 	"""Transition to arena scene"""

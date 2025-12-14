@@ -1,5 +1,7 @@
 extends Control
 
+const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+
 ## CODE BREAKER ARENA - Submit-Based Typing Combat
 ## 🎮 NEW MECHANICS (v3.0):
 ## - Type code in input field, press ENTER to submit
@@ -175,6 +177,14 @@ func _ready() -> void:
 	_player_id = str(init.get("player_id", ""))
 	_is_host = bool(init.get("is_host", false))
 	_lobby_server_url = str(init.get("lobby_server_url", ""))
+	# Persist last known session so relogin can resume to reconnect
+	_SessionStore.save_session(
+		_room_id,
+		_lobby_server_url,
+		_player_id,
+		Auth.current_username if Auth else "Player",
+		"arena"
+	)
 	
 	_host_data = init.get("host_data", {})
 	_client_data = init.get("client_data", {})
@@ -405,6 +415,16 @@ func _on_relay_message(data: Dictionary) -> void:
 	var msg_type = data.get("type", "")
 	
 	match msg_type:
+		"loading_status", "force_loading_sync":
+			# Opponent is in Loading (usually due to reconnect). To avoid split-brain
+			# where one player is in Arena and the other is in Loading, we resync by
+			# routing ourselves into Reconnect -> Loading.
+			if _game_active:
+				print("[Arena] ⚠️ Received %s during active match; ignoring" % msg_type)
+			else:
+				print("[Arena] 🔁 Received %s - resyncing via reconnect" % msg_type)
+				_go_to_reconnect("Opponent is syncing in Loading")
+				return
 		"snippet_list":
 			# Host sent snippet list to client
 			_receive_snippet_list(data.get("snippets", []))
@@ -462,6 +482,33 @@ func _on_relay_message(data: Dictionary) -> void:
 				_ws_indicator.color = Color.RED
 			await get_tree().create_timer(3.0).timeout
 			_leave_arena()
+
+func _go_to_reconnect(reason: String) -> void:
+	# Preserve relay across scene change
+	if _relay_client and _relay_client.get_parent():
+		_relay_client.get_parent().remove_child(_relay_client)
+		get_tree().root.add_child(_relay_client)
+
+	var init := {
+		"room_id": _room_id,
+		"lobby_server_url": _lobby_server_url,
+		"player_id": _player_id,
+		"username": Auth.current_username if Auth else "Player",
+		"is_host": _is_host,
+		"relay_client": _relay_client,
+		"host_data": _host_data,
+		"client_data": _client_data,
+		"game_start_time": int(_game_start_time),
+		"reason": reason
+	}
+	get_tree().set_meta("code_breaker_reconnect_init", init)
+
+	var reconnect_scene := load("res://scene/code_breaker_reconnect.tscn")
+	if reconnect_scene:
+		get_tree().change_scene_to_packed(reconnect_scene)
+	else:
+		push_error("[Arena] code_breaker_reconnect.tscn not found")
+		_leave_arena()
 
 # =============================================================================
 # RELAY SEND FUNCTIONS (Replace RPC calls)
@@ -1366,6 +1413,9 @@ func _end_game_timeout() -> void:
 
 func _leave_arena() -> void:
 	"""Clean up and transition to PostGame screen"""
+	# Update lobby room status so relogin/reconnect does not loop forever.
+	_set_lobby_room_status("finished")
+	
 	# Stop battle music
 	if _battle_music:
 		_battle_music.stop()
@@ -1377,7 +1427,7 @@ func _leave_arena() -> void:
 	
 	# Determine if we won
 	var we_won = false
-	var is_draw = false
+	var _is_draw = false
 	
 	if player_health > _opponent_health:
 		we_won = true
@@ -1385,7 +1435,7 @@ func _leave_arena() -> void:
 		if player_score > _opponent_score:
 			we_won = true
 		elif player_score == _opponent_score:
-			is_draw = true
+			_is_draw = true
 	
 	# Calculate XP earned
 	var xp_earned = 500 if we_won else 0
@@ -1476,6 +1526,22 @@ func _leave_arena() -> void:
 			var room_scene := load("res://scene/code_breaker_room.tscn")
 			if room_scene:
 				get_tree().change_scene_to_packed(room_scene)
+
+
+func _set_lobby_room_status(new_status: String) -> void:
+	if _lobby_server_url.strip_edges() == "" or _room_id.strip_edges() == "":
+		return
+	if not ["waiting", "in_game", "finished"].has(new_status):
+		return
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, _code, _h, _body: PackedByteArray):
+		http.queue_free()
+	)
+	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/status"
+	var headers := ["Content-Type: application/json"]
+	var body := JSON.stringify({"status": new_status})
+	http.request(url, headers, HTTPClient.METHOD_POST, body)
 
 func _save_xp_to_firestore(xp_earned: int) -> void:
 	"""Save XP earned to Firestore total_xp field"""
@@ -1832,7 +1898,7 @@ func _spawn_damage_explosion(at_position: Vector2, is_critical: bool = false) ->
 
 func _format_game_duration(seconds: float) -> String:
 	"""Format duration to M:SS format"""
-	var mins = int(seconds) / 60
+	var mins = int(seconds / 60.0)
 	var secs = int(seconds) % 60
 	return "%d:%02d" % [mins, secs]
 

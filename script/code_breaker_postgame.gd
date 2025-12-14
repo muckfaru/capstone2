@@ -1,5 +1,7 @@
 extends Control
 
+const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+
 # UI References
 @onready var _host_username: Label = $HostCard/HostUsername
 @onready var _host_status: Label = $HostCard/HostStatus
@@ -35,6 +37,7 @@ var _client_health: int = 0
 var _game_duration: float = 0.0
 var _host_powerups_used: int = 0
 var _client_powerups_used: int = 0
+var _result_unknown: bool = false
 
 # Colors
 const COLOR_WINNER := Color(1, 0.84, 0, 1)  # Gold
@@ -70,6 +73,7 @@ func _ready() -> void:
 	_game_duration = float(init.get("game_duration", 0.0))
 	_host_powerups_used = int(init.get("host_powerups_used", 0))
 	_client_powerups_used = int(init.get("client_powerups_used", 0))
+	_result_unknown = bool(init.get("result_unknown", false))
 	
 	print("[PostGame] 🎮 Init data:")
 	print("  Winner: %s" % _winner_id)
@@ -97,6 +101,31 @@ func _setup_ui() -> void:
 	# Determine winners and losers based on winner_id
 	var host_player_id: String = str(_host_data.get("player_id", ""))
 	var client_player_id: String = str(_client_data.get("player_id", ""))
+
+	# Default: hide badges until explicitly shown
+	_host_winner_badge.visible = false
+	_client_winner_badge.visible = false
+
+	# If we don't know the winner (reconnect-after-finished path), show a neutral result.
+	if _result_unknown or _winner_id == "" or (host_player_id != "" and client_player_id != "" and _winner_id != host_player_id and _winner_id != client_player_id):
+		_host_username.text = str(_host_data.get("username", "Host"))
+		_client_username.text = str(_client_data.get("username", "Client"))
+
+		_host_status.text = "🏁 MATCH ENDED"
+		_client_status.text = "🏁 MATCH ENDED"
+		_host_status.add_theme_color_override("font_color", COLOR_WINNER)
+		_client_status.add_theme_color_override("font_color", COLOR_WINNER)
+
+		_host_xp.text = "XP: +0"
+		_client_xp.text = "XP: +0"
+		_host_xp.add_theme_color_override("font_color", COLOR_XP_LOSE)
+		_client_xp.add_theme_color_override("font_color", COLOR_XP_LOSE)
+
+		_host_time.text = "Time: %s" % _format_time(_game_duration)
+		_client_time.text = "Time: %s" % _format_time(_game_duration)
+		_host_powerups.text = "Power-ups: %d" % _host_powerups_used
+		_client_powerups.text = "Power-ups: %d" % _client_powerups_used
+		return
 	
 	print("[PostGame] DEBUG - Winner ID: %s" % _winner_id)
 	print("[PostGame] DEBUG - Host Player ID: %s" % host_player_id)
@@ -165,13 +194,15 @@ func _animate_in() -> void:
 
 func _format_time(seconds: float) -> String:
 	"""Format seconds to M:SS format"""
-	var mins = int(seconds) / 60
+	var mins = int(seconds / 60.0)
 	var secs = int(seconds) % 60
 	return "%dm %ds" % [mins, secs]
 
 func _on_back_to_landing_pressed() -> void:
 	"""Handle back to landing button press"""
 	print("[PostGame] 🔙 Back to Landing pressed")
+	# Postgame means the session is over; don't attempt to auto-resume.
+	_SessionStore.clear_session()
 	
 	# Clean up relay connection
 	if _relay_client:
