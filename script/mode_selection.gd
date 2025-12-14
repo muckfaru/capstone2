@@ -417,15 +417,15 @@ func _show_tutorial_menu(level: String) -> void:
 			level_int = 2
 			tutorials = [
 				{"name": "🎣 Phishing Detection Lab", "scene": "res://scene/phishing_intro.tscn", "id": "intermediate_phishing"},
-				{"name": "🛡️ Interactive Defense Training", "scene": "res://scene/tutorial_advance_interactive.tscn", "id": "intermediate_defense"},
-				{"name": "🔬 Advanced Malware Lab", "scene": "res://scene/malware_tutorial_menu.tscn", "id": "intermediate_lab"}
+				{"name": "🔐 Encryption", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "advanced_encryption"},
+				{"name": "🔬  Malware Lab", "scene": "res://scene/malware_tutorial_menu.tscn", "id": "intermediate_lab"}
 			]
 		"advanced":
 			level_int = 3
 			tutorials = [
 				{"name": "⚔️ Advanced Threat Scenarios", "scene": "res://scene/tutorial_advance.tscn", "id": "advanced_scenarios"},
-				{"name": "🔐 Encryption", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "advanced_encryption"},
-				{"name": "💀 Malware Research Lab", "scene": "res://scene/malware_tutorial_menu.tscn", "id": "advanced_lab"}
+				{"name": "🛡️ Interactive Defense Training", "scene": "res://scene/tutorial_advance_interactive.tscn", "id": "intermediate_defense"},
+				
 			]
 	
 	# Update Auth level

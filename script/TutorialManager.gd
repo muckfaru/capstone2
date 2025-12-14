@@ -11,7 +11,7 @@ const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/%s/database
 # XP thresholds for game unlocks
 const XP_THRESHOLDS := {
 	"akashic_tcg": 0,        # Always unlocked (beginner game)
-	"code_breaker": 500,     # Requires 500 XP (intermediate)
+	"code_breaker": 50,     # Requires 500 XP (intermediate)
 	"game_3": 1500           # Future game (advance)
 }
 

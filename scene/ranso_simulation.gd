@@ -20,10 +20,10 @@ var documents_opened = false  # ADD THIS LINE
 
 # Sample file data
 var documents_files = [
-	{"name": "Mr Meow.jpg", "type": "image", "icon": "📷"},
-	{"name": "lol.jpg", "type": "image", "icon": "📷"},
-	{"name": "funny.jpg", "type": "image", "icon": "📷"},
-	{"name": "list.txt", "type": "text", "icon": "📄"}
+	{"name": "Ser.jpg", "type": "image", "icon": "📷"},
+	{"name": "tapos.jpg", "type": "image", "icon": "📷"},
+	{"name": "na.jpg", "type": "image", "icon": "📷"},
+	{"name": "po.txt", "type": "text", "icon": "📄"}
 ]
 
 # Countdown timers
@@ -364,7 +364,7 @@ func open_ransomware_window():
 	ransomware_window.z_index = 20
 	add_child(ransomware_window)
 	
-	# CMD-style black background with rounded corners
+	# CMD-style black background
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0, 0, 0, 1)
 	style.corner_radius_top_left = 2
@@ -392,7 +392,7 @@ func open_ransomware_window():
 	title_label.add_theme_font_size_override("font_size", 12)
 	title_bar.add_child(title_label)
 	
-	# Window controls - CMD style
+	# Window controls
 	var close_btn = create_window_button("×", Vector2(660, 5), Color(0.9, 0.3, 0.3, 1))
 	close_btn.pressed.connect(func(): ransomware_window.queue_free())
 	title_bar.add_child(close_btn)
@@ -403,7 +403,8 @@ func open_ransomware_window():
 	var minimize_btn = create_window_button("─", Vector2(590, 5), Color(0.3, 0.3, 0.3, 1))
 	title_bar.add_child(minimize_btn)
 	make_window_draggable(ransomware_window, title_bar)
-	# Red warning banner with CMD-style text
+	
+	# Red warning banner
 	var warning_banner = ColorRect.new()
 	warning_banner.position = Vector2(0, 35)
 	warning_banner.size = Vector2(700, 60)
@@ -417,129 +418,157 @@ func open_ransomware_window():
 	warning_text.add_theme_color_override("font_color", Color(1, 1, 1, 1))
 	warning_banner.add_child(warning_text)
 	
-	# Left panel - Lock icon and countdown (CMD terminal style)
-	create_left_panel_cmd()
+	# Main terminal area with scrolling text
+	var terminal_area = RichTextLabel.new()
+	terminal_area.name = "TerminalArea"
+	terminal_area.position = Vector2(10, 105)
+	terminal_area.size = Vector2(680, 430)
+	terminal_area.bbcode_enabled = true
+	terminal_area.add_theme_color_override("default_color", Color(0, 1, 0, 1))
+	terminal_area.add_theme_font_size_override("normal_font_size", 14)
+	terminal_area.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
 	
-	# Right panel - Instructions (CMD terminal style)
-	create_right_panel_cmd()
+	# Set black background
+	var terminal_bg = StyleBoxFlat.new()
+	terminal_bg.bg_color = Color(0, 0, 0, 1)
+	terminal_area.add_theme_stylebox_override("normal", terminal_bg)
 	
-	# Bottom buttons
-	create_bottom_buttons()
-
-func create_left_panel_cmd():
-	var left_panel = ColorRect.new()
-	left_panel.position = Vector2(10, 105)  # Position after warning banner
-	left_panel.size = Vector2(290, 440)  # Adjusted size
-	left_panel.color = Color(0.05, 0.05, 0.05, 1)
-	ransomware_window.add_child(left_panel)
-	
-	# Rest of the function remains the same...
-	
-	# Payment countdown
-	var payment_label = Label.new()
-	payment_label.text = ">> Payment doubled in:"
-	payment_label.position = Vector2(30, 180)  # Changed from 200
-	payment_label.add_theme_color_override("font_color", Color(0, 1, 0, 1))
-	payment_label.add_theme_font_size_override("font_size", 14)
-	left_panel.add_child(payment_label)
-	
-	var payment_timer = Label.new()
-	payment_timer.name = "PaymentTimer"
-	payment_timer.text = "   2:23:59:57"
-	payment_timer.position = Vector2(40, 210)  # Changed from 230
-	payment_timer.add_theme_color_override("font_color", Color(1, 1, 0, 1))
-	payment_timer.add_theme_font_size_override("font_size", 24)
-	left_panel.add_child(payment_timer)
-	
-	# Deletion countdown
-	var deletion_label = Label.new()
-	deletion_label.text = ">> Files deleted in:"
-	deletion_label.position = Vector2(30, 280)  # Changed from 310
-	deletion_label.add_theme_color_override("font_color", Color(0, 1, 0, 1))
-	deletion_label.add_theme_font_size_override("font_size", 14)
-	left_panel.add_child(deletion_label)
-	
-	var deletion_timer = Label.new()
-	deletion_timer.name = "DeletionTimer"
-	deletion_timer.text = "   6:23:59:57"
-	deletion_timer.position = Vector2(40, 310)  # Changed from 340
-	deletion_timer.add_theme_color_override("font_color", Color(1, 1, 0, 1))
-	deletion_timer.add_theme_font_size_override("font_size", 24)
-	left_panel.add_child(deletion_timer)
-
-func create_right_panel_cmd():
-	var right_panel = ColorRect.new()
-	right_panel.position = Vector2(300, 100)
-	right_panel.size = Vector2(390, 450)
-	right_panel.color = Color(0.05, 0.05, 0.05, 1)
-	ransomware_window.add_child(right_panel)
-	
-	# CMD-style instructions with green text
-	var instructions = RichTextLabel.new()
-	instructions.position = Vector2(15, 15)
-	instructions.size = Vector2(360, 420)
-	instructions.bbcode_enabled = true
-	instructions.add_theme_font_size_override("normal_font_size", 13)
-	instructions.add_theme_color_override("default_color", Color(0, 1, 0, 1))
-	instructions.text = "[color=#00ff00]C:\\> SYSTEM COMPROMISED
+	# Initial terminal text
+	terminal_area.text = """[color=#00ff00]C:\\> SYSTEM COMPROMISED
 ------------------------------
 
 [color=#ffff00]>> YOUR FILES ARE ENCRYPTED <<[/color]
 
-Your documents, photos, videos
-and other files are now
-encrypted and no longer
-accessible.
+Your documents, photos, videos and other files are now encrypted and no longer accessible.
 
-Don't bother trying to fix
-this. Only our decryption
-service can help.
+>> Payment doubled in: [color=#ffff00] 2:23:59:57[/color]
+Don't bother trying to fix this. Only our decryption service can help.
+
+>> Files deleted in: [color=#ffff00]   6:23:59:57[/color]
 
 [color=#ff0000]>> PAYMENT REQUIRED <<[/color]
 
-Send $300 worth of bitcoin to
-recover your files. You have 3
-days to make payment, after
+Send $300 worth of bitcoin to recover your files. You have 3 days to make payment, after
 which the price will double.
 
-Pay within 7 days or files
-will be lost forever!
+Pay within 7 days or files will be lost forever!
 
-Type 'HELP' for assistance
+[color=#00ff00]Type 'HELP' for assistance
 Type 'PAY' to make payment
-[/color]"
-	right_panel.add_child(instructions)
+Type 'DECRYPT' to decrypt files[/color]
 
-func create_bottom_buttons():
-	# Make Payment button
-	var payment_btn = Button.new()
-	payment_btn.text = "Make Payment"
-	payment_btn.position = Vector2(310, 555)  # Adjusted Y from 560
-	payment_btn.size = Vector2(180, 35)
-	payment_btn.pressed.connect(_on_make_payment_clicked)
-	ransomware_window.add_child(payment_btn)
+C:\\>[/color]"""
 	
-	# Decrypt button
-	var decrypt_btn = Button.new()
-	decrypt_btn.text = "Decrypt"
-	decrypt_btn.position = Vector2(500, 555)  # Adjusted Y from 560
-	decrypt_btn.size = Vector2(180, 35)
-	decrypt_btn.pressed.connect(_on_decrypt_clicked)
-	ransomware_window.add_child(decrypt_btn)
+	ransomware_window.add_child(terminal_area)
+	
+	# Command input field at bottom
+	var input_line = LineEdit.new()
+	input_line.name = "CommandInput"
+	input_line.position = Vector2(10, 545)
+	input_line.size = Vector2(680, 35)
+	input_line.placeholder_text = "Type command here..."
+	input_line.add_theme_font_size_override("font_size", 14)
+	input_line.add_theme_color_override("font_color", Color(0, 1, 0, 1))
+	input_line.add_theme_color_override("font_placeholder_color", Color(0, 0.5, 0, 0.6))
+	
+	# Style the input field
+	var input_style = StyleBoxFlat.new()
+	input_style.bg_color = Color(0, 0, 0, 1)
+	input_style.border_color = Color(0, 0.5, 0, 1)
+	input_style.set_border_width_all(1)
+	input_line.add_theme_stylebox_override("normal", input_style)
+	input_line.add_theme_stylebox_override("focus", input_style)
+	
+	# Connect enter key to command processing
+	input_line.text_submitted.connect(_on_command_submitted)
+	
+	ransomware_window.add_child(input_line)
+	
+	# Focus the input field
+	input_line.grab_focus()
 
+func _on_command_submitted(command: String):
+	var terminal = ransomware_window.get_node("TerminalArea")
+	var input_field = ransomware_window.get_node("CommandInput")
+	
+	if terminal and input_field:
+		# Add command to terminal
+		terminal.text += "\n[color=#00ff00]C:\\> " + command.to_upper() + "[/color]"
+		
+		# Process command
+		match command.to_upper():
+			"HELP":
+				terminal.text += "\n[color=#ffff00]
+Available Commands:
+-------------------
+HELP    - Show this help message
+PAY     - Make ransom payment
+DECRYPT - Decrypt your files
+CLEAR   - Clear terminal screen[/color]"
+			
+			"PAY":
+				terminal.text += "\n[color=#ff0000]
+Initiating payment process...[/color]"
+				input_field.clear()
+				await get_tree().create_timer(0.5).timeout
+				show_payment_not_advised_dialog()
+				return
+			
+			"DECRYPT":
+				terminal.text += "\n[color=#ffff00]
+Initializing decryption module...[/color]"
+				input_field.clear()
+				await get_tree().create_timer(0.5).timeout
+				_on_decrypt_clicked()
+				return
+			
+			"CLEAR":
+				terminal.text = "[color=#00ff00]C:\\>[/color]"
+			
+			_:
+				terminal.text += "\n[color=#ff0000]'" + command.to_upper() + "' is not recognized as a valid command.
+Type 'HELP' for available commands.[/color]"
+		
+		terminal.text += "\n\n[color=#00ff00]C:\\>[/color]"
+		
+		# Scroll to bottom
+		terminal.scroll_to_line(terminal.get_line_count())
+		
+		# Clear input and refocus
+		input_field.clear()
+		input_field.grab_focus()
+
+# Update the countdown display function
+# Update the countdown display function
 func update_countdown_timers():
 	if ransomware_window == null:
 		return
 	
-	# Find and update payment timer
-	var left_panel = ransomware_window.get_children()
-	for child in left_panel:
-		if child is ColorRect and child.position == Vector2(10, 100):
-			for timer_child in child.get_children():
-				if timer_child.name == "PaymentTimer":
-					timer_child.text = format_time(payment_time)
-				elif timer_child.name == "DeletionTimer":
-					timer_child.text = format_time(deletion_time)
+	var terminal = ransomware_window.get_node_or_null("TerminalArea")
+	if terminal:
+		# Update the countdown in the terminal text
+		var text = terminal.text
+		
+		# Update payment timer (find and replace the timer value)
+		var payment_pattern = ">> Payment doubled in:\n[color=#ffff00]   "
+		var payment_end = "[/color]"
+		var payment_start = text.find(payment_pattern)
+		if payment_start != -1:
+			var timer_start = payment_start + payment_pattern.length()
+			var timer_end = text.find(payment_end, timer_start)
+			if timer_end != -1:
+				text = text.substr(0, timer_start) + format_time(payment_time) + text.substr(timer_end)
+		
+		# Update deletion timer
+		var deletion_pattern = ">> Files deleted in:\n[color=#ffff00]   "
+		var deletion_start = text.find(deletion_pattern)
+		if deletion_start != -1:
+			var timer_start = deletion_start + deletion_pattern.length()
+			var timer_end = text.find(payment_end, timer_start)
+			if timer_end != -1:
+				text = text.substr(0, timer_start) + format_time(deletion_time) + text.substr(timer_end)
+		
+		terminal.text = text
 
 func format_time(seconds: float) -> String:
 	var days = int(seconds / 86400)

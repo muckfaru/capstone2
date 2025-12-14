@@ -18,20 +18,6 @@ var current_phase = Phase.INTRO
 var score := 0
 var attempts := 0
 
-# Node references
-@onready var section_label: Label = $WindowDialog/VBox/TitleBar/MarginContainer/SectionLabel
-@onready var content_label: Label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll/ContentLabel
-@onready var demo_panel: PanelContainer = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel
-@onready var plaintext_input: LineEdit = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/InputHBox/PlaintextInput
-@onready var key_input: SpinBox = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox/KeyInput
-@onready var encrypt_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox/EncryptButton
-@onready var result_label: Label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/ResultLabel
-@onready var challenge_panel: PanelContainer = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel
-@onready var answer_input: LineEdit = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox/AnswerInput
-@onready var submit_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox/SubmitButton
-@onready var next_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton
-@onready var back_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton
-
 # Challenge data
 var challenge_encrypted := "WKLV LV VHFUHW"
 var challenge_key := 3
@@ -40,19 +26,53 @@ var challenge_key := 3
 func _ready() -> void:
 	print("🔐 Encryption Basics Tutorial Ready")
 	
-	challenge_panel.visible = false
-	demo_panel.visible = false
+	# Hide panels initially
+	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel"):
+		$WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel.visible = false
+	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel"):
+		$WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel.visible = false
 	
-	# Connect encrypt button (not in scene file)
-	encrypt_button.pressed.connect(_on_encrypt_pressed)
+	# Connect buttons
+	_connect_buttons()
 	
 	_start_phase(Phase.INTRO)
 
 
+func _connect_buttons() -> void:
+	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox/EncryptButton"):
+		var encrypt_btn = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox/EncryptButton
+		if not encrypt_btn.pressed.is_connected(_on_encrypt_pressed):
+			encrypt_btn.pressed.connect(_on_encrypt_pressed)
+	
+	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox/SubmitButton"):
+		var submit_btn = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox/SubmitButton
+		if not submit_btn.pressed.is_connected(_on_submit_pressed):
+			submit_btn.pressed.connect(_on_submit_pressed)
+	
+	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton"):
+		var next_btn = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton
+		if not next_btn.pressed.is_connected(_on_next_pressed):
+			next_btn.pressed.connect(_on_next_pressed)
+	
+	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton"):
+		var back_btn = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton
+		if not back_btn.pressed.is_connected(_on_back_pressed):
+			back_btn.pressed.connect(_on_back_pressed)
+
+
 func _start_phase(phase: Phase) -> void:
 	current_phase = phase
-	challenge_panel.visible = false
-	demo_panel.visible = false
+	
+	# Safely hide panels
+	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel"):
+		$WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel.visible = false
+	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel"):
+		$WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel.visible = false
+	
+	var section_label = $WindowDialog/VBox/TitleBar/MarginContainer/SectionLabel
+	var content_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll/ContentLabel
+	var next_button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton
+	
 	next_button.disabled = false
 	
 	match phase:
@@ -84,7 +104,14 @@ Try it below:
 3. Click ENCRYPT to see it scrambled!
 
 Without knowing the key, the encrypted message looks like gibberish."""
+			
+			var demo_panel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel
 			demo_panel.visible = true
+			
+			var plaintext_input = demo_panel.get_node("VBox/InputHBox/PlaintextInput")
+			var key_input = demo_panel.get_node("VBox/KeyHBox/KeyInput")
+			var result_label = demo_panel.get_node("VBox/ResultLabel")
+			
 			plaintext_input.text = "HELLO WORLD"
 			key_input.value = 3
 			result_label.text = "Click ENCRYPT to see result"
@@ -99,9 +126,16 @@ Encrypted Message: WKLV LV VHFUHW
 
 To decrypt, shift each letter BACKWARDS by 3.
 Example: W → T, K → H, L → I
+Example: in Alpabet: A B C D E F G H I J K L M N O P Q R S T U V W X Y Z you need to count backwards 3 letters W->T
 
 Type the decrypted message below (use capital letters):"""
+			
+			var challenge_panel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel
 			challenge_panel.visible = true
+			
+			var answer_input = challenge_panel.get_node("VBox/InputHBox/AnswerInput")
+			var submit_button = challenge_panel.get_node("VBox/InputHBox/SubmitButton")
+			
 			answer_input.text = ""
 			answer_input.editable = true
 			submit_button.disabled = false
@@ -156,6 +190,11 @@ Always keep backups!""" % score
 
 
 func _on_encrypt_pressed() -> void:
+	var demo_panel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel
+	var plaintext_input = demo_panel.get_node("VBox/InputHBox/PlaintextInput")
+	var key_input = demo_panel.get_node("VBox/KeyHBox/KeyInput")
+	var result_label = demo_panel.get_node("VBox/ResultLabel")
+	
 	var plaintext = plaintext_input.text.to_upper()
 	var shift = int(key_input.value)
 	var encrypted = caesar_encrypt(plaintext, shift)
@@ -164,6 +203,11 @@ func _on_encrypt_pressed() -> void:
 
 
 func _on_submit_pressed() -> void:
+	var challenge_panel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel
+	var answer_input = challenge_panel.get_node("VBox/InputHBox/AnswerInput")
+	var submit_button = challenge_panel.get_node("VBox/InputHBox/SubmitButton")
+	var content_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll/ContentLabel
+	
 	var user_answer = answer_input.text.strip_edges().to_upper()
 	attempts += 1
 	
