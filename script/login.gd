@@ -120,10 +120,9 @@ func _check_firestore_username_and_route():
 				if fields.has("username") and fields["username"].has("stringValue"):
 					var username = fields["username"]["stringValue"]
 					print("✅ Existing user found with username: ", username)
-					# Existing user with username - try to resume any Code Breaker session first
-					if _maybe_resume_code_breaker_session():
-						return
-					get_tree().change_scene_to_file("res://scene/landing.tscn")
+					# Existing user with username - route (resume if match still exists)
+					call_deferred("_route_existing_user_after_login")
+					return
 				else:
 					print("🆕 User document exists but no username found")
 					# User exists but no username - go to intro
@@ -139,7 +138,16 @@ func _check_firestore_username_and_route():
 	http.request(url, headers, HTTPClient.METHOD_GET)
 
 
-func _maybe_resume_code_breaker_session() -> bool:
+func _route_existing_user_after_login() -> void:
+	# Give Auth a frame to populate username/uid cleanly.
+	await get_tree().process_frame
+	var handled: bool = await _maybe_resume_code_breaker_session_checked()
+	if handled:
+		return
+	get_tree().change_scene_to_file("res://scene/landing.tscn")
+
+
+func _maybe_resume_code_breaker_session_checked() -> bool:
 	if not Auth or Auth.current_local_id == "":
 		return false
 
@@ -157,33 +165,144 @@ func _maybe_resume_code_breaker_session() -> bool:
 		_SessionStore.clear_session()
 		return false
 
-	var lobby_url := ""
+	# Try both session-stored URL and current config URL (localhost vs production mismatch).
+	var saved_lobby_url := str(session.get("lobby_server_url", "")).strip_edges()
+	var current_lobby_url := ""
 	if typeof(MultiplayerConfig) != TYPE_NIL and MultiplayerConfig:
-		lobby_url = str(MultiplayerConfig.get_lobby_url())
-	if lobby_url.strip_edges() == "":
-		lobby_url = str(session.get("lobby_server_url", ""))
-	if lobby_url.strip_edges() == "":
+		current_lobby_url = str(MultiplayerConfig.get_lobby_url()).strip_edges()
+
+	var candidates: Array[String] = []
+	if saved_lobby_url != "":
+		candidates.append(saved_lobby_url)
+	if current_lobby_url != "" and (current_lobby_url not in candidates):
+		candidates.append(current_lobby_url)
+	if candidates.is_empty():
 		return false
 
-	print("[Login] 🔄 Resuming Code Breaker session into reconnect. Room: ", room_id)
-	var init := {
-		"room_id": room_id,
-		"lobby_server_url": lobby_url,
-		"player_id": Auth.current_local_id,
-		"username": Auth.current_username,
-		"is_host": false,
-		"relay_client": null,
-		"host_data": {},
-		"client_data": {},
-		"game_start_time": 0,
-		"reason": "Resume after relogin"
-	}
-	get_tree().set_meta("code_breaker_reconnect_init", init)
-	var reconnect_scene := load("res://scene/code_breaker_reconnect.tscn")
-	if reconnect_scene:
-		get_tree().change_scene_to_packed(reconnect_scene)
-		return true
+	var parsed: Variant = null
+	var chosen_url := ""
+	var saw_404 := false
+	for url_base in candidates:
+		var url := url_base + "/api/rooms/" + room_id
+		var res := await _http_get_json(url)
+		var code := int(res.get("code", 0))
+		if code == 404:
+			saw_404 = true
+			continue
+		if code != 200:
+			continue
+		var data: Variant = res.get("data", null)
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		if data.has("error"):
+			continue
+		parsed = data
+		chosen_url = url_base
+		break
+
+	if parsed == null:
+		# If room is definitely gone, clear session so we don't keep reconnecting.
+		if saw_404:
+			print("[Login] ℹ️ Saved Code Breaker room no longer exists. Clearing session.")
+			_SessionStore.clear_session()
+		return false
+
+	var status := str(parsed.get("status", "waiting"))
+	if status == "finished":
+		print("[Login] ✅ Saved Code Breaker match finished. Routing to postgame.")
+		var host_dict_finished: Dictionary = parsed.get("host", {})
+		var client_val_finished = parsed.get("client", {})
+		var client_dict_finished: Dictionary = client_val_finished if typeof(client_val_finished) == TYPE_DICTIONARY else {}
+		var is_host_finished := false
+		if typeof(host_dict_finished) == TYPE_DICTIONARY:
+			is_host_finished = (str(host_dict_finished.get("player_id", "")) == Auth.current_local_id)
+		var postgame_init := {
+			"room_id": room_id,
+			"relay_client": null,
+			"player_id": Auth.current_local_id,
+			"is_host": is_host_finished,
+			"host_data": host_dict_finished,
+			"client_data": client_dict_finished,
+			"lobby_server_url": chosen_url,
+			"winner_id": "",
+			"host_score": 0,
+			"client_score": 0,
+			"host_health": 0,
+			"client_health": 0,
+			"game_duration": 0.0,
+			"host_powerups_used": 0,
+			"client_powerups_used": 0,
+			"result_unknown": true
+		}
+		get_tree().set_meta("code_breaker_postgame_init", postgame_init)
+		var post_scene := load("res://scene/code_breaker_postgame.tscn")
+		if post_scene:
+			get_tree().change_scene_to_packed(post_scene)
+			return true
+		return false
+
+	if status == "waiting":
+		print("[Login] 🔄 Saved Code Breaker room still waiting. Routing to room.")
+		var host_dict: Dictionary = parsed.get("host", {})
+		var is_host := false
+		if typeof(host_dict) == TYPE_DICTIONARY:
+			is_host = (str(host_dict.get("player_id", "")) == Auth.current_local_id)
+		var room_init := {
+			"room_id": room_id,
+			"host_name": str(host_dict.get("username", "Host")),
+			"is_host": is_host,
+			"lobby_server_url": chosen_url
+		}
+		get_tree().set_meta("code_breaker_room_init", room_init)
+		var room_scene := load("res://scene/code_breaker_room.tscn")
+		if room_scene:
+			get_tree().change_scene_to_packed(room_scene)
+			return true
+		return false
+
+	if status == "in_game":
+		print("[Login] 🔄 Match in progress. Routing to reconnect. Room: ", room_id)
+		var host_dict2: Dictionary = parsed.get("host", {})
+		var is_host2 := false
+		if typeof(host_dict2) == TYPE_DICTIONARY:
+			is_host2 = (str(host_dict2.get("player_id", "")) == Auth.current_local_id)
+		var init := {
+			"room_id": room_id,
+			"lobby_server_url": chosen_url,
+			"player_id": Auth.current_local_id,
+			"username": Auth.current_username,
+			"is_host": is_host2,
+			"relay_client": null,
+			"host_data": host_dict2,
+			"client_data": parsed.get("client", {}) if parsed.get("client", null) != null else {},
+			"game_start_time": int(parsed.get("game_start_time", 0)),
+			"reason": "Resume after relogin"
+		}
+		get_tree().set_meta("code_breaker_reconnect_init", init)
+		var reconnect_scene := load("res://scene/code_breaker_reconnect.tscn")
+		if reconnect_scene:
+			get_tree().change_scene_to_packed(reconnect_scene)
+			return true
+		return false
+
+	# Unknown status: clear to avoid loops
+	_SessionStore.clear_session()
 	return false
+
+
+func _http_get_json(url: String) -> Dictionary:
+	var http_req := HTTPRequest.new()
+	add_child(http_req)
+	var err := http_req.request(url, [], HTTPClient.METHOD_GET)
+	if err != OK:
+		http_req.queue_free()
+		return {"code": 0, "data": null}
+	var result: Array = await http_req.request_completed
+	http_req.queue_free()
+	var code := int(result[1])
+	var body: PackedByteArray = result[3]
+	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+	return {"code": code, "data": parsed}
 
 
 # ------------------------------------------------------
