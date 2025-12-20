@@ -25,7 +25,6 @@ TutorialManager="*res://script/TutorialManager.gd"
 
 [display]
 
-
 window/stretch/mode="canvas_items"
 
 [dotnet]

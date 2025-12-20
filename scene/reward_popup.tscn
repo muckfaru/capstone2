@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://biu4sdomdbsfb"]
+
+[ext_resource type="Script" uid="uid://cpanarqthaw0" path="res://script/RewardPopup.gd" id="1_cnpy5"]
+
+[node name="RewardPopup" type="CanvasLayer"]
+script = ExtResource("1_cnpy5")

@@ -17,10 +17,13 @@ const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
 @onready var profile_pic: TextureRect = $VideoStreamPlayer/ProfilePanel/UserPanel/ProfilePic
 @onready var change_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/ChangeAvatarButton
 @onready var save_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/SaveProfile
-@onready var tutorial_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/TutorialButton
 @onready var avatar_picker: PopupPanel = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker
 @onready var avatar_grid: GridContainer = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/GridContainer
 @onready var menu_panel: Control = $MenuPanel
+
+# Dynamic UI elements (created at runtime)
+var file_dialog: FileDialog
+var xp_progress: ProgressBar
 
 # === Avatars & User Data ===
 var avatars: Dictionary = {}
@@ -28,7 +31,6 @@ var selected_avatar: String = ""
 var last_avatar_change: int = 0
 var avatar_cooldown: int = 2592000 # 30 days
 var first_mission_active: bool = false
-
 var firestore_base_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users"
 var http: HTTPRequest
 
@@ -46,15 +48,23 @@ func _ready() -> void:
 	_load_avatars()
 	change_btn.pressed.connect(_on_change_avatar_pressed)
 	save_btn.pressed.connect(_on_save_profile_pressed)
-	tutorial_btn.pressed.connect(_on_tutorial_pressed)
+
+	# ✅ File dialog setup - create it first
+	file_dialog = FileDialog.new()
+	file_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	file_dialog.filters = PackedStringArray(["*.png ; PNG Images", "*.jpg ; JPG Images", "*.jpeg ; JPEG Images", "*.webp ; WebP Images"])
+	file_dialog.file_selected.connect(_on_custom_avatar_selected)
+	add_child(file_dialog)
+	# ✅ Create XP Progress Bar
+	_create_xp_progress_bar()
 	
-	# ✅ OPTIMIZATION: Load user data first (includes welcome tutorial check)
+	# Load user data
 	_load_user_data_and_check_tutorial()
-	
 	_instantiate_chat_panel()
 	Auth.set_user_online()
 	
-	# ✅ Connect XP signals
+	# Connect XP signals
 	if not TutorialManager.xp_updated.is_connected(_on_xp_updated):
 		TutorialManager.xp_updated.connect(_on_xp_updated)
 	if not TutorialManager.rank_up.is_connected(_on_rank_up):
@@ -62,32 +72,152 @@ func _ready() -> void:
 	if not TutorialManager.data_loaded.is_connected(_update_xp_display):
 		TutorialManager.data_loaded.connect(_update_xp_display)
 	
+	# ✅ Load TutorialManager data and update display
 	TutorialManager.load_user_data()
-	call_deferred("_update_xp_display")
+	await get_tree().create_timer(0.5).timeout  # Wait for data to load
+	_update_xp_display()
 
 	_setup_navigation()
 	_setup_mission_system()
-
-	# If the app was restarted (shutdown/crash) while in a Code Breaker room/match,
-	# attempt to resume by routing into the reconnect flow.
 	call_deferred("_try_resume_code_breaker_session")
 
-	# ===== POKEMON WELCOME UI SETUP =====
+	# Pokemon Welcome UI setup
 	if welcome_ui:
 		print("[Landing] ✅ PokemonStyleWelcomeUI found in scene tree")
 		welcome_ui.layer = 100
 		welcome_ui.visible = false
 		
-		# ✅ Disconnect any existing connections first
 		if welcome_ui.tutorial_completed.is_connected(_on_welcome_tutorial_completed):
 			welcome_ui.tutorial_completed.disconnect(_on_welcome_tutorial_completed)
 		
-		# Connect with ONE_SHOT to prevent multiple calls
 		welcome_ui.tutorial_completed.connect(_on_welcome_tutorial_completed, CONNECT_ONE_SHOT)
 		print("[Landing] ✅ Connected tutorial_completed signal (ONE_SHOT)")
 	else:
 		push_error("[Landing] ❌ PokemonStyleWelcomeUI node not found!")
 	
+
+
+func _create_xp_progress_bar() -> void:
+	"""Create and style the XP progress bar"""
+	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
+	
+	# Create progress bar
+	xp_progress = ProgressBar.new()
+	xp_progress.name = "XPProgressBar"
+	xp_progress.position = Vector2(33, 200)
+	xp_progress.size = Vector2(180, 25)
+	xp_progress.min_value = 0
+	xp_progress.max_value = 1000
+	xp_progress.value = 0
+	xp_progress.show_percentage = false
+	xp_progress.z_index = 10
+	
+	# Style the progress bar background
+	var style_bg = StyleBoxFlat.new()
+	style_bg.bg_color = Color(0.2, 0.2, 0.2, 0.8)
+	style_bg.corner_radius_top_left = 3
+	style_bg.corner_radius_top_right = 3
+	style_bg.corner_radius_bottom_left = 3
+	style_bg.corner_radius_bottom_right = 3
+	
+	# ✅ CHANGED: Style the progress bar fill to CYAN BLUE instead of gold
+	var style_fg = StyleBoxFlat.new()
+	style_fg.bg_color = Color(0, 0.9, 1, 1)  # Cyan Blue (was gold)
+	style_fg.corner_radius_top_left = 3
+	style_fg.corner_radius_top_right = 3
+	style_fg.corner_radius_bottom_left = 3
+	style_fg.corner_radius_bottom_right = 3
+	
+	xp_progress.add_theme_stylebox_override("background", style_bg)
+	xp_progress.add_theme_stylebox_override("fill", style_fg)
+	
+	# Add to scene
+	user_panel.add_child(xp_progress)
+	
+	# Create label overlay
+	var xp_label = Label.new()
+	xp_label.name = "XPLabel"
+	xp_label.position = Vector2(0, 0)
+	xp_label.size = Vector2(180, 25)
+	xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	xp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	xp_label.add_theme_color_override("font_color", Color(0, 0, 0, 1))
+	xp_label.add_theme_font_size_override("font_size", 12)
+	xp_label.text = "0 / 1000 XP"
+	xp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	xp_progress.add_child(xp_label)
+	
+	# Hide old XP labels
+	if xp_input:
+		xp_input.visible = false
+	var old_xp_label = user_panel.get_node_or_null("xpLabel")
+	if old_xp_label:
+		old_xp_label.visible = false
+	
+	print("[Landing] ✅ XP Progress Bar created with CYAN color")
+
+func _add_glow_to_rank_icon(icon: TextureRect, glow_color: Color) -> void:
+	"""Add glowing effect to rank icon using improved shader"""
+	
+	var shader_code = """
+shader_type canvas_item;
+
+uniform vec4 glow_color : source_color = vec4(0.0, 0.9, 1.0, 1.0);
+uniform float glow_strength : hint_range(0.0, 5.0) = 2.0;
+uniform float glow_size : hint_range(0.0, 0.1) = 0.05;
+
+void fragment() {
+	vec4 tex = texture(TEXTURE, UV);
+	
+	// Only add glow if the original pixel has transparency
+	if (tex.a > 0.5) {
+		// Just render the original texture
+		COLOR = tex;
+	} else {
+		// Sample neighboring pixels for glow effect
+		float glow = 0.0;
+		int samples = 16;
+		
+		for(int i = 0; i < samples; i++) {
+			float angle = float(i) * 6.28318 / float(samples);
+			vec2 offset = vec2(cos(angle), sin(angle)) * glow_size;
+			
+			// Sample texture at offset position
+			vec4 sample_tex = texture(TEXTURE, UV + offset);
+			
+			// Only accumulate glow from opaque parts of the texture
+			if (sample_tex.a > 0.5) {
+				glow += 1.0;
+			}
+		}
+		
+		// Normalize glow
+		glow = glow / float(samples);
+		
+		// Apply glow only if there's something nearby
+		if (glow > 0.1) {
+			COLOR = vec4(glow_color.rgb, glow * glow_strength * glow_color.a);
+		} else {
+			// Fully transparent
+			COLOR = vec4(0.0, 0.0, 0.0, 0.0);
+		}
+	}
+}
+"""
+	
+	var shader = Shader.new()
+	shader.code = shader_code
+	
+	var material = ShaderMaterial.new()
+	material.shader = shader
+	material.set_shader_parameter("glow_color", glow_color)
+	material.set_shader_parameter("glow_strength", 1.5)  # Reduced for subtlety
+	material.set_shader_parameter("glow_size", 0.05)     # Reduced for tighter glow
+	
+	icon.material = material
+	
+	print("[Landing] ✅ Glow effect applied to rank icon with color:", glow_color)
+
 
 func _try_resume_code_breaker_session() -> void:
 	# Only resume for logged-in users (Auth can be set a frame later)
@@ -498,49 +628,6 @@ func _on_mission_button_pressed() -> void:
 	
 	add_child(dialog_panel)
 
-
-func _complete_first_mission() -> void:
-	"""Mark first mission as completed"""
-	first_mission_active = false
-	
-	if mission_button:
-		mission_button.visible = false
-	
-	var divider = news_panel.get_node_or_null("MissionDivider")
-	if divider:
-		divider.visible = false
-	
-	# Save to Firestore
-	var user_id = Auth.current_local_id
-	var id_token = Auth.current_id_token
-	
-	if user_id == "" or id_token == "":
-		return
-	
-	var url = "%s/%s?updateMask.fieldPaths=first_mission_completed" % [firestore_base_url, user_id]
-	var body = {
-		"fields": {
-			"first_mission_completed": { "booleanValue": true }
-		}
-	}
-	var headers = [
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % id_token
-	]
-	
-	var http_mission = HTTPRequest.new()
-	add_child(http_mission)
-	http_mission.request_completed.connect(func(_r, code, _h, _b):
-		http_mission.queue_free()
-		if code == 200:
-			print("[Landing] ✅ First mission marked complete")
-	)
-	http_mission.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
-
-
-
-
-
 # ===== COMBINED: LOAD USER DATA + CHECK WELCOME TUTORIAL =====
 func _load_user_data_and_check_tutorial() -> void:
 	"""Load user data and check welcome tutorial in ONE request"""
@@ -600,6 +687,19 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 			profile_pic.texture = avatars[selected_avatar]
 			Auth.current_avatar = selected_avatar
 
+	if selected_avatar.begins_with("user://"):
+		if FileAccess.file_exists(selected_avatar):
+			var img = Image.load_from_file(selected_avatar)
+			if img:
+				var texture = ImageTexture.create_from_image(img)
+				profile_pic.texture = texture
+				Auth.current_avatar = selected_avatar
+		else:
+			print("[Landing] ⚠️ Custom avatar file not found")
+
+	elif avatars.has(selected_avatar):
+		profile_pic.texture = avatars[selected_avatar]
+		Auth.current_avatar = selected_avatar
 	if f.has("last_avatar_change"):
 		last_avatar_change = int(f["last_avatar_change"]["integerValue"])
 
@@ -690,53 +790,165 @@ func _on_welcome_tutorial_completed() -> void:
 	call_deferred("_activate_first_mission")
 
 func _show_welcome_reward() -> void:
-	"""Show a reward dialog after completing the tutorial"""
+	"""Show animated reward popup after completing the tutorial"""
 	print("[Landing] ========== SHOW WELCOME REWARD ==========")
-	print("[Landing] Current XP BEFORE reward: %d" % TutorialManager.total_xp)
-	
-	# ✅ Double-check we haven't awarded this already
-	if TutorialManager.total_xp >= 50:
-		print("[Landing] ⚠️ User already has XP, might be duplicate call. Current XP: %d" % TutorialManager.total_xp)
 	
 	# Award XP FIRST
-	print("[Landing] Awarding welcome bonus XP (+50)...")
-	TutorialManager.add_xp(50, "Tutorial Completion Bonus")
-	
-	# Wait a frame to ensure all XP processing is done
+
 	await get_tree().process_frame
 	
-	print("[Landing] Current XP AFTER reward: %d" % TutorialManager.total_xp)
+	# ✅ SIMPLE: Just use RewardItem directly now!
+	var popup = preload("res://scene/reward_popup.tscn").instantiate()
+	add_child(popup)
 	
-	var dialog := AcceptDialog.new()
-	dialog.title = "🎉 Welcome Bonus!"
-	dialog.dialog_text = "Congratulations on completing the tutorial!\n\nYou've earned:\n• 50 XP\n• Beginner Badge\n\nGood luck in Cyber Arena!"
-	dialog.min_size = Vector2(400, 250)
-	dialog.exclusive = false  # ✅ Allow other windows
-	add_child(dialog)
-	dialog.popup_centered()
+	var custom_font = load("res://asset/fonts/NicoMoji-Regular.ttf")  # or .otf
 	
-	# Simple one-shot connection that only closes the dialog
-	dialog.confirmed.connect(func(): 
-		print("[Landing] Dialog closed")
-		dialog.queue_free()
-	, CONNECT_ONE_SHOT)
+	_apply_font_to_children(popup, custom_font, 20)
 
+
+	var rewards = [
+		RewardItem.new("xp", 50, "Experience Points", null, "Completed the Welcome Tutorial"),
+		RewardItem.new("badge", 1, "Beginner Badge", null, "Your first achievement!")
+	]
+	popup.show_rewards(rewards, " Welcome Aboard, Agent!")
+
+
+func _apply_font_to_children(node: Node, font: Font, size: int) -> void:
+		if node is Label or node is Button or node is RichTextLabel:
+			node.add_theme_font_override("font", font)
+			node.add_theme_font_size_override("font_size", size)
+		
+		for child in node.get_children():
+			_apply_font_to_children(child, font, size)
+
+func _complete_first_mission() -> void:
+	"""Mark first mission as completed with animated rewards"""
+	first_mission_active = false
+	
+	if mission_button:
+		mission_button.visible = false
+	
+	var popup = preload("res://scene/reward_popup.tscn").instantiate()
+	add_child(popup)
+	
+	var rewards = [
+		RewardItem.new("xp", 50, "Mission XP", null, "Task 00: Learn completed!"),
+		RewardItem.new("badge", 1, "First Mission", null, "Complete your first mission")
+	]
+	
+	popup.show_rewards(rewards, "🎯 Mission Complete!")
+	
+	popup.rewards_claimed.connect(func():
+		_save_mission_completion_to_firestore()
+	)
+
+# ✅ NEW: Helper function for saving mission completion
+func _save_mission_completion_to_firestore() -> void:
+	"""Save mission completion to Firestore"""
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	
+	if user_id == "" or id_token == "":
+		return
+	
+	var url = "%s/%s?updateMask.fieldPaths=first_mission_completed" % [firestore_base_url, user_id]
+	var body = {
+		"fields": {
+			"first_mission_completed": { "booleanValue": true }
+		}
+	}
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	
+	var http_mission = HTTPRequest.new()
+	add_child(http_mission)
+	http_mission.request_completed.connect(func(_r, code, _h, _b):
+		http_mission.queue_free()
+		if code == 200:
+			print("[Landing] ✅ First mission marked complete in Firestore")
+		else:
+			push_error("[Landing] ❌ Failed to save mission completion")
+	)
+	http_mission.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
 
 # === Update XP Display ===
 func _update_xp_display() -> void:
 	print("[Landing] ========== UPDATING XP DISPLAY ==========")
 	print("[Landing] Total XP: %d" % TutorialManager.total_xp)
 	
-	if xp_input:
-		xp_input.text = " %d" % TutorialManager.total_xp
-		print("[Landing] ✅ XP Label updated")
-	
 	var rank: Dictionary = TutorialManager.get_rank()
-	if rank_label:
-		rank_label.text = "%s %s" % [rank["icon"], rank["name"]]
-		rank_label.add_theme_color_override("font_color", rank["color"])
-		rank_label.tooltip_text = " %d/%d (%.0f%% to next rank)" % [rank["current_xp"], rank["max_xp"], rank["progress"]]
+	print("[Landing] Rank data: ", rank)
 	
+	var current_xp = rank.get("current_xp", TutorialManager.total_xp)
+	var max_xp = rank.get("max_xp", 1000)
+	
+	# Update progress bar
+	if xp_progress:
+		xp_progress.max_value = max_xp
+		xp_progress.value = current_xp
+		
+		var label = xp_progress.get_node_or_null("XPLabel")
+		if label:
+			label.text = "%d / %d XP" % [current_xp, max_xp]
+			print("[Landing] ✅ XP Progress Bar updated: %d/%d" % [current_xp, max_xp])
+	else:
+		print("[Landing] ⚠️ xp_progress is null!")
+	
+	# ✅ Update rank with GLOW EFFECT
+	if rank_label:
+		var icon_path = rank.get("icon", "")
+		var name = rank.get("name", "Iron")
+		var color = rank.get("color", Color(0.5, 0.5, 0.5))
+		
+		var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
+		
+		if icon_path.begins_with("res://"):
+			var rank_texture = load(icon_path)
+			if rank_texture:
+				var rank_icon_rect = user_panel.get_node_or_null("RankIconRect")
+				
+				if not rank_icon_rect:
+					rank_icon_rect = TextureRect.new()
+					rank_icon_rect.name = "RankIconRect"
+					rank_icon_rect.custom_minimum_size = Vector2(50, 50)
+					rank_icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+					rank_icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+					user_panel.add_child(rank_icon_rect)
+				
+				rank_icon_rect.texture = rank_texture
+				
+				# ✅ ADD GLOW EFFECT
+				_add_glow_to_rank_icon(rank_icon_rect, color)
+				
+				# Center the icon
+				var center_x = 33 + 90 - 25
+				rank_icon_rect.position = Vector2(center_x, 235)
+				
+				# Center the text below
+				rank_label.text = name
+				rank_label.position = Vector2(33, 290)
+				rank_label.size = Vector2(180, 30)
+				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			else:
+				rank_label.text = name
+				rank_label.position = Vector2(33, 235)
+				rank_label.size = Vector2(180, 30)
+				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		else:
+			# Emoji format
+			rank_label.text = "%s\n%s" % [icon_path, name]
+			rank_label.position = Vector2(33, 235)
+			rank_label.size = Vector2(180, 60)
+			rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		
+		rank_label.add_theme_color_override("font_color", color)
+		print("[Landing] ✅ Rank updated: %s" % name)
+	else:
+		print("[Landing] ⚠️ rank_label is null!")
+	
+	# Update match played
 	if match_played_input and wins_input and losses_input:
 		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
 		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
@@ -746,14 +958,55 @@ func _update_xp_display() -> void:
 func _on_xp_updated(new_xp: int) -> void:
 	print("[Landing] 🎉 XP Updated: %d" % new_xp)
 	
-	if xp_input:
-		xp_input.text = " %d" % new_xp
-	
 	var rank: Dictionary = TutorialManager.get_rank(new_xp)
+	var current_xp = rank.get("current_xp", new_xp)
+	var max_xp = rank.get("max_xp", 1000)
+	
+	# Update progress bar
+	if xp_progress:
+		xp_progress.max_value = max_xp
+		xp_progress.value = current_xp
+		
+		var label = xp_progress.get_node_or_null("XPLabel")
+		if label:
+			label.text = "%d / %d XP" % [current_xp, max_xp]
+	
+	# ✅ Update rank with GLOW
 	if rank_label:
-		rank_label.text = "%s %s" % [rank["icon"], rank["name"]]
-		rank_label.add_theme_color_override("font_color", rank["color"])
-
+		var icon_path = rank.get("icon", "")
+		var name = rank.get("name", "Iron")
+		var color = rank.get("color", Color(0.5, 0.5, 0.5))
+		
+		var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
+		var rank_icon_rect = user_panel.get_node_or_null("RankIconRect")
+		
+		if icon_path.begins_with("res://") and rank_icon_rect:
+			var rank_texture = load(icon_path)
+			if rank_texture:
+				rank_icon_rect.texture = rank_texture
+				
+				# ✅ ADD GLOW EFFECT
+				_add_glow_to_rank_icon(rank_icon_rect, color)
+				
+				var center_x = 33 + 90 - 25
+				rank_icon_rect.position = Vector2(center_x, 235)
+				
+				rank_label.text = name
+				rank_label.position = Vector2(33, 290)
+				rank_label.size = Vector2(180, 30)
+				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			else:
+				rank_label.text = name
+				rank_label.position = Vector2(33, 235)
+				rank_label.size = Vector2(180, 30)
+				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		else:
+			rank_label.text = "%s\n%s" % [icon_path, name]
+			rank_label.position = Vector2(33, 235)
+			rank_label.size = Vector2(180, 60)
+			rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		
+		rank_label.add_theme_color_override("font_color", color)
 
 func _on_rank_up(new_rank: Dictionary) -> void:
 	print("🏆 RANK UP! %s %s" % [new_rank["icon"], new_rank["name"]])
@@ -799,12 +1052,34 @@ func _load_avatars() -> void:
 
 
 func _on_change_avatar_pressed() -> void:
-	var current_time = Time.get_unix_time_from_system()
-	if current_time - last_avatar_change < avatar_cooldown:
-		var remaining = int((avatar_cooldown - (current_time - last_avatar_change)) / 86400)
-		status_label.text = "⏳ You can change avatar again in %d days." % remaining
-		return
-	avatar_picker.popup_centered()
+	# Open file dialog to select custom image
+	file_dialog.popup_centered(Vector2(700, 500))
+
+
+func _on_custom_avatar_selected(path: String) -> void:
+	var img = Image.load_from_file(path)
+	if img:
+		# ✅ Resize to match ProfilePic dimensions (adjust these values to your actual size)
+		img.resize(100, 100, Image.INTERPOLATE_LANCZOS)  # Change 100x100 to your ProfilePic size
+		
+		var texture = ImageTexture.create_from_image(img)
+		profile_pic.texture = texture
+		
+		# ✅ Ensure proper stretch mode
+		profile_pic.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		
+		# ✅ Save custom avatar to user directory
+		var user_avatar_path = "user://custom_avatar_%s.png" % Auth.current_local_id
+		img.save_png(user_avatar_path)
+		
+		# ✅ Store the local path
+		selected_avatar = user_avatar_path
+		
+		status_label.text = "✅ Custom avatar selected (click SaveProfile to apply)"
+		print("[Landing] Custom avatar saved to: ", user_avatar_path)
+	else:
+		status_label.text = "❌ Failed to load image"
 
 
 func _on_avatar_selected(file_name: String) -> void:
@@ -888,9 +1163,36 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 
 	if f.has("avatar"):
 		selected_avatar = f["avatar"]["stringValue"]
-		if avatars.has(selected_avatar):
+		
+		# ✅ Check if it's a custom avatar (user:// path) or preset avatar
+		if selected_avatar.begins_with("user://"):
+			# Load custom avatar from user directory
+			if FileAccess.file_exists(selected_avatar):
+				var img = Image.load_from_file(selected_avatar)
+				if img:
+					# ✅ Resize the image
+					img.resize(100, 100, Image.INTERPOLATE_LANCZOS)
+					
+					var texture = ImageTexture.create_from_image(img)
+					profile_pic.texture = texture
+					Auth.current_avatar = selected_avatar
+					
+					# ✅ Ensure proper stretch mode
+					profile_pic.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+					profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+					
+					print("[Landing] Loaded custom avatar from: ", selected_avatar)
+				else:
+					print("[Landing] ⚠️ Failed to load custom avatar image")
+			else:
+				print("[Landing] ⚠️ Custom avatar file not found: ", selected_avatar)
+		elif avatars.has(selected_avatar):
+			# Load preset avatar
 			profile_pic.texture = avatars[selected_avatar]
 			Auth.current_avatar = selected_avatar
+		else:
+			print("[Landing] ⚠️ Avatar not found: ", selected_avatar)
+
 
 	if f.has("last_avatar_change"):
 		last_avatar_change = int(f["last_avatar_change"]["integerValue"])
@@ -915,7 +1217,6 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
 		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
 		match_played_input.text = str(wins + losses)
-
 
 func _setup_navigation() -> void:
 	var panel_paths := {
@@ -1027,11 +1328,6 @@ func _on_reset_stats_pressed() -> void:
 	)
 	
 	http_reset.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
-
-
-func _on_tutorial_pressed() -> void:
-	print("[Landing] Opening module selection...")
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 
 func _on_logout_pressed() -> void:

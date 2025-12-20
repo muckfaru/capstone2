@@ -6,7 +6,6 @@ extends Control
 @onready var xp_label: Label = $CanvasLayer/XPLabel
 @onready var rank_icon: TextureRect = $CanvasLayer/RankIcon
 @onready var rank_label: Label = $CanvasLayer/RankLabel
-@onready var profile_btn: Button = $CanvasLayer/ProfileButton
 @onready var back_btn: Button = $CanvasLayer/BackButton
 
 # Dynamically created nodes (set in _setup_ui_elements)
@@ -60,11 +59,7 @@ func _ready() -> void:
 		print("[ModeSelection] TutorialManager already has data (XP: %d)" % TutorialManager.total_xp)
 		# Update display immediately since data is already loaded
 		call_deferred("_update_xp_display")
-	
-	# Connect profile button
-	if profile_btn:
-		profile_btn.pressed.connect(_on_profile_pressed)
-	
+		
 	# Connect back button
 	if back_btn:
 		back_btn.pressed.connect(_on_back_pressed)
