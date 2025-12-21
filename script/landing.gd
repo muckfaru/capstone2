@@ -7,7 +7,7 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 @onready var news_panel = $VideoStreamPlayer/HomePanel/NewsPanel
 @onready var mission_button: Button
 @onready var welcome_ui := $PokemonStyleWelcomeUI
-@onready var username_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/usernameInput
+@onready var username_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/usernameInput  # Keep as Label!
 @onready var level_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/levelInput
 @onready var wins_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/winsInput
 @onready var losses_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/losesInput
@@ -18,20 +18,30 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 @onready var profile_pic: TextureRect = $VideoStreamPlayer/ProfilePanel/UserPanel/ProfilePic
 @onready var change_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/ChangeAvatarButton
 @onready var save_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/SaveProfile
-@onready var tutorial_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/TutorialButton
 @onready var avatar_picker: PopupPanel = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker
 @onready var avatar_grid: GridContainer = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/GridContainer
 @onready var menu_panel: Control = $MenuPanel
 
+# Dynamic UI elements (created at runtime)
+var file_dialog: FileDialog
+var xp_progress: ProgressBar
+const RANK_ICON_POSITION := Vector2(90, 265)
+const RANK_ICON_SIZE := Vector2(60, 60)
+const RANK_LABEL_POSITION := Vector2(23, 330)
 # === Avatars & User Data ===
+var original_username: String = ""
+var original_avatar: String = ""
+var edit_profile_popup: Panel = null
+var has_unsaved_changes: bool = false
+var confirmation_popup: Panel = null
 var avatars: Dictionary = {}
 var selected_avatar: String = ""
 var last_avatar_change: int = 0
 var avatar_cooldown: int = 2592000 # 30 days
 var first_mission_active: bool = false
-
 var firestore_base_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users"
 var http: HTTPRequest
+var ui_initialized: bool = false
 
 # ✅ CRITICAL: Flag to prevent duplicate welcome bonus
 var welcome_bonus_awarded: bool = false
@@ -45,19 +55,27 @@ var _resume_routed: bool = false
 func _ready() -> void:
 	http = HTTPRequest.new()
 	add_child(http)
-
+	
+	# ✅ CRITICAL: Force UI positions IMMEDIATELY before anything else
+	call_deferred("_force_initial_ui_layout")
+	
 	_load_avatars()
 	change_btn.pressed.connect(_on_change_avatar_pressed)
-	save_btn.pressed.connect(_on_save_profile_pressed)
-	tutorial_btn.pressed.connect(_on_tutorial_pressed)
+
+	# File dialog setup
+	file_dialog = FileDialog.new()
+	file_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	file_dialog.filters = PackedStringArray(["*.png ; PNG Images", "*.jpg ; JPG Images", "*.jpeg ; JPEG Images", "*.webp ; WebP Images"])
+	file_dialog.file_selected.connect(_on_custom_avatar_selected)
+	add_child(file_dialog)
 	
-	# ✅ OPTIMIZATION: Load user data first (includes welcome tutorial check)
+	# Load user data
 	_load_user_data_and_check_tutorial()
-	
 	_instantiate_chat_panel()
 	Auth.set_user_online()
 	
-	# ✅ Connect XP signals
+	# Connect XP signals
 	if not TutorialManager.xp_updated.is_connected(_on_xp_updated):
 		TutorialManager.xp_updated.connect(_on_xp_updated)
 	if not TutorialManager.rank_up.is_connected(_on_rank_up):
@@ -65,33 +83,1282 @@ func _ready() -> void:
 	if not TutorialManager.data_loaded.is_connected(_update_xp_display):
 		TutorialManager.data_loaded.connect(_update_xp_display)
 	
+	# Load TutorialManager data and update display
 	TutorialManager.load_user_data()
-	call_deferred("_update_xp_display")
+	await get_tree().create_timer(0.5).timeout
+	_update_xp_display()
 
 	_setup_navigation()
 	_setup_mission_system()
-
-	# If the app was restarted (shutdown/crash) while in a Code Breaker room/match,
-	# attempt to resume by routing into the reconnect flow.
 	call_deferred("_try_resume_code_breaker_session")
 	call_deferred("_try_resume_akashic_tcg_session")
 
-	# ===== POKEMON WELCOME UI SETUP =====
+	# Pokemon Welcome UI setup
 	if welcome_ui:
 		print("[Landing] ✅ PokemonStyleWelcomeUI found in scene tree")
 		welcome_ui.layer = 100
 		welcome_ui.visible = false
 		
-		# ✅ Disconnect any existing connections first
 		if welcome_ui.tutorial_completed.is_connected(_on_welcome_tutorial_completed):
 			welcome_ui.tutorial_completed.disconnect(_on_welcome_tutorial_completed)
 		
-		# Connect with ONE_SHOT to prevent multiple calls
 		welcome_ui.tutorial_completed.connect(_on_welcome_tutorial_completed, CONNECT_ONE_SHOT)
 		print("[Landing] ✅ Connected tutorial_completed signal (ONE_SHOT)")
 	else:
 		push_error("[Landing] ❌ PokemonStyleWelcomeUI node not found!")
+
+
+# Replace these functions in your landing.gd script
+
+func _force_initial_ui_layout() -> void:
+	"""Force UI layout IMMEDIATELY when scene loads"""
+	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
 	
+	if not user_panel:
+		return
+	
+	print("[Landing] ========== FORCING INITIAL UI LAYOUT ==========")
+	
+	# ✅ Profile picture - TOP position (80x80, ends at y=105)
+	if profile_pic:
+		profile_pic.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		profile_pic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		profile_pic.custom_minimum_size = Vector2(80, 80)
+		profile_pic.size = Vector2(80, 80)
+		profile_pic.position = Vector2(30, 25)  # Ends at x=110, y=105
+		profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# ✅ Username - next to profile pic
+	if username_input:
+		username_input.position = Vector2(120, 35)
+		username_input.size = Vector2(120, 30)
+		username_input.clip_text = true
+	
+	# ✅ Level labels - below username
+	var level_label = user_panel.get_node_or_null("levelLabel")
+	if level_label:
+		level_label.position = Vector2(120, 65)
+		level_label.size = Vector2(50, 23)
+	
+	if level_input:
+		level_input.position = Vector2(170, 65)
+		level_input.size = Vector2(50, 23)
+	
+	# ✅✅✅ STATS ROW - MOVED DOWN to y=115 (below profile pic at y=105)
+	var wins_label = user_panel.get_node_or_null("winsLabel")
+	if wins_label:
+		wins_label.position = Vector2(29, 115)  # Changed from 95 to 115
+		wins_label.size = Vector2(30, 23)
+	
+	if wins_input:
+		wins_input.position = Vector2(56, 115)  # Changed from 95 to 115
+		wins_input.size = Vector2(30, 23)
+	
+	var losses_label = user_panel.get_node_or_null("losesLabel")
+	if losses_label:
+		losses_label.position = Vector2(91, 115)  # Changed from 95 to 115
+		losses_label.size = Vector2(25, 23)
+	
+	if losses_input:
+		losses_input.position = Vector2(114, 115)  # Changed from 95 to 115
+		losses_input.size = Vector2(30, 23)
+	
+	var winrate_label = user_panel.get_node_or_null("WinrateLabel")
+	if winrate_label:
+		winrate_label.position = Vector2(146, 115)  # Changed from 95 to 115
+		winrate_label.size = Vector2(40, 23)
+	
+	var winrate_input = user_panel.get_node_or_null("winrateInput")
+	if winrate_input:
+		winrate_input.position = Vector2(187, 115)  # Changed from 95 to 115
+		winrate_input.size = Vector2(40, 23)
+	
+	# ✅ Match played - also moved down
+	var match_played_label = user_panel.get_node_or_null("MatchPlayedLabel")
+	if match_played_label:
+		match_played_label.position = Vector2(29, 141)  # Changed from 121 to 141
+		match_played_label.size = Vector2(130, 23)
+	
+	if match_played_input:
+		match_played_input.position = Vector2(165, 141)  # Changed from 121 to 141
+		match_played_input.size = Vector2(50, 23)
+	# ✅ Hide old elements
+	if save_btn:
+		save_btn.visible = false
+	if status_label:
+		status_label.visible = false
+	if change_btn:
+		change_btn.visible = false
+	
+	var username_label = user_panel.get_node_or_null("usernameLabel")
+	if username_label:
+		username_label.visible = false
+	
+	if xp_input:
+		xp_input.visible = false
+	var old_xp_label = user_panel.get_node_or_null("xpLabel")
+	if old_xp_label:
+		old_xp_label.visible = false
+	
+	# ✅ NOW create dynamic elements BELOW the stats
+	if not ui_initialized:
+		_initialize_profile_ui()
+		ui_initialized = true
+	
+	print("[Landing] ✅ Initial UI layout forced")
+
+
+func _initialize_profile_ui() -> void:
+	"""Initialize all profile UI elements ONCE with proper spacing"""
+	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
+	
+	if not user_panel:
+		push_error("[Landing] UserPanel not found!")
+		return
+	
+	print("[Landing] ========== INITIALIZING PROFILE UI ==========")
+	
+	var edit_btn = user_panel.get_node_or_null("EditProfileButton")
+	if not edit_btn:
+		edit_btn = Button.new()
+		edit_btn.name = "EditProfileButton"
+		edit_btn.text = "Edit Profile"
+		edit_btn.custom_minimum_size = Vector2(200, 38)
+		edit_btn.position = Vector2(23, 175)
+		edit_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		
+		var edit_icon = load("res://asset/icons/edit_icon.png")
+		if edit_icon:
+			var img = edit_icon.get_image()
+			if img:
+				img.resize(24, 24, Image.INTERPOLATE_LANCZOS)
+				edit_icon = ImageTexture.create_from_image(img)
+			
+			edit_btn.icon = edit_icon
+			edit_btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+			edit_btn.expand_icon = false
+		
+		var btn_style_normal = StyleBoxFlat.new()
+		btn_style_normal.bg_color = Color(0, 0.4, 0.5, 0.8)
+		btn_style_normal.border_width_left = 2
+		btn_style_normal.border_width_top = 2
+		btn_style_normal.border_width_right = 2
+		btn_style_normal.border_width_bottom = 2
+		btn_style_normal.border_color = Color(0, 0.9, 1, 0.8)
+		btn_style_normal.corner_radius_top_left = 6
+		btn_style_normal.corner_radius_top_right = 6
+		btn_style_normal.corner_radius_bottom_left = 6
+		btn_style_normal.corner_radius_bottom_right = 6
+		
+		# ✅ UNEVEN MARGINS: Less left, more right = shifts content left
+		btn_style_normal.content_margin_left = 20  # Reduced from 10
+		btn_style_normal.content_margin_right = 65  # Increased from 10
+		btn_style_normal.content_margin_top = 8
+		btn_style_normal.content_margin_bottom = 8
+		
+		var btn_style_hover = btn_style_normal.duplicate()
+		btn_style_hover.bg_color = Color(0, 0.6, 0.7, 1)
+		btn_style_hover.shadow_color = Color(0, 1, 1, 0.5)
+		btn_style_hover.shadow_size = 10
+		
+		edit_btn.add_theme_stylebox_override("normal", btn_style_normal)
+		edit_btn.add_theme_stylebox_override("hover", btn_style_hover)
+		edit_btn.add_theme_stylebox_override("pressed", btn_style_hover)
+		edit_btn.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+		edit_btn.add_theme_font_size_override("font_size", 15)
+		
+		edit_btn.add_theme_constant_override("h_separation", 20)  # Space between icon and text
+		edit_btn.add_theme_constant_override("icon_max_width", 24)
+		
+		edit_btn.pressed.connect(_open_edit_profile_popup)
+		user_panel.add_child(edit_btn)
+		print("[Landing] ✅ Edit Profile button created")
+	else:
+		edit_btn.position = Vector2(23, 175)
+	
+	_create_xp_progress_bar()
+	print("[Landing] ✅ Profile UI initialized")
+
+
+func _create_xp_progress_bar() -> void:
+	"""Create and style the XP progress bar at fixed position"""
+	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
+	
+	var existing_bar = user_panel.get_node_or_null("XPProgressBar")
+	if existing_bar:
+		xp_progress = existing_bar
+		xp_progress.position = Vector2(23, 225)  # ✅ Changed from 205 to 225
+		xp_progress.size = Vector2(200, 28)
+		return
+	
+	xp_progress = ProgressBar.new()
+	xp_progress.name = "XPProgressBar"
+	xp_progress.position = Vector2(23, 225)  # ✅ Changed from 205 to 225
+	xp_progress.size = Vector2(200, 28)
+	xp_progress.min_value = 0
+	xp_progress.max_value = 1000
+	xp_progress.value = 0
+	xp_progress.show_percentage = false
+	xp_progress.z_index = 10
+	
+	var style_bg = StyleBoxFlat.new()
+	style_bg.bg_color = Color(0.2, 0.2, 0.2, 0.8)
+	style_bg.corner_radius_top_left = 5
+	style_bg.corner_radius_top_right = 5
+	style_bg.corner_radius_bottom_left = 5
+	style_bg.corner_radius_bottom_right = 5
+	
+	var style_fg = StyleBoxFlat.new()
+	style_fg.bg_color = Color(0, 0.9, 1, 1)
+	style_fg.corner_radius_top_left = 5
+	style_fg.corner_radius_top_right = 5
+	style_fg.corner_radius_bottom_left = 5
+	style_fg.corner_radius_bottom_right = 5
+	
+	xp_progress.add_theme_stylebox_override("background", style_bg)
+	xp_progress.add_theme_stylebox_override("fill", style_fg)
+	
+	user_panel.add_child(xp_progress)
+	
+	var xp_label = Label.new()
+	xp_label.name = "XPLabel"
+	xp_label.size = Vector2(200, 28)
+	xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	xp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	xp_label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	xp_label.add_theme_font_size_override("font_size", 13)
+	xp_label.text = "0 / 1000 XP"
+	xp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	xp_progress.add_child(xp_label)
+	
+	print("[Landing] ✅ XP Progress Bar created at (23, 225)")
+
+func _refresh_profile_ui_positions() -> void:
+	"""Ensure all profile UI elements are in their correct positions"""
+	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
+	if not user_panel:
+		return
+	
+	print("[Landing] ========== REFRESHING UI POSITIONS ==========")
+	
+	var edit_btn = user_panel.get_node_or_null("EditProfileButton")
+	if edit_btn:
+		edit_btn.position = Vector2(23, 175)
+		edit_btn.size = Vector2(200, 38)
+	
+	if xp_progress and is_instance_valid(xp_progress):
+		xp_progress.position = Vector2(23, 225)
+		xp_progress.size = Vector2(200, 28)
+	
+	# ✅ Use constant
+	var rank_icon_rect = user_panel.get_node_or_null("RankIconRect")
+	if rank_icon_rect:
+		rank_icon_rect.position = RANK_ICON_POSITION
+		rank_icon_rect.size = RANK_ICON_SIZE
+	
+	# ✅ Use constant
+	if rank_label:
+		rank_label.position = RANK_LABEL_POSITION
+		rank_label.size = Vector2(200, 30)
+		rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	
+	print("[Landing] ✅ Profile UI positions refreshed")
+	
+
+func _update_xp_display() -> void:
+	"""Update XP display with fixed positions"""
+	print("[Landing] ========== UPDATING XP DISPLAY ==========")
+	
+	var rank: Dictionary = TutorialManager.get_rank()
+	var current_xp = rank.get("current_xp", TutorialManager.total_xp)
+	var max_xp = rank.get("max_xp", 1000)
+	
+	if xp_progress and is_instance_valid(xp_progress):
+		xp_progress.max_value = max_xp
+		xp_progress.value = current_xp
+		
+		var label = xp_progress.get_node_or_null("XPLabel")
+		if label:
+			label.text = "%d / %d XP" % [current_xp, max_xp]
+	
+	if rank_label:
+		var icon_path = rank.get("icon", "")
+		var name = rank.get("name", "Iron")
+		var color = rank.get("color", Color(0.5, 0.5, 0.5))
+		
+		var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
+		
+		if icon_path.begins_with("res://"):
+			var rank_texture = load(icon_path)
+			if rank_texture:
+				var rank_icon_rect = user_panel.get_node_or_null("RankIconRect")
+				
+				if not rank_icon_rect:
+					rank_icon_rect = TextureRect.new()
+					rank_icon_rect.name = "RankIconRect"
+					rank_icon_rect.custom_minimum_size = RANK_ICON_SIZE
+					rank_icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+					rank_icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+					user_panel.add_child(rank_icon_rect)
+				
+				rank_icon_rect.texture = rank_texture
+				# ✅ Use constant
+				rank_icon_rect.position = RANK_ICON_POSITION
+				rank_icon_rect.size = RANK_ICON_SIZE
+				_add_glow_to_rank_icon(rank_icon_rect, color)
+				
+				# ✅ Use constant
+				rank_label.text = name
+				rank_label.position = RANK_LABEL_POSITION
+				rank_label.size = Vector2(200, 30)
+				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			else:
+				rank_label.text = name
+				rank_label.position = RANK_LABEL_POSITION
+		else:
+			rank_label.text = "%s\n%s" % [icon_path, name]
+			rank_label.position = RANK_LABEL_POSITION
+		
+		rank_label.add_theme_color_override("font_color", color)
+		
+func _exit_tree() -> void:
+	"""Cleanup when leaving the scene"""
+	# Reset the initialization flag for next time
+	ui_initialized = false
+	
+	# Clean up any popups
+	if edit_profile_popup and is_instance_valid(edit_profile_popup):
+		edit_profile_popup.queue_free()
+	if confirmation_popup and is_instance_valid(confirmation_popup):
+		confirmation_popup.queue_free()
+
+func _create_edit_profile_button() -> void:
+	"""Create a neon-styled Edit Profile button"""
+	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
+	
+	# Hide or remove the old save button and status label
+	if save_btn:
+		save_btn.visible = false
+	if status_label:
+		status_label.visible = false
+	
+	# ✅ REMOVE "Select image" button/label if it exists
+	var select_image_label = user_panel.get_node_or_null("SelectImageLabel")
+	if select_image_label:
+		select_image_label.queue_free()
+	
+	var select_image_btn = user_panel.get_node_or_null("SelectImageButton")
+	if select_image_btn:
+		select_image_btn.queue_free()
+	
+	# ✅ Also hide the ChangeAvatarButton if visible
+	if change_btn:
+		change_btn.visible = false
+	
+	# Create new Edit Profile button
+	var edit_btn = Button.new()
+	edit_btn.name = "EditProfileButton"
+	edit_btn.text = "Edit Profile"
+	edit_btn.custom_minimum_size = Vector2(180, 35)
+	edit_btn.position = Vector2(33, 160)  # ✅ Moved up to where "Select image" was
+	edit_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+	var edit_icon = load("res://asset/icons/edit_icon.png")  # Change path to your icon
+	if edit_icon:
+		edit_btn.icon = edit_icon
+		edit_btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT  # Icon on left side
+		edit_btn.expand_icon = true  # Keep icon crisp		
+	# Neon cyan style
+	var btn_style_normal = StyleBoxFlat.new()
+	btn_style_normal.bg_color = Color(0, 0.4, 0.5, 0.8)
+	btn_style_normal.border_width_left = 2
+	btn_style_normal.border_width_top = 2
+	btn_style_normal.border_width_right = 2
+	btn_style_normal.border_width_bottom = 2
+	btn_style_normal.border_color = Color(0, 0.9, 1, 0.8)
+	btn_style_normal.corner_radius_top_left = 6
+	btn_style_normal.corner_radius_top_right = 6
+	btn_style_normal.corner_radius_bottom_left = 6
+	btn_style_normal.corner_radius_bottom_right = 6
+	
+	var btn_style_hover = btn_style_normal.duplicate()
+	btn_style_hover.bg_color = Color(0, 0.6, 0.7, 1)
+	btn_style_hover.shadow_color = Color(0, 1, 1, 0.5)
+	btn_style_hover.shadow_size = 10
+	
+	edit_btn.add_theme_stylebox_override("normal", btn_style_normal)
+	edit_btn.add_theme_stylebox_override("hover", btn_style_hover)
+	edit_btn.add_theme_stylebox_override("pressed", btn_style_hover)
+	edit_btn.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	edit_btn.add_theme_font_size_override("font_size", 16)
+	
+	edit_btn.pressed.connect(_open_edit_profile_popup)
+	
+	user_panel.add_child(edit_btn)
+	print("[Landing] ✅ Edit Profile button created")
+
+func _open_edit_profile_popup() -> void:
+	"""Show the Edit Profile popup panel"""
+	if edit_profile_popup and is_instance_valid(edit_profile_popup):
+		return  # Already open
+	
+	# Store original values
+	original_username = username_input.text
+	original_avatar = selected_avatar
+	
+	# Create popup panel
+	edit_profile_popup = Panel.new()
+	edit_profile_popup.custom_minimum_size = Vector2(500, 600)
+	edit_profile_popup.position = Vector2(
+		(get_viewport().size.x - 500) / 2,
+		(get_viewport().size.y - 600) / 2
+	)
+	edit_profile_popup.z_index = 1000
+	
+	# Neon style
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.02, 0.05, 0.08, 0.98)
+	panel_style.border_width_left = 3
+	panel_style.border_width_top = 3
+	panel_style.border_width_right = 3
+	panel_style.border_width_bottom = 3
+	panel_style.border_color = Color(0, 1, 1, 0.9)
+	panel_style.corner_radius_top_left = 10
+	panel_style.corner_radius_top_right = 10
+	panel_style.corner_radius_bottom_left = 10
+	panel_style.corner_radius_bottom_right = 10
+	panel_style.shadow_color = Color(0, 1, 1, 0.6)
+	panel_style.shadow_size = 25
+	edit_profile_popup.add_theme_stylebox_override("panel", panel_style)
+	
+	# === TITLE ===
+	var title = Label.new()
+	title.text = "EDIT PROFILE"
+	title.position = Vector2(0, 15)
+	title.size = Vector2(500, 35)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	title.add_theme_font_size_override("font_size", 24)
+	edit_profile_popup.add_child(title)
+	
+	# === DIVIDER ===
+	var divider1 = ColorRect.new()
+	divider1.color = Color(0, 1, 1, 0.3)
+	divider1.size = Vector2(460, 2)
+	divider1.position = Vector2(20, 55)
+	edit_profile_popup.add_child(divider1)
+	
+	# === PROFILE PICTURE SECTION ===
+	var avatar_label = Label.new()
+	avatar_label.text = "Profile Picture"
+	avatar_label.position = Vector2(30, 70)
+	avatar_label.size = Vector2(440, 25)
+	avatar_label.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
+	avatar_label.add_theme_font_size_override("font_size", 16)
+	edit_profile_popup.add_child(avatar_label)
+	
+	# Current avatar preview
+	var avatar_preview = TextureRect.new()
+	avatar_preview.name = "AvatarPreview"
+	avatar_preview.texture = profile_pic.texture
+	avatar_preview.custom_minimum_size = Vector2(100, 100)
+	avatar_preview.position = Vector2(200, 100)
+	avatar_preview.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	avatar_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	edit_profile_popup.add_child(avatar_preview)
+	
+	# Change Avatar Button
+	var change_avatar_btn = Button.new()
+	change_avatar_btn.text = "Change Avatar"
+	change_avatar_btn.custom_minimum_size = Vector2(200, 40)
+	change_avatar_btn.position = Vector2(150, 215)
+	change_avatar_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+	var folder_icon = load("res://asset/icons/folder_icon.png")
+	if folder_icon:
+		var img = folder_icon.get_image()
+		if img:
+			img.resize(24, 24, Image.INTERPOLATE_LANCZOS)
+			folder_icon = ImageTexture.create_from_image(img)
+		
+		change_avatar_btn.icon = folder_icon
+		# ✅ CENTER alignment
+		change_avatar_btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		change_avatar_btn.expand_icon = false
+
+	
+	var avatar_btn_style = StyleBoxFlat.new()
+	avatar_btn_style.bg_color = Color(0.1, 0.2, 0.3, 0.9)
+	avatar_btn_style.border_width_left = 2
+	avatar_btn_style.border_width_right = 2
+	avatar_btn_style.border_width_top = 2
+	avatar_btn_style.border_width_bottom = 2
+	avatar_btn_style.border_color = Color(0, 0.9, 1, 0.6)
+	avatar_btn_style.corner_radius_top_left = 5
+	avatar_btn_style.corner_radius_top_right = 5
+	avatar_btn_style.corner_radius_bottom_left = 5
+	avatar_btn_style.corner_radius_bottom_right = 5
+	avatar_btn_style.content_margin_left = 10
+	avatar_btn_style.content_margin_right = 10
+	avatar_btn_style.content_margin_top = 10
+	avatar_btn_style.content_margin_bottom = 10
+
+	var avatar_btn_hover = avatar_btn_style.duplicate()
+	avatar_btn_hover.border_color = Color(0, 1, 1, 1)
+	avatar_btn_hover.shadow_color = Color(0, 1, 1, 0.3)
+	avatar_btn_hover.shadow_size = 5
+
+	change_avatar_btn.add_theme_stylebox_override("normal", avatar_btn_style)
+	change_avatar_btn.add_theme_stylebox_override("hover", avatar_btn_hover)
+	change_avatar_btn.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	change_avatar_btn.add_theme_font_size_override("font_size", 14)
+	# ✅ Minimal gap
+	change_avatar_btn.add_theme_constant_override("h_separation", 4)
+	change_avatar_btn.add_theme_constant_override("icon_max_width", 24)
+
+	change_avatar_btn.pressed.connect(func():
+		file_dialog.popup_centered(Vector2(700, 500))
+	)
+	edit_profile_popup.add_child(change_avatar_btn)
+	
+	# Preset avatars button
+	var preset_btn = Button.new()
+	preset_btn.text = "Preset Avatars"
+	preset_btn.custom_minimum_size = Vector2(200, 40)
+	preset_btn.position = Vector2(150, 265)
+	preset_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+	var preset_icon = load("res://asset/icons/palette_icon.png")
+	if preset_icon:
+		var img = preset_icon.get_image()
+		if img:
+			img.resize(24, 24, Image.INTERPOLATE_LANCZOS)
+			preset_icon = ImageTexture.create_from_image(img)
+		
+		preset_btn.icon = preset_icon
+		# ✅ CENTER alignment
+		preset_btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		preset_btn.expand_icon = false
+
+	preset_btn.add_theme_stylebox_override("normal", avatar_btn_style)
+	preset_btn.add_theme_stylebox_override("hover", avatar_btn_hover)
+	preset_btn.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	preset_btn.add_theme_font_size_override("font_size", 14)
+	# ✅ Minimal gap
+	preset_btn.add_theme_constant_override("h_separation", 4)
+	preset_btn.add_theme_constant_override("icon_max_width", 24)
+
+	preset_btn.pressed.connect(func():
+		avatar_picker.popup_centered()
+	)
+	edit_profile_popup.add_child(preset_btn)
+	
+	# === DIVIDER ===
+	var divider2 = ColorRect.new()
+	divider2.color = Color(0, 1, 1, 0.3)
+	divider2.size = Vector2(460, 2)
+	divider2.position = Vector2(20, 325)
+	edit_profile_popup.add_child(divider2)
+	
+	# === USERNAME SECTION ===
+	var username_label = Label.new()
+	username_label.text = "Username"
+	username_label.position = Vector2(30, 345)
+	username_label.size = Vector2(440, 25)
+	username_label.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
+	username_label.add_theme_font_size_override("font_size", 16)
+	edit_profile_popup.add_child(username_label)
+	
+	# Username input field
+	var username_edit = LineEdit.new()
+	username_edit.name = "UsernameEdit"
+	username_edit.text = username_input.text
+	username_edit.placeholder_text = "Enter new username"
+	username_edit.max_length = 20
+	username_edit.position = Vector2(30, 375)
+	username_edit.size = Vector2(440, 45)
+	
+	var input_style = StyleBoxFlat.new()
+	input_style.bg_color = Color(0.05, 0.1, 0.15, 0.9)
+	input_style.border_width_left = 2
+	input_style.border_width_right = 2
+	input_style.border_width_top = 2
+	input_style.border_width_bottom = 2
+	input_style.border_color = Color(0, 0.9, 1, 0.6)
+	input_style.corner_radius_top_left = 5
+	input_style.corner_radius_top_right = 5
+	input_style.corner_radius_bottom_left = 5
+	input_style.corner_radius_bottom_right = 5
+	
+	var input_focus = input_style.duplicate()
+	input_focus.border_color = Color(0, 1, 1, 1)
+	input_focus.shadow_color = Color(0, 1, 1, 0.4)
+	input_focus.shadow_size = 8
+	
+	username_edit.add_theme_stylebox_override("normal", input_style)
+	username_edit.add_theme_stylebox_override("focus", input_focus)
+	username_edit.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	username_edit.add_theme_color_override("font_placeholder_color", Color(0, 0.5, 0.6, 0.5))
+	username_edit.add_theme_font_size_override("font_size", 18)
+	
+	edit_profile_popup.add_child(username_edit)
+	
+	# Character count
+	var char_count = Label.new()
+	char_count.name = "CharCount"
+	char_count.text = "%d / 20" % username_edit.text.length()
+	char_count.position = Vector2(30, 425)
+	char_count.size = Vector2(440, 20)
+	char_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	char_count.add_theme_color_override("font_color", Color(0, 0.7, 0.8, 0.8))
+	char_count.add_theme_font_size_override("font_size", 12)
+	edit_profile_popup.add_child(char_count)
+	
+	username_edit.text_changed.connect(func(new_text: String):
+		char_count.text = "%d / 20" % new_text.length()
+		# Change color if too long
+		if new_text.length() >= 18:
+			char_count.add_theme_color_override("font_color", Color(1, 0.5, 0, 1))
+		else:
+			char_count.add_theme_color_override("font_color", Color(0, 0.7, 0.8, 0.8))
+	)
+	
+	# Validation hint
+	var hint_label = Label.new()
+	hint_label.text = "Username must be 3-20 characters"
+	hint_label.position = Vector2(30, 450)
+	hint_label.size = Vector2(440, 25)
+	hint_label.add_theme_color_override("font_color", Color(0.5, 0.7, 0.8, 0.7))
+	hint_label.add_theme_font_size_override("font_size", 12)
+	edit_profile_popup.add_child(hint_label)
+	
+	# === DIVIDER ===
+	var divider3 = ColorRect.new()
+	divider3.color = Color(0, 1, 1, 0.3)
+	divider3.size = Vector2(460, 2)
+	divider3.position = Vector2(20, 490)
+	edit_profile_popup.add_child(divider3)
+	
+	# === BUTTONS ===
+	# SAVE Button
+	var save_button = Button.new()
+	save_button.text = "✓ SAVE CHANGES"
+	save_button.custom_minimum_size = Vector2(210, 45)
+	save_button.position = Vector2(35, 520)
+	save_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	var save_style_normal = StyleBoxFlat.new()
+	save_style_normal.bg_color = Color(0, 0.5, 0.6, 0.9)
+	save_style_normal.border_width_left = 2
+	save_style_normal.border_width_top = 2
+	save_style_normal.border_width_right = 2
+	save_style_normal.border_width_bottom = 2
+	save_style_normal.border_color = Color(0, 1, 1, 0.9)
+	save_style_normal.corner_radius_top_left = 8
+	save_style_normal.corner_radius_top_right = 8
+	save_style_normal.corner_radius_bottom_left = 8
+	save_style_normal.corner_radius_bottom_right = 8
+	
+	var save_style_hover = save_style_normal.duplicate()
+	save_style_hover.bg_color = Color(0, 0.7, 0.8, 1)
+	save_style_hover.shadow_color = Color(0, 1, 1, 0.6)
+	save_style_hover.shadow_size = 12
+	
+	save_button.add_theme_stylebox_override("normal", save_style_normal)
+	save_button.add_theme_stylebox_override("hover", save_style_hover)
+	save_button.add_theme_stylebox_override("pressed", save_style_hover)
+	save_button.add_theme_color_override("font_color", Color.WHITE)
+	save_button.add_theme_font_size_override("font_size", 16)
+	
+	save_button.pressed.connect(func():
+		var new_username = username_edit.text.strip_edges()
+		
+		# Validate username
+		if new_username.length() < 3:
+			_show_error_message("Username must be at least 3 characters!")
+			return
+		if new_username.length() > 20:
+			_show_error_message("Username must be 20 characters or less!")
+			return
+		
+		# Update values
+		username_input.text = new_username
+		Auth.current_username = new_username
+		
+		# Save to Firestore
+		_save_profile_changes()
+		_close_edit_profile_popup()
+	)
+	edit_profile_popup.add_child(save_button)
+	
+	# CANCEL Button
+	var cancel_button = Button.new()
+	cancel_button.text = "✕ CANCEL"
+	cancel_button.custom_minimum_size = Vector2(210, 45)
+	cancel_button.position = Vector2(255, 520)
+	cancel_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	var cancel_style_normal = StyleBoxFlat.new()
+	cancel_style_normal.bg_color = Color(0.4, 0, 0, 0.9)
+	cancel_style_normal.border_width_left = 2
+	cancel_style_normal.border_width_top = 2
+	cancel_style_normal.border_width_right = 2
+	cancel_style_normal.border_width_bottom = 2
+	cancel_style_normal.border_color = Color(1, 0, 0, 0.8)
+	cancel_style_normal.corner_radius_top_left = 8
+	cancel_style_normal.corner_radius_top_right = 8
+	cancel_style_normal.corner_radius_bottom_left = 8
+	cancel_style_normal.corner_radius_bottom_right = 8
+	
+	var cancel_style_hover = cancel_style_normal.duplicate()
+	cancel_style_hover.bg_color = Color(0.6, 0, 0, 1)
+	cancel_style_hover.shadow_color = Color(1, 0, 0, 0.5)
+	cancel_style_hover.shadow_size = 12
+	
+	cancel_button.add_theme_stylebox_override("normal", cancel_style_normal)
+	cancel_button.add_theme_stylebox_override("hover", cancel_style_hover)
+	cancel_button.add_theme_stylebox_override("pressed", cancel_style_hover)
+	cancel_button.add_theme_color_override("font_color", Color.WHITE)
+	cancel_button.add_theme_font_size_override("font_size", 16)
+	
+	cancel_button.pressed.connect(func():
+		# Restore original values
+		username_input.text = original_username
+		selected_avatar = original_avatar
+		
+		# Restore avatar
+		if selected_avatar.begins_with("user://") and FileAccess.file_exists(selected_avatar):
+			var img = Image.load_from_file(selected_avatar)
+			if img:
+				img.resize(100, 100, Image.INTERPOLATE_LANCZOS)
+				profile_pic.texture = ImageTexture.create_from_image(img)
+		elif avatars.has(selected_avatar):
+			profile_pic.texture = avatars[selected_avatar]
+		
+		_close_edit_profile_popup()
+	)
+	edit_profile_popup.add_child(cancel_button)
+	
+	add_child(edit_profile_popup)
+	
+	# Animate entrance
+	edit_profile_popup.modulate.a = 0
+	edit_profile_popup.scale = Vector2(0.85, 0.85)
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(edit_profile_popup, "modulate:a", 1.0, 0.3)
+	tween.tween_property(edit_profile_popup, "scale", Vector2(1, 1), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	
+	# Focus on username input
+	await get_tree().create_timer(0.1).timeout
+	username_edit.grab_focus()
+
+func _close_edit_profile_popup() -> void:
+	"""Close the edit profile popup with animation"""
+	if not edit_profile_popup or not is_instance_valid(edit_profile_popup):
+		return
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(edit_profile_popup, "modulate:a", 0.0, 0.2)
+	tween.tween_property(edit_profile_popup, "scale", Vector2(0.85, 0.85), 0.2)
+	await tween.finished
+	edit_profile_popup.queue_free()
+	edit_profile_popup = null
+
+func _show_error_message(message: String) -> void:
+	"""Show temporary error message in the popup"""
+	if not edit_profile_popup:
+		return
+	
+	var error_label = edit_profile_popup.get_node_or_null("ErrorMessage")
+	if not error_label:
+		error_label = Label.new()
+		error_label.name = "ErrorMessage"
+		error_label.position = Vector2(30, 475)
+		error_label.size = Vector2(440, 25)
+		error_label.add_theme_font_size_override("font_size", 13)
+		edit_profile_popup.add_child(error_label)
+	
+	error_label.text = "⚠ " + message
+	error_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3, 1))
+	error_label.visible = true
+	
+	# Fade out after 3 seconds
+	await get_tree().create_timer(3.0).timeout
+	if error_label and is_instance_valid(error_label):
+		var fade = create_tween()
+		fade.tween_property(error_label, "modulate:a", 0.0, 0.5)
+		await fade.finished
+		error_label.visible = false
+
+func _save_profile_changes() -> void:
+	"""Save profile changes to Firestore"""
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	
+	if user_id == "" or id_token == "":
+		push_error("⚠️ User not logged in")
+		return
+	
+	last_avatar_change = int(Time.get_unix_time_from_system())
+	
+	var url = "%s/%s?updateMask.fieldPaths=username&updateMask.fieldPaths=avatar&updateMask.fieldPaths=last_avatar_change" % [firestore_base_url, user_id]
+	var body = {
+		"fields": {
+			"username": { "stringValue": username_input.text },
+			"avatar": { "stringValue": selected_avatar },
+			"last_avatar_change": { "integerValue": str(last_avatar_change) }
+		}
+	}
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	
+	var http_save := HTTPRequest.new()
+	add_child(http_save)
+	
+	http_save.request_completed.connect(func(_r, code, _h, response_body):
+		http_save.queue_free()
+		if code == 200:
+			print("[Landing] ✅ Profile saved successfully!")
+			# Update originals
+			original_username = username_input.text
+			original_avatar = selected_avatar
+			# Show success notification
+			_show_success_notification()
+		else:
+			var msg = response_body.get_string_from_utf8() if response_body.size() > 0 else "Unknown error"
+			push_error("[Landing] Failed to save profile: %s" % msg)
+			_show_error_message("Failed to save profile. Please try again.")
+	)
+	
+	http_save.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+
+func _show_success_notification() -> void:
+	"""Show a quick success notification"""
+	var notification = Panel.new()
+	notification.custom_minimum_size = Vector2(300, 60)
+	notification.position = Vector2(
+		(get_viewport().size.x - 300) / 2,
+		50
+	)
+	notification.z_index = 2000
+	
+	var notif_style = StyleBoxFlat.new()
+	notif_style.bg_color = Color(0, 0.6, 0.7, 0.95)
+	notif_style.border_width_left = 2
+	notif_style.border_width_top = 2
+	notif_style.border_width_right = 2
+	notif_style.border_width_bottom = 2
+	notif_style.border_color = Color(0, 1, 1, 1)
+	notif_style.corner_radius_top_left = 8
+	notif_style.corner_radius_top_right = 8
+	notif_style.corner_radius_bottom_left = 8
+	notif_style.corner_radius_bottom_right = 8
+	notif_style.shadow_color = Color(0, 1, 1, 0.6)
+	notif_style.shadow_size = 15
+	notification.add_theme_stylebox_override("panel", notif_style)
+	
+	var notif_label = Label.new()
+	notif_label.text = "✓ Profile Updated Successfully!"
+	notif_label.size = Vector2(300, 60)
+	notif_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	notif_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	notif_label.add_theme_color_override("font_color", Color.WHITE)
+	notif_label.add_theme_font_size_override("font_size", 16)
+	notification.add_child(notif_label)
+	
+	add_child(notification)
+	
+	# Animate in
+	notification.modulate.a = 0
+	notification.position.y -= 20
+	var tween_in = create_tween()
+	tween_in.set_parallel(true)
+	tween_in.tween_property(notification, "modulate:a", 1.0, 0.3)
+	tween_in.tween_property(notification, "position:y", 50, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	
+	# Wait and fade out
+	await get_tree().create_timer(2.0).timeout
+	var tween_out = create_tween()
+	tween_out.set_parallel(true)
+	tween_out.tween_property(notification, "modulate:a", 0.0, 0.5)
+	tween_out.tween_property(notification, "position:y", 30, 0.5)
+	await tween_out.finished
+	notification.queue_free()
+
+
+
+
+func _setup_username_editing() -> void:
+	"""Convert username label to editable LineEdit"""
+	if not username_input:
+		return
+	
+	# Get parent and position
+	var parent = username_input.get_parent()
+	var pos = username_input.position
+	var size = username_input.size
+	
+	# Create LineEdit replacement
+	var username_edit = LineEdit.new()
+	username_edit.name = "usernameInput"
+	username_edit.text = username_input.text
+	username_edit.position = pos
+	username_edit.size = size
+	username_edit.max_length = 20
+	username_edit.placeholder_text = "Enter username"
+	
+	# Style the LineEdit with neon theme
+	var style_normal = StyleBoxFlat.new()
+	style_normal.bg_color = Color(0.05, 0.1, 0.15, 0.8)
+	style_normal.border_width_left = 2
+	style_normal.border_width_right = 2
+	style_normal.border_width_top = 2
+	style_normal.border_width_bottom = 2
+	style_normal.border_color = Color(0, 0.9, 1, 0.6)
+	style_normal.corner_radius_top_left = 5
+	style_normal.corner_radius_top_right = 5
+	style_normal.corner_radius_bottom_left = 5
+	style_normal.corner_radius_bottom_right = 5
+	
+	var style_focus = style_normal.duplicate()
+	style_focus.border_color = Color(0, 1, 1, 1)
+	style_focus.shadow_color = Color(0, 1, 1, 0.3)
+	style_focus.shadow_size = 5
+	
+	username_edit.add_theme_stylebox_override("normal", style_normal)
+	username_edit.add_theme_stylebox_override("focus", style_focus)
+	username_edit.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	username_edit.add_theme_color_override("font_placeholder_color", Color(0, 0.5, 0.6, 0.5))
+	
+	# Connect signal to detect changes
+	username_edit.text_changed.connect(_on_username_changed)
+	
+	# Replace the old label
+	parent.remove_child(username_input)
+	username_input.queue_free()
+	parent.add_child(username_edit)
+	username_input = username_edit
+
+func _on_username_changed(new_text: String) -> void:
+	"""Called when username is edited"""
+	_check_for_changes()
+
+
+
+func _on_custom_avatar_selected(path: String) -> void:
+	"""Load custom avatar with fixed size"""
+	var img = Image.load_from_file(path)
+	if img:
+		# ✅ IMPORTANT: Resize to fixed size
+		img.resize(80, 80, Image.INTERPOLATE_LANCZOS)
+		var texture = ImageTexture.create_from_image(img)
+		
+		profile_pic.texture = texture
+		
+		# ✅ Re-enforce size constraints
+		profile_pic.custom_minimum_size = Vector2(80, 80)
+		profile_pic.size = Vector2(80, 80)
+		profile_pic.position = Vector2(30, 25)
+		profile_pic.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		
+		var user_avatar_path = "user://custom_avatar_%s.png" % Auth.current_local_id
+		img.save_png(user_avatar_path)
+		selected_avatar = user_avatar_path
+		
+		# Update preview in edit popup if open
+		if edit_profile_popup and is_instance_valid(edit_profile_popup):
+			var preview = edit_profile_popup.get_node_or_null("AvatarPreview")
+			if preview:
+				preview.texture = texture
+		
+		print("[Landing] ✅ Custom avatar loaded with fixed size 80x80")
+	else:
+		_show_error_message("Failed to load image")
+
+func _on_avatar_selected(file_name: String) -> void:
+	"""Load preset avatar with fixed size"""
+	if avatars.has(file_name):
+		profile_pic.texture = avatars[file_name]
+		selected_avatar = file_name
+		avatar_picker.hide()
+		
+		# ✅ Re-enforce size constraints
+		profile_pic.custom_minimum_size = Vector2(80, 80)
+		profile_pic.size = Vector2(80, 80)
+		profile_pic.position = Vector2(30, 25)
+		profile_pic.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		
+		# Update preview in edit popup if open
+		if edit_profile_popup and is_instance_valid(edit_profile_popup):
+			var preview = edit_profile_popup.get_node_or_null("AvatarPreview")
+			if preview:
+				preview.texture = avatars[file_name]
+		
+		print("[Landing] ✅ Preset avatar loaded with fixed size 80x80")
+
+func _check_for_changes() -> void:
+	"""Check if profile has unsaved changes"""
+	var username_changed = (username_input.text != original_username)
+	var avatar_changed = (selected_avatar != original_avatar)
+	
+	has_unsaved_changes = username_changed or avatar_changed
+	
+	if has_unsaved_changes:
+		_show_save_confirmation_popup()
+func _show_save_confirmation_popup() -> void:
+	"""Show neon-styled confirmation popup"""
+	if confirmation_popup and is_instance_valid(confirmation_popup):
+		return  # Popup already showing
+	
+	# Create popup panel
+	confirmation_popup = Panel.new()
+	confirmation_popup.custom_minimum_size = Vector2(400, 200)
+	confirmation_popup.position = Vector2(
+		(get_viewport().size.x - 400) / 2,
+		(get_viewport().size.y - 200) / 2
+	)
+	confirmation_popup.z_index = 1000
+	
+	# Neon style
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.02, 0.05, 0.08, 0.95)
+	panel_style.border_width_left = 3
+	panel_style.border_width_top = 3
+	panel_style.border_width_right = 3
+	panel_style.border_width_bottom = 3
+	panel_style.border_color = Color(0, 1, 1, 0.9)
+	panel_style.corner_radius_top_left = 10
+	panel_style.corner_radius_top_right = 10
+	panel_style.corner_radius_bottom_left = 10
+	panel_style.corner_radius_bottom_right = 10
+	panel_style.shadow_color = Color(0, 1, 1, 0.5)
+	panel_style.shadow_size = 20
+	confirmation_popup.add_theme_stylebox_override("panel", panel_style)
+	
+	# Title
+	var title = Label.new()
+	title.text = "⚠ UNSAVED CHANGES"
+	title.position = Vector2(0, 15)
+	title.size = Vector2(400, 30)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	title.add_theme_font_size_override("font_size", 20)
+	confirmation_popup.add_child(title)
+	
+	# Message
+	var message = Label.new()
+	message.text = "Do you want to save your profile changes?"
+	message.position = Vector2(20, 60)
+	message.size = Vector2(360, 40)
+	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	message.autowrap_mode = TextServer.AUTOWRAP_WORD
+	message.add_theme_color_override("font_color", Color(0.7, 0.9, 1, 1))
+	message.add_theme_font_size_override("font_size", 14)
+	confirmation_popup.add_child(message)
+	
+	# Changes list
+	var changes_text = ""
+	if username_input.text != original_username:
+		changes_text += "• Username: %s → %s\n" % [original_username, username_input.text]
+	if selected_avatar != original_avatar:
+		changes_text += "• Avatar changed\n"
+	
+	var changes_label = Label.new()
+	changes_label.text = changes_text
+	changes_label.position = Vector2(30, 100)
+	changes_label.size = Vector2(340, 50)
+	changes_label.add_theme_color_override("font_color", Color(0, 0.8, 1, 0.8))
+	changes_label.add_theme_font_size_override("font_size", 12)
+	confirmation_popup.add_child(changes_label)
+	
+	# YES Button
+	var yes_btn = Button.new()
+	yes_btn.text = "YES - SAVE"
+	yes_btn.custom_minimum_size = Vector2(160, 40)
+	yes_btn.position = Vector2(30, 145)
+	yes_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	var btn_style_normal = StyleBoxFlat.new()
+	btn_style_normal.bg_color = Color(0, 0.5, 0.6, 0.8)
+	btn_style_normal.border_width_left = 2
+	btn_style_normal.border_width_top = 2
+	btn_style_normal.border_width_right = 2
+	btn_style_normal.border_width_bottom = 2
+	btn_style_normal.border_color = Color(0, 1, 1, 0.9)
+	btn_style_normal.corner_radius_top_left = 8
+	btn_style_normal.corner_radius_top_right = 8
+	btn_style_normal.corner_radius_bottom_left = 8
+	btn_style_normal.corner_radius_bottom_right = 8
+	
+	var btn_style_hover = btn_style_normal.duplicate()
+	btn_style_hover.bg_color = Color(0, 0.7, 0.8, 1)
+	btn_style_hover.shadow_color = Color(0, 1, 1, 0.4)
+	btn_style_hover.shadow_size = 8
+	
+	yes_btn.add_theme_stylebox_override("normal", btn_style_normal)
+	yes_btn.add_theme_stylebox_override("hover", btn_style_hover)
+	yes_btn.add_theme_stylebox_override("pressed", btn_style_hover)
+	yes_btn.add_theme_color_override("font_color", Color.WHITE)
+	yes_btn.add_theme_font_size_override("font_size", 14)
+	
+	yes_btn.pressed.connect(func():
+		_confirm_save_profile()
+		_close_confirmation_popup()
+	)
+	confirmation_popup.add_child(yes_btn)
+	
+	# NO Button
+	var no_btn = Button.new()
+	no_btn.text = "NO - DISCARD"
+	no_btn.custom_minimum_size = Vector2(160, 40)
+	no_btn.position = Vector2(210, 145)
+	no_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	var no_style_normal = StyleBoxFlat.new()
+	no_style_normal.bg_color = Color(0.5, 0, 0, 0.8)
+	no_style_normal.border_width_left = 2
+	no_style_normal.border_width_top = 2
+	no_style_normal.border_width_right = 2
+	no_style_normal.border_width_bottom = 2
+	no_style_normal.border_color = Color(1, 0, 0, 0.9)
+	no_style_normal.corner_radius_top_left = 8
+	no_style_normal.corner_radius_top_right = 8
+	no_style_normal.corner_radius_bottom_left = 8
+	no_style_normal.corner_radius_bottom_right = 8
+	
+	var no_style_hover = no_style_normal.duplicate()
+	no_style_hover.bg_color = Color(0.7, 0, 0, 1)
+	no_style_hover.shadow_color = Color(1, 0, 0, 0.4)
+	no_style_hover.shadow_size = 8
+	
+	no_btn.add_theme_stylebox_override("normal", no_style_normal)
+	no_btn.add_theme_stylebox_override("hover", no_style_hover)
+	no_btn.add_theme_stylebox_override("pressed", no_style_hover)
+	no_btn.add_theme_color_override("font_color", Color.WHITE)
+	no_btn.add_theme_font_size_override("font_size", 14)
+	
+	no_btn.pressed.connect(func():
+		_discard_changes()
+		_close_confirmation_popup()
+	)
+	confirmation_popup.add_child(no_btn)
+	
+	add_child(confirmation_popup)
+	
+	# Animate popup entrance
+	confirmation_popup.modulate.a = 0
+	confirmation_popup.scale = Vector2(0.8, 0.8)
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(confirmation_popup, "modulate:a", 1.0, 0.3)
+	tween.tween_property(confirmation_popup, "scale", Vector2(1, 1), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _close_confirmation_popup() -> void:
+	"""Close the confirmation popup with animation"""
+	if not confirmation_popup or not is_instance_valid(confirmation_popup):
+		return
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(confirmation_popup, "modulate:a", 0.0, 0.2)
+	tween.tween_property(confirmation_popup, "scale", Vector2(0.8, 0.8), 0.2)
+	await tween.finished
+	confirmation_popup.queue_free()
+	confirmation_popup = null
+
+func _confirm_save_profile() -> void:
+	"""Save profile changes"""
+	has_unsaved_changes = false
+	_on_save_profile_pressed()  # Call your existing save function
+
+func _discard_changes() -> void:
+	"""Discard changes and restore original values"""
+	has_unsaved_changes = false
+	username_input.text = original_username
+	selected_avatar = original_avatar
+	
+	# Restore avatar texture
+	if selected_avatar.begins_with("user://"):
+		if FileAccess.file_exists(selected_avatar):
+			var img = Image.load_from_file(selected_avatar)
+			if img:
+				img.resize(100, 100, Image.INTERPOLATE_LANCZOS)
+				var texture = ImageTexture.create_from_image(img)
+				profile_pic.texture = texture
+	elif avatars.has(selected_avatar):
+		profile_pic.texture = avatars[selected_avatar]
+		
+
+func _add_glow_to_rank_icon(icon: TextureRect, glow_color: Color) -> void:
+	"""Add glowing effect to rank icon using improved shader"""
+	
+	var shader_code = """
+shader_type canvas_item;
+
+uniform vec4 glow_color : source_color = vec4(0.0, 0.9, 1.0, 1.0);
+uniform float glow_strength : hint_range(0.0, 5.0) = 2.0;
+uniform float glow_size : hint_range(0.0, 0.1) = 0.05;
+
+void fragment() {
+	vec4 tex = texture(TEXTURE, UV);
+	
+	// Only add glow if the original pixel has transparency
+	if (tex.a > 0.5) {
+		// Just render the original texture
+		COLOR = tex;
+	} else {
+		// Sample neighboring pixels for glow effect
+		float glow = 0.0;
+		int samples = 16;
+		
+		for(int i = 0; i < samples; i++) {
+			float angle = float(i) * 6.28318 / float(samples);
+			vec2 offset = vec2(cos(angle), sin(angle)) * glow_size;
+			
+			// Sample texture at offset position
+			vec4 sample_tex = texture(TEXTURE, UV + offset);
+			
+			// Only accumulate glow from opaque parts of the texture
+			if (sample_tex.a > 0.5) {
+				glow += 1.0;
+			}
+		}
+		
+		// Normalize glow
+		glow = glow / float(samples);
+		
+		// Apply glow only if there's something nearby
+		if (glow > 0.1) {
+			COLOR = vec4(glow_color.rgb, glow * glow_strength * glow_color.a);
+		} else {
+			// Fully transparent
+			COLOR = vec4(0.0, 0.0, 0.0, 0.0);
+		}
+	}
+}
+"""
+	
+	var shader = Shader.new()
+	shader.code = shader_code
+	
+	var material = ShaderMaterial.new()
+	material.shader = shader
+	material.set_shader_parameter("glow_color", glow_color)
+	material.set_shader_parameter("glow_strength", 1.5)  # Reduced for subtlety
+	material.set_shader_parameter("glow_size", 0.05)     # Reduced for tighter glow
+	
+	icon.material = material
+	
+	print("[Landing] ✅ Glow effect applied to rank icon with color:", glow_color)
+
 
 func _try_resume_code_breaker_session() -> void:
 	if _resume_routed:
@@ -645,49 +1912,6 @@ func _on_mission_button_pressed() -> void:
 	
 	add_child(dialog_panel)
 
-
-func _complete_first_mission() -> void:
-	"""Mark first mission as completed"""
-	first_mission_active = false
-	
-	if mission_button:
-		mission_button.visible = false
-	
-	var divider = news_panel.get_node_or_null("MissionDivider")
-	if divider:
-		divider.visible = false
-	
-	# Save to Firestore
-	var user_id = Auth.current_local_id
-	var id_token = Auth.current_id_token
-	
-	if user_id == "" or id_token == "":
-		return
-	
-	var url = "%s/%s?updateMask.fieldPaths=first_mission_completed" % [firestore_base_url, user_id]
-	var body = {
-		"fields": {
-			"first_mission_completed": { "booleanValue": true }
-		}
-	}
-	var headers = [
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % id_token
-	]
-	
-	var http_mission = HTTPRequest.new()
-	add_child(http_mission)
-	http_mission.request_completed.connect(func(_r, code, _h, _b):
-		http_mission.queue_free()
-		if code == 200:
-			print("[Landing] ✅ First mission marked complete")
-	)
-	http_mission.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
-
-
-
-
-
 # ===== COMBINED: LOAD USER DATA + CHECK WELCOME TUTORIAL =====
 func _load_user_data_and_check_tutorial() -> void:
 	"""Load user data and check welcome tutorial in ONE request"""
@@ -727,7 +1951,6 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 	"""Handle combined user data + welcome tutorial check"""
 	if response_code != 200:
 		print("[Landing] Failed to load data:", response_code)
-		# Assume new user
 		Auth.set_welcome_tutorial_status(false)
 		_start_welcome_tutorial()
 		return
@@ -740,13 +1963,26 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 
 	var f = data["fields"]
 	
-	# ✅ Load user profile data
+	# ✅ Load avatar with size enforcement
 	if f.has("avatar"):
 		selected_avatar = f["avatar"]["stringValue"]
-		if avatars.has(selected_avatar):
+		
+		if selected_avatar.begins_with("user://"):
+			if FileAccess.file_exists(selected_avatar):
+				var img = Image.load_from_file(selected_avatar)
+				if img:
+					# ✅ CRITICAL: Resize to fixed 80x80
+					img.resize(80, 80, Image.INTERPOLATE_LANCZOS)
+					var texture = ImageTexture.create_from_image(img)
+					profile_pic.texture = texture
+					Auth.current_avatar = selected_avatar
+		elif avatars.has(selected_avatar):
 			profile_pic.texture = avatars[selected_avatar]
 			Auth.current_avatar = selected_avatar
-
+		
+		# ✅ Always enforce size after loading
+		_setup_profile_picture_constraints()
+	
 	if f.has("last_avatar_change"):
 		last_avatar_change = int(f["last_avatar_change"]["integerValue"])
 
@@ -771,25 +2007,20 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
 		match_played_input.text = str(wins + losses)
 	
-	# ✅ Check welcome tutorial status
-	var welcome_completed := true  # Default for existing users
+	# Check welcome tutorial
+	var welcome_completed := true
 	if f.has("welcome_tutorial_completed"):
 		welcome_completed = f["welcome_tutorial_completed"].get("booleanValue", true)
-		print("[Landing] welcome_tutorial_completed:", welcome_completed)
 	else:
-		print("[Landing] welcome_tutorial_completed field NOT found - NEW USER!")
 		welcome_completed = false
 	
-	# ✅ Cache the status
 	Auth.set_welcome_tutorial_status(welcome_completed)
 	
-	# ✅ Show Pokemon UI if new user
 	if not welcome_completed:
 		print("[Landing] 🎉 NEW USER DETECTED - Starting Pokemon Welcome Tutorial")
 		_start_welcome_tutorial()
 	else:
 		print("[Landing] ✅ Welcome tutorial already completed")
-
 
 # ===== REMOVE OLD FUNCTIONS - REPLACED BY COMBINED VERSION =====
 # _check_and_start_welcome_tutorial() is now replaced by _load_user_data_and_check_tutorial()
@@ -837,71 +2068,135 @@ func _on_welcome_tutorial_completed() -> void:
 	call_deferred("_activate_first_mission")
 
 func _show_welcome_reward() -> void:
-	"""Show a reward dialog after completing the tutorial"""
+	"""Show animated reward popup after completing the tutorial"""
 	print("[Landing] ========== SHOW WELCOME REWARD ==========")
-	print("[Landing] Current XP BEFORE reward: %d" % TutorialManager.total_xp)
-	
-	# ✅ Double-check we haven't awarded this already
-	if TutorialManager.total_xp >= 50:
-		print("[Landing] ⚠️ User already has XP, might be duplicate call. Current XP: %d" % TutorialManager.total_xp)
 	
 	# Award XP FIRST
-	print("[Landing] Awarding welcome bonus XP (+50)...")
-	TutorialManager.add_xp(50, "Tutorial Completion Bonus")
-	
-	# Wait a frame to ensure all XP processing is done
+
 	await get_tree().process_frame
 	
-	print("[Landing] Current XP AFTER reward: %d" % TutorialManager.total_xp)
+	# ✅ SIMPLE: Just use RewardItem directly now!
+	var popup = preload("res://scene/reward_popup.tscn").instantiate()
+	add_child(popup)
 	
-	var dialog := AcceptDialog.new()
-	dialog.title = "🎉 Welcome Bonus!"
-	dialog.dialog_text = "Congratulations on completing the tutorial!\n\nYou've earned:\n• 50 XP\n• Beginner Badge\n\nGood luck in Cyber Arena!"
-	dialog.min_size = Vector2(400, 250)
-	dialog.exclusive = false  # ✅ Allow other windows
-	add_child(dialog)
-	dialog.popup_centered()
+	var custom_font = load("res://asset/fonts/NicoMoji-Regular.ttf")  # or .otf
 	
-	# Simple one-shot connection that only closes the dialog
-	dialog.confirmed.connect(func(): 
-		print("[Landing] Dialog closed")
-		dialog.queue_free()
-	, CONNECT_ONE_SHOT)
+	_apply_font_to_children(popup, custom_font, 20)
 
 
-# === Update XP Display ===
-func _update_xp_display() -> void:
-	print("[Landing] ========== UPDATING XP DISPLAY ==========")
-	print("[Landing] Total XP: %d" % TutorialManager.total_xp)
-	
-	if xp_input:
-		xp_input.text = " %d" % TutorialManager.total_xp
-		print("[Landing] ✅ XP Label updated")
-	
-	var rank: Dictionary = TutorialManager.get_rank()
-	if rank_label:
-		rank_label.text = "%s %s" % [rank["icon"], rank["name"]]
-		rank_label.add_theme_color_override("font_color", rank["color"])
-		rank_label.tooltip_text = " %d/%d (%.0f%% to next rank)" % [rank["current_xp"], rank["max_xp"], rank["progress"]]
-	
-	if match_played_input and wins_input and losses_input:
-		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
-		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
-		match_played_input.text = str(wins + losses)
+	var rewards = [
+		RewardItem.new("xp", 50, "Experience Points", null, "Completed the Welcome Tutorial"),
+		RewardItem.new("badge", 1, "Beginner Badge", null, "Your first achievement!")
+	]
+	popup.show_rewards(rewards, " Welcome Aboard, Agent!")
 
+
+func _apply_font_to_children(node: Node, font: Font, size: int) -> void:
+		if node is Label or node is Button or node is RichTextLabel:
+			node.add_theme_font_override("font", font)
+			node.add_theme_font_size_override("font_size", size)
+		
+		for child in node.get_children():
+			_apply_font_to_children(child, font, size)
+
+func _complete_first_mission() -> void:
+	"""Mark first mission as completed with animated rewards"""
+	first_mission_active = false
+	
+	if mission_button:
+		mission_button.visible = false
+	
+	var popup = preload("res://scene/reward_popup.tscn").instantiate()
+	add_child(popup)
+	
+	var rewards = [
+		RewardItem.new("xp", 50, "Mission XP", null, "Task 00: Learn completed!"),
+		RewardItem.new("badge", 1, "First Mission", null, "Complete your first mission")
+	]
+	
+	popup.show_rewards(rewards, "🎯 Mission Complete!")
+	
+	popup.rewards_claimed.connect(func():
+		_save_mission_completion_to_firestore()
+	)
+
+# ✅ NEW: Helper function for saving mission completion
+func _save_mission_completion_to_firestore() -> void:
+	"""Save mission completion to Firestore"""
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	
+	if user_id == "" or id_token == "":
+		return
+	
+	var url = "%s/%s?updateMask.fieldPaths=first_mission_completed" % [firestore_base_url, user_id]
+	var body = {
+		"fields": {
+			"first_mission_completed": { "booleanValue": true }
+		}
+	}
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	
+	var http_mission = HTTPRequest.new()
+	add_child(http_mission)
+	http_mission.request_completed.connect(func(_r, code, _h, _b):
+		http_mission.queue_free()
+		if code == 200:
+			print("[Landing] ✅ First mission marked complete in Firestore")
+		else:
+			push_error("[Landing] ❌ Failed to save mission completion")
+	)
+	http_mission.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
 
 func _on_xp_updated(new_xp: int) -> void:
 	print("[Landing] 🎉 XP Updated: %d" % new_xp)
 	
-	if xp_input:
-		xp_input.text = " %d" % new_xp
-	
 	var rank: Dictionary = TutorialManager.get_rank(new_xp)
+	var current_xp = rank.get("current_xp", new_xp)
+	var max_xp = rank.get("max_xp", 1000)
+	
+	if xp_progress:
+		xp_progress.max_value = max_xp
+		xp_progress.value = current_xp
+		
+		var label = xp_progress.get_node_or_null("XPLabel")
+		if label:
+			label.text = "%d / %d XP" % [current_xp, max_xp]
+	
 	if rank_label:
-		rank_label.text = "%s %s" % [rank["icon"], rank["name"]]
-		rank_label.add_theme_color_override("font_color", rank["color"])
-
-
+		var icon_path = rank.get("icon", "")
+		var name = rank.get("name", "Iron")
+		var color = rank.get("color", Color(0.5, 0.5, 0.5))
+		
+		var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
+		var rank_icon_rect = user_panel.get_node_or_null("RankIconRect")
+		
+		if icon_path.begins_with("res://") and rank_icon_rect:
+			var rank_texture = load(icon_path)
+			if rank_texture:
+				rank_icon_rect.texture = rank_texture
+				_add_glow_to_rank_icon(rank_icon_rect, color)
+				
+				# ✅ Use constant
+				rank_icon_rect.position = RANK_ICON_POSITION
+				rank_icon_rect.size = RANK_ICON_SIZE
+				
+				rank_label.text = name
+				rank_label.position = RANK_LABEL_POSITION
+				rank_label.size = Vector2(200, 30)
+				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			else:
+				rank_label.text = name
+				rank_label.position = RANK_LABEL_POSITION
+		else:
+			rank_label.text = "%s\n%s" % [icon_path, name]
+			rank_label.position = RANK_LABEL_POSITION
+		
+		rank_label.add_theme_color_override("font_color", color)
+		
 func _on_rank_up(new_rank: Dictionary) -> void:
 	print("🏆 RANK UP! %s %s" % [new_rank["icon"], new_rank["name"]])
 	
@@ -946,20 +2241,8 @@ func _load_avatars() -> void:
 
 
 func _on_change_avatar_pressed() -> void:
-	var current_time = Time.get_unix_time_from_system()
-	if current_time - last_avatar_change < avatar_cooldown:
-		var remaining = int((avatar_cooldown - (current_time - last_avatar_change)) / 86400)
-		status_label.text = "⏳ You can change avatar again in %d days." % remaining
-		return
-	avatar_picker.popup_centered()
-
-
-func _on_avatar_selected(file_name: String) -> void:
-	if avatars.has(file_name):
-		profile_pic.texture = avatars[file_name]
-		selected_avatar = file_name
-		status_label.text = "✅ Avatar selected (click SaveProfile to apply)"
-		avatar_picker.hide()
+	# Open file dialog to select custom image
+	file_dialog.popup_centered(Vector2(700, 500))
 
 
 func _on_save_profile_pressed() -> void:
@@ -996,15 +2279,31 @@ func _on_save_profile_pressed() -> void:
 
 func _on_save_profile_response(_result, response_code, _headers, body) -> void:
 	if response_code == 200:
-		status_label.text = "✅ Profile saved!"
+		# ✅ Update originals after successful save
+		original_username = username_input.text
+		original_avatar = selected_avatar
+		
+		# Show temporary success message
+		if status_label:
+			status_label.visible = true
+			status_label.text = "✅ Profile saved!"
+			status_label.modulate = Color(0, 1, 0.5, 1)
+			
+			# Hide after 2 seconds
+			await get_tree().create_timer(2.0).timeout
+			if status_label:
+				status_label.visible = false
+		
 		Auth.current_avatar = selected_avatar
 		Auth.current_username = username_input.text
 		_load_user_data()
 	else:
 		var msg = body.get_string_from_utf8() if body.size() > 0 else "Unknown error"
-		status_label.text = "❌ Failed to save profile"
+		if status_label:
+			status_label.visible = true
+			status_label.text = "❌ Failed to save profile"
+			status_label.modulate = Color(1, 0, 0, 1)
 		push_error("Firestore error: %s" % msg)
-
 
 func _load_user_data() -> void:
 	var user_id = Auth.current_local_id
@@ -1021,7 +2320,6 @@ func _load_user_data() -> void:
 
 	http.request(url, headers, HTTPClient.METHOD_GET)
 
-
 func _on_user_data_response(_result, response_code, _headers, body) -> void:
 	if response_code != 200:
 		push_error("⚠️ Failed to load user data:", response_code)
@@ -1035,16 +2333,38 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 
 	if f.has("avatar"):
 		selected_avatar = f["avatar"]["stringValue"]
-		if avatars.has(selected_avatar):
-			profile_pic.texture = avatars[selected_avatar]
+		
+		if selected_avatar.begins_with("user://"):
+			if FileAccess.file_exists(selected_avatar):
+				var img = Image.load_from_file(selected_avatar)
+				if img:
+					# ✅ CRITICAL: Always resize to 80x80
+					img.resize(80, 80, Image.INTERPOLATE_LANCZOS)
+					var texture = ImageTexture.create_from_image(img)
+					profile_pic.texture = texture
+					Auth.current_avatar = selected_avatar
+		elif avatars.has(selected_avatar):
+			# ✅ NEW: Also resize preset avatars to ensure consistency
+			var original_texture = avatars[selected_avatar]
+			var img = original_texture.get_image()
+			if img:
+				img.resize(80, 80, Image.INTERPOLATE_LANCZOS)
+				profile_pic.texture = ImageTexture.create_from_image(img)
+			else:
+				profile_pic.texture = original_texture
 			Auth.current_avatar = selected_avatar
-
+		
+		# ✅ IMPORTANT: Call this AFTER setting the texture
+		await get_tree().process_frame  # Wait one frame for texture to apply
+		_setup_profile_picture_constraints()
+		
 	if f.has("last_avatar_change"):
 		last_avatar_change = int(f["last_avatar_change"]["integerValue"])
 
 	if f.has("username"):
 		Auth.current_username = f["username"]["stringValue"]
 		username_input.text = Auth.current_username
+		original_username = Auth.current_username
 
 	if f.has("level"):
 		var lvl := int(f["level"]["integerValue"])
@@ -1062,7 +2382,42 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
 		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
 		match_played_input.text = str(wins + losses)
+	
+	original_avatar = selected_avatar
 
+# ============================================
+# STEP 7: Update _refresh_profile_ui_positions
+# ============================================
+# ============================================
+# STEP 8: Update _update_xp_display for new positions
+# ============================================
+
+func _show_panel(panel_paths: Dictionary, panel_name: String) -> void:
+	"""Show panel and ensure UI elements maintain their positions"""
+	for key in panel_paths.keys():
+		var node = $VideoStreamPlayer.get_node_or_null(panel_paths[key])
+		if node:
+			node.visible = false
+
+	var code_breaker_lobby = $VideoStreamPlayer.get_node_or_null("CodeBreakerLobby")
+	if code_breaker_lobby:
+		code_breaker_lobby.visible = false
+
+	var akashic_lobby = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
+	if akashic_lobby:
+		akashic_lobby.visible = false
+
+	var node_to_show = $VideoStreamPlayer.get_node_or_null(panel_paths.get(panel_name, ""))
+	if node_to_show:
+		node_to_show.visible = true
+		
+		# ✅ If showing profile panel, ensure UI is properly positioned
+		if panel_name == "profile":
+			_refresh_profile_ui_positions()
+
+	var friend_list = $VideoStreamPlayer.get_node_or_null("FriendListPanel")
+	if friend_list:
+		friend_list.visible = (panel_name != "game")
 
 func _setup_navigation() -> void:
 	var panel_paths := {
@@ -1112,29 +2467,6 @@ func _on_module_navigate_pressed() -> void:
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 
-func _show_panel(panel_paths: Dictionary, panel_name: String) -> void:
-	for key in panel_paths.keys():
-		var node = $VideoStreamPlayer.get_node_or_null(panel_paths[key])
-		if node:
-			node.visible = false
-
-	var code_breaker_lobby = $VideoStreamPlayer.get_node_or_null("CodeBreakerLobby")
-	if code_breaker_lobby:
-		code_breaker_lobby.visible = false
-
-	var akashic_lobby = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
-	if akashic_lobby:
-		akashic_lobby.visible = false
-
-	var node_to_show = $VideoStreamPlayer.get_node_or_null(panel_paths.get(panel_name, ""))
-	if node_to_show:
-		node_to_show.visible = true
-
-	var friend_list = $VideoStreamPlayer.get_node_or_null("FriendListPanel")
-	if friend_list:
-		friend_list.visible = (panel_name != "game")
-
-
 func _on_reset_stats_pressed() -> void:
 	print("[Landing] Resetting match statistics...")
 	
@@ -1174,11 +2506,6 @@ func _on_reset_stats_pressed() -> void:
 	)
 	
 	http_reset.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
-
-
-func _on_tutorial_pressed() -> void:
-	print("[Landing] Opening module selection...")
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 
 func _on_logout_pressed() -> void:
@@ -1256,3 +2583,25 @@ func _show_locked_game_dialog(game_name: String, required_xp: int) -> void:
 	, CONNECT_ONE_SHOT)
 	add_child(dialog)
 	dialog.popup_centered()
+
+
+func _setup_profile_picture_constraints() -> void:
+	"""Lock profile picture to specific size and position - FINAL VERSION"""
+	if not profile_pic:
+		return
+	
+	# ✅ CRITICAL: Set size_flags to NONE to prevent auto-resizing
+	profile_pic.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	profile_pic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	
+	# ✅ Lock to fixed size
+	profile_pic.custom_minimum_size = Vector2(80, 80)
+	profile_pic.size = Vector2(80, 80)
+	profile_pic.position = Vector2(30, 25)
+	
+	# ✅ Prevent texture from scaling beyond container
+	profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE  # Changed from EXPAND_FIT_WIDTH_PROPORTIONAL
+	profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	print("[Landing] ✅ Profile picture locked: 80x80 at (30, 25)")
