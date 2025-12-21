@@ -1,6 +1,7 @@
 extends Control
 
 const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 
 # === UI References ===
 @onready var news_panel = $VideoStreamPlayer/HomePanel/NewsPanel
@@ -37,6 +38,8 @@ var welcome_bonus_awarded: bool = false
 
 # Resume retry guard (prevents infinite loops if server is down)
 var _code_breaker_resume_retries: int = 0
+var _tgc_resume_retries: int = 0
+var _resume_routed: bool = false
 
 # === Lifecycle ===
 func _ready() -> void:
@@ -71,6 +74,7 @@ func _ready() -> void:
 	# If the app was restarted (shutdown/crash) while in a Code Breaker room/match,
 	# attempt to resume by routing into the reconnect flow.
 	call_deferred("_try_resume_code_breaker_session")
+	call_deferred("_try_resume_akashic_tcg_session")
 
 	# ===== POKEMON WELCOME UI SETUP =====
 	if welcome_ui:
@@ -90,6 +94,8 @@ func _ready() -> void:
 	
 
 func _try_resume_code_breaker_session() -> void:
+	if _resume_routed:
+		return
 	# Only resume for logged-in users (Auth can be set a frame later)
 	for _i in range(10):
 		if Auth and Auth.current_local_id != "":
@@ -171,6 +177,7 @@ func _try_resume_code_breaker_session() -> void:
 
 	if status == "in_game":
 		print("[Landing] ✅ Match in progress, routing to reconnect")
+		_resume_routed = true
 		var init := {
 			"room_id": room_id,
 			"lobby_server_url": chosen_lobby_url,
@@ -191,6 +198,7 @@ func _try_resume_code_breaker_session() -> void:
 
 	if status == "waiting":
 		print("[Landing] ✅ Room still waiting, routing back to room")
+		_resume_routed = true
 		var room_init := {
 			"room_id": room_id,
 			"host_name": str(host_dict.get("username", "Host")),
@@ -205,6 +213,7 @@ func _try_resume_code_breaker_session() -> void:
 
 	if status == "finished":
 		print("[Landing] ✅ Match finished, routing to postgame")
+		_resume_routed = true
 		var postgame_init := {
 			"room_id": room_id,
 			"relay_client": null,
@@ -231,6 +240,144 @@ func _try_resume_code_breaker_session() -> void:
 
 	# Unknown status -> clear and stay on landing
 	_SessionStore.clear_session()
+
+
+func _try_resume_akashic_tcg_session() -> void:
+	if _resume_routed:
+		return
+	# Only resume for logged-in users (Auth can be set a frame later)
+	for _i in range(10):
+		if Auth and Auth.current_local_id != "":
+			break
+		await get_tree().create_timer(0.25).timeout
+	if not Auth or Auth.current_local_id == "":
+		return
+
+	var session := _TGCSess.load_session()
+	if session.is_empty():
+		return
+
+	var session_player_id := str(session.get("player_id", ""))
+	if session_player_id != "" and session_player_id != "unknown" and session_player_id != Auth.current_local_id:
+		_TGCSess.clear_session()
+		return
+
+	var room_id := str(session.get("room_id", "")).strip_edges()
+	if room_id == "":
+		_TGCSess.clear_session()
+		return
+
+	var saved_lobby_url := str(session.get("lobby_server_url", "")).strip_edges()
+	var current_lobby_url := MultiplayerConfig.get_lobby_url() if MultiplayerConfig else ""
+	var lobby_candidates: Array[String] = []
+	if saved_lobby_url != "":
+		lobby_candidates.append(saved_lobby_url)
+	if current_lobby_url.strip_edges() != "" and (current_lobby_url not in lobby_candidates):
+		lobby_candidates.append(current_lobby_url)
+	if lobby_candidates.is_empty():
+		return
+
+	print("[Landing] 🔄 Found Akashic TCG session. Room: %s | Candidates: %s" % [room_id, str(lobby_candidates)])
+
+	var chosen_lobby_url := ""
+	var parsed: Variant = null
+	var saw_404 := false
+	for candidate_url in lobby_candidates:
+		var url := candidate_url + "/api/rooms/" + room_id
+		var res := await _http_get_json(url)
+		var code := int(res.get("code", 0))
+		if code == 404:
+			saw_404 = true
+			continue
+		if code != 200:
+			print("[Landing] ⚠️ TGC resume check failed against ", candidate_url, " HTTP ", code)
+			continue
+		var data: Variant = res.get("data", null)
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		if data.has("error"):
+			continue
+		chosen_lobby_url = candidate_url
+		parsed = data
+		break
+
+	if parsed == null:
+		if saw_404:
+			print("[Landing] ℹ️ TGC room not found (404). Clearing session.")
+			_TGCSess.clear_session()
+			_tgc_resume_retries = 0
+			return
+		if _tgc_resume_retries < 5:
+			_tgc_resume_retries += 1
+			print("[Landing] ⏳ TGC resume check failed (transient). Retrying in 2s… (", _tgc_resume_retries, "/5)")
+			await get_tree().create_timer(2.0).timeout
+			call_deferred("_try_resume_akashic_tcg_session")
+		return
+
+	_tgc_resume_retries = 0
+
+	var status := str(parsed.get("status", "waiting"))
+	var host_dict = parsed.get("host", {})
+	var is_host := false
+	if typeof(host_dict) == TYPE_DICTIONARY:
+		is_host = (str(host_dict.get("player_id", "")) == Auth.current_local_id)
+
+	var phase := str(session.get("phase", ""))
+
+	if status == "in_game":
+		print("[Landing] ✅ TGC match in progress, routing to reconnect")
+		_resume_routed = true
+		get_tree().set_meta("tgc_reconnect_init", {
+			"room_id": room_id,
+			"lobby_server_url": chosen_lobby_url,
+			"player_id": Auth.current_local_id,
+			"username": Auth.current_username,
+			"is_host": is_host,
+			"relay_client": null,
+			"host_data": host_dict,
+			"client_data": parsed.get("client", {}) if parsed.get("client", null) != null else {},
+			"game_start_time": int(parsed.get("game_start_time", 0)),
+			"reason": "Resume after relogin",
+			"phase": phase,
+		})
+		var reconnect_scene := load("res://scene/akashic_tcg_reconnect.tscn")
+		if reconnect_scene:
+			get_tree().change_scene_to_packed(reconnect_scene)
+		return
+
+	if status == "waiting":
+		print("[Landing] ✅ TGC room still waiting, routing to room")
+		_resume_routed = true
+		get_tree().set_meta("tgc_room_init", {
+			"room_id": room_id,
+			"host_name": str(host_dict.get("username", "Host")),
+			"is_host": is_host,
+			"lobby_server_url": chosen_lobby_url,
+		})
+		var room_scene := load("res://scene/akashic_tcg_room.tscn")
+		if room_scene:
+			get_tree().change_scene_to_packed(room_scene)
+		return
+
+	if status == "finished":
+		print("[Landing] ✅ TGC match finished, routing to postgame")
+		_resume_routed = true
+		get_tree().set_meta("tgc_postgame_init", {
+			"room_id": room_id,
+			"player_id": Auth.current_local_id,
+			"winner_id": "",
+			"reason": "resume_finished",
+			"lobby_server_url": chosen_lobby_url,
+			"host_data": host_dict,
+			"client_data": parsed.get("client", {}) if parsed.get("client", null) != null else {},
+			"result_unknown": true,
+		})
+		var post_scene := load("res://scene/akashic_tcg_postgame.tscn")
+		if post_scene:
+			get_tree().change_scene_to_packed(post_scene)
+		return
+
+	_TGCSess.clear_session()
 
 
 func _http_get_json(url: String) -> Dictionary:

@@ -1,6 +1,7 @@
 extends Control
 
 const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
+const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 
 @onready var email_input: LineEdit = $VideoStreamPlayer/EmailLineEdit
 @onready var password_input: LineEdit = $VideoStreamPlayer/PasswordLineEdit
@@ -144,7 +145,125 @@ func _route_existing_user_after_login() -> void:
 	var handled: bool = await _maybe_resume_code_breaker_session_checked()
 	if handled:
 		return
+	handled = await _maybe_resume_akashic_tcg_session_checked()
+	if handled:
+		return
 	get_tree().change_scene_to_file("res://scene/landing.tscn")
+
+
+func _maybe_resume_akashic_tcg_session_checked() -> bool:
+	if not Auth or Auth.current_local_id == "":
+		return false
+
+	var session := _TGCSess.load_session()
+	if session.is_empty():
+		return false
+
+	var room_id := str(session.get("room_id", "")).strip_edges()
+	if room_id == "":
+		return false
+
+	var session_player_id := str(session.get("player_id", ""))
+	if session_player_id != "" and session_player_id != "unknown" and session_player_id != Auth.current_local_id:
+		_TGCSess.clear_session()
+		return false
+
+	var saved_lobby_url := str(session.get("lobby_server_url", "")).strip_edges()
+	var current_lobby_url := ""
+	if typeof(MultiplayerConfig) != TYPE_NIL and MultiplayerConfig:
+		current_lobby_url = str(MultiplayerConfig.get_lobby_url()).strip_edges()
+
+	var candidates: Array[String] = []
+	if saved_lobby_url != "":
+		candidates.append(saved_lobby_url)
+	if current_lobby_url != "" and (current_lobby_url not in candidates):
+		candidates.append(current_lobby_url)
+	if candidates.is_empty():
+		return false
+
+	var parsed: Variant = null
+	var chosen_url := ""
+	var saw_404 := false
+	for url_base in candidates:
+		var url := url_base + "/api/rooms/" + room_id
+		var res := await _http_get_json(url)
+		var code := int(res.get("code", 0))
+		if code == 404:
+			saw_404 = true
+			continue
+		if code != 200:
+			continue
+		var data: Variant = res.get("data", null)
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		if data.has("error"):
+			continue
+		parsed = data
+		chosen_url = url_base
+		break
+
+	if parsed == null:
+		if saw_404:
+			print("[Login] ℹ️ Saved Akashic TCG room no longer exists. Clearing session.")
+			_TGCSess.clear_session()
+		return false
+
+	var status := str(parsed.get("status", "waiting"))
+	var host_dict: Dictionary = parsed.get("host", {})
+	var client_val = parsed.get("client", {})
+	var client_dict: Dictionary = client_val if typeof(client_val) == TYPE_DICTIONARY else {}
+	var is_host := false
+	if typeof(host_dict) == TYPE_DICTIONARY:
+		is_host = (str(host_dict.get("player_id", "")) == Auth.current_local_id)
+
+	var phase := str(session.get("phase", ""))
+
+	if status == "in_game":
+		print("[Login] ✅ Saved Akashic TCG match in progress. Routing to reconnect.")
+		get_tree().set_meta("tgc_reconnect_init", {
+			"room_id": room_id,
+			"lobby_server_url": chosen_url,
+			"player_id": Auth.current_local_id,
+			"username": Auth.current_username,
+			"is_host": is_host,
+			"relay_client": null,
+			"host_data": host_dict,
+			"client_data": client_dict,
+			"game_start_time": int(parsed.get("game_start_time", 0)),
+			"reason": "Resume after login",
+			"phase": phase,
+		})
+		get_tree().change_scene_to_file("res://scene/akashic_tcg_reconnect.tscn")
+		return true
+
+	if status == "waiting":
+		print("[Login] ✅ Saved Akashic TCG room waiting. Routing to room.")
+		get_tree().set_meta("tgc_room_init", {
+			"room_id": room_id,
+			"host_name": str(host_dict.get("username", "Host")),
+			"is_host": is_host,
+			"lobby_server_url": chosen_url,
+		})
+		get_tree().change_scene_to_file("res://scene/akashic_tcg_room.tscn")
+		return true
+
+	if status == "finished":
+		print("[Login] ✅ Saved Akashic TCG match finished. Routing to postgame.")
+		get_tree().set_meta("tgc_postgame_init", {
+			"room_id": room_id,
+			"player_id": Auth.current_local_id,
+			"winner_id": "",
+			"reason": "resume_finished",
+			"lobby_server_url": chosen_url,
+			"host_data": host_dict,
+			"client_data": client_dict,
+			"result_unknown": true,
+		})
+		get_tree().change_scene_to_file("res://scene/akashic_tcg_postgame.tscn")
+		return true
+
+	_TGCSess.clear_session()
+	return false
 
 
 func _maybe_resume_code_breaker_session_checked() -> bool:
