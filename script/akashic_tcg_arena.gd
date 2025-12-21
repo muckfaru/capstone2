@@ -8,6 +8,7 @@ const _CardView = preload("res://script/AkashicTCGCardView.gd")
 @onready var _opp_si_bar: ProgressBar = $HUD/OpponentBars/OppSIBar
 @onready var _opp_fw_bar: ProgressBar = $HUD/OpponentBars/OppFWBar
 @onready var _opp_resource_label: Label = $HUD/OpponentBars/OppResourceLabel
+@onready var _opp_hand_hbox: HBoxContainer = $HUD/OppHandArea/OppHandHBox
 @onready var _you_si_bar: ProgressBar = $HUD/PlayerBars/YouSIBar
 @onready var _you_fw_bar: ProgressBar = $HUD/PlayerBars/YouFWBar
 @onready var _resource_label: Label = $HUD/PlayerBars/ResourceLabel
@@ -16,23 +17,23 @@ const _CardView = preload("res://script/AkashicTCGCardView.gd")
 @onready var _sidebar_you_name: Label = $HUD/Sidebar/YouName
 @onready var _timer_label: Label = $HUD/Sidebar/TimerLabel
 @onready var _end_turn_btn: Button = $HUD/PlayerBars/EndTurnButton
-@onready var _menu_btn: Button = $HUD/Sidebar/MenuButton
 
 @onready var _play_zone: Panel = $HUD/Table/PlayZone
 @onready var _hand_hbox: HBoxContainer = $HUD/HandArea/HandHBox
 
-@onready var _opp_recent1: TextureRect = $HUD/Table/PlayZone/ZoneVBox/OppRecent/OppRecent1
-@onready var _opp_recent2: TextureRect = $HUD/Table/PlayZone/ZoneVBox/OppRecent/OppRecent2
-@onready var _you_recent1: TextureRect = $HUD/Table/PlayZone/ZoneVBox/YouRecent/YouRecent1
-@onready var _you_recent2: TextureRect = $HUD/Table/PlayZone/ZoneVBox/YouRecent/YouRecent2
+@onready var _opp_dropped_card: TextureRect = $HUD/Table/PlayZone/ZoneVBox/DroppedCards/OppDroppedCard
+@onready var _you_dropped_card: TextureRect = $HUD/Table/PlayZone/ZoneVBox/DroppedCards/YouDroppedCard
 
 const STARTING_SI := 20
 const MAX_FW := 12
 const START_HAND := 3
 const HAND_LIMIT := 7
-const PLAYS_PER_TURN := 2
+const PLAYS_PER_TURN := 1
 const MAX_BW := 10
 const MAX_LOG_LINES := 6
+
+const REVEAL_DELAY_SEC := 0.7
+const FLIP_HALF_SEC := 0.12
 
 enum CardType { ATTACK, DEFENSE }
 
@@ -48,6 +49,8 @@ const _TEX := {
 	"antivirus": preload("res://asset/cards for AkashicTGC/anti virus core card 2.png"),
 	"firewall": preload("res://asset/cards for AkashicTGC/firewall shield 3.png"),
 }
+
+const _BACK_TEX: Texture2D = preload("res://asset/cards for AkashicTGC/back cards.png")
 
 const _CARD_DB := {
 	# Defense
@@ -78,6 +81,9 @@ var _client_id: String = ""
 var _state: Dictionary = {}
 var _local_version: int = 0
 var _pending_action_id: int = 1
+
+var _opp_flip_tween: Tween = null
+var _last_opp_revealed_id: String = ""
 
 func _ready() -> void:
 	var init: Dictionary = {}
@@ -118,10 +124,7 @@ func _ready() -> void:
 			_play_zone.card_dropped.connect(_on_play_zone_card_dropped)
 
 	_end_turn_btn.pressed.connect(_on_end_turn_pressed)
-	_menu_btn.pressed.connect(func():
-		# Menu UX not specified yet; keep button inert for now.
-		pass
-	)
+
 
 	_status.text = "Connecting…"
 	if _is_host:
@@ -151,7 +154,8 @@ func _build_initial_state(host_id: String, client_id: String) -> Dictionary:
 	var state := {
 		"version": 1,
 		"turn": 0,
-		"active_player": host_id,
+		"priority": host_id,
+		"pending": {},
 		"winner_id": "",
 		"players": {
 			host_id: _make_player_state(host_deck),
@@ -164,7 +168,7 @@ func _build_initial_state(host_id: String, client_id: String) -> Dictionary:
 		_draw_card(state, host_id)
 		_draw_card(state, client_id)
 
-	_start_turn(state, host_id)
+	_start_round(state)
 	return state
 
 func _make_player_state(deck: Array) -> Dictionary:
@@ -196,29 +200,38 @@ func _make_start_deck() -> Array:
 		deck.append(id)
 	return deck
 
-func _start_turn(state: Dictionary, pid: String) -> void:
-	state["active_player"] = pid
+func _start_round(state: Dictionary) -> void:
+	# Simultaneous round: both players refresh and can submit 1 card (or pass).
 	state["turn"] = int(state.get("turn", 0)) + 1
+	state["pending"] = {}
 
-	var p: Dictionary = state["players"][pid]
-	p["turns_taken"] = int(p.get("turns_taken", 0)) + 1
-	p["plays_left"] = PLAYS_PER_TURN
+	var priority := str(state.get("priority", _host_id))
+	if priority != _host_id and priority != _client_id:
+		priority = _host_id
+	var order := [priority, _other_player(priority)]
 
-	_apply_start_of_turn_effects(state, pid)
-	_maybe_shuffle_packages(state, pid)
+	for pid in order:
+		var p: Dictionary = state["players"][pid]
+		p["turns_taken"] = int(p.get("turns_taken", 0)) + 1
+		p["plays_left"] = PLAYS_PER_TURN
 
-	var lag_penalty := 0
-	var st: Dictionary = p.get("status", {})
-	if st.has("lag"):
-		lag_penalty = 1
-		st.erase("lag")
-		p["status"] = st
+		_apply_start_of_turn_effects(state, pid)
+		_maybe_shuffle_packages(state, pid)
 
-	p["bw_max"] = min(int(p.get("bw_max", 0)) + 1, MAX_BW)
-	p["bw"] = max(int(p.get("bw_max", 0)) - lag_penalty, 0)
+		var lag_penalty := 0
+		var st: Dictionary = p.get("status", {})
+		if st.has("lag"):
+			lag_penalty = 1
+			st.erase("lag")
+			p["status"] = st
 
-	_draw_card(state, pid)
-	_append_log(state, "%s turn" % _name_for(pid))
+		p["bw_max"] = min(int(p.get("bw_max", 0)) + 1, MAX_BW)
+		p["bw"] = max(int(p.get("bw_max", 0)) - lag_penalty, 0)
+
+		state["players"][pid] = p
+		_draw_card(state, pid)
+
+	_append_log(state, "Round %d | Priority: %s" % [int(state.get("turn", 0)), _name_for(priority)])
 
 func _name_for(pid: String) -> String:
 	if pid == _host_id:
@@ -257,8 +270,9 @@ func _render() -> void:
 		_end_turn_btn.disabled = true
 		_opp_resource_label.text = "BW 0/0  |  Plays 0/2"
 		_resource_label.text = "BW 0/0  |  Plays 0/2"
+		_render_opp_hand_count(0)
 		_clear_hand_ui()
-		_set_recent_textures([], [], [], [])
+		_render_dropped_cards({})
 		return
 
 	var opp_id := _other_player(_player_id)
@@ -267,17 +281,25 @@ func _render() -> void:
 	var my: Dictionary = my_val if typeof(my_val) == TYPE_DICTIONARY else {}
 	var opp: Dictionary = opp_val if typeof(opp_val) == TYPE_DICTIONARY else {}
 
-	var active := str(_state.get("active_player", ""))
-	var is_my_turn := (active == _player_id)
+	var pending_val: Variant = _state.get("pending", {})
+	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
+	var my_submitted := pending.has(_player_id)
+	var opp_submitted := pending.has(opp_id)
 	var winner := str(_state.get("winner_id", ""))
 	var over := winner != ""
 
 	_sidebar_opp_name.text = _name_for(opp_id)
 	_sidebar_you_name.text = _name_for(_player_id)
 
-	_status.text = "Turn %d | Active: %s" % [int(_state.get("turn", 0)), _name_for(active)]
 	if over:
 		_status.text = "Game Over | Winner: %s" % _name_for(winner)
+	else:
+		if my_submitted and not opp_submitted:
+			_status.text = "Waiting for opponent…"
+		elif (not my_submitted) and opp_submitted:
+			_status.text = "Opponent submitted. Your move."
+		else:
+			_status.text = "Round %d" % int(_state.get("turn", 0))
 
 	_opp_si_bar.max_value = STARTING_SI
 	_opp_fw_bar.max_value = MAX_FW
@@ -301,29 +323,135 @@ func _render() -> void:
 		int(opp.get("plays_left", 0)),
 		PLAYS_PER_TURN,
 	]
+	var opp_hand_val: Variant = opp.get("hand", [])
+	var opp_hand: Array = opp_hand_val if typeof(opp_hand_val) == TYPE_ARRAY else []
+	_render_opp_hand_count(opp_hand.size())
 
-	_end_turn_btn.disabled = over or (not is_my_turn)
+	_end_turn_btn.text = "PASS"
+	_end_turn_btn.disabled = over or my_submitted
 
-	_render_hand(my, is_my_turn, over)
-	_set_recent_textures(
-		opp.get("recent_attack", []),
-		my.get("recent_defense", []),
-		my.get("recent_attack", []),
-		opp.get("recent_defense", [])
-	)
+	_render_hand(my, (not my_submitted), over)
+
+	# Show the cards currently dropped/submitted this round.
+	_render_dropped_cards(pending)
+
+func _render_opp_hand_count(count: int) -> void:
+	if _opp_hand_hbox == null:
+		return
+	for c in _opp_hand_hbox.get_children():
+		c.queue_free()
+	var n: int = int(clamp(count, 0, HAND_LIMIT))
+	for _i in range(n):
+		var card := TextureRect.new()
+		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.texture = _BACK_TEX
+		card.custom_minimum_size = Vector2(110, 160)
+		# Match AkashicTCGCardView sizing behavior so the texture's pixel size
+		# does not force a larger minimum size inside containers.
+		card.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		card.stretch_mode = TextureRect.STRETCH_SCALE
+		_opp_hand_hbox.add_child(card)
 
 func _clear_hand_ui() -> void:
 	for c in _hand_hbox.get_children():
 		c.queue_free()
 
-func _set_recent_textures(opp_attacks: Array, you_defs: Array, _you_attacks: Array, _opp_defs: Array) -> void:
-	# Current UI only shows: Opponent recent attacks (red) and Your recent defenses (blue)
-	var opp_a := _last_two_ids(opp_attacks)
-	var you_d := _last_two_ids(you_defs)
-	_opp_recent1.texture = _texture_for_id(opp_a[0])
-	_opp_recent2.texture = _texture_for_id(opp_a[1])
-	_you_recent1.texture = _texture_for_id(you_d[0])
-	_you_recent2.texture = _texture_for_id(you_d[1])
+func _render_dropped_cards(pending: Dictionary) -> void:
+	if _opp_dropped_card == null or _you_dropped_card == null:
+		return
+	var opp_id := _other_player(_player_id)
+	var opp_card_id := str(pending.get(opp_id, ""))
+	var you_card_id := str(pending.get(_player_id, ""))
+
+	var i_submitted := pending.has(_player_id)
+	var opp_submitted := pending.has(opp_id)
+
+	# Your slot: only show once you submit a card (pass shows blank).
+	_you_dropped_card.texture = _texture_for_id(you_card_id) if i_submitted and you_card_id != "" else null
+	_you_dropped_card.tooltip_text = _tooltip_for_card(you_card_id) if i_submitted and you_card_id != "" else ""
+
+	# Opponent slot: show face-down back until you have submitted too.
+	if opp_submitted and opp_card_id != "":
+		if i_submitted:
+			var next_tex := _texture_for_id(opp_card_id)
+			var next_tip := _tooltip_for_card(opp_card_id)
+			# Flip reveal (prevents instant pop + makes it noticeable).
+			if _opp_dropped_card.texture == _BACK_TEX and _last_opp_revealed_id != opp_card_id:
+				_flip_reveal(_opp_dropped_card, next_tex, next_tip)
+				_last_opp_revealed_id = opp_card_id
+			else:
+				_opp_dropped_card.texture = next_tex
+				_opp_dropped_card.tooltip_text = next_tip
+		else:
+			_opp_dropped_card.texture = _BACK_TEX
+			_opp_dropped_card.tooltip_text = ""
+	else:
+		_opp_dropped_card.texture = null
+		_opp_dropped_card.tooltip_text = ""
+		_last_opp_revealed_id = ""
+
+func _flip_reveal(node: TextureRect, new_texture: Texture2D, new_tooltip: String) -> void:
+	if node == null:
+		return
+	if _opp_flip_tween and is_instance_valid(_opp_flip_tween):
+		_opp_flip_tween.kill()
+	_opp_flip_tween = null
+
+	# Ensure we have a "back" visible before flipping.
+	if node.texture == null:
+		node.texture = _BACK_TEX
+
+	# Flip around center.
+	node.pivot_offset = node.size * 0.5
+	node.scale = Vector2(1, 1)
+
+	var tw := create_tween()
+	_opp_flip_tween = tw
+	tw.tween_property(node, "scale:x", 0.0, FLIP_HALF_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		node.texture = new_texture
+		node.tooltip_text = new_tooltip
+	)
+	tw.tween_property(node, "scale:x", 1.0, FLIP_HALF_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+func _tooltip_for_card(card_id: String) -> String:
+	if card_id == "":
+		return ""
+	var def_val: Variant = _CARD_DB.get(card_id, null)
+	if typeof(def_val) != TYPE_DICTIONARY:
+		return card_id
+	var def: Dictionary = def_val
+	var card_name := str(def.get("name", card_id)).strip_edges()
+	var cost := int(def.get("cost", 0))
+	var desc := _card_description(card_id)
+	if desc == "":
+		return "%s\nCost %d" % [card_name, cost]
+	return "%s\nCost %d\n\n%s" % [card_name, cost, desc]
+
+func _card_description(card_id: String) -> String:
+	match card_id:
+		"virus":
+			return "Deal 1 damage (FW → SI).\nApply Infected (3 turns): at start of infected player's round, take 1 SI damage (bypasses FW)."
+		"phishing":
+			return "Deal 2 damage (FW → SI).\nIf SI damage > 0, apply Credential Compromised (2 turns)."
+		"trojan":
+			return "Deal 3 damage that bypasses FW (hits SI).\nIf SI damage > 0, gain Backdoor (3 turns): next Attack costs −1 once per round."
+		"dos":
+			return "Deal 4 damage (FW → SI).\nIf defender had 0 FW before hit and SI damage > 0, apply Lag (1 turn): next BW refresh −1."
+		"ddos":
+			return "Deal 8 damage (FW → SI).\nMinimum final damage is 3 unless fully blocked by effects."
+		"mfa":
+			return "For 2 turns: blocks the next Phishing or Trojan."
+		"ids":
+			return "Arms IDS: next incoming Attack −3 damage, then draw 1."
+		"encryption":
+			return "For 3 turns: reduces incoming Phishing/Virus/Trojan by 2."
+		"firewall":
+			return "Increase your FW by 6 (max 12)."
+		"antivirus":
+			return "Remove Infected and Backdoor.\nHeal +2 SI (max 20)."
+		_:
+			return ""
 
 func _last_two_ids(arr: Array) -> Array[String]:
 	var a: Array[String] = ["", ""]
@@ -347,6 +475,7 @@ func _render_hand(my: Dictionary, is_my_turn: bool, over: bool) -> void:
 		card.set_script(_CardView)
 		card.texture = _texture_for_id(card_id)
 		card.custom_minimum_size = Vector2(110, 160)
+		card.tooltip_text = _tooltip_for_card(card_id)
 		card.card_data = {"card_id": card_id, "hand_index": i}
 		card.drag_enabled = (not over) and is_my_turn and int(my.get("plays_left", 0)) > 0 and _can_afford_card(my, card_id)
 		_hand_hbox.add_child(card)
@@ -360,10 +489,10 @@ func _on_play_zone_card_dropped(card_data: Dictionary) -> void:
 	var idx := int(card_data.get("hand_index", -1))
 	if card_id == "" or idx < 0:
 		return
-	_send_or_apply_action("play_card", {"hand_index": idx, "card_id": card_id})
+	_send_or_apply_action("submit_card", {"hand_index": idx, "card_id": card_id})
 
 func _on_end_turn_pressed() -> void:
-	_send_or_apply_action("end_turn", {})
+	_send_or_apply_action("pass", {})
 
 
 func _send_or_apply_action(action: String, payload: Dictionary) -> void:
@@ -458,23 +587,19 @@ func _send_reject(reason: String) -> void:
 
 
 func _apply_action_host(actor: String, action: String, payload: Dictionary) -> void:
-	var active := str(_state.get("active_player", ""))
-	if action != "concede" and actor != active:
-		_append_log(_state, "%s tried to act out-of-turn" % _name_for(actor))
-		_bump_version(_state)
-		return
-
 	match action:
-		"play_card":
-			_host_play_card(actor, payload)
-		"end_turn":
-			_host_end_turn(actor)
+		"submit_card":
+			_host_submit_card(actor, payload)
+		"pass":
+			_host_pass(actor)
 		"concede":
 			_host_concede(actor)
 		_:
 			_append_log(_state, "Unknown action: %s" % action)
 	_bump_version(_state)
 	_check_game_over()
+	if str(_state.get("winner_id", "")) == "":
+		_resolve_round_if_ready()
 
 func _bump_version(state: Dictionary) -> void:
 	state["version"] = int(state.get("version", 0)) + 1
@@ -483,11 +608,15 @@ func _bump_version(state: Dictionary) -> void:
 func _other_player(pid: String) -> String:
 	return _client_id if pid == _host_id else _host_id
 
-func _host_play_card(pid: String, payload: Dictionary) -> void:
-	var p: Dictionary = _state["players"][pid]
-	if int(p.get("plays_left", 0)) <= 0:
-		_append_log(_state, "%s has no plays left" % _name_for(pid))
+
+func _host_submit_card(pid: String, payload: Dictionary) -> void:
+	var pending_val: Variant = _state.get("pending", {})
+	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
+	if pending.has(pid):
+		_append_log(_state, "%s already submitted" % _name_for(pid))
 		return
+
+	var p: Dictionary = _state["players"][pid]
 	var hand: Array = p.get("hand", [])
 	var idx := int(payload.get("hand_index", -1))
 	var claimed_id := str(payload.get("card_id", ""))
@@ -502,7 +631,6 @@ func _host_play_card(pid: String, payload: Dictionary) -> void:
 	if typeof(def_val) != TYPE_DICTIONARY:
 		_append_log(_state, "Invalid card")
 		return
-	var def: Dictionary = def_val
 	var cost := _effective_cost(p, card_id)
 	if int(p.get("bw", 0)) < cost:
 		_append_log(_state, "%s lacks BW" % _name_for(pid))
@@ -512,17 +640,84 @@ func _host_play_card(pid: String, payload: Dictionary) -> void:
 	_maybe_consume_backdoor_discount(p, card_id, cost)
 
 	p["bw"] = int(p.get("bw", 0)) - cost
-	p["plays_left"] = int(p.get("plays_left", 0)) - 1
+	p["plays_left"] = max(0, int(p.get("plays_left", 0)) - 1)
 
 	hand.remove_at(idx)
 	p["hand"] = hand
 	_state["players"][pid] = p
 
-	_apply_card_effect(pid, card_id, def)
+	pending[pid] = card_id
+	_state["pending"] = pending
+	_append_log(_state, "%s submitted a card" % _name_for(pid))
+	_resolve_round_if_ready()
 
-func _host_end_turn(pid: String) -> void:
-	var next := _other_player(pid)
-	_start_turn(_state, next)
+
+func _host_pass(pid: String) -> void:
+	var pending_val: Variant = _state.get("pending", {})
+	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
+	if pending.has(pid):
+		_append_log(_state, "%s already submitted" % _name_for(pid))
+		return
+	pending[pid] = ""
+	_state["pending"] = pending
+	_append_log(_state, "%s passed" % _name_for(pid))
+	_resolve_round_if_ready()
+
+func _resolve_round_if_ready() -> void:
+	var pending_val: Variant = _state.get("pending", {})
+	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
+	if not pending.has(_host_id) or not pending.has(_client_id):
+		return
+	if str(_state.get("winner_id", "")) != "":
+		return
+	if not _is_host:
+		return
+	if bool(_state.get("resolve_scheduled", false)):
+		return
+
+	# Leave pending in place briefly so both players can see the reveal.
+	_state["resolve_scheduled"] = true
+	call_deferred("_resolve_round_after_reveal_delay")
+
+func _resolve_round_after_reveal_delay() -> void:
+	await get_tree().create_timer(REVEAL_DELAY_SEC).timeout
+	if _state.is_empty():
+		return
+	_state["resolve_scheduled"] = false
+
+	var pending_val: Variant = _state.get("pending", {})
+	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
+	if not pending.has(_host_id) or not pending.has(_client_id):
+		return
+	if str(_state.get("winner_id", "")) != "":
+		return
+
+	# Resolve using current priority order.
+	var priority := str(_state.get("priority", _host_id))
+	if priority != _host_id and priority != _client_id:
+		priority = _host_id
+	var other := _other_player(priority)
+
+	for pid in [priority, other]:
+		var card_id := str(pending.get(pid, ""))
+		if card_id == "":
+			continue
+		var def_val: Variant = _CARD_DB.get(card_id, null)
+		if typeof(def_val) != TYPE_DICTIONARY:
+			continue
+		_apply_card_effect(pid, card_id, def_val)
+
+	# Alternate priority each round.
+	_state["priority"] = other
+	_state["pending"] = {}
+	_check_game_over()
+	if str(_state.get("winner_id", "")) == "":
+		_start_round(_state)
+
+	# Broadcast the post-resolution state.
+	_bump_version(_state)
+	_broadcast_state_sync({"type": "resolve"})
+	_render()
 
 func _host_concede(pid: String) -> void:
 	var winner := _other_player(pid)
@@ -542,7 +737,7 @@ func _check_game_over() -> void:
 		_state["winner_id"] = _host_id
 	var winner := str(_state.get("winner_id", ""))
 	if winner != "" and _is_host:
-		call_deferred("_finish_match_host", winner, "hp_zero")
+		call_deferred("_finish_match_host", winner, "si_zero")
 
 func _effective_cost(p: Dictionary, card_id: String) -> int:
 	var def_val: Variant = _CARD_DB.get(card_id, null)

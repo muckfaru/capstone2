@@ -100,6 +100,27 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "BW 0/0  |  Plays 0/2"
 
+[node name="OppHandArea" type="Control" parent="HUD"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -260.0
+offset_top = 78.0
+offset_right = 260.0
+offset_bottom = 150.0
+grow_horizontal = 2
+
+[node name="OppHandHBox" type="HBoxContainer" parent="HUD/OppHandArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+alignment = 1
+
 [node name="PlayerBars" type="VBoxContainer" parent="HUD"]
 layout_mode = 1
 anchors_preset = 3
@@ -151,7 +172,7 @@ anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -92.0
+offset_left = -60.0
 offset_top = 24.0
 offset_right = -24.0
 offset_bottom = -24.0
@@ -159,22 +180,12 @@ grow_horizontal = 0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar")
 
-[node name="MenuButton" type="Button" parent="HUD/Sidebar"]
-layout_mode = 1
-offset_left = 16.0
-offset_top = 14.0
-offset_right = 56.0
-offset_bottom = 54.0
-mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 22
-text = "≡"
-
 [node name="OppName" type="Label" parent="HUD/Sidebar"]
 layout_mode = 1
-offset_left = 47.0
-offset_top = 67.0
-offset_right = 207.0
-offset_bottom = 91.0
+offset_left = 34.0
+offset_top = 47.0
+offset_right = 194.0
+offset_bottom = 71.0
 rotation = 1.5708
 theme_override_font_sizes/font_size = 16
 text = "OPP"
@@ -200,10 +211,10 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 27.0
-offset_top = -40.0
-offset_right = 187.0
-offset_bottom = -16.0
+offset_left = 9.0
+offset_top = -42.0
+offset_right = 169.0
+offset_bottom = -18.0
 grow_vertical = 0
 rotation = -1.5708
 theme_override_font_sizes/font_size = 16
@@ -255,40 +266,26 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 38.0
+offset_top = 161.0
+offset_right = 1.0
+offset_bottom = -119.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 26
 
-[node name="OppRecent" type="HBoxContainer" parent="HUD/Table/PlayZone/ZoneVBox"]
+[node name="DroppedCards" type="HBoxContainer" parent="HUD/Table/PlayZone/ZoneVBox"]
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 26
 alignment = 1
 
-[node name="OppRecent1" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/OppRecent"]
+[node name="OppDroppedCard" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards"]
 custom_minimum_size = Vector2(120, 170)
 layout_mode = 2
 stretch_mode = 5
 
-[node name="OppRecent2" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/OppRecent"]
-custom_minimum_size = Vector2(120, 170)
-layout_mode = 2
-stretch_mode = 5
-
-[node name="Spacer" type="Control" parent="HUD/Table/PlayZone/ZoneVBox"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-
-[node name="YouRecent" type="HBoxContainer" parent="HUD/Table/PlayZone/ZoneVBox"]
-layout_mode = 2
-theme_override_constants/separation = 18
-alignment = 1
-
-[node name="YouRecent1" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/YouRecent"]
-custom_minimum_size = Vector2(120, 170)
-layout_mode = 2
-stretch_mode = 5
-
-[node name="YouRecent2" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/YouRecent"]
+[node name="YouDroppedCard" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards"]
 custom_minimum_size = Vector2(120, 170)
 layout_mode = 2
 stretch_mode = 5
@@ -312,6 +309,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 25.0
+offset_right = 25.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 14
@@ -322,9 +321,8 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = -260.0
-offset_right = 360.0
-offset_bottom = -24.0
-grow_horizontal = 2
+offset_left = 34.0
+offset_top = -253.0
+offset_right = 361.0
+offset_bottom = -40.0
 grow_vertical = 0

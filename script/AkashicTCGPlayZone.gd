@@ -8,7 +8,9 @@ var drop_enabled: bool = true
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	modulate = Color(1, 1, 1, 0) # invisible by default; parent can style
+	# Keep the drop target itself invisible, but do NOT hide its children
+	# (we render dropped cards inside this panel).
+	self_modulate = Color(1, 1, 1, 0)
 
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 	if not drop_enabled:
