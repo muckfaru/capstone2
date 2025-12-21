@@ -32,6 +32,8 @@ const PLAYS_PER_TURN := 1
 const MAX_BW := 10
 const MAX_LOG_LINES := 6
 
+const CARD_VIEW_SIZE := Vector2(110, 160)
+
 const REVEAL_DELAY_SEC := 0.7
 const FLIP_HALF_SEC := 0.12
 
@@ -125,6 +127,9 @@ func _ready() -> void:
 
 	_end_turn_btn.pressed.connect(_on_end_turn_pressed)
 
+	_setup_card_slot(_opp_dropped_card)
+	_setup_card_slot(_you_dropped_card)
+
 
 	_status.text = "Connecting…"
 	if _is_host:
@@ -132,6 +137,17 @@ func _ready() -> void:
 	else:
 		_request_state()
 	_render()
+
+func _setup_card_slot(slot: TextureRect) -> void:
+	if slot == null:
+		return
+	slot.custom_minimum_size = CARD_VIEW_SIZE
+	# Match AkashicTCGCardView sizing behavior so the texture's pixel size does not
+	# force a larger minimum size and so containers don't stretch the slot.
+	slot.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	slot.stretch_mode = TextureRect.STRETCH_SCALE
+	slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	slot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 func _try_init_host_state_if_possible() -> void:
 	if _host_id == "" or _client_id == "":

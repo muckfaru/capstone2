@@ -275,18 +275,18 @@ grow_vertical = 2
 theme_override_constants/separation = 26
 
 [node name="DroppedCards" type="HBoxContainer" parent="HUD/Table/PlayZone/ZoneVBox"]
-custom_minimum_size = Vector2(0, 200)
+custom_minimum_size = Vector2(0, 160)
 layout_mode = 2
 theme_override_constants/separation = 26
 alignment = 1
 
 [node name="OppDroppedCard" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards"]
-custom_minimum_size = Vector2(120, 170)
+custom_minimum_size = Vector2(110, 160)
 layout_mode = 2
 stretch_mode = 5
 
 [node name="YouDroppedCard" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards"]
-custom_minimum_size = Vector2(120, 170)
+custom_minimum_size = Vector2(110, 160)
 layout_mode = 2
 stretch_mode = 5
 

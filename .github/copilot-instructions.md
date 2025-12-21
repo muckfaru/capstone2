@@ -418,7 +418,7 @@ After auth, the client validates the session via `GET /api/rooms/:id` and routes
 - `script/akashic_tcg_room.gd`, `script/akashic_tcg_loading.gd`, and `script/akashic_tcg_arena.gd` route to reconnect on relay disconnect/timeouts.
 - `script/akashic_tcg_postgame.gd` clears the session on entry to prevent reconnect loops into finished matches.
 
-## 🃏 Akashic TCG Multiplayer + Turn-Based State Sync
+## 🃏 Akashic TCG Multiplayer + Round-Based State Sync
 
 **Authority model:** Host-authoritative. Host owns canonical game state and broadcasts `state_sync` with monotonically increasing `version`.
 
@@ -426,23 +426,23 @@ After auth, the client validates the session via `GET /api/rooms/:id` and routes
 1. Lobby → `script/akashic_tcg_lobby.gd`
 2. Room → `script/akashic_tcg_room.gd` (ready/start, heartbeat, relay connect)
 3. Loading → `script/akashic_tcg_loading.gd` (handshake `loading_status`/`loading_status_request`)
-4. Arena → `script/akashic_tcg_arena.gd` (turn-based state machine + relay state sync)
+4. Arena → `script/akashic_tcg_arena.gd` (simultaneous submit-per-round + relay state sync)
 5. Reconnect → `script/akashic_tcg_reconnect.gd` (routes to Loading or Arena depending on last known `phase`)
 6. Postgame → `script/akashic_tcg_postgame.gd`
 
 ### Arena Protocol (Akashic)
 Client-to-host action requests:
 ```json
-{ "type": "tgc_action_request", "room_id": "...", "actor": "uid", "action": "play_card", "payload": {"hand_index": 2, "card_id": "virus"}, "known_version": 12, "client_action_id": 7 }
+{ "type": "tgc_action_request", "room_id": "...", "actor": "uid", "action": "submit_card", "payload": {"hand_index": 2, "card_id": "virus"}, "known_version": 12, "client_action_id": 7 }
 
-{ "type": "tgc_action_request", "room_id": "...", "actor": "uid", "action": "end_turn", "payload": {}, "known_version": 13, "client_action_id": 8 }
+{ "type": "tgc_action_request", "room_id": "...", "actor": "uid", "action": "pass", "payload": {}, "known_version": 13, "client_action_id": 8 }
 
 { "type": "tgc_action_request", "room_id": "...", "actor": "uid", "action": "concede", "payload": {}, "known_version": 13, "client_action_id": 9 }
 ```
 
 Host state broadcast (full state snapshot):
 ```json
-{ "type": "tgc_state_sync", "room_id": "...", "state": {"version": 13, "active_player": "uid", "winner_id": "", "players": {"uid": {"si": 20, "fw": 0, "bw": 2, "bw_max": 2, "plays_left": 2, "status": {}}, "uid2": {"si": 20, "fw": 0, "bw": 2, "bw_max": 2, "plays_left": 2, "status": {}}}}, "meta": {"type": "action"} }
+{ "type": "tgc_state_sync", "room_id": "...", "state": {"version": 13, "turn": 4, "priority": "uid_host", "pending": {"uid_host": "virus", "uid_client": ""}, "winner_id": "", "players": {"uid_host": {"si": 20, "fw": 0, "bw": 2, "bw_max": 2, "plays_left": 1, "status": {}}, "uid_client": {"si": 20, "fw": 0, "bw": 2, "bw_max": 2, "plays_left": 1, "status": {}}}}, "meta": {"type": "action"} }
 ```
 
 State recovery:
@@ -462,27 +462,32 @@ Match end:
 
 ## 🧠 Akashic TCG Mechanics (Final v0.1)
 
-**Theme:** Hacker vs Hacker (spell/status-based). **1v1 turn-based.**
+**Theme:** Hacker vs Hacker (spell/status-based). **1v1 simultaneous rounds (both submit, then resolve).**
 
 ### Core Stats + Limits
 - **SI (System Integrity / HP):** 20 per player. At 0 → lose.
 - **FW (Firewall):** absorbs damage before SI, **max 12** (unless an attack bypasses it).
-- **BW (Bandwidth / resource):** ramps each turn up to **10**.
-  - Start of your turn: `bw_max += 1` (cap 10), then `bw = bw_max` (minus penalties).
-- **Plays per turn:** up to **2 cards/turn**.
+- **BW (Bandwidth / resource):** ramps each round up to **10**.
+  - Start of each round: `bw_max += 1` (cap 10), then `bw = bw_max` (minus penalties like Lag).
+- **Plays per round:** **1 submission** (either submit 1 card if affordable, or **PASS**).
 - **Hand limit:** **7** (excess burns/discards to prevent hoarding).
 
-### Turn Loop (High Level)
-1. Start of turn: apply start-of-turn effects + BW refresh
-2. Draw (if applicable)
-3. Play up to 2 cards (requires BW)
-4. **End Turn** → passes turn to opponent
+### Round Loop (High Level)
+1. Round start: apply start-of-round effects (e.g., Infected tick), BW refresh, draw
+2. Both players **submit 1 card** (locked-in) or **PASS**
+3. When both submitted: resolve in **priority order** (host first, then alternate each round)
+4. Short reveal window + flip animation, then next round
+
+### UX Notes (Arena)
+- **Center dropped cards:** shows submitted cards for the current round (opponent stays face-down until you submit too).
+- **Reveal timing:** when both have submitted, there is a brief delay so players can see the reveal.
+- **Hover tooltips:** hovering a card shows name, cost, and effect text.
 
 ### Final Card Set (10 cards, using existing assets)
 Defense:
 - **MFA** (cost 1): blocks the next **Phishing**.
-- **IDS** (cost 2): reduces the next incoming attack by **2**, then draws **1**.
-- **Encryption Key** (cost 2): reduces the next incoming attack by **2**.
+- **IDS** (cost 2): reduces the next incoming attack by **3**, then draws **1**.
+- **Encryption Key** (cost 2): reduces **Phishing/Virus/Trojan** by **2**.
 - **Firewall Shield** (cost 2): increases FW (refill/boost).
 - **Antivirus Core** (cost 2): removes infection-style statuses (e.g., **Infected**).
 
@@ -495,9 +500,9 @@ Attack:
 
 ### Damage / Mitigation Order (Important)
 When an attack resolves, apply mitigation in this order:
-1. **MFA** (blocks *Phishing*)
-2. **IDS** (−2 damage, then draw 1)
-3. **Encryption** (−2 damage)
+1. **MFA** (blocks *Phishing* or *Trojan*)
+2. **IDS** (−3 damage, then draw 1)
+3. **Encryption** (−2 damage; applies to Phishing/Virus/Trojan)
 4. **FW soak** (remaining damage reduces FW)
 5. **SI** (remaining damage reduces SI)
 
@@ -519,7 +524,7 @@ To prevent early DOS/DDOS dominance:
 
 ### Win / Exit
 - Win when opponent SI reaches 0.
-- **Concede** is optional UX; it ends the match immediately.
+- **Concede** exists in protocol, but current arena UX uses **PASS** + auto-resolve.
 
 ## 🌐 Code Breaker Multiplayer Flow
 
@@ -782,7 +787,7 @@ var current_mode: Mode = Mode.PRODUCTION  # Render.com
 | **TGC Lobby** | `script/akashic_tcg_lobby.gd` | Lobby server `/api/rooms/*` integration; filters `game_type == "akashic_tcg"` |
 | **TGC Room** | `script/akashic_tcg_room.gd` | Ready/start + heartbeat + relay connect; routes to reconnect on disconnect |
 | **TGC Loading** | `script/akashic_tcg_loading.gd` | Loading handshake; routes to reconnect on timeout/disconnect |
-| **TGC Arena** | `script/akashic_tcg_arena.gd` | Host-authoritative turn-based state machine; `tgc_state_sync`/`tgc_action_request` |
+| **TGC Arena** | `script/akashic_tcg_arena.gd` | Host-authoritative round-based submit system; `tgc_state_sync`/`tgc_action_request` |
 | **TGC Reconnect** | `script/akashic_tcg_reconnect.gd` | Reconnect/resume routing into Loading or Arena based on session `phase` |
 | **TGC Postgame** | `script/akashic_tcg_postgame.gd` | Minimal result screen; clears TGC session on entry |
 | **Lobby Server** | `server/server.js` | Express + express-ws, REST API + WebSocket relay, in-memory rooms |
@@ -909,7 +914,7 @@ Phone (Mobile Data) ────────────────────
 - ✅ **Akashic TCG Session Store:** `script/AkashicTCGSessionStore.gd` persisted sessions for resume routing
 - ✅ **Akashic Reconnect Scene:** `scene/akashic_tcg_reconnect.tscn` routes back into Loading/Arena
 - ✅ **Landing/Login Resume:** `script/landing.gd` + `script/login.gd` now route `waiting|in_game|finished|404` for Akashic too
-- ✅ **Turn-Based Arena State Sync:** `script/akashic_tcg_arena.gd` host-authoritative `tgc_state_sync` + `tgc_action_request`
+- ✅ **Round-Based Arena State Sync:** `script/akashic_tcg_arena.gd` host-authoritative `tgc_state_sync` + `tgc_action_request`
 - ✅ **Disconnect Recovery:** Room/Loading/Arena route to reconnect on relay disconnect/timeout
 
 **Previous Updates (Dec 8, 2025):**
