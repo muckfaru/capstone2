@@ -435,6 +435,8 @@ Client-to-host action requests:
 ```json
 { "type": "tgc_action_request", "room_id": "...", "actor": "uid", "action": "submit_card", "payload": {"hand_index": 2, "card_id": "virus"}, "known_version": 12, "client_action_id": 7 }
 
+{ "type": "tgc_action_request", "room_id": "...", "actor": "uid", "action": "cancel_card", "payload": {"slot_index": 0}, "known_version": 12, "client_action_id": 8 }
+
 { "type": "tgc_action_request", "room_id": "...", "actor": "uid", "action": "pass", "payload": {}, "known_version": 13, "client_action_id": 8 }
 
 { "type": "tgc_action_request", "room_id": "...", "actor": "uid", "action": "concede", "payload": {}, "known_version": 13, "client_action_id": 9 }
@@ -442,7 +444,7 @@ Client-to-host action requests:
 
 Host state broadcast (full state snapshot):
 ```json
-{ "type": "tgc_state_sync", "room_id": "...", "state": {"version": 13, "turn": 4, "priority": "uid_host", "pending": {"uid_host": "virus", "uid_client": ""}, "winner_id": "", "players": {"uid_host": {"si": 20, "fw": 0, "bw": 2, "bw_max": 2, "plays_left": 1, "status": {}}, "uid_client": {"si": 20, "fw": 0, "bw": 2, "bw_max": 2, "plays_left": 1, "status": {}}}}, "meta": {"type": "action"} }
+{ "type": "tgc_state_sync", "room_id": "...", "state": {"version": 13, "turn": 4, "priority": "uid_host", "pending": {"uid_host": ["virus"], "uid_client": []}, "pending_costs": {"uid_host": [2], "uid_client": []}, "round_done": {"uid_host": false, "uid_client": false}, "resolve_scheduled": false, "winner_id": "", "players": {"uid_host": {"si": 20, "fw": 0, "bw": 2, "bw_max": 10, "plays_left": 3, "status": {}}, "uid_client": {"si": 20, "fw": 0, "bw": 2, "bw_max": 10, "plays_left": 3, "status": {}}}}, "meta": {"type": "action"} }
 ```
 
 State recovery:
@@ -467,21 +469,25 @@ Match end:
 ### Core Stats + Limits
 - **SI (System Integrity / HP):** 20 per player. At 0 → lose.
 - **FW (Firewall):** absorbs damage before SI, **max 12** (unless an attack bypasses it).
-- **BW (Bandwidth / resource):** ramps each round up to **10**.
-  - Start of each round: `bw_max += 1` (cap 10), then `bw = bw_max` (minus penalties like Lag).
-- **Plays per round:** **1 submission** (either submit 1 card if affordable, or **PASS**).
+- **BW (Bandwidth / resource):** max **10**; carries over (spending reduces it, PASS does not).
+  - Start of each round: gain BW (cap 10): rounds 1-2 `+2`, rounds 3-6 `+3`, rounds 7-10 `+4`, rounds 11+ `+5`.
+  - **Lag:** reduces that round’s BW gain by `1`.
+- **Plays per round:** **up to 3 submissions** (submit up to 3 affordable cards, or **PASS** to finish early).
 - **Hand limit:** **7** (excess burns/discards to prevent hoarding).
 
 ### Round Loop (High Level)
 1. Round start: apply start-of-round effects (e.g., Infected tick), BW refresh, draw
-2. Both players **submit 1 card** (locked-in) or **PASS**
-3. When both submitted: resolve in **priority order** (host first, then alternate each round)
-4. Short reveal window + flip animation, then next round
+2. Each player can **submit up to 3 cards** this round (as long as they have BW and plays left), or **PASS** to finish early
+3. Players may **cancel** a submitted card (click their dropped slot) to return it to hand and refund BW/plays **as long as resolution hasn’t been scheduled**
+4. If a player has **no affordable plays** (or no plays left), they are auto-marked as done
+5. When both players are done: a short reveal window plays, then resolve in **priority order** (host first, then alternate each round)
+6. Next round starts
 
 ### UX Notes (Arena)
-- **Center dropped cards:** shows submitted cards for the current round (opponent stays face-down until you submit too).
-- **Reveal timing:** when both have submitted, there is a brief delay so players can see the reveal.
+- **Center dropped cards:** shows up to 3 submissions per player for the current round.
+- **Reveal timing:** opponent cards stay face-down until **both players are done**, then **reveal all at once** before resolve.
 - **Hover tooltips:** hovering a card shows name, cost, and effect text.
+- **Undo:** clicking your own dropped card cancels it (before resolve), returning it to hand and refunding BW/plays.
 
 ### Final Card Set (10 cards, using existing assets)
 Defense:
@@ -510,7 +516,7 @@ When an attack resolves, apply mitigation in this order:
 
 ### Statuses (Final)
 - **MFA Active:** blocks next Phishing.
-- **IDS Active:** next incoming attack −2, then draw 1.
+- **IDS Active:** next incoming attack −3, then draw 1.
 - **Encrypted:** next incoming attack −2.
 - **Infected:** tick damage at start of turn until cleansed by Antivirus.
 - **Credential Compromised:** boosts next defense effectiveness (one-time).
@@ -945,6 +951,6 @@ Phone (Mobile Data) ────────────────────
   - ⚪ **NORMAL** (25%): No bonus
 - ✅ **Power-Up Panel System:** Color-coded panels (grey/ice-blue/yellow/green/white) shown during pop animation
 - ✅ **Power-Up Carry-Over:** Shield, Freeze, and Extend buffs persist across multiple snippets
-- ✅ **Damage Blocking:** Shield blocks both enemy attacks AND self-damage penalties during 15s duration
+- ✅ **Damage Blocking:** Shield blocks oka enemy attacks AND self-damage penalties during 15s duration
 
 

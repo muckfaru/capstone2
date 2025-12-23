@@ -21,14 +21,22 @@ const _CardView = preload("res://script/AkashicTCGCardView.gd")
 @onready var _play_zone: Panel = $HUD/Table/PlayZone
 @onready var _hand_hbox: HBoxContainer = $HUD/HandArea/HandHBox
 
-@onready var _opp_dropped_card: TextureRect = $HUD/Table/PlayZone/ZoneVBox/DroppedCards/OppDroppedCard
-@onready var _you_dropped_card: TextureRect = $HUD/Table/PlayZone/ZoneVBox/DroppedCards/YouDroppedCard
+@onready var _opp_dropped_cards: Array[TextureRect] = [
+	$HUD/Table/PlayZone/ZoneVBox/DroppedCards/OppDroppedRow/OppDropped1,
+	$HUD/Table/PlayZone/ZoneVBox/DroppedCards/OppDroppedRow/OppDropped2,
+	$HUD/Table/PlayZone/ZoneVBox/DroppedCards/OppDroppedRow/OppDropped3,
+]
+@onready var _you_dropped_cards: Array[TextureRect] = [
+	$HUD/Table/PlayZone/ZoneVBox/DroppedCards/YouDroppedRow/YouDropped1,
+	$HUD/Table/PlayZone/ZoneVBox/DroppedCards/YouDroppedRow/YouDropped2,
+	$HUD/Table/PlayZone/ZoneVBox/DroppedCards/YouDroppedRow/YouDropped3,
+]
 
 const STARTING_SI := 20
 const MAX_FW := 12
 const START_HAND := 3
 const HAND_LIMIT := 7
-const PLAYS_PER_TURN := 1
+const PLAYS_PER_TURN := 3
 const MAX_BW := 10
 const MAX_LOG_LINES := 6
 
@@ -84,8 +92,16 @@ var _state: Dictionary = {}
 var _local_version: int = 0
 var _pending_action_id: int = 1
 
-var _opp_flip_tween: Tween = null
-var _last_opp_revealed_id: String = ""
+var _flip_tweens: Dictionary = {}
+var _last_opp_revealed_ids: Array[String] = ["", "", ""]
+
+var _slide_tweens: Dictionary = {}
+var _last_you_slot_keys: Array[String] = ["", "", ""]
+var _last_opp_slot_keys: Array[String] = ["", "", ""]
+
+const SLIDE_IN_SEC := 0.14
+const SLIDE_IN_SCALE_FROM := 0.78
+const SLIDE_IN_SCALE_OVERSHOOT := 1.08
 
 func _ready() -> void:
 	var init: Dictionary = {}
@@ -127,8 +143,19 @@ func _ready() -> void:
 
 	_end_turn_btn.pressed.connect(_on_end_turn_pressed)
 
-	_setup_card_slot(_opp_dropped_card)
-	_setup_card_slot(_you_dropped_card)
+	# Click-to-cancel on your dropped slots.
+	for i in range(_you_dropped_cards.size()):
+		var slot := _you_dropped_cards[i]
+		if slot == null:
+			continue
+		slot.mouse_filter = Control.MOUSE_FILTER_STOP
+		if not slot.gui_input.is_connected(_on_you_dropped_gui_input):
+			slot.gui_input.connect(_on_you_dropped_gui_input.bind(i))
+
+	for slot in _opp_dropped_cards:
+		_setup_card_slot(slot)
+	for slot in _you_dropped_cards:
+		_setup_card_slot(slot)
 
 
 	_status.text = "Connecting…"
@@ -160,6 +187,9 @@ func _try_init_host_state_if_possible() -> void:
 	_status.text = "Match started"
 	_broadcast_state_sync({"type": "init"})
 	_render()
+	# Edge case: if both players have no affordable moves on round start,
+	# auto-finish can mark both as done. Ensure we don't deadlock.
+	_resolve_round_if_ready()
 
 func _build_initial_state(host_id: String, client_id: String) -> Dictionary:
 	var host_deck := _make_start_deck()
@@ -171,7 +201,9 @@ func _build_initial_state(host_id: String, client_id: String) -> Dictionary:
 		"version": 1,
 		"turn": 0,
 		"priority": host_id,
-		"pending": {},
+		"pending": {}, # {player_id: Array[String]}
+		"pending_costs": {}, # {player_id: Array[int]}
+		"round_done": {}, # {player_id: bool}
 		"winner_id": "",
 		"players": {
 			host_id: _make_player_state(host_deck),
@@ -217,9 +249,11 @@ func _make_start_deck() -> Array:
 	return deck
 
 func _start_round(state: Dictionary) -> void:
-	# Simultaneous round: both players refresh and can submit 1 card (or pass).
+	# Simultaneous round: both players refresh and can submit up to 3 cards (or pass).
 	state["turn"] = int(state.get("turn", 0)) + 1
 	state["pending"] = {}
+	state["pending_costs"] = {}
+	state["round_done"] = {}
 
 	var priority := str(state.get("priority", _host_id))
 	if priority != _host_id and priority != _client_id:
@@ -234,20 +268,35 @@ func _start_round(state: Dictionary) -> void:
 		_apply_start_of_turn_effects(state, pid)
 		_maybe_shuffle_packages(state, pid)
 
-		var lag_penalty := 0
+		# Bandwidth (BW): fixed max (10) and per-round gain with carryover.
+		# Round 1-2: +2, 3-6: +3, 7-10: +4, 11+: +5. Cap at MAX_BW.
+		# Lag reduces this round's BW gain by 1.
 		var st: Dictionary = p.get("status", {})
+		var gain := _bw_gain_for_round(int(state.get("turn", 0)))
 		if st.has("lag"):
-			lag_penalty = 1
+			gain = max(0, gain - 1)
 			st.erase("lag")
 			p["status"] = st
-
-		p["bw_max"] = min(int(p.get("bw_max", 0)) + 1, MAX_BW)
-		p["bw"] = max(int(p.get("bw_max", 0)) - lag_penalty, 0)
+		p["bw_max"] = MAX_BW
+		p["bw"] = min(MAX_BW, int(p.get("bw", 0)) + gain)
 
 		state["players"][pid] = p
 		_draw_card(state, pid)
+		_auto_finish_player_if_no_moves(state, pid)
 
 	_append_log(state, "Round %d | Priority: %s" % [int(state.get("turn", 0)), _name_for(priority)])
+	# If both players are immediately finished (e.g., no affordable cards),
+	# schedule an auto-resolve so the match can progress.
+	_resolve_round_if_ready()
+
+func _bw_gain_for_round(round_number: int) -> int:
+	if round_number <= 2:
+		return 2
+	if round_number <= 6:
+		return 3
+	if round_number <= 10:
+		return 4
+	return 5
 
 func _name_for(pid: String) -> String:
 	if pid == _host_id:
@@ -284,8 +333,8 @@ func _render() -> void:
 	if _state.is_empty():
 		_status.text = "Waiting for state…"
 		_end_turn_btn.disabled = true
-		_opp_resource_label.text = "BW 0/0  |  Plays 0/2"
-		_resource_label.text = "BW 0/0  |  Plays 0/2"
+		_opp_resource_label.text = "BW 0/0  |  Plays 0/%d" % PLAYS_PER_TURN
+		_resource_label.text = "BW 0/0  |  Plays 0/%d" % PLAYS_PER_TURN
 		_render_opp_hand_count(0)
 		_clear_hand_ui()
 		_render_dropped_cards({})
@@ -299,8 +348,16 @@ func _render() -> void:
 
 	var pending_val: Variant = _state.get("pending", {})
 	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
-	var my_submitted := pending.has(_player_id)
-	var opp_submitted := pending.has(opp_id)
+	var done_val: Variant = _state.get("round_done", {})
+	var round_done: Dictionary = done_val if typeof(done_val) == TYPE_DICTIONARY else {}
+	var my_done := bool(round_done.get(_player_id, false))
+	var opp_done := bool(round_done.get(opp_id, false))
+	var my_cards_val: Variant = pending.get(_player_id, [])
+	var opp_cards_val: Variant = pending.get(opp_id, [])
+	var my_cards: Array = my_cards_val if typeof(my_cards_val) == TYPE_ARRAY else []
+	var opp_cards: Array = opp_cards_val if typeof(opp_cards_val) == TYPE_ARRAY else []
+	var my_submitted := my_cards.size() > 0
+	var opp_submitted := opp_cards.size() > 0
 	var winner := str(_state.get("winner_id", ""))
 	var over := winner != ""
 
@@ -310,10 +367,10 @@ func _render() -> void:
 	if over:
 		_status.text = "Game Over | Winner: %s" % _name_for(winner)
 	else:
-		if my_submitted and not opp_submitted:
+		if my_done and not opp_done:
 			_status.text = "Waiting for opponent…"
-		elif (not my_submitted) and opp_submitted:
-			_status.text = "Opponent submitted. Your move."
+		elif (not my_done) and opp_done:
+			_status.text = "Opponent finished. Your move."
 		else:
 			_status.text = "Round %d" % int(_state.get("turn", 0))
 
@@ -344,9 +401,9 @@ func _render() -> void:
 	_render_opp_hand_count(opp_hand.size())
 
 	_end_turn_btn.text = "PASS"
-	_end_turn_btn.disabled = over or my_submitted
+	_end_turn_btn.disabled = over or my_done
 
-	_render_hand(my, (not my_submitted), over)
+	_render_hand(my, (not my_done), over)
 
 	# Show the cards currently dropped/submitted this round.
 	_render_dropped_cards(pending)
@@ -357,7 +414,7 @@ func _render_opp_hand_count(count: int) -> void:
 	for c in _opp_hand_hbox.get_children():
 		c.queue_free()
 	var n: int = int(clamp(count, 0, HAND_LIMIT))
-	for _i in range(n):
+	for i in range(n):
 		var card := TextureRect.new()
 		card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.texture = _BACK_TEX
@@ -366,6 +423,8 @@ func _render_opp_hand_count(count: int) -> void:
 		# does not force a larger minimum size inside containers.
 		card.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		card.stretch_mode = TextureRect.STRETCH_SCALE
+		card.z_as_relative = true
+		card.z_index = i
 		_opp_hand_hbox.add_child(card)
 
 func _clear_hand_ui() -> void:
@@ -373,45 +432,76 @@ func _clear_hand_ui() -> void:
 		c.queue_free()
 
 func _render_dropped_cards(pending: Dictionary) -> void:
-	if _opp_dropped_card == null or _you_dropped_card == null:
+	if _opp_dropped_cards.size() < 3 or _you_dropped_cards.size() < 3:
 		return
 	var opp_id := _other_player(_player_id)
-	var opp_card_id := str(pending.get(opp_id, ""))
-	var you_card_id := str(pending.get(_player_id, ""))
+	var done_val: Variant = _state.get("round_done", {})
+	var round_done: Dictionary = done_val if typeof(done_val) == TYPE_DICTIONARY else {}
+	var reveal_now := bool(round_done.get(_player_id, false)) and bool(round_done.get(opp_id, false))
+	var opp_cards_val: Variant = pending.get(opp_id, [])
+	var you_cards_val: Variant = pending.get(_player_id, [])
+	var opp_cards: Array = opp_cards_val if typeof(opp_cards_val) == TYPE_ARRAY else []
+	var you_cards: Array = you_cards_val if typeof(you_cards_val) == TYPE_ARRAY else []
 
-	var i_submitted := pending.has(_player_id)
-	var opp_submitted := pending.has(opp_id)
+	# Note: Your cards are always visible to you; opponent cards reveal all-at-once
+	# only when BOTH players are finished (PASS or auto-finish).
 
-	# Your slot: only show once you submit a card (pass shows blank).
-	_you_dropped_card.texture = _texture_for_id(you_card_id) if i_submitted and you_card_id != "" else null
-	_you_dropped_card.tooltip_text = _tooltip_for_card(you_card_id) if i_submitted and you_card_id != "" else ""
-
-	# Opponent slot: show face-down back until you have submitted too.
-	if opp_submitted and opp_card_id != "":
-		if i_submitted:
-			var next_tex := _texture_for_id(opp_card_id)
-			var next_tip := _tooltip_for_card(opp_card_id)
-			# Flip reveal (prevents instant pop + makes it noticeable).
-			if _opp_dropped_card.texture == _BACK_TEX and _last_opp_revealed_id != opp_card_id:
-				_flip_reveal(_opp_dropped_card, next_tex, next_tip)
-				_last_opp_revealed_id = opp_card_id
-			else:
-				_opp_dropped_card.texture = next_tex
-				_opp_dropped_card.tooltip_text = next_tip
+	for i in range(3):
+		# Your row (always face-up).
+		if i < you_cards.size() and str(you_cards[i]) != "":
+			var you_id := str(you_cards[i])
+			var you_key := you_id
+			var you_prev := _last_you_slot_keys[i]
+			_you_dropped_cards[i].texture = _texture_for_id(you_id)
+			_you_dropped_cards[i].tooltip_text = _tooltip_for_card(you_id)
+			# Cursor: allow cancel before resolution is scheduled.
+			_you_dropped_cards[i].mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if _can_cancel_now() else Control.CURSOR_ARROW
+			if you_prev == "" and you_key != "":
+				_slide_in(_you_dropped_cards[i])
+			_last_you_slot_keys[i] = you_key
 		else:
-			_opp_dropped_card.texture = _BACK_TEX
-			_opp_dropped_card.tooltip_text = ""
-	else:
-		_opp_dropped_card.texture = null
-		_opp_dropped_card.tooltip_text = ""
-		_last_opp_revealed_id = ""
+			_you_dropped_cards[i].texture = null
+			_you_dropped_cards[i].tooltip_text = ""
+			_you_dropped_cards[i].mouse_default_cursor_shape = Control.CURSOR_ARROW
+			_last_you_slot_keys[i] = ""
+
+		# Opponent row: stay hidden until both players are finished, then reveal all.
+		if i < opp_cards.size() and str(opp_cards[i]) != "":
+			var opp_card_id := str(opp_cards[i])
+			var opp_key := (opp_card_id if reveal_now else "__back__" + opp_card_id)
+			var opp_prev := _last_opp_slot_keys[i]
+			if reveal_now:
+				var next_tex := _texture_for_id(opp_card_id)
+				var next_tip := _tooltip_for_card(opp_card_id)
+				if _opp_dropped_cards[i].texture == _BACK_TEX and _last_opp_revealed_ids[i] != opp_card_id:
+					_flip_reveal(_opp_dropped_cards[i], next_tex, next_tip)
+					_last_opp_revealed_ids[i] = opp_card_id
+				else:
+					_opp_dropped_cards[i].texture = next_tex
+					_opp_dropped_cards[i].tooltip_text = next_tip
+			else:
+				_opp_dropped_cards[i].texture = _BACK_TEX
+				_opp_dropped_cards[i].tooltip_text = ""
+
+			# Slide-in only when a new opponent slot becomes occupied (empty -> back).
+			# Do NOT slide-in again when we switch back->faceup on reveal.
+			if opp_prev == "" and opp_key != "":
+				_slide_in(_opp_dropped_cards[i])
+			_last_opp_slot_keys[i] = opp_key
+		else:
+			_opp_dropped_cards[i].texture = null
+			_opp_dropped_cards[i].tooltip_text = ""
+			_last_opp_revealed_ids[i] = ""
+			_last_opp_slot_keys[i] = ""
 
 func _flip_reveal(node: TextureRect, new_texture: Texture2D, new_tooltip: String) -> void:
 	if node == null:
 		return
-	if _opp_flip_tween and is_instance_valid(_opp_flip_tween):
-		_opp_flip_tween.kill()
-	_opp_flip_tween = null
+	if _flip_tweens.has(node):
+		var old_tw: Variant = _flip_tweens.get(node)
+		if old_tw is Tween and is_instance_valid(old_tw):
+			(old_tw as Tween).kill()
+		_flip_tweens.erase(node)
 
 	# Ensure we have a "back" visible before flipping.
 	if node.texture == null:
@@ -422,13 +512,48 @@ func _flip_reveal(node: TextureRect, new_texture: Texture2D, new_tooltip: String
 	node.scale = Vector2(1, 1)
 
 	var tw := create_tween()
-	_opp_flip_tween = tw
+	_flip_tweens[node] = tw
 	tw.tween_property(node, "scale:x", 0.0, FLIP_HALF_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func():
 		node.texture = new_texture
 		node.tooltip_text = new_tooltip
 	)
 	tw.tween_property(node, "scale:x", 1.0, FLIP_HALF_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.finished.connect(func():
+		if _flip_tweens.get(node) == tw:
+			_flip_tweens.erase(node)
+	)
+
+
+func _slide_in(node: TextureRect) -> void:
+	if node == null:
+		return
+	if _slide_tweens.has(node):
+		var old_tw: Variant = _slide_tweens.get(node)
+		if old_tw is Tween and is_instance_valid(old_tw):
+			(old_tw as Tween).kill()
+		_slide_tweens.erase(node)
+
+	var base_scale := node.scale
+	var base_mod := node.modulate
+
+	node.pivot_offset = node.size * 0.5
+	# Container-safe animation: position is often managed by the Container,
+	# so we use a visible pop (fade + scale overshoot).
+	node.scale = base_scale * SLIDE_IN_SCALE_FROM
+	node.modulate = Color(base_mod.r, base_mod.g, base_mod.b, 0.0)
+
+	var tw := create_tween()
+	_slide_tweens[node] = tw
+	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	var half := SLIDE_IN_SEC * 0.5
+	tw.tween_property(node, "scale", base_scale * SLIDE_IN_SCALE_OVERSHOOT, half)
+	tw.parallel().tween_property(node, "modulate:a", base_mod.a, half)
+	tw.tween_property(node, "scale", base_scale, half)
+	tw.finished.connect(func():
+		if _slide_tweens.get(node) == tw:
+			_slide_tweens.erase(node)
+	)
 
 func _tooltip_for_card(card_id: String) -> String:
 	if card_id == "":
@@ -490,15 +615,51 @@ func _render_hand(my: Dictionary, is_my_turn: bool, over: bool) -> void:
 		var card := TextureRect.new()
 		card.set_script(_CardView)
 		card.texture = _texture_for_id(card_id)
-		card.custom_minimum_size = Vector2(110, 160)
+		_setup_card_slot(card)
+		card.z_as_relative = true
+		card.z_index = i
 		card.tooltip_text = _tooltip_for_card(card_id)
 		card.card_data = {"card_id": card_id, "hand_index": i}
-		card.drag_enabled = (not over) and is_my_turn and int(my.get("plays_left", 0)) > 0 and _can_afford_card(my, card_id)
+		var can_play_turn := (not over) and is_my_turn and int(my.get("plays_left", 0)) > 0
+		var can_afford := _can_afford_card(my, card_id)
+		var playable := can_play_turn and can_afford
+		card.drag_enabled = playable
+		card.click_enabled = playable
+		if card.has_signal("card_clicked") and not card.card_clicked.is_connected(_on_hand_card_clicked):
+			card.card_clicked.connect(_on_hand_card_clicked)
+		# Cursor indication:
+		# - Enough BW (and playable now) -> pointing hand
+		# - Not enough BW (while it's your turn) -> forbidden
+		# - Otherwise -> default arrow
+		card.mouse_filter = Control.MOUSE_FILTER_STOP
+		if can_play_turn and not can_afford:
+			card.mouse_default_cursor_shape = Control.CURSOR_FORBIDDEN
+		elif playable:
+			card.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		else:
+			card.mouse_default_cursor_shape = Control.CURSOR_ARROW
 		_hand_hbox.add_child(card)
+
+
+func _on_hand_card_clicked(card_data: Dictionary) -> void:
+	# Click-to-play: behaves like dropping the card into the play zone.
+	_on_play_zone_card_dropped(card_data)
 
 func _can_afford_card(p: Dictionary, card_id: String) -> bool:
 	var cost := _effective_cost(p, card_id)
 	return int(p.get("bw", 0)) >= cost
+
+func _can_afford_any_card(p: Dictionary) -> bool:
+	var bw := int(p.get("bw", 0))
+	var hand_val: Variant = p.get("hand", [])
+	var hand: Array = hand_val if typeof(hand_val) == TYPE_ARRAY else []
+	for v in hand:
+		var card_id := str(v)
+		if card_id == "":
+			continue
+		if bw >= _effective_cost(p, card_id):
+			return true
+	return false
 
 func _on_play_zone_card_dropped(card_data: Dictionary) -> void:
 	var card_id := str(card_data.get("card_id", ""))
@@ -506,6 +667,37 @@ func _on_play_zone_card_dropped(card_data: Dictionary) -> void:
 	if card_id == "" or idx < 0:
 		return
 	_send_or_apply_action("submit_card", {"hand_index": idx, "card_id": card_id})
+
+
+func _on_you_dropped_gui_input(event: InputEvent, slot_index: int) -> void:
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index != MOUSE_BUTTON_LEFT or not mb.pressed:
+			return
+		_attempt_cancel_dropped_slot(slot_index)
+
+
+func _can_cancel_now() -> bool:
+	if _state.is_empty():
+		return false
+	if str(_state.get("winner_id", "")) != "":
+		return false
+	# Once resolution is scheduled (both done), we lock the round.
+	if bool(_state.get("resolve_scheduled", false)):
+		return false
+	return true
+
+
+func _attempt_cancel_dropped_slot(slot_index: int) -> void:
+	if not _can_cancel_now():
+		return
+	var pending_val: Variant = _state.get("pending", {})
+	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
+	var my_cards_val: Variant = pending.get(_player_id, [])
+	var my_cards: Array = my_cards_val if typeof(my_cards_val) == TYPE_ARRAY else []
+	if slot_index < 0 or slot_index >= my_cards.size():
+		return
+	_send_or_apply_action("cancel_card", {"slot_index": slot_index})
 
 func _on_end_turn_pressed() -> void:
 	_send_or_apply_action("pass", {})
@@ -606,6 +798,8 @@ func _apply_action_host(actor: String, action: String, payload: Dictionary) -> v
 	match action:
 		"submit_card":
 			_host_submit_card(actor, payload)
+		"cancel_card":
+			_host_cancel_card(actor, payload)
 		"pass":
 			_host_pass(actor)
 		"concede":
@@ -628,21 +822,32 @@ func _other_player(pid: String) -> String:
 func _host_submit_card(pid: String, payload: Dictionary) -> void:
 	var pending_val: Variant = _state.get("pending", {})
 	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
-	if pending.has(pid):
-		_append_log(_state, "%s already submitted" % _name_for(pid))
+	var costs_val: Variant = _state.get("pending_costs", {})
+	var pending_costs: Dictionary = costs_val if typeof(costs_val) == TYPE_DICTIONARY else {}
+	var done_val: Variant = _state.get("round_done", {})
+	var round_done: Dictionary = done_val if typeof(done_val) == TYPE_DICTIONARY else {}
+	if bool(round_done.get(pid, false)):
+		_append_log(_state, "%s already finished" % _name_for(pid))
 		return
 
 	var p: Dictionary = _state["players"][pid]
+	if int(p.get("plays_left", 0)) <= 0:
+		round_done[pid] = true
+		_state["round_done"] = round_done
+		_append_log(_state, "%s has no plays left" % _name_for(pid))
+		return
 	var hand: Array = p.get("hand", [])
 	var idx := int(payload.get("hand_index", -1))
 	var claimed_id := str(payload.get("card_id", ""))
-	if idx < 0 or idx >= hand.size():
+	var resolved_idx := idx
+	if claimed_id != "":
+		resolved_idx = hand.find(claimed_id)
+	if resolved_idx < 0:
+		resolved_idx = idx
+	if resolved_idx < 0 or resolved_idx >= hand.size():
 		_append_log(_state, "%s invalid hand index" % _name_for(pid))
 		return
-	var card_id := str(hand[idx])
-	if claimed_id != "" and claimed_id != card_id:
-		_append_log(_state, "%s hand mismatch" % _name_for(pid))
-		return
+	var card_id := str(hand[resolved_idx])
 	var def_val: Variant = _CARD_DB.get(card_id, null)
 	if typeof(def_val) != TYPE_DICTIONARY:
 		_append_log(_state, "Invalid card")
@@ -650,6 +855,7 @@ func _host_submit_card(pid: String, payload: Dictionary) -> void:
 	var cost := _effective_cost(p, card_id)
 	if int(p.get("bw", 0)) < cost:
 		_append_log(_state, "%s lacks BW" % _name_for(pid))
+		_auto_finish_player_if_no_moves(_state, pid)
 		return
 
 	# If this play benefits from Backdoor discount, consume it for this turn.
@@ -658,31 +864,117 @@ func _host_submit_card(pid: String, payload: Dictionary) -> void:
 	p["bw"] = int(p.get("bw", 0)) - cost
 	p["plays_left"] = max(0, int(p.get("plays_left", 0)) - 1)
 
-	hand.remove_at(idx)
+	hand.remove_at(resolved_idx)
 	p["hand"] = hand
 	_state["players"][pid] = p
 
-	pending[pid] = card_id
+	var arr_val: Variant = pending.get(pid, [])
+	var arr: Array = arr_val if typeof(arr_val) == TYPE_ARRAY else []
+	arr.append(card_id)
+	if arr.size() > PLAYS_PER_TURN:
+		arr.resize(PLAYS_PER_TURN)
+	pending[pid] = arr
 	_state["pending"] = pending
-	_append_log(_state, "%s submitted a card" % _name_for(pid))
+	var cost_arr_val: Variant = pending_costs.get(pid, [])
+	var cost_arr: Array = cost_arr_val if typeof(cost_arr_val) == TYPE_ARRAY else []
+	cost_arr.append(cost)
+	if cost_arr.size() > PLAYS_PER_TURN:
+		cost_arr.resize(PLAYS_PER_TURN)
+	pending_costs[pid] = cost_arr
+	_state["pending_costs"] = pending_costs
+	_append_log(_state, "%s submitted a card (%d/%d)" % [_name_for(pid), arr.size(), PLAYS_PER_TURN])
+	_auto_finish_player_if_no_moves(_state, pid)
 	_resolve_round_if_ready()
+
+
+func _host_cancel_card(pid: String, payload: Dictionary) -> void:
+	if bool(_state.get("resolve_scheduled", false)):
+		_append_log(_state, "%s cannot cancel now" % _name_for(pid))
+		return
+	var slot_index := int(payload.get("slot_index", -1))
+	if slot_index < 0 or slot_index >= PLAYS_PER_TURN:
+		return
+
+	var pending_val: Variant = _state.get("pending", {})
+	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
+	var costs_val: Variant = _state.get("pending_costs", {})
+	var pending_costs: Dictionary = costs_val if typeof(costs_val) == TYPE_DICTIONARY else {}
+
+	var arr_val: Variant = pending.get(pid, [])
+	var arr: Array = arr_val if typeof(arr_val) == TYPE_ARRAY else []
+	if slot_index >= arr.size():
+		return
+	var card_id := str(arr[slot_index])
+	arr.remove_at(slot_index)
+	pending[pid] = arr
+	_state["pending"] = pending
+
+	var cost_arr_val: Variant = pending_costs.get(pid, [])
+	var cost_arr: Array = cost_arr_val if typeof(cost_arr_val) == TYPE_ARRAY else []
+	var refund := 0
+	if slot_index < cost_arr.size():
+		refund = int(cost_arr[slot_index])
+		cost_arr.remove_at(slot_index)
+	pending_costs[pid] = cost_arr
+	_state["pending_costs"] = pending_costs
+
+	var p: Dictionary = _state.get("players", {}).get(pid, {})
+	if typeof(p) != TYPE_DICTIONARY:
+		return
+	# Return card to hand, refund BW, restore a play.
+	var hand_val: Variant = p.get("hand", [])
+	var hand: Array = hand_val if typeof(hand_val) == TYPE_ARRAY else []
+	hand.append(card_id)
+	p["hand"] = hand
+	p["bw"] = min(MAX_BW, int(p.get("bw", 0)) + refund)
+	p["plays_left"] = min(PLAYS_PER_TURN, int(p.get("plays_left", 0)) + 1)
+	_state["players"][pid] = p
+
+	# If the player was marked done (PASS/auto-finish), reopen their turn.
+	var done_val: Variant = _state.get("round_done", {})
+	var round_done: Dictionary = done_val if typeof(done_val) == TYPE_DICTIONARY else {}
+	if bool(round_done.get(pid, false)):
+		round_done[pid] = false
+		_state["round_done"] = round_done
+
+	_append_log(_state, "%s cancelled a card" % _name_for(pid))
+	_auto_finish_player_if_no_moves(_state, pid)
 
 
 func _host_pass(pid: String) -> void:
 	var pending_val: Variant = _state.get("pending", {})
 	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
-	if pending.has(pid):
-		_append_log(_state, "%s already submitted" % _name_for(pid))
+	var done_val: Variant = _state.get("round_done", {})
+	var round_done: Dictionary = done_val if typeof(done_val) == TYPE_DICTIONARY else {}
+	if bool(round_done.get(pid, false)):
 		return
-	pending[pid] = ""
+	round_done[pid] = true
+	_state["round_done"] = round_done
 	_state["pending"] = pending
 	_append_log(_state, "%s passed" % _name_for(pid))
 	_resolve_round_if_ready()
 
+func _auto_finish_player_if_no_moves(state: Dictionary, pid: String) -> void:
+	var done_val: Variant = state.get("round_done", {})
+	var round_done: Dictionary = done_val if typeof(done_val) == TYPE_DICTIONARY else {}
+	if bool(round_done.get(pid, false)):
+		return
+	var p_val: Variant = state.get("players", {}).get(pid, {})
+	if typeof(p_val) != TYPE_DICTIONARY:
+		return
+	var p: Dictionary = p_val
+	if int(p.get("plays_left", 0)) <= 0:
+		round_done[pid] = true
+		state["round_done"] = round_done
+		return
+	if not _can_afford_any_card(p):
+		round_done[pid] = true
+		state["round_done"] = round_done
+
 func _resolve_round_if_ready() -> void:
-	var pending_val: Variant = _state.get("pending", {})
-	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
-	if not pending.has(_host_id) or not pending.has(_client_id):
+	var done_val: Variant = _state.get("round_done", {})
+	var round_done: Dictionary = done_val if typeof(done_val) == TYPE_DICTIONARY else {}
+	if not bool(round_done.get(_host_id, false)) or not bool(round_done.get(_client_id, false)):
 		return
 	if str(_state.get("winner_id", "")) != "":
 		return
@@ -701,12 +993,15 @@ func _resolve_round_after_reveal_delay() -> void:
 		return
 	_state["resolve_scheduled"] = false
 
-	var pending_val: Variant = _state.get("pending", {})
-	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
-	if not pending.has(_host_id) or not pending.has(_client_id):
+	var done_val: Variant = _state.get("round_done", {})
+	var round_done: Dictionary = done_val if typeof(done_val) == TYPE_DICTIONARY else {}
+	if not bool(round_done.get(_host_id, false)) or not bool(round_done.get(_client_id, false)):
 		return
 	if str(_state.get("winner_id", "")) != "":
 		return
+
+	var pending_val: Variant = _state.get("pending", {})
+	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
 
 	# Resolve using current priority order.
 	var priority := str(_state.get("priority", _host_id))
@@ -715,17 +1010,22 @@ func _resolve_round_after_reveal_delay() -> void:
 	var other := _other_player(priority)
 
 	for pid in [priority, other]:
-		var card_id := str(pending.get(pid, ""))
-		if card_id == "":
-			continue
-		var def_val: Variant = _CARD_DB.get(card_id, null)
-		if typeof(def_val) != TYPE_DICTIONARY:
-			continue
-		_apply_card_effect(pid, card_id, def_val)
+		var cards_val: Variant = pending.get(pid, [])
+		var cards: Array = cards_val if typeof(cards_val) == TYPE_ARRAY else []
+		for c in cards:
+			var card_id := str(c)
+			if card_id == "":
+				continue
+			var def_val: Variant = _CARD_DB.get(card_id, null)
+			if typeof(def_val) != TYPE_DICTIONARY:
+				continue
+			_apply_card_effect(pid, card_id, def_val)
 
 	# Alternate priority each round.
 	_state["priority"] = other
 	_state["pending"] = {}
+	_state["pending_costs"] = {}
+	_state["round_done"] = {}
 	_check_game_over()
 	if str(_state.get("winner_id", "")) == "":
 		_start_round(_state)

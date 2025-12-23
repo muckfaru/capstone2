@@ -106,8 +106,8 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -260.0
-offset_top = 78.0
-offset_right = 260.0
+offset_top = -40.0
+offset_right = 258.0
 offset_bottom = 150.0
 grow_horizontal = 2
 
@@ -116,9 +116,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 19.0
+offset_top = -38.0
+offset_right = 7.0
+offset_bottom = -42.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = -60
 alignment = 1
 
 [node name="PlayerBars" type="VBoxContainer" parent="HUD"]
@@ -129,8 +133,8 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -360.0
-offset_top = -120.0
-offset_right = -24.0
+offset_top = -126.0
+offset_right = -65.0
 offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
@@ -228,14 +232,13 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -420.0
-offset_top = 24.0
-offset_right = 420.0
-offset_bottom = 54.0
+offset_left = -550.0
+offset_top = 82.0
+offset_right = -352.0
+offset_bottom = 112.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 14
 text = "Connecting…"
-horizontal_alignment = 1
 
 [node name="Table" type="Control" parent="HUD"]
 layout_mode = 1
@@ -266,26 +269,56 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 38.0
-offset_top = 161.0
+offset_left = 42.0
+offset_top = 91.0
 offset_right = 1.0
-offset_bottom = -119.0
+offset_bottom = -49.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 26
 
-[node name="DroppedCards" type="HBoxContainer" parent="HUD/Table/PlayZone/ZoneVBox"]
-custom_minimum_size = Vector2(0, 160)
+[node name="DroppedCards" type="VBoxContainer" parent="HUD/Table/PlayZone/ZoneVBox"]
+custom_minimum_size = Vector2(0, 340)
 layout_mode = 2
-theme_override_constants/separation = 26
+theme_override_constants/separation = 10
 alignment = 1
 
-[node name="OppDroppedCard" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards"]
+[node name="OppDroppedRow" type="HBoxContainer" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="OppDropped1" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards/OppDroppedRow"]
 custom_minimum_size = Vector2(110, 160)
 layout_mode = 2
 stretch_mode = 5
 
-[node name="YouDroppedCard" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards"]
+[node name="OppDropped2" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards/OppDroppedRow"]
+custom_minimum_size = Vector2(110, 160)
+layout_mode = 2
+stretch_mode = 5
+
+[node name="OppDropped3" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards/OppDroppedRow"]
+custom_minimum_size = Vector2(110, 160)
+layout_mode = 2
+stretch_mode = 5
+
+[node name="YouDroppedRow" type="HBoxContainer" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="YouDropped1" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards/YouDroppedRow"]
+custom_minimum_size = Vector2(110, 160)
+layout_mode = 2
+stretch_mode = 5
+
+[node name="YouDropped2" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards/YouDroppedRow"]
+custom_minimum_size = Vector2(110, 160)
+layout_mode = 2
+stretch_mode = 5
+
+[node name="YouDropped3" type="TextureRect" parent="HUD/Table/PlayZone/ZoneVBox/DroppedCards/YouDroppedRow"]
 custom_minimum_size = Vector2(110, 160)
 layout_mode = 2
 stretch_mode = 5
@@ -297,10 +330,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -420.0
-offset_top = -210.0
-offset_right = 420.0
-offset_bottom = -20.0
+offset_left = -336.0
+offset_top = -168.0
+offset_right = 356.0
+offset_bottom = 18.0
 grow_horizontal = 2
 grow_vertical = 0
 
@@ -309,11 +342,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 25.0
-offset_right = 25.0
+offset_left = 72.0
+offset_top = 23.0
+offset_right = -114.0
+offset_bottom = 23.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = -60
 alignment = 1
 
 [node name="ChatPanel" parent="HUD" instance=ExtResource("4")]
@@ -321,8 +356,8 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 34.0
+offset_left = 61.0
 offset_top = -253.0
-offset_right = 361.0
+offset_right = 388.0
 offset_bottom = -40.0
 grow_vertical = 0
