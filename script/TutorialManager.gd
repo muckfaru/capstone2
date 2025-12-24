@@ -33,7 +33,7 @@ var completed_tutorials: Dictionary = {}
 var total_xp: int = 0
 var unlocked_games: Array[String] = ["akashic_tcg"]  # TCG always unlocked
 var data_has_loaded: bool = false  # Track if Firestore data has been loaded
-
+var pending_rank_up: Dictionary = {}
 signal xp_updated(new_xp: int)
 signal game_unlocked(game_name: String)
 signal rank_up(new_rank: Dictionary)
@@ -88,76 +88,92 @@ func get_rank(xp: int = -1) -> Dictionary:
 # SAVE TUTORIAL RESULT
 # -------------------------
 func save_tutorial_result(tutorial_id: String, score: int, max_score: int) -> void:
-	print("[TutorialManager] ========== SAVE TUTORIAL RESULT ==========")
-	print("[TutorialManager] Tutorial ID: %s" % tutorial_id)
-	print("[TutorialManager] Score: %d / %d" % [score, max_score])
-	
-	# Check if already completed
-	if completed_tutorials.has(tutorial_id):
-		print("[TutorialManager] ⚠️ Tutorial already completed! No XP awarded.")
-		var existing = completed_tutorials[tutorial_id]
-		print("[TutorialManager] Previous: %.1f%% | New: %.1f%%" % [existing["percentage"], (float(score) / float(max_score)) * 100.0])
-		save_completed.emit()
-		return
-	
-	var percentage: float = (float(score) / float(max_score)) * 100.0
-	var passed: bool = percentage >= 70.0
-	var xp_earned: int = 0
-	
-	print("[TutorialManager] Percentage: %.1f%% | Passed: %s" % [percentage, "YES" if passed else "NO"])
-	
-	# Calculate XP based on performance (more generous)
-	if percentage >= 90.0:
-		xp_earned = 200  # Excellent (A)
-	elif percentage >= 80.0:
-		xp_earned = 150  # Good (B)
-	elif percentage >= 70.0:
-		xp_earned = 100  # Pass (C)
-	elif percentage >= 50.0:
-		xp_earned = 50   # Below passing, but attempted (D)
-	else:
-		xp_earned = 0    # Failed (F)
-	
-	print("📊 Tutorial Result: %s | Score: %d/%d (%.1f%%) | XP: +%d" % [tutorial_id, score, max_score, percentage, xp_earned])
-	
-	# Get old rank before XP increase
-	var old_rank := get_rank(total_xp)
-	
-	# Update local cache
-	completed_tutorials[tutorial_id] = {
-		"score": score,
-		"max_score": max_score,
-		"percentage": percentage,
-		"passed": passed,
-		"xp_earned": xp_earned,
-		"timestamp": Time.get_unix_time_from_system()
-	}
-	
-	total_xp += xp_earned
-	
-	# ✅ DEFER signal emission to prevent UI conflicts
-	call_deferred("_emit_xp_update", total_xp)
-	
-	# Get new rank and check for rank up
-	var new_rank := get_rank(total_xp)
-	if new_rank["name"] != old_rank["name"]:
-		call_deferred("_emit_rank_up", new_rank)
-		print("🎉 RANK UP! %s → %s %s" % [old_rank["name"], new_rank["icon"], new_rank["name"]])
-	
-	# Check for game unlocks
-	_check_game_unlocks()
-	
-	# Save to Firestore
-	_save_to_firestore()
+		print("[TutorialManager] ========== SAVE TUTORIAL RESULT ==========")
+		print("[TutorialManager] Tutorial ID: %s" % tutorial_id)
+		print("[TutorialManager] Score: %d / %d" % [score, max_score])
+		
+		# Check if already completed
+		if completed_tutorials.has(tutorial_id):
+			print("[TutorialManager] ⚠️ Tutorial already completed! No XP awarded.")
+			save_completed.emit()
+			return
+		
+		var percentage: float = (float(score) / float(max_score)) * 100.0
+		var passed: bool = percentage >= 70.0
+		var xp_earned: int = 0
+		
+		# Calculate XP based on performance
+		if percentage >= 90.0:
+			xp_earned = 200
+		elif percentage >= 80.0:
+			xp_earned = 150
+		elif percentage >= 70.0:
+			xp_earned = 100
+		elif percentage >= 50.0:
+			xp_earned = 50
+		else:
+			xp_earned = 0
+		
+		print("📊 Tutorial Result: %s | Score: %d/%d (%.1f%%) | XP: +%d" % [tutorial_id, score, max_score, percentage, xp_earned])
+		
+		# ✅ Get old rank BEFORE adding XP
+		var old_rank := get_rank(total_xp)
+		print("[TutorialManager] Old rank: %s (XP: %d)" % [old_rank["name"], total_xp])
+		
+		# Update local cache
+		completed_tutorials[tutorial_id] = {
+			"score": score,
+			"max_score": max_score,
+			"percentage": percentage,
+			"passed": passed,
+			"xp_earned": xp_earned,
+			"timestamp": Time.get_unix_time_from_system()
+		}
+		
+		# ✅ Add XP
+		total_xp += xp_earned
+		print("[TutorialManager] New XP: %d (+%d)" % [total_xp, xp_earned])
+		
+		# ✅ Check for rank up
+		var new_rank := get_rank(total_xp)
+		print("[TutorialManager] New rank: %s" % new_rank["name"])
+		
+		if new_rank["name"] != old_rank["name"]:
+			print("[TutorialManager] 🎉 RANK UP DETECTED! %s → %s" % [old_rank["name"], new_rank["name"]])
+			
+			# ✅ STORE the rank-up to show later
+			pending_rank_up = {
+				"old_rank": old_rank,
+				"new_rank": new_rank,
+				"timestamp": Time.get_unix_time_from_system()
+			}
+			print("[TutorialManager] ✅ Rank-up stored in pending_rank_up")
+		
+		# Emit XP update signal for UI
+		xp_updated.emit(total_xp)
+		
+		# Check for game unlocks
+		_check_game_unlocks()
+		
+		# Save to Firestore
+		_save_to_firestore()
 
 
-# ✅ NEW: Deferred signal emitters to prevent conflicts
-func _emit_xp_update(xp: int) -> void:
-	xp_updated.emit(xp)
-
-func _emit_rank_up(rank: Dictionary) -> void:
-	rank_up.emit(rank)
-
+func check_pending_rank_up() -> Dictionary:
+		"""Check if there's a pending rank-up notification to show"""
+		if pending_rank_up.is_empty():
+			print("[TutorialManager] No pending rank-up")
+			return {}
+		
+		print("[TutorialManager] ✅ Found pending rank-up: %s → %s" % [
+			pending_rank_up["old_rank"]["name"], 
+			pending_rank_up["new_rank"]["name"]
+		])
+		
+		# Return and clear
+		var result = pending_rank_up.duplicate()
+		pending_rank_up = {}  # Clear it
+		return result
 
 # -------------------------
 # CHECK GAME UNLOCKS

@@ -1,0 +1,128 @@
+[gd_scene load_steps=2 format=3 uid="uid://c3cxkmn57gr32"]
+
+[ext_resource type="Script" uid="uid://tckymq2pfawg" path="res://script/rank_up_notification.gd" id="1_udmhd"]
+
+[node name="RankUpNotification" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_udmhd")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.4)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="CenterContainer"]
+custom_minimum_size = Vector2(650, 600)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 30
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+size_flags_vertical = 0
+text = "Congratulations For Reaching"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RankIconContainer" type="CenterContainer" parent="CenterContainer/Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RankIcon" type="TextureRect" parent="CenterContainer/Panel/MarginContainer/VBoxContainer/RankIconContainer"]
+custom_minimum_size = Vector2(180, 180)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RankNameLabel" type="Label" parent="CenterContainer/Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+size_flags_vertical = 0
+text = "BRONZE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MessageLabel" type="Label" parent="CenterContainer/Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_vertical = 0
+text = "🚀 Next Level Unlocked!"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="RewardsContainer" type="HBoxContainer" parent="CenterContainer/Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="ProgressContainer" type="VBoxContainer" parent="CenterContainer/Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="CenterContainer/Panel/MarginContainer/VBoxContainer/ProgressContainer"]
+custom_minimum_size = Vector2(500, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+show_percentage = false
+
+[node name="ProgressLabel" type="Label" parent="CenterContainer/Panel/MarginContainer/VBoxContainer/ProgressContainer"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+text = "Progress to next rank: 0%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CloseHint" type="Label" parent="CenterContainer/Panel/MarginContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_vertical = 8
+text = "click anywhere to continue"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SFX_RankUp" type="AudioStreamPlayer" parent="."]
+volume_db = -3.0
+
+[node name="SFX_CoinFlip" type="AudioStreamPlayer" parent="."]
+volume_db = -5.0
+
+[node name="SFX_Particles" type="AudioStreamPlayer" parent="."]
+volume_db = -8.0
+
+[node name="SFX_Reveal" type="AudioStreamPlayer" parent="."]
+volume_db = -6.0
