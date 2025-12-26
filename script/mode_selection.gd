@@ -35,46 +35,47 @@ const TUTORIAL_METADATA := {
 }
 
 func _ready() -> void:
-	# Verify auth state
-	if Auth.current_local_id == "" or Auth.current_id_token == "":
-		push_error("❌ No auth state! Redirecting to login...")
-		get_tree().change_scene_to_file("res://scene/login.tscn")
-		return
-	
-	print("✅ Mode Selection Ready | UID:", Auth.current_local_id)
-	
-	# Setup UI elements first
-	_setup_ui_elements()
-	_setup_smooth_video_loop()
-	
-	# Connect to data_loaded signal BEFORE loading data
-	if not TutorialManager.data_loaded.is_connected(_update_xp_display):
-		TutorialManager.data_loaded.connect(_update_xp_display)
-	
-	# Load TutorialManager data if not already loaded
-	if not TutorialManager.data_has_loaded:
-		print("[ModeSelection] TutorialManager data not loaded yet, loading now...")
-		TutorialManager.load_user_data()
-	else:
-		print("[ModeSelection] TutorialManager already has data (XP: %d)" % TutorialManager.total_xp)
-		# Update display immediately since data is already loaded
-		call_deferred("_update_xp_display")
+		# Verify auth state
+		if Auth.current_local_id == "" or Auth.current_id_token == "":
+			push_error("❌ No auth state! Redirecting to login...")
+			get_tree().change_scene_to_file("res://scene/login.tscn")
+			return
 		
-	# Connect back button
-	if back_btn:
-		back_btn.pressed.connect(_on_back_pressed)
-	
-	# Animate entrance
-	_animate_entrance()
-	
-	# Animate entrance
-	_animate_entrance()
-
-	var bgm = $BackgroundMusic
-	if bgm:
-		bgm.volume_db = -80  # Start silent
-		var tween = create_tween()
-		tween.tween_property(bgm, "volume_db", -10, 2.0)
+		print("[ModeSelection] ========== MODE SELECTION READY ==========")
+		print("[ModeSelection] ✅ Mode Selection Ready | UID:", Auth.current_local_id)
+		
+		# Setup UI elements first
+		_setup_ui_elements()
+		_setup_smooth_video_loop()
+		
+		# Connect signals
+		if not TutorialManager.data_loaded.is_connected(_update_xp_display):
+			TutorialManager.data_loaded.connect(_update_xp_display)
+		
+		# Load TutorialManager data if not already loaded
+		if not TutorialManager.data_has_loaded:
+			print("[ModeSelection] TutorialManager data not loaded yet, loading now...")
+			TutorialManager.load_user_data()
+		else:
+			print("[ModeSelection] TutorialManager already has data (XP: %d)" % TutorialManager.total_xp)
+			call_deferred("_update_xp_display")
+		
+		# Connect back button
+		if back_btn:
+			back_btn.pressed.connect(_on_back_pressed)
+		
+		# Animate entrance
+		_animate_entrance()
+		
+		# Background music
+		var bgm = $BackgroundMusic
+		if bgm:
+			bgm.volume_db = -80
+			var tween = create_tween()
+			tween.tween_property(bgm, "volume_db", -10, 2.0)
+		
+		# ✅ CHECK FOR PENDING RANK-UP (after scene is loaded)
+		call_deferred("_check_and_show_rank_up")
 
 func _fade_out_music_and_transition(scene_path: String) -> void:
 	var bgm = $BackgroundMusic
@@ -1015,3 +1016,86 @@ func _on_profile_pressed() -> void:
 # -------------------------
 func _on_back_pressed() -> void:
 		_fade_out_music_and_transition("res://scene/landing.tscn")
+
+func _on_rank_up(new_rank: Dictionary) -> void:
+	print("[ModeSelection] 🏆 RANK UP SIGNAL RECEIVED! %s %s" % [new_rank["icon"], new_rank["name"]])
+	
+	# Find old rank
+	var old_rank: Dictionary = TutorialManager.RANK_THRESHOLDS[0]
+	for i in range(TutorialManager.RANK_THRESHOLDS.size()):
+		if TutorialManager.RANK_THRESHOLDS[i]["name"] == new_rank["name"] and i > 0:
+			old_rank = TutorialManager.RANK_THRESHOLDS[i - 1]
+			break
+	
+	print("[ModeSelection] Old rank: %s, New rank: %s" % [old_rank["name"], new_rank["name"]])
+	
+	# Wait a frame to ensure scene is fully loaded
+	await get_tree().process_frame
+	
+	var notification_scene = load("res://scene/rank_up_notification.tscn")
+	if not notification_scene:
+		push_error("[ModeSelection] ❌ Failed to load rank_up_notification.tscn")
+		return
+	
+	var notification = notification_scene.instantiate()
+	
+	# ✅ Simply add to scene tree - CanvasLayer handles everything
+	add_child(notification)
+	
+	print("[ModeSelection] ✅ Notification instantiated and added to tree")
+	
+	# Show the notification
+	notification.show_rank_up(old_rank, new_rank)
+	
+	# Wait for it to close
+	await notification.notification_closed
+	print("[ModeSelection] ✅ Rank-up notification closed")
+
+
+
+	# ✅ TEST FUNCTION - Press F9 to test rank-up notification
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F9:
+		print("[TEST] Manually triggering rank-up notification...")
+		var test_old_rank = TutorialManager.RANK_THRESHOLDS[0]  # Iron
+		var test_new_rank = TutorialManager.RANK_THRESHOLDS[1]  # Bronze
+		_on_rank_up(test_new_rank)
+
+
+# ✅ NEW: Check for pending rank-up and show notification
+func _check_and_show_rank_up() -> void:
+	print("[ModeSelection] ========== CHECKING FOR PENDING RANK-UP ==========")
+	
+	var rank_up_data = TutorialManager.check_pending_rank_up()
+	
+	if rank_up_data.is_empty():
+		print("[ModeSelection] No pending rank-up to show")
+		return
+	
+	var old_rank: Dictionary = rank_up_data["old_rank"]
+	var new_rank: Dictionary = rank_up_data["new_rank"]
+	
+	print("[ModeSelection] 🎉 SHOWING RANK-UP: %s → %s" % [old_rank["name"], new_rank["name"]])
+	
+	# Wait a moment for scene to fully settle
+	await get_tree().create_timer(0.5).timeout
+	
+	# Load and show notification
+	var notification_scene = load("res://scene/rank_up_notification.tscn")
+	if not notification_scene:
+		push_error("[ModeSelection] ❌ Failed to load rank_up_notification.tscn")
+		return
+	
+	var notification = notification_scene.instantiate()
+	
+	# ✅ Simply add to scene tree - CanvasLayer handles everything
+	add_child(notification)
+	
+	print("[ModeSelection] ✅ Notification added to tree, calling show_rank_up()")
+	
+	# Show the notification
+	notification.show_rank_up(old_rank, new_rank)
+	
+	# Wait for it to close
+	await notification.notification_closed
+	print("[ModeSelection] ✅ Rank-up notification closed")

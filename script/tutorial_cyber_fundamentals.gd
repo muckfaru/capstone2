@@ -601,7 +601,6 @@ func _on_next_pressed() -> void:
 		Section.COMPLETE:
 			print("[TUTORIAL] FINISH button pressed!")
 			print("[TUTORIAL] Quiz Score: %d/%d" % [score, quiz_questions.size()])
-			print("[TUTORIAL] Calculated Score: %d / Max: %d" % [score * 50, quiz_questions.size() * 50])
 			
 			# Save tutorial result
 			var tutorial_mgr = get_node("/root/TutorialManager")
@@ -609,14 +608,19 @@ func _on_next_pressed() -> void:
 				print("[TUTORIAL] TutorialManager found, saving result...")
 				tutorial_mgr.save_tutorial_result("beginner_fundamentals", score * 50, quiz_questions.size() * 50)
 				
-				# Wait for Firestore save to complete before navigating
+				# ✅ CRITICAL: Wait for save AND let signals process
 				print("[TUTORIAL] Waiting for Firestore save to complete...")
 				await tutorial_mgr.save_completed
-				print("[TUTORIAL] Save confirmed, navigating to landing...")
+				print("[TUTORIAL] Save confirmed!")
+				
+				# ✅ NEW: Wait 2 frames to let deferred signals fire
+				await get_tree().process_frame
+				await get_tree().process_frame
+				print("[TUTORIAL] Signals processed, navigating...")
 			else:
 				push_error("[TUTORIAL] TutorialManager not found!")
 			
-			# Return to landing page
+			# Return to mode selection
 			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 

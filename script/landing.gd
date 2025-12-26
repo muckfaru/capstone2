@@ -2200,17 +2200,24 @@ func _on_xp_updated(new_xp: int) -> void:
 func _on_rank_up(new_rank: Dictionary) -> void:
 	print("🏆 RANK UP! %s %s" % [new_rank["icon"], new_rank["name"]])
 	
-	# ✅ Wait a frame to avoid dialog conflicts
+	# Find old rank
+	var old_rank: Dictionary = TutorialManager.RANK_THRESHOLDS[0]
+	for i in range(TutorialManager.RANK_THRESHOLDS.size()):
+		if TutorialManager.RANK_THRESHOLDS[i]["name"] == new_rank["name"] and i > 0:
+			old_rank = TutorialManager.RANK_THRESHOLDS[i - 1]
+			break
+	
 	await get_tree().process_frame
 	
-	var dialog := AcceptDialog.new()
-	dialog.title = "RANK UP!"
-	dialog.dialog_text = "Congratulations!\n\nYou've been promoted to:\n%s %s\n\nKeep completing tutorials to climb higher!" % [new_rank["icon"], new_rank["name"]]
-	dialog.min_size = Vector2(300, 200)
-	dialog.exclusive = false  # ✅ Allow other windows
-	add_child(dialog)
-	dialog.popup_centered()
-	dialog.confirmed.connect(func(): dialog.queue_free(), CONNECT_ONE_SHOT)
+	var notification_scene = load("res://scene/rank_up_notification.tscn")
+	if notification_scene:
+		var notification = notification_scene.instantiate()
+		add_child(notification)
+		notification.show_rank_up(old_rank, new_rank)
+		await notification.notification_closed
+		print("[Landing] ✅ Rank-up notification closed")
+	else:
+		push_error("[Landing] ❌ Failed to load rank_up_notification.tscn")
 
 
 # === Load avatars from folder ===
