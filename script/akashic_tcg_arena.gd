@@ -16,7 +16,109 @@ const _CardView = preload("res://script/AkashicTCGCardView.gd")
 @onready var _sidebar_opp_name: Label = $HUD/Sidebar/OppName
 @onready var _sidebar_you_name: Label = $HUD/Sidebar/YouName
 @onready var _timer_label: Label = $HUD/Sidebar/TimerLabel
+@onready var _countdown_label: Label = $HUD/CountdownLabel
 @onready var _end_turn_btn: Button = $HUD/PlayerBars/EndTurnButton
+@onready var _arena_chat: Panel = $HUD/ArenaChat
+@onready var _arena_chat_header: Panel = $HUD/ArenaChat/VBoxContainer/Header
+@onready var _arena_chat_scroll: ScrollContainer = $HUD/ArenaChat/VBoxContainer/ScrollContainer
+@onready var _arena_chat_messages: VBoxContainer = $HUD/ArenaChat/VBoxContainer/ScrollContainer/VBoxContainer
+@onready var _arena_chat_input: LineEdit = $HUD/ArenaChat/VBoxContainer/HBoxContainer/LineEdit
+@onready var _arena_chat_send_btn: Button = $HUD/ArenaChat/VBoxContainer/HBoxContainer/SendButton
+@onready var _arena_chat_min_btn: Button = $HUD/ArenaChat/VBoxContainer/Header/HeaderHBox/MinButton
+@onready var _arena_chat_close_btn: Button = $HUD/ArenaChat/VBoxContainer/Header/HeaderHBox/CloseButton
+
+const _ARENA_CHAT_MAX_LINES := 60
+
+var _arena_chat_collapsed: bool = false
+var _arena_chat_saved_size: Vector2 = Vector2.ZERO
+
+var _arena_chat_dragging: bool = false
+var _arena_chat_drag_offset: Vector2 = Vector2.ZERO
+
+var _arena_chat_default_pos: Vector2 = Vector2.ZERO
+
+var _start_countdown_started: bool = false
+var _start_countdown_active: bool = false
+
+var _match_timer: Timer = null
+var _match_timer_started: bool = false
+var _match_start_msec: int = 0
+
+func _ensure_match_timer() -> void:
+	if _match_timer != null and is_instance_valid(_match_timer):
+		return
+	_match_timer = Timer.new()
+	_match_timer.wait_time = 0.25
+	_match_timer.one_shot = false
+	_match_timer.autostart = false
+	_match_timer.timeout.connect(_on_match_timer_tick)
+	add_child(_match_timer)
+
+func _start_match_timer() -> void:
+	if _match_timer_started:
+		return
+	_match_timer_started = true
+	_match_start_msec = Time.get_ticks_msec()
+	_set_timer_display(0)
+	_ensure_match_timer()
+	if _match_timer != null:
+		_match_timer.start()
+
+func _on_match_timer_tick() -> void:
+	if not _match_timer_started:
+		return
+	var elapsed_msec: int = maxi(0, Time.get_ticks_msec() - _match_start_msec)
+	var elapsed_sec: int = int(elapsed_msec / 1000.0)
+	_set_timer_display(elapsed_sec)
+
+func _run_start_countdown() -> void:
+	if _start_countdown_started:
+		return
+	_start_countdown_started = true
+	_start_countdown_active = true
+
+	if _end_turn_btn != null:
+		_end_turn_btn.disabled = true
+
+	if _countdown_label != null:
+		_countdown_label.visible = true
+		_countdown_label.text = "3"
+	await get_tree().create_timer(1.0).timeout
+	if not is_inside_tree():
+		return
+
+	if _countdown_label != null:
+		_countdown_label.text = "2"
+	await get_tree().create_timer(1.0).timeout
+	if not is_inside_tree():
+		return
+
+	if _countdown_label != null:
+		_countdown_label.text = "1"
+	await get_tree().create_timer(1.0).timeout
+	if not is_inside_tree():
+		return
+
+	if _countdown_label != null:
+		_countdown_label.text = "START"
+	await get_tree().create_timer(0.7).timeout
+	if not is_inside_tree():
+		return
+
+	if _countdown_label != null:
+		_countdown_label.visible = false
+
+	_start_countdown_active = false
+	_start_match_timer()
+	_render()
+
+func _set_timer_display(total_seconds: int) -> void:
+	if _timer_label == null:
+		return
+	var s: int = maxi(0, total_seconds)
+	var m: int = int(s / 60.0)
+	var sec: int = s % 60
+	_timer_label.text = "%02d\n..\n%02d" % [m, sec]
 
 @onready var _play_zone: Panel = $HUD/Table/PlayZone
 @onready var _hand_hbox: HBoxContainer = $HUD/HandArea/HandHBox
@@ -41,6 +143,7 @@ const MAX_BW := 10
 const MAX_LOG_LINES := 6
 
 const CARD_VIEW_SIZE := Vector2(110, 160)
+const HAND_CARD_VIEW_SIZE := Vector2(140, 200)
 
 const REVEAL_DELAY_SEC := 0.7
 const FLIP_HALF_SEC := 0.12
@@ -110,6 +213,9 @@ func _ready() -> void:
 		get_tree().set_meta("tgc_arena_init", null)
 
 	_room_id = str(init.get("room_id", ""))
+	if _room_id.strip_edges() == "":
+		var sess := _TGCSess.load_session()
+		_room_id = str(sess.get("room_id", ""))
 	_relay_client = init.get("relay_client", null)
 	_player_id = str(init.get("player_id", ""))
 	_is_host = bool(init.get("is_host", false))
@@ -122,7 +228,8 @@ func _ready() -> void:
 
 	_sidebar_opp_name.text = _name_for(_other_player(_player_id))
 	_sidebar_you_name.text = _name_for(_player_id)
-	_timer_label.text = "01:53"
+	_init_arena_chat()
+	_set_timer_display(0)
 
 	var username: String = Auth.current_username if Auth else "Player"
 	_TGCSess.save_session(_room_id, _lobby_server_url, _player_id, username, "arena")
@@ -164,6 +271,170 @@ func _ready() -> void:
 	else:
 		_request_state()
 	_render()
+	_run_start_countdown()
+
+
+func _init_arena_chat() -> void:
+	if _arena_chat == null:
+		return
+	# Capture the default position once (for snap-back behavior).
+	if _arena_chat_default_pos == Vector2.ZERO:
+		_arena_chat_default_pos = _arena_chat.global_position
+	# Keep it on top like the old ChatPanel.
+	_arena_chat.visible = true
+	_arena_chat.top_level = true
+	_arena_chat.z_index = 1000
+	# Draggable header.
+	if _arena_chat_header and not _arena_chat_header.gui_input.is_connected(_on_arena_chat_header_gui_input):
+		_arena_chat_header.gui_input.connect(_on_arena_chat_header_gui_input)
+	# Wire input events.
+	if _arena_chat_send_btn and not _arena_chat_send_btn.pressed.is_connected(_on_arena_chat_send_pressed):
+		_arena_chat_send_btn.pressed.connect(_on_arena_chat_send_pressed)
+	if _arena_chat_input and not _arena_chat_input.text_submitted.is_connected(_on_arena_chat_text_submitted):
+		_arena_chat_input.text_submitted.connect(_on_arena_chat_text_submitted)
+	if _arena_chat_min_btn and not _arena_chat_min_btn.pressed.is_connected(_on_arena_chat_min_pressed):
+		_arena_chat_min_btn.pressed.connect(_on_arena_chat_min_pressed)
+	if _arena_chat_close_btn and not _arena_chat_close_btn.pressed.is_connected(_on_arena_chat_close_pressed):
+		_arena_chat_close_btn.pressed.connect(_on_arena_chat_close_pressed)
+	# Small hint so you can see it's alive.
+	_append_arena_chat_line("SYSTEM", "Chat ready")
+
+
+func _on_arena_chat_header_gui_input(event: InputEvent) -> void:
+	if _arena_chat == null:
+		return
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index != MOUSE_BUTTON_LEFT:
+			return
+		if mb.pressed:
+			# Don't start dragging if clicking the control buttons.
+			var mouse_pos := get_viewport().get_mouse_position()
+			if _arena_chat_min_btn and _arena_chat_min_btn.get_global_rect().has_point(mouse_pos):
+				return
+			if _arena_chat_close_btn and _arena_chat_close_btn.get_global_rect().has_point(mouse_pos):
+				return
+			_arena_chat_dragging = true
+			_arena_chat_drag_offset = mouse_pos - _arena_chat.global_position
+			accept_event()
+		else:
+			_arena_chat_dragging = false
+			accept_event()
+	elif event is InputEventMouseMotion and _arena_chat_dragging:
+		var motion := event as InputEventMouseMotion
+		var new_pos := motion.position - _arena_chat_drag_offset
+		# Clamp to viewport bounds.
+		var vp := get_viewport_rect().size
+		new_pos.x = clamp(new_pos.x, 0.0, max(0.0, vp.x - _arena_chat.size.x))
+		new_pos.y = clamp(new_pos.y, 0.0, max(0.0, vp.y - _arena_chat.size.y))
+		_arena_chat.global_position = new_pos
+		accept_event()
+
+
+func _on_arena_chat_close_pressed() -> void:
+	if _arena_chat == null:
+		return
+	# Snap back to default position for next open.
+	_reset_arena_chat_position()
+	_arena_chat.visible = false
+
+
+func _reset_arena_chat_position() -> void:
+	if _arena_chat == null:
+		return
+	if _arena_chat_default_pos != Vector2.ZERO:
+		_arena_chat.global_position = _arena_chat_default_pos
+	# Reset collapse so next open is fully usable.
+	_arena_chat_collapsed = false
+	_apply_arena_chat_collapsed_state()
+
+
+func _on_arena_chat_min_pressed() -> void:
+	_arena_chat_collapsed = not _arena_chat_collapsed
+	_apply_arena_chat_collapsed_state()
+
+
+func _apply_arena_chat_collapsed_state() -> void:
+	if _arena_chat == null:
+		return
+	if _arena_chat_scroll == null or _arena_chat_input == null or _arena_chat_send_btn == null:
+		return
+	var input_row := _arena_chat_input.get_parent()
+	if _arena_chat_collapsed:
+		if _arena_chat_saved_size == Vector2.ZERO:
+			_arena_chat_saved_size = _arena_chat.size
+		_arena_chat_scroll.visible = false
+		if input_row and "visible" in input_row:
+			input_row.visible = false
+		var header_h: float = 34.0
+		if _arena_chat_header != null:
+			header_h = max(header_h, _arena_chat_header.size.y)
+		_arena_chat.size = Vector2(_arena_chat.size.x, header_h)
+		if _arena_chat_min_btn != null:
+			_arena_chat_min_btn.text = "+"
+	else:
+		_arena_chat_scroll.visible = true
+		if input_row and "visible" in input_row:
+			input_row.visible = true
+		if _arena_chat_saved_size != Vector2.ZERO:
+			_arena_chat.size = _arena_chat_saved_size
+		if _arena_chat_min_btn != null:
+			_arena_chat_min_btn.text = "_"
+
+
+func _on_arena_chat_send_pressed() -> void:
+	if _arena_chat_input == null:
+		return
+	_send_arena_chat(_arena_chat_input.text)
+
+
+func _on_arena_chat_text_submitted(text: String) -> void:
+	_send_arena_chat(text)
+
+
+func _send_arena_chat(text: String) -> void:
+	var clean := text.strip_edges()
+	if clean == "":
+		return
+	if _arena_chat_input != null:
+		_arena_chat_input.text = ""
+	var username: String = Auth.current_username if Auth else "Player"
+	_append_arena_chat_line(username, clean)
+	if _relay_client == null:
+		return
+	_relay_client.send_message({
+		"type": "tgc_chat",
+		"sender": _player_id,
+		"username": username,
+		"text": clean,
+		"timestamp": Time.get_ticks_msec(),
+	})
+
+
+func _append_arena_chat_line(user: String, text: String) -> void:
+	if _arena_chat_messages == null:
+		return
+	# Cap the list to avoid growing forever.
+	while _arena_chat_messages.get_child_count() >= _ARENA_CHAT_MAX_LINES:
+		var first := _arena_chat_messages.get_child(0)
+		if first:
+			first.queue_free()
+		else:
+			break
+	var label := Label.new()
+	label.text = "%s: %s" % [user, text]
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.clip_text = false
+	label.add_theme_font_size_override("font_size", 12)
+	_arena_chat_messages.add_child(label)
+	_scroll_arena_chat_to_bottom()
+
+
+func _scroll_arena_chat_to_bottom() -> void:
+	if _arena_chat_scroll == null:
+		return
+	await get_tree().process_frame
+	_arena_chat_scroll.scroll_vertical = int(_arena_chat_scroll.get_v_scroll_bar().max_value)
 
 func _setup_card_slot(slot: TextureRect) -> void:
 	if slot == null:
@@ -230,20 +501,50 @@ func _make_player_state(deck: Array) -> Dictionary:
 		"deck": deck,
 		"hand": [],
 		"discard": [],
+		"cards_used": [],
 		"status": {},
 		"recent_attack": [],
 		"recent_defense": [],
 		"backdoor_used_turn": -1,
 	}
 
+func _track_card_used_in_state(actor_id: String, card_id: String) -> void:
+	if not _is_host:
+		return
+	if _state.is_empty():
+		return
+	if card_id.strip_edges() == "":
+		return
+	var p_val: Variant = _state.get("players", {}).get(actor_id, {})
+	if typeof(p_val) != TYPE_DICTIONARY:
+		return
+	var p: Dictionary = p_val
+	var used_val: Variant = p.get("cards_used", [])
+	var used: Array = used_val if typeof(used_val) == TYPE_ARRAY else []
+	used.append(card_id)
+	p["cards_used"] = used
+	_state["players"][actor_id] = p
+
+func _cards_used_from_state(pid: String) -> Array:
+	var p_val: Variant = _state.get("players", {}).get(pid, {})
+	if typeof(p_val) != TYPE_DICTIONARY:
+		return []
+	var p: Dictionary = p_val
+	var used_val: Variant = p.get("cards_used", [])
+	return used_val if typeof(used_val) == TYPE_ARRAY else []
+
 func _make_start_deck() -> Array:
-	# Starter deck (16 cards): 2x of everything except DOS/DDOS
+	# Starter deck (25 cards)
+	# Defense (2 each): MFA, Antivirus, Encryption, Firewall Shield, IDS
+	# Attack (3 each): Phishing, DOS, DDOS, Virus, Trojan Horse
 	var deck: Array = []
-	var starter_ids := [
-		"mfa", "antivirus", "encryption", "firewall", "ids",
-		"phishing", "virus", "trojan",
-	]
-	for id in starter_ids:
+	var defensive_ids := ["mfa", "antivirus", "encryption", "firewall", "ids"]
+	var attacking_ids := ["phishing", "dos", "ddos", "virus", "trojan"]
+	for id in defensive_ids:
+		deck.append(id)
+		deck.append(id)
+	for id in attacking_ids:
+		deck.append(id)
 		deck.append(id)
 		deck.append(id)
 	return deck
@@ -311,7 +612,33 @@ func _draw_card(state: Dictionary, pid: String) -> void:
 	if deck.is_empty():
 		return
 	var hand: Array = p.get("hand", [])
-	var card_id: String = str(deck.pop_back())
+	var turns_taken: int = int(p.get("turns_taken", 0))
+
+	# Gate mid/late-game cards so they don't appear too early.
+	# DOS unlocks at turn 4, DDOS unlocks at turn 6 (host-authoritative).
+	var card_id: String = ""
+	var drew: bool = false
+	var attempts: int = mini(deck.size(), 32)
+	for _i in range(attempts):
+		if deck.is_empty():
+			break
+		var candidate: String = str(deck.pop_back())
+		var locked := (candidate == "dos" and turns_taken < 4) or (candidate == "ddos" and turns_taken < 6)
+		if locked:
+			# Put it back somewhere random so we can draw something else.
+			var insert_at: int = randi_range(0, deck.size())
+			deck.insert(insert_at, candidate)
+			continue
+		card_id = candidate
+		drew = true
+		break
+
+	# If everything left is locked, skip drawing this time.
+	if not drew:
+		p["deck"] = deck
+		state["players"][pid] = p
+		return
+
 	p["deck"] = deck
 	if hand.size() >= HAND_LIMIT:
 		var discard: Array = p.get("discard", [])
@@ -321,6 +648,7 @@ func _draw_card(state: Dictionary, pid: String) -> void:
 		return
 	hand.append(card_id)
 	p["hand"] = hand
+	state["players"][pid] = p
 
 func _append_log(state: Dictionary, text: String) -> void:
 	var arr: Array = state.get("log", [])
@@ -356,8 +684,8 @@ func _render() -> void:
 	var opp_cards_val: Variant = pending.get(opp_id, [])
 	var my_cards: Array = my_cards_val if typeof(my_cards_val) == TYPE_ARRAY else []
 	var opp_cards: Array = opp_cards_val if typeof(opp_cards_val) == TYPE_ARRAY else []
-	var my_submitted := my_cards.size() > 0
-	var opp_submitted := opp_cards.size() > 0
+	var _my_submitted := my_cards.size() > 0
+	var _opp_submitted := opp_cards.size() > 0
 	var winner := str(_state.get("winner_id", ""))
 	var over := winner != ""
 
@@ -616,6 +944,8 @@ func _render_hand(my: Dictionary, is_my_turn: bool, over: bool) -> void:
 		card.set_script(_CardView)
 		card.texture = _texture_for_id(card_id)
 		_setup_card_slot(card)
+		# Hand cards are intentionally larger than the center dropped slots.
+		card.custom_minimum_size = HAND_CARD_VIEW_SIZE
 		card.z_as_relative = true
 		card.z_index = i
 		card.tooltip_text = _tooltip_for_card(card_id)
@@ -642,6 +972,8 @@ func _render_hand(my: Dictionary, is_my_turn: bool, over: bool) -> void:
 
 
 func _on_hand_card_clicked(card_data: Dictionary) -> void:
+	if _start_countdown_active:
+		return
 	# Click-to-play: behaves like dropping the card into the play zone.
 	_on_play_zone_card_dropped(card_data)
 
@@ -662,6 +994,8 @@ func _can_afford_any_card(p: Dictionary) -> bool:
 	return false
 
 func _on_play_zone_card_dropped(card_data: Dictionary) -> void:
+	if _start_countdown_active:
+		return
 	var card_id := str(card_data.get("card_id", ""))
 	var idx := int(card_data.get("hand_index", -1))
 	if card_id == "" or idx < 0:
@@ -670,6 +1004,8 @@ func _on_play_zone_card_dropped(card_data: Dictionary) -> void:
 
 
 func _on_you_dropped_gui_input(event: InputEvent, slot_index: int) -> void:
+	if _start_countdown_active:
+		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index != MOUSE_BUTTON_LEFT or not mb.pressed:
@@ -700,6 +1036,8 @@ func _attempt_cancel_dropped_slot(slot_index: int) -> void:
 	_send_or_apply_action("cancel_card", {"slot_index": slot_index})
 
 func _on_end_turn_pressed() -> void:
+	if _start_countdown_active:
+		return
 	_send_or_apply_action("pass", {})
 
 
@@ -733,6 +1071,16 @@ func _on_relay_message(data: Dictionary) -> void:
 			if _is_host and _state.is_empty():
 				# Try again now that both may be present
 				_try_init_host_state_if_possible()
+		"tgc_chat":
+			var sender := str(data.get("sender", ""))
+			# The relay server does not echo to sender, but keep this guard anyway.
+			if sender == _player_id:
+				return
+			var user := str(data.get("username", "Opponent"))
+			var text := str(data.get("text", ""))
+			if text.strip_edges() == "":
+				return
+			_append_arena_chat_line(user, text)
 		"tgc_request_state":
 			if _is_host:
 				_broadcast_state_sync({"type": "state_response", "to": str(data.get("player_id", ""))})
@@ -752,7 +1100,7 @@ func _on_relay_message(data: Dictionary) -> void:
 		"tgc_action_reject":
 			_status.text = "Rejected: %s" % str(data.get("reason", "invalid"))
 		"tgc_match_end":
-			_transition_to_postgame(str(data.get("winner_id", "")), str(data.get("reason", "ended")))
+			_transition_to_postgame(str(data.get("winner_id", "")), str(data.get("reason", "ended")), int(data.get("timestamp", 0)))
 		"tgc_force_loading_sync":
 			_transition_to_loading("forced_resync")
 		_:
@@ -1127,10 +1475,15 @@ func _apply_start_of_turn_effects(state: Dictionary, pid: String) -> void:
 func _maybe_shuffle_packages(state: Dictionary, pid: String) -> void:
 	var p: Dictionary = state["players"][pid]
 	var turns_taken := int(p.get("turns_taken", 0))
+	var deck: Array = p.get("deck", [])
 	if turns_taken == 4:
-		_shuffle_in(state, pid, ["dos", "dos"], "Midgame package deployed")
+		# Legacy balancing: only add if DOS isn't already in the deck.
+		if deck.count("dos") == 0:
+			_shuffle_in(state, pid, ["dos", "dos"], "Midgame package deployed")
 	elif turns_taken == 6:
-		_shuffle_in(state, pid, ["ddos", "ddos"], "Lategame package deployed")
+		# Legacy balancing: only add if DDOS isn't already in the deck.
+		if deck.count("ddos") == 0:
+			_shuffle_in(state, pid, ["ddos", "ddos"], "Lategame package deployed")
 
 func _shuffle_in(state: Dictionary, pid: String, cards: Array, msg: String) -> void:
 	var p: Dictionary = state["players"][pid]
@@ -1155,6 +1508,7 @@ func _apply_card_effect(actor_id: String, card_id: String, def: Dictionary) -> v
 		_apply_defense(actor_id, card_id)
 	else:
 		_apply_attack(actor_id, card_id)
+	_track_card_used_in_state(actor_id, card_id)
 
 func _apply_defense(actor_id: String, card_id: String) -> void:
 	var p: Dictionary = _state["players"][actor_id]
@@ -1283,10 +1637,12 @@ func _apply_attack(actor_id: String, card_id: String) -> void:
 	_state["players"][actor_id] = attacker
 	_state["players"][defender_id] = defender
 
+
 func _finish_match_host(winner_id: String, reason: String) -> void:
+	var ended_at_unix: int = int(Time.get_unix_time_from_system())
 	await _post_room_status("finished")
-	_broadcast_match_end(winner_id, reason)
-	_transition_to_postgame(winner_id, reason)
+	_broadcast_match_end(winner_id, reason, ended_at_unix)
+	_transition_to_postgame(winner_id, reason, ended_at_unix)
 
 func _broadcast_state_sync(meta: Dictionary) -> void:
 	if _relay_client == null:
@@ -1300,7 +1656,7 @@ func _broadcast_state_sync(meta: Dictionary) -> void:
 	}
 	_relay_client.send_message(payload)
 
-func _broadcast_match_end(winner_id: String, reason: String) -> void:
+func _broadcast_match_end(winner_id: String, reason: String, ended_at_unix: int) -> void:
 	if _relay_client == null:
 		return
 	_relay_client.send_message({
@@ -1308,7 +1664,7 @@ func _broadcast_match_end(winner_id: String, reason: String) -> void:
 		"room_id": _room_id,
 		"winner_id": winner_id,
 		"reason": reason,
-		"timestamp": int(Time.get_unix_time_from_system()),
+		"timestamp": ended_at_unix,
 	})
 
 func _on_relay_disconnected() -> void:
@@ -1336,19 +1692,25 @@ func _go_to_reconnect(reason: String, phase: String) -> void:
 	if scene:
 		get_tree().change_scene_to_packed(scene)
 
-func _transition_to_postgame(winner_id: String, reason: String) -> void:
+func _transition_to_postgame(winner_id: String, reason: String, ended_at_unix: int = 0) -> void:
 	if get_tree().has_meta("tgc_postgame_init"):
 		return
 	if _relay_client and _relay_client.has_method("disconnect_from_relay"):
 		_relay_client.disconnect_from_relay()
+	var ended: int = ended_at_unix
+	if ended <= 0:
+		ended = int(Time.get_unix_time_from_system())
 	get_tree().set_meta("tgc_postgame_init", {
 		"room_id": _room_id,
 		"player_id": _player_id,
 		"winner_id": winner_id,
 		"reason": reason,
+		"ended_at_unix": ended,
 		"lobby_server_url": _lobby_server_url,
 		"host_data": _host_data,
 		"client_data": _client_data,
+		"host_cards_used": _cards_used_from_state(_host_id),
+		"client_cards_used": _cards_used_from_state(_client_id),
 	})
 	var scene := load("res://scene/akashic_tcg_postgame.tscn")
 	if scene:

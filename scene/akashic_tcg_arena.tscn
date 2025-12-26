@@ -1,9 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://fos8p31kcd7"]
+[gd_scene load_steps=13 format=3 uid="uid://fos8p31kcd7"]
 
 [ext_resource type="Script" uid="uid://b5eu73w6tq6cj" path="res://script/akashic_tcg_arena.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2"]
 [ext_resource type="Script" uid="uid://bmjpps2v666l8" path="res://script/AkashicTCGPlayZone.gd" id="3"]
-[ext_resource type="PackedScene" uid="uid://d0infgusfi845" path="res://scene/chat.tscn" id="4"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="5"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_overlay"]
 bg_color = Color(0, 0, 0, 0.619608)
@@ -31,8 +31,25 @@ corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar"]
 bg_color = Color(0.02, 0.06, 0.12, 0.85)
-corner_radius_top_left = 12
-corner_radius_bottom_left = 12
+
+[sub_resource type="Shader" id="Shader_timer_gradient"]
+code = "shader_type canvas_item;
+
+uniform vec4 top_color : source_color = vec4(0.0, 1.0, 1.0, 1.0);
+uniform vec4 bottom_color : source_color = vec4(0.0, 1.0, 0.45, 1.0);
+
+void fragment() {
+	vec4 tex = texture(TEXTURE, UV);	
+	// Per-glyph vertical gradient: cyan (top) -> green (bottom).
+	vec4 grad = mix(top_color, bottom_color, UV.y);
+	COLOR = tex * grad;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_timer_gradient"]
+shader = SubResource("Shader_timer_gradient")
+shader_parameter/top_color = Color(0, 1, 1, 1)
+shader_parameter/bottom_color = Color(0, 1, 0.45, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_zone"]
 bg_color = Color(0, 0, 0, 0)
@@ -70,16 +87,39 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="CountdownLabel" type="Label" parent="HUD"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -120.0
+offset_right = 200.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 84
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
 [node name="OpponentBars" type="VBoxContainer" parent="HUD"]
 layout_mode = 1
 offset_left = 24.0
 offset_top = 24.0
-offset_right = 320.0
+offset_right = 294.0
 offset_bottom = 90.0
 theme_override_constants/separation = 6
 
 [node name="OppSIBar" type="ProgressBar" parent="HUD/OpponentBars"]
-custom_minimum_size = Vector2(0, 12)
+custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_bar_red")
@@ -87,13 +127,41 @@ max_value = 20.0
 value = 20.0
 show_percentage = false
 
+[node name="Label" type="Label" parent="HUD/OpponentBars/OppSIBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "System Integrity"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
 [node name="OppFWBar" type="ProgressBar" parent="HUD/OpponentBars"]
-custom_minimum_size = Vector2(0, 12)
+custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_bar_red")
 max_value = 12.0
 show_percentage = false
+
+[node name="Label" type="Label" parent="HUD/OpponentBars/OppFWBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Firewall"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
 
 [node name="OppResourceLabel" type="Label" parent="HUD/OpponentBars"]
 layout_mode = 2
@@ -132,16 +200,16 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -360.0
+offset_left = -338.0
 offset_top = -126.0
-offset_right = -65.0
+offset_right = -68.0
 offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_constants/separation = 6
 
 [node name="YouSIBar" type="ProgressBar" parent="HUD/PlayerBars"]
-custom_minimum_size = Vector2(0, 12)
+custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_bar_cyan")
@@ -149,13 +217,41 @@ max_value = 20.0
 value = 20.0
 show_percentage = false
 
+[node name="Label" type="Label" parent="HUD/PlayerBars/YouSIBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "System Integrity"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
 [node name="YouFWBar" type="ProgressBar" parent="HUD/PlayerBars"]
-custom_minimum_size = Vector2(0, 12)
+custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_bar_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_bar_cyan")
 max_value = 12.0
 show_percentage = false
+
+[node name="Label" type="Label" parent="HUD/PlayerBars/YouFWBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Firewall"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
 
 [node name="ResourceLabel" type="Label" parent="HUD/PlayerBars"]
 layout_mode = 2
@@ -176,20 +272,20 @@ anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -60.0
-offset_top = 24.0
-offset_right = -24.0
-offset_bottom = -24.0
+offset_left = -51.0
+offset_top = 26.0
+offset_right = -15.0
+offset_bottom = -22.0
 grow_horizontal = 0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar")
 
 [node name="OppName" type="Label" parent="HUD/Sidebar"]
 layout_mode = 1
-offset_left = 34.0
-offset_top = 47.0
-offset_right = 194.0
-offset_bottom = 71.0
+offset_left = 31.0
+offset_top = 25.0
+offset_right = 191.0
+offset_bottom = 49.0
 rotation = 1.5708
 theme_override_font_sizes/font_size = 16
 text = "OPP"
@@ -198,27 +294,38 @@ vertical_alignment = 1
 clip_text = true
 
 [node name="TimerLabel" type="Label" parent="HUD/Sidebar"]
+material = SubResource("ShaderMaterial_timer_gradient")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 10.0
-offset_top = 291.0
-offset_right = -6.0
-offset_bottom = 325.0
+offset_left = 3.0
+offset_top = 250.0
+offset_right = -2.0
+offset_bottom = 420.0
 grow_horizontal = 2
-theme_override_font_sizes/font_size = 20
-text = "01:53"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.85, 1, 0.55)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/paragraph_spacing = 0
+theme_override_constants/shadow_offset_y = 0
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 15
+text = "00
+..
+00"
 horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
 
 [node name="YouName" type="Label" parent="HUD/Sidebar"]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 9.0
-offset_top = -42.0
-offset_right = 169.0
-offset_bottom = -18.0
+offset_left = 7.0
+offset_top = -14.0
+offset_right = 167.0
+offset_bottom = 10.0
 grow_vertical = 0
 rotation = -1.5708
 theme_override_font_sizes/font_size = 16
@@ -232,10 +339,10 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -550.0
-offset_top = 82.0
-offset_right = -352.0
-offset_bottom = 112.0
+offset_left = -553.0
+offset_top = 128.0
+offset_right = -355.0
+offset_bottom = 158.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 14
 text = "Connecting…"
@@ -330,10 +437,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -336.0
-offset_top = -168.0
-offset_right = 356.0
-offset_bottom = 18.0
+offset_left = -311.0
+offset_top = -170.0
+offset_right = 274.0
+offset_bottom = 68.0
 grow_horizontal = 2
 grow_vertical = 0
 
@@ -342,22 +449,91 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 72.0
-offset_top = 23.0
-offset_right = -114.0
-offset_bottom = 23.0
+offset_left = 40.0
+offset_top = 4.0
+offset_right = -19.0
+offset_bottom = 4.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = -60
 alignment = 1
 
-[node name="ChatPanel" parent="HUD" instance=ExtResource("4")]
+[node name="ArenaChat" type="Panel" parent="HUD"]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 401.0
+offset_right = 362.0
+offset_bottom = 625.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_overlay")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/ArenaChat"]
 layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
+anchors_preset = 15
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 61.0
-offset_top = -253.0
-offset_right = 388.0
-offset_bottom = -40.0
-grow_vertical = 0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="Panel" parent="HUD/ArenaChat/VBoxContainer"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar")
+
+[node name="HeaderHBox" type="HBoxContainer" parent="HUD/ArenaChat/VBoxContainer/Header"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 4.0
+offset_right = -6.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="HUD/ArenaChat/VBoxContainer/Header/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "CHAT"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+
+[node name="MinButton" type="Button" parent="HUD/ArenaChat/VBoxContainer/Header/HeaderHBox"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 14
+text = "─"
+
+[node name="CloseButton" type="Button" parent="HUD/ArenaChat/VBoxContainer/Header/HeaderHBox"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 14
+text = "X"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HUD/ArenaChat/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/ArenaChat/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HUD/ArenaChat/VBoxContainer"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+
+[node name="LineEdit" type="LineEdit" parent="HUD/ArenaChat/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Type a message..."
+
+[node name="SendButton" type="Button" parent="HUD/ArenaChat/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "Send"

@@ -89,7 +89,7 @@ offset_right = 500.0
 offset_bottom = 200.0
 alignment = 1
 
-[node name="HostCard" type="Panel" parent="CardsContainer"]
+[node name="HostCard" type="NinePatchRect" parent="CardsContainer"]
 self_modulate = Color(0.00392157, 0.156863, 0.258824, 0.529412)
 custom_minimum_size = Vector2(300, 400)
 layout_mode = 2
@@ -140,7 +140,7 @@ text = "VS"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ClientCard" type="Panel" parent="CardsContainer"]
+[node name="ClientCard" type="NinePatchRect" parent="CardsContainer"]
 self_modulate = Color(0.466667, 0, 0.301961, 0.752941)
 custom_minimum_size = Vector2(300, 400)
 layout_mode = 2

@@ -29,7 +29,7 @@ var _hover_overlay: TextureRect = null
 var _hover_tween: Tween = null
 var _hover_layer: CanvasLayer = null
 
-const HOVER_ELEVATE_Y := -48.0
+const HOVER_ELEVATE_Y := -78.0
 const HOVER_SCALE := 1.06
 const HOVER_TWEEN_SEC := 0.10
 

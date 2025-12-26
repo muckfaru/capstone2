@@ -81,7 +81,7 @@ func connect_to_game(room_id: String, player_id: String, username: String, is_ho
 	_heartbeat_timer.start()
 
 func _process_signaling_messages() -> void:
-	while _signaling_ws.get_available_packet_count() > 0:
+	while _signaling_ws != null and _signaling_ws.get_available_packet_count() > 0:
 		var message = _signaling_ws.get_packet().get_string_from_utf8()
 		if message:
 			var data = JSON.parse_string(message)
@@ -149,8 +149,8 @@ func _establish_direct_p2p() -> void:
 func _process_p2p_messages() -> void:
 	if not _direct_p2p_ws:
 		return
-	
-	while _direct_p2p_ws.get_available_packet_count() > 0:
+
+	while _direct_p2p_ws != null and _direct_p2p_ws.get_available_packet_count() > 0:
 		var message = _direct_p2p_ws.get_packet().get_string_from_utf8()
 		if message:
 			var data = JSON.parse_string(message)

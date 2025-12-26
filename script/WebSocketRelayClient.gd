@@ -77,12 +77,18 @@ func is_relay_connected() -> bool:
 	return _connected
 
 func _process(_delta: float) -> void:
-	if not _ws:
+	var ws := _ws
+	if ws == null:
 		return
-	
-	_ws.poll()
-	
-	var state = _ws.get_ready_state()
+
+	ws.poll()
+
+	# Socket may be nulled by disconnect calls triggered during poll/handlers.
+	ws = _ws
+	if ws == null:
+		return
+
+	var state = ws.get_ready_state()
 	
 	if state == WebSocketPeer.STATE_OPEN:
 		if not _connected:
@@ -91,7 +97,7 @@ func _process(_delta: float) -> void:
 			connected_to_relay.emit()
 		
 		# Receive messages
-		while _ws.get_available_packet_count() > 0:
+		while _ws != null and _ws.get_available_packet_count() > 0:
 			var packet = _ws.get_packet()
 			var json_str = packet.get_string_from_utf8()
 			
@@ -105,8 +111,8 @@ func _process(_delta: float) -> void:
 		pass
 	
 	elif state == WebSocketPeer.STATE_CLOSED:
-		var code = _ws.get_close_code()
-		var reason = _ws.get_close_reason()
+		var code = ws.get_close_code()
+		var reason = ws.get_close_reason()
 		print("[WebSocketRelay] Connection closed. Code: %d, Reason: %s" % [code, reason])
 		
 		if _connected:
@@ -114,6 +120,8 @@ func _process(_delta: float) -> void:
 			disconnected_from_relay.emit()
 		
 		set_process(false)
+		# Drop reference so future frames cannot poll a closed socket.
+		_ws = null
 
 func _handle_message(data: Dictionary) -> void:
 	"""Handle incoming message from relay"""

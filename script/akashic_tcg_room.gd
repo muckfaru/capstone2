@@ -2,6 +2,10 @@ extends Control
 
 const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 
+# Room-scoped RTDB chat (same RoomChat component as Code Breaker)
+const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
+const ROOMS_PATH := "/akashic_tcg_rooms"
+
 @onready var _room_id_label: Label = $RoomHeader/RoomIDLabel
 @onready var _room_state_label: Label = $RoomHeader/RoomStateLabel
 @onready var _host_username: Label = $CardsContainer/HostCard/Username
@@ -93,6 +97,11 @@ func _ready() -> void:
 
 	await _setup_relay_connection()
 	_configure_buttons()
+
+	# Initialize embedded room chat with this room context (room-only chat)
+	var chat := get_node_or_null("RoomChat")
+	if chat and chat.has_method("initialize"):
+		chat.initialize(RTDB_BASE, ROOMS_PATH, _room_id)
 
 func _go_to_reconnect(reason: String, phase: String) -> void:
 	var username: String = Auth.current_username if Auth else "Player"

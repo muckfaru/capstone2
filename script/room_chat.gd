@@ -103,16 +103,18 @@ func _send_message(text: String) -> void:
 func _fetch_messages() -> void:
 	if _chat_url == "":
 		return
+	var id_token: String = Auth.current_id_token if Auth else ""
 	var http := HTTPRequest.new()
 	add_child(http)
 	http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
 		http.queue_free()
 		if code != 200:
+			push_warning("[RoomChat] Fetch failed HTTP " + str(code))
 			return
 		var data = JSON.parse_string(body.get_string_from_utf8())
 		_render_messages(data)
 	)
-	var url := _chat_url + ".json"
+	var url := _chat_url + ".json" + ("?auth=" + id_token if id_token != "" else "")
 	http.request(url, [], HTTPClient.METHOD_GET)
 
 func _render_messages(data) -> void:
