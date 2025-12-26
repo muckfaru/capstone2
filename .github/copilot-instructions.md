@@ -188,7 +188,7 @@ Emit Signals:
 - **Tech Stack:** Express.js + express-ws + in-memory room storage
 - **Endpoints:**
   - `POST /api/rooms/create` - Register room (no IP/port needed)
-  - `GET /api/rooms/list` - List active rooms
+  - `GET /api/rooms/list` - List active rooms (supports `?game_type=code_breaker|akashic_tcg`)
   - `GET /api/rooms/:id` - Get room details (includes `status`)
   - `POST /api/rooms/:id/join` - Join as client
   - `POST /api/rooms/:id/leave` - Leave room (with host promotion)
@@ -537,7 +537,7 @@ To prevent early DOS/DDOS dominance:
 ### Lobby → Room → Loading → Arena (Complete Flow)
 
 1. **Lobby Scene** (`code_breaker_lobby.gd`)
-   - Polls `GET /api/rooms/list` every 5s
+  - Polls `GET /api/rooms/list?game_type=code_breaker` every 5s
    - Host: `POST /api/rooms/create` → receives `room_id`
    - Client: Sees room in list → `POST /api/rooms/:id/join`
    - Both transition to room scene with `room_id`
@@ -830,7 +830,7 @@ scene/
 ```javascript
 // REST API
 POST   /api/rooms/create      → Create room (returns room_id)
-GET    /api/rooms/list        → List all active rooms
+GET    /api/rooms/list        → List all active rooms (optional `?game_type=code_breaker|akashic_tcg`)
 GET    /api/rooms/:id         → Get room details
 POST   /api/rooms/:id/join    → Join as client
 POST   /api/rooms/:id/leave   → Leave (with host promotion logic)

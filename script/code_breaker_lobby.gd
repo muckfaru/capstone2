@@ -266,7 +266,7 @@ func _fetch_rooms_from_lobby() -> void:
 	if _lobby_server_url == "":
 		return
 	
-	var url := _lobby_server_url + "/api/rooms/list"
+	var url := _lobby_server_url + "/api/rooms/list?game_type=code_breaker"
 	var http := HTTPRequest.new()
 	add_child(http)
 	
@@ -314,6 +314,9 @@ func _populate_rooms_from_lobby(rooms_data) -> void:
 	
 	for room in rooms_data:
 		if typeof(room) != TYPE_DICTIONARY:
+			continue
+		# Only show Code Breaker rooms.
+		if str(room.get("game_type", "")) != "code_breaker":
 			continue
 		
 		var room_id: String = room.get("room_id", "")  # Fixed: server returns "room_id", not "id"

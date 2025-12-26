@@ -87,11 +87,16 @@ app.post('/api/rooms/create', (req, res) => {
   const room_id = `room_${uuidv4().substring(0, 8)}`;
   const now = Date.now();
 
+  // Normalize/validate game_type so lobbies can filter reliably.
+  const normalizedGameType = typeof game_type === 'string' ? game_type.trim().toLowerCase() : '';
+  const allowedGameTypes = new Set(['code_breaker', 'akashic_tcg']);
+  const finalGameType = allowedGameTypes.has(normalizedGameType) ? normalizedGameType : 'code_breaker';
+
   // Create room data (Option B: public_ip/port optional)
   const room_data = {
     room_id,
     room_name,
-    game_type: game_type || 'code_breaker',
+    game_type: finalGameType,
     host: {
       player_id: host_id,
       username: host_username,
@@ -142,8 +147,11 @@ app.post('/api/rooms/create', (req, res) => {
  * }
  */
 app.get('/api/rooms/list', (req, res) => {
+  const requestedType = typeof req.query.game_type === 'string' ? req.query.game_type.trim().toLowerCase() : '';
+
   const active_rooms = Array.from(rooms.values())
     .filter(room => room.status === 'waiting' || room.status === 'in_game')
+    .filter(room => (requestedType ? String(room.game_type || '').toLowerCase() === requestedType : true))
     .map(room => ({
       room_id: room.room_id,
       room_name: room.room_name,

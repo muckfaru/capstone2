@@ -202,7 +202,7 @@ func _on_poll_timeout() -> void:
 func _fetch_rooms_from_lobby() -> void:
 	if _lobby_server_url == "":
 		return
-	var url := _lobby_server_url + "/api/rooms/list"
+	var url := _lobby_server_url + "/api/rooms/list?game_type=akashic_tcg"
 	var http := HTTPRequest.new()
 	add_child(http)
 	http.request_completed.connect(func(_result, code, _headers, body: PackedByteArray):
