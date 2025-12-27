@@ -94,7 +94,7 @@ layout_mode = 2
 offset_left = 784.0
 offset_top = 55.0
 offset_right = 1015.0
-offset_bottom = 501.0
+offset_bottom = 505.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_76uxg")
 
 [node name="LoginButton" type="Button" parent="VideoStreamPlayer"]

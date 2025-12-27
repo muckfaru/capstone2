@@ -1,20 +1,8 @@
-[gd_scene load_steps=20 format=3 uid="uid://cx1uayh2v0n4q"]
+[gd_scene load_steps=17 format=3 uid="uid://cx1uayh2v0n4q"]
 
 [ext_resource type="Script" uid="uid://cpo073d2c60k1" path="res://scene/3_rdanimationld.gd" id="1_fjnbh"]
 [ext_resource type="Texture2D" uid="uid://bnibx5snemo06" path="res://asset/4e838cbb-ea7e-4663-a1a3-5e2937ba793d (1).jpg" id="2_jxp8i"]
 [ext_resource type="Texture2D" uid="uid://coqbdey4s6qv6" path="res://asset/spriteloadingscrn/sprite_sheet (3).png" id="3_fjnbh"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_fq2x0"]
-atlas = ExtResource("3_fjnbh")
-region = Rect2(0, 0, 1721, 1106)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_2xpy6"]
-atlas = ExtResource("3_fjnbh")
-region = Rect2(1721, 0, 1721, 1106)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_xk1qv"]
-atlas = ExtResource("3_fjnbh")
-region = Rect2(0, 1106, 1721, 1106)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_5o0h5"]
 atlas = ExtResource("3_fjnbh")
@@ -67,15 +55,6 @@ region = Rect2(0, 0, 1721, 1106)
 [sub_resource type="SpriteFrames" id="SpriteFrames_y5hd7"]
 animations = [{
 "frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_fq2x0")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_2xpy6")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_xk1qv")
-}, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_5o0h5")
 }, {
@@ -143,9 +122,9 @@ stretch_mode = 6
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Control"]
 texture_filter = 1
 texture_repeat = 2
-position = Vector2(587.5, 341.25)
-scale = Vector2(0.689715, 0.617993)
+position = Vector2(573.5, 325.75)
+scale = Vector2(0.673446, 0.589964)
 sprite_frames = SubResource("SpriteFrames_y5hd7")
 animation = &"new_animation"
 autoplay = "new_animation"
-frame_progress = 0.667714
+frame_progress = 0.515103
