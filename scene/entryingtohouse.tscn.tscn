@@ -1,0 +1,135 @@
+[gd_scene load_steps=8 format=3 uid="uid://cg2ianeb8klhv"]
+
+[ext_resource type="Script" uid="uid://b7de0vbxuxwb" path="res://script/story_cutscene.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://c5nbxayrj76g4" path="res://asset/story/panel1_friends_gaming (2).png" id="2_selfa"]
+[ext_resource type="Texture2D" uid="uid://dmrkvdek6et15" path="res://asset/story/panel2.png" id="3_qpm5x"]
+[ext_resource type="Texture2D" uid="uid://i1w1vq4tv6t0" path="res://asset/story/panel3.png" id="4_k7my2"]
+[ext_resource type="Texture2D" uid="uid://bqaa4swl8isip" path="res://asset/story/panel4.png" id="5_tit3s"]
+[ext_resource type="Texture2D" uid="uid://birqsy3lec364" path="res://asset/story/panel5.png" id="6_gmllg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.0509804, 0.0509804, 0.0509804, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.8, 1, 0.5)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="StoryCutscene" type="CanvasLayer"]
+script = ExtResource("1")
+auto_advance_time = 4.5
+fade_duration = 1.0
+panel1_image = ExtResource("2_selfa")
+panel2_image = ExtResource("3_qpm5x")
+panel3_image = ExtResource("4_k7my2")
+panel4_image = ExtResource("5_tit3s")
+panel5_image = ExtResource("6_gmllg")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.12, 1)
+
+[node name="ImageContainer" type="Control" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -21.0
+offset_right = 66.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="Control/ImageContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -21.0
+offset_top = -21.0
+offset_right = 24.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DialogueBox" type="PanelContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 51.0
+offset_top = -138.0
+offset_right = -35.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/DialogueBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 30
+
+[node name="Label" type="Label" parent="Control/DialogueBox/MarginContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 25
+text = "Story text appears here..."
+autowrap_mode = 3
+
+[node name="NextIndicator" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -236.0
+offset_top = -71.0
+offset_right = -60.0
+offset_bottom = -37.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 24
+text = "▼ PRESS SPACE"
+horizontal_alignment = 2
+
+[node name="FadeOverlay" type="ColorRect" parent="Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

@@ -22,6 +22,8 @@ ChatManager="*res://script/ChatManager.gd"
 MultiplayerConfig="*res://script/MultiplayerConfig.gd"
 ForceNetworkMode="*res://script/ForceNetworkMode.gd"
 TutorialManager="*res://script/TutorialManager.gd"
+DialogueManager="*res://script/dialogue_manager.gd"
+GlobalState="*res://script/GlobalState.gd"
 
 [display]
 

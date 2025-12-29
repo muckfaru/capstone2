@@ -1,15 +1,24 @@
-[gd_scene load_steps=21 format=3 uid="uid://3txf6278rjx6"]
+[gd_scene load_steps=30 format=3 uid="uid://3txf6278rjx6"]
 
-[ext_resource type="PackedScene" uid="uid://bcylg2e608cwr" path="res://3D/henrik_wool_rug_160x230cm_mustard_and_grey.glb" id="1_eik88"]
+[ext_resource type="PackedScene" uid="uid://bla8ljgx2846q" path="res://Neo3D/scifi_sofa.glb" id="1_3sxgj"]
+[ext_resource type="PackedScene" uid="uid://cpl2nhu0y8yne" path="res://3D/refrigerator.glb" id="1_764rb"]
+[ext_resource type="PackedScene" uid="uid://djbjt54utaddb" path="res://3D/radio.glb" id="1_aex65"]
+[ext_resource type="PackedScene" uid="uid://ccawv16fw2g2y" path="res://Neo3D/star_wars_holo_projector.glb" id="1_eik88"]
 [ext_resource type="Script" uid="uid://jqe8hv5gm8y7" path="res://script/player.gd" id="1_h6nst"]
 [ext_resource type="PackedScene" uid="uid://dsggyk2glc7le" path="res://3D/low_poly_computer_desk.glb" id="1_nbc6x"]
-[ext_resource type="PackedScene" uid="uid://bi73y5i1oetsj" path="res://3D/trash_can.glb" id="1_pnqar"]
-[ext_resource type="PackedScene" uid="uid://bdieudtpakka7" path="res://3D/city_map_framed_wall_art_print_amsterdam.glb" id="1_s5yxy"]
-[ext_resource type="PackedScene" uid="uid://b6nqxm7714kuv" path="res://3D/retro_table_lamp.glb" id="2_o6q0f"]
-[ext_resource type="PackedScene" uid="uid://dwii7tn81udok" path="res://3D/backpack.glb" id="3_hr7lf"]
+[ext_resource type="Script" uid="uid://dxpmg7s5d8rmg" path="res://script/Main.gd" id="1_ob58h"]
+[ext_resource type="PackedScene" uid="uid://c3o26q1dxjod3" path="res://Neo3D/neon_sign_letters_and_elements.glb" id="1_s5yxy"]
+[ext_resource type="PackedScene" uid="uid://cdcue61ow5osi" path="res://Neo3D/wires.glb" id="1_x4yfu"]
 [ext_resource type="PackedScene" uid="uid://1skaywena3tj" path="res://3D/old_bed.glb" id="3_yiwpq"]
-[ext_resource type="PackedScene" uid="uid://fthxuorjoovd" path="res://3D/bookshelf_with_books_light_wood.glb" id="4_mnmej"]
-[ext_resource type="PackedScene" uid="uid://dkjrxp2god5it" path="res://3D/door.glb" id="10_3sxgj"]
+[ext_resource type="Shader" uid="uid://c3mlgru35r7c0" path="res://scene/floorshader.gdshader" id="4_3sxgj"]
+[ext_resource type="Shader" uid="uid://bwy4nlb3swa13" path="res://Shaders/wood_pattern.gdshader" id="6_pnqar"]
+[ext_resource type="PackedScene" uid="uid://b0q3egwxpmjj3" path="res://3D/wooden_door.glb" id="9_pnqar"]
+[ext_resource type="Script" uid="uid://ct4b7o7ojthyi" path="res://script/neon_blink.gd" id="11_blink"]
+[ext_resource type="AudioStream" uid="uid://u6011cie6b4d" path="res://asset/audio/dergunerin.mp3" id="14_hrl0l"]
+[ext_resource type="Script" uid="uid://caetawdr00udj" path="res://script/story_manager.gd" id="story_manager"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_764rb"]
+size = Vector3(25.1346, 1, 4.28705)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_h6nst"]
 radius = 0.4
@@ -17,9 +26,17 @@ height = 5.67052
 
 [sub_resource type="Environment" id="Environment_hr7lf"]
 background_mode = 1
-background_color = Color(0.53, 0.65, 0.75, 1)
-ambient_light_color = Color(0.7, 0.75, 0.8, 1)
-ambient_light_energy = 0.3
+ambient_light_color = Color(0.3, 0.2, 0.5, 1)
+ambient_light_energy = 0.2
+glow_enabled = true
+glow_intensity = 1.5
+glow_strength = 1.2
+glow_bloom = 0.3
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.02
+volumetric_fog_albedo = Color(0.4, 0.2, 0.6, 1)
+volumetric_fog_emission = Color(0.5, 0.1, 0.7, 1)
+volumetric_fog_emission_energy = 0.5
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_yiwpq"]
 size = Vector3(20, 0.2, 20)
@@ -27,38 +44,112 @@ size = Vector3(20, 0.2, 20)
 [sub_resource type="BoxMesh" id="BoxMesh_mnmej"]
 size = Vector3(20, 0.2, 20)
 
-[sub_resource type="StandardMaterial3D" id="Material_floor"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_aex65"]
+render_priority = 0
+shader = ExtResource("4_3sxgj")
+shader_parameter/rock_color_dark = Color(0.2, 0.2, 0.22, 1)
+shader_parameter/rock_color_light = Color(0.299005, 0.282754, 0.258369, 1)
+shader_parameter/crack_color = Color(0.1, 0.1, 0.12, 1)
+shader_parameter/roughness = 1.0
+shader_parameter/rock_scale = 3.252
+shader_parameter/crack_amount = 0.403
+shader_parameter/bump_strength = 0.754
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_h6nst"]
-size = Vector3(6.77135, 12.5006, 4.48486)
+size = Vector3(6.77135, 10.513, 4.48486)
 
-[sub_resource type="StandardMaterial3D" id="Material_wall"]
-albedo_color = Color(0.34902, 0.278431, 0.219608, 1)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_3sxgj"]
+render_priority = 0
+shader = ExtResource("6_pnqar")
+shader_parameter/wood_color_dark = Color(0.3, 0.2, 0.1, 1)
+shader_parameter/wood_color_light = Color(0.6, 0.4, 0.2, 1)
+shader_parameter/grain_scale = 2.0
+shader_parameter/ring_scale = 5.0
+shader_parameter/roughness = 0.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x4yfu"]
+render_priority = 0
+shader = ExtResource("6_pnqar")
+shader_parameter/wood_color_dark = Color(0.3, 0.2, 0.1, 1)
+shader_parameter/wood_color_light = Color(0.6, 0.4, 0.2, 1)
+shader_parameter/grain_scale = 2.0
+shader_parameter/ring_scale = 5.0
+shader_parameter/roughness = 0.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pnqar"]
+render_priority = 0
+shader = ExtResource("6_pnqar")
+shader_parameter/wood_color_dark = Color(0.3, 0.2, 0.1, 1)
+shader_parameter/wood_color_light = Color(0.6, 0.4, 0.2, 1)
+shader_parameter/grain_scale = 2.0
+shader_parameter/ring_scale = 5.0
+shader_parameter/roughness = 0.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_764rb"]
+render_priority = 0
+shader = ExtResource("6_pnqar")
+shader_parameter/wood_color_dark = Color(0.3, 0.2, 0.1, 1)
+shader_parameter/wood_color_light = Color(0.6, 0.4, 0.2, 1)
+shader_parameter/grain_scale = 2.0
+shader_parameter/ring_scale = 5.0
+shader_parameter/roughness = 0.8
 
 [sub_resource type="StandardMaterial3D" id="Material_ceiling"]
-albedo_color = Color(0.984814, 0.976412, 0.969706, 1)
-metallic = 0.9
-metallic_specular = 0.31
+albedo_color = Color(0.05, 0.05, 0.08, 1)
+metallic = 0.2
+roughness = 0.9
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_mnmej"]
-size = Vector3(0.932983, 1.90405, 0.766113)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_eik88"]
-size = Vector3(3.85602, 1.27002, 1)
+[sub_resource type="BoxShape3D" id="BoxShape3D_pnqar"]
+size = Vector3(0.893555, 2.10498, 0.876465)
 
 [node name="Main" type="Node3D"]
+script = ExtResource("1_ob58h")
 
-[node name="trashcan" parent="." instance=ExtResource("1_pnqar")]
-transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 1.18947, 0.459022, 7.85829)
+[node name="radio" parent="." instance=ExtResource("1_aex65")]
+transform = Transform3D(0.143584, 0, 0.139225, 0, 0.2, 0, -0.139225, 0, 0.143584, -3.30437, 1.41802, 7.42244)
 
-[node name="carpet" parent="." instance=ExtResource("1_eik88")]
-transform = Transform3D(0.00314155, 0, -0.299984, 0, 0.3, 0, 0.299984, 0, 0.00314155, -6.40266, 0.276578, 4.18256)
+[node name="Sketchfab_model" parent="radio" index="0"]
+transform = Transform3D(0.2, 0, 0, 0, -8.74228e-09, 0.2, 0, -0.2, -8.74228e-09, 0, 0, 0)
 
-[node name="Sketchfab_model" parent="carpet" index="0"]
-transform = Transform3D(0.1, 0, 0, 0, -4.37114e-09, 0.1, 0, -0.1, -4.37114e-09, 0, 0, 0)
+[node name="ref" parent="." instance=ExtResource("1_764rb")]
+transform = Transform3D(-0.107155, 0, 0.488383, 0, 0.5, 0, -0.488383, 0, -0.107155, 7.44549, 3.27126, 7.65083)
 
-[node name="wall art" parent="." instance=ExtResource("1_s5yxy")]
-transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 1.10145, -5.18854, -9.91532)
+[node name="Sketchfab_model" parent="ref" index="0"]
+transform = Transform3D(0.2, 0, 0, 0, -8.74228e-09, 0.2, 0, -0.2, -8.74228e-09, 0, 0, 0)
+
+[node name="Object_3" parent="ref/Sketchfab_model/Refrigerator_obj_cleaner_materialmerger_gles" index="1"]
+transform = Transform3D(1, 1.49012e-08, 8.88178e-16, -1.49012e-08, 1, -6.66134e-16, -8.88178e-16, -8.88178e-16, 1, 0.490303, 2.23467, 0)
+
+[node name="wires2" parent="." instance=ExtResource("1_x4yfu")]
+transform = Transform3D(0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 6.80944, 3.9983, 0.961718)
+
+[node name="Sketchfab_model" parent="wires2" index="0"]
+transform = Transform3D(0.3, 0, 0, 0, -0.000266768, 0.3, 0, -0.3, -0.000266768, 2.84556, 10.5915, 22.4226)
+
+[node name="wires" parent="." instance=ExtResource("1_x4yfu")]
+transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 4.32264, 1.88171, -13.2653)
+
+[node name="Sketchfab_model" parent="wires" index="0"]
+transform = Transform3D(0.3, 0, 0, 0, -0.000266768, 0.3, 0, -0.3, -0.000266768, 2.84556, 10.5915, 22.4226)
+
+[node name="sofa" parent="." instance=ExtResource("1_3sxgj")]
+transform = Transform3D(0.783157, 2.79397e-09, 5.94867, 0.316617, 5.9915, -0.0416834, -5.94024, 0.319349, 0.782047, -0.670289, -0.14012, -2.17779)
+
+[node name="hologram" parent="." instance=ExtResource("1_eik88")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.65866, 2.2591, -1.92122)
+visible = false
+
+[node name="neosign" parent="." instance=ExtResource("1_s5yxy")]
+transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, -0.184531, 2.89293, -3.95791)
+
+[node name="Sketchfab_model" parent="neosign" index="0"]
+transform = Transform3D(0.4, 0, 0, 0, 0.4, -1.77636e-16, 0, 1.77636e-16, 0.4, -2.50875, 6.63793, -9.9514)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="neosign/Sketchfab_model" index="1"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="neosign/Sketchfab_model/StaticBody3D"]
+transform = Transform3D(0.999985, 0, 0, 0, 0.999985, 4.20869e-21, 0, -4.20869e-21, 0.999985, 12.0673, 0, 1.64352)
+shape = SubResource("BoxShape3D_764rb")
 
 [node name="Player" type="CharacterBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.40106, 4.31636, 5.24791)
@@ -93,17 +184,22 @@ offset_right = 150.0
 offset_bottom = -50.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_font_sizes/font_size = 24
 text = "Press E to use Computer"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="FootstepPlayer" type="AudioStreamPlayer3D" parent="Player"]
+volume_db = -5.0
+max_distance = 20.0
+
+[node name="MainLight" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 3, 6, 2)
-light_color = Color(1, 0.95, 0.85, 1)
-light_energy = 0.6
+light_color = Color(0.4, 0.5, 0.8, 1)
+light_energy = 0.2
 shadow_enabled = true
-shadow_opacity = 0.7
+shadow_opacity = 0.9
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_hr7lf")
@@ -116,49 +212,80 @@ shape = SubResource("BoxShape3D_yiwpq")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource("BoxMesh_mnmej")
-surface_material_override/0 = SubResource("Material_floor")
-
-[node name="lamp" parent="." instance=ExtResource("2_o6q0f")]
-transform = Transform3D(0.00279251, 0, 0.39999, 0, 0.4, 0, -0.39999, 0, 0.00279251, -7.70998, 3.3845, -8.57867)
+surface_material_override/0 = SubResource("ShaderMaterial_aex65")
 
 [node name="Sketchfab_Scene" parent="." groups=["computer"] instance=ExtResource("1_nbc6x")]
-transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, -7, 0, -7)
-
-[node name="Sketchfab_model" parent="Sketchfab_Scene" index="0"]
-transform = Transform3D(1, 0, 0, 0, 2.22045e-16, 1, 0, -1, 2.22045e-16, -0.0348492, 0, 0.0595179)
-
-[node name="Cube_029_Material_0" parent="Sketchfab_Scene/Sketchfab_model/7dacff2f696f496d8a46b2e4bc25a00d_fbx/RootNode/Cube_029" index="0"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0205771, -3.35244e-09)
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, -7, 0, -6.05119)
 
 [node name="DeskCollision" type="StaticBody3D" parent="Sketchfab_Scene/Sketchfab_model" index="1" groups=["computer"]]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Sketchfab_Scene/Sketchfab_model/DeskCollision"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.592622, -2.23796, 2.86385)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.592622, -1.24416, 2.86385)
 shape = SubResource("BoxShape3D_h6nst")
+
+[node name="NeonPink" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 6.29805, 3.4142)
+light_color = Color(1, 0.1, 0.5, 1)
+light_energy = 3.0
+omni_range = 21.444
+omni_attenuation = 2.0
+script = ExtResource("11_blink")
+min_energy = 2.0
+max_energy = 4.0
+
+[node name="NeonCyan" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.9957, 6.3019, -5.30229)
+light_color = Color(0, 0.8, 1, 1)
+light_energy = 3.0
+omni_range = 8.11361
+omni_attenuation = 2.0
+script = ExtResource("11_blink")
+blink_speed = 1.5
+min_energy = 2.0
+max_energy = 4.0
+
+[node name="DeskGlow" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.865318, 0.501224, 0, -0.501224, 0.865318, -1.88288, 6.63906, -6.42691)
+light_color = Color(0.6, 0.2, 1, 1)
+light_energy = 2.5
+spot_range = 8.67251
+spot_angle = 60.0
+
+[node name="NeonStrip1" type="SpotLight3D" parent="."]
+transform = Transform3D(-0.805815, 0, 0.592168, 0, 1, 0, -0.592168, 0, -0.805815, 9.80663, 5.02354, -4.01624)
+light_color = Color(1, 0, 0.4, 1)
+light_energy = 2.0
+spot_range = 54.1251
+
+[node name="NeonStrip2" type="SpotLight3D" parent="."]
+transform = Transform3D(0.0496168, 0, -0.998768, 0, 1, 0, 0.998768, 0, 0.0496168, 0.0139618, 3.79302, -1.14989)
+light_color = Color(0, 1, 0.8, 1)
+light_energy = 2.0
+spot_range = 8.0
 
 [node name="LeftWall" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.4531, 3.72797, 0.01333)
 use_collision = true
 size = Vector3(0.766003, 7.58875, 20.1873)
-material = SubResource("Material_wall")
+material = SubResource("ShaderMaterial_3sxgj")
 
 [node name="RightWall" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.1317, 3.728, 0.0734259)
 use_collision = true
 size = Vector3(0.691846, 7.58875, 21.1733)
-material = SubResource("Material_wall")
+material = SubResource("ShaderMaterial_x4yfu")
 
 [node name="FrontWall" type="CSGBox3D" parent="."]
-transform = Transform3D(0.0117982, 0, -0.999931, 0, 1, 0, 0.999931, 0, 0.0117982, 0.438726, 3.71248, 10.1404)
+transform = Transform3D(0.0117982, 0, -0.999931, 0, 1, 0, 0.999931, 0, 0.0117982, 0.0138801, 3.71248, 10.1454)
 use_collision = true
-size = Vector3(0.684207, 7.7029, 20.7454)
-material = SubResource("Material_wall")
+size = Vector3(0.684207, 7.7029, 19.8956)
+material = SubResource("ShaderMaterial_pnqar")
 
 [node name="BackWall" type="CSGBox3D" parent="."]
 transform = Transform3D(0.0122171, 0, -0.999925, 0, 1, 0, 0.999925, 0, 0.0122171, 0.469649, 3.6208, -10.3222)
 use_collision = true
 size = Vector3(0.660547, 7.7944, 20.6543)
-material = SubResource("Material_wall")
+material = SubResource("ShaderMaterial_764rb")
 
 [node name="Ceiling" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 7.52, 0.04)
@@ -166,57 +293,30 @@ use_collision = true
 size = Vector3(20.5, 0.3, 20.3)
 material = SubResource("Material_ceiling")
 
-[node name="CeilingLight" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.5, 0)
-light_color = Color(1, 0.98, 0.92, 1)
-light_energy = 1.2
-omni_range = 12.0
-omni_attenuation = 0.5
-
-[node name="DeskLamp" type="SpotLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -0.5, 0.866025, 0, -0.866025, -0.5, -7.03239, 2, -7.00792)
-light_color = Color(1, 0.95, 0.8, 1)
-light_energy = 0.8
-spot_range = 4.0
-
 [node name="bed" parent="." instance=ExtResource("3_yiwpq")]
 transform = Transform3D(5.8, 0, 0, 0, 5.8, 0, 0, 0, 5.8, 6.17027, 0.163966, -1.50562)
 
-[node name="Sketchfab_model" parent="bed" index="0"]
-transform = Transform3D(0.99863, -0.052336, 2.28768e-09, 0, -4.37114e-08, -1, 0.052336, 0.99863, -4.36515e-08, 0.000358582, 0, -0.000612497)
+[node name="StaticBody3D" type="StaticBody3D" parent="bed/Sketchfab_model" index="1"]
 
-[node name="BedCollision" type="StaticBody3D" parent="bed/Sketchfab_model" index="1"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="bed/Sketchfab_model/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 1.32349e-23, 0, -1.32349e-23, 1, 0.0532227, 0.11499, 0.0617676)
+shape = SubResource("BoxShape3D_pnqar")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="bed/Sketchfab_model/BedCollision"]
-transform = Transform3D(1, 0, -8.65974e-15, 0, 1, 8.41993e-13, -4.50751e-14, 0, 1, 0.0223975, -0.0699003, 0.0387641)
-shape = SubResource("BoxShape3D_mnmej")
+[node name="door" parent="." instance=ExtResource("9_pnqar")]
+transform = Transform3D(0.0174524, 0, -0.999848, 0, 1, 0, 0.999848, 0, 0.0174524, -9.7936, 0.0702081, 4.73399)
 
-[node name="bookshelf" parent="." instance=ExtResource("4_mnmej")]
-transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 6.38157, 0.228871, 7.99155)
+[node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("14_hrl0l")
+volume_db = -8.587
+autoplay = true
 
-[node name="StaticBody3D" type="StaticBody3D" parent="bookshelf/Sketchfab_model" index="1"]
+[node name="StoryManager" type="Node" parent="."]
+script = ExtResource("story_manager")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="bookshelf/Sketchfab_model/StaticBody3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0854607, -0.143465, 0)
-shape = SubResource("BoxShape3D_eik88")
-
-[node name="backpack school" parent="." instance=ExtResource("3_hr7lf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.53333, 4.61318, -1.42038)
-
-[node name="Sketchfab_model" parent="backpack school" index="0"]
-transform = Transform3D(0.00565974, 0.0324289, 1.41751e-09, 0, -1.43894e-09, 0.032919, 0.0324289, -0.00565974, -2.47395e-10, 4.57437, -2.09354, -3.81053)
-
-[node name="a3333f579cb04e9185f7eecfca1a0446_fbx" parent="backpack school/Sketchfab_model" index="0"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
-
-[node name="Cube_001" parent="backpack school/Sketchfab_model/a3333f579cb04e9185f7eecfca1a0446_fbx/RootNode" index="0"]
-transform = Transform3D(11.5566, 0, 0, 0, -2.32373e-07, 16.3411, 0, -5.31608, -7.1429e-07, 0, 0.2056, 0.778871)
-
-[node name="door" parent="." instance=ExtResource("10_3sxgj")]
-transform = Transform3D(0.157071, 0, -8.99863, 0, 9, 0, 8.99863, 0, 0.157071, -9.66305, 3.44717, 3.48087)
-
-[editable path="carpet"]
+[editable path="radio"]
+[editable path="ref"]
+[editable path="wires2"]
+[editable path="wires"]
+[editable path="neosign"]
 [editable path="Sketchfab_Scene"]
 [editable path="bed"]
-[editable path="bookshelf"]
-[editable path="backpack school"]

@@ -1,6 +1,13 @@
-[gd_scene load_steps=2 format=3 uid="uid://bjg11hwbs4b2n"]
+[gd_scene load_steps=7 format=3 uid="uid://bjg11hwbs4b2n"]
 
-[ext_resource type="Script" uid="uid://yaxegflmrqln" path="res://script/computer_desktop.gd" id="1_3t8nv"]
+[ext_resource type="Script" uid="uid://yaxegflmrqln" path="res://script/computer_desktop.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://cdj0n8dbrosd1" path="res://asset/icons/browser_icons.png" id="2_browser"]
+[ext_resource type="Texture2D" uid="uid://dwcbmtvhpjifc" path="res://asset/icons/desktop_bg.jpg" id="2_t34nj"]
+[ext_resource type="Texture2D" uid="uid://dey0uchbqt8m6" path="res://asset/icons/messages_icons.png" id="3_messages"]
+[ext_resource type="Texture2D" uid="uid://cbxnk50mvs60f" path="res://asset/icons/open-folder.png" id="5_t34nj"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_taskbar"]
+bg_color = Color(0.1, 0.1, 0.15, 0.95)
 
 [node name="ComputerDesktop" type="Control"]
 layout_mode = 3
@@ -9,16 +16,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_3t8nv")
+script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.15, 0.2, 0.35, 1)
+texture = ExtResource("2_t34nj")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="Desktop" type="Control" parent="."]
 layout_mode = 1
@@ -28,68 +37,113 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="IconBrowser" type="VBoxContainer" parent="Desktop"]
+[node name="IconBrowser" type="Button" parent="Desktop"]
 layout_mode = 0
 offset_left = 50.0
 offset_top = 50.0
-offset_right = 150.0
-offset_bottom = 170.0
+offset_right = 178.0
+offset_bottom = 210.0
+flat = true
 
-[node name="IconSprite" type="ColorRect" parent="Desktop/IconBrowser"]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-color = Color(0.3, 0.5, 0.8, 1)
+[node name="VBox" type="VBoxContainer" parent="Desktop/IconBrowser"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
 
-[node name="IconLabel" type="Label" parent="Desktop/IconBrowser"]
+[node name="IconTexture" type="TextureRect" parent="Desktop/IconBrowser/VBox"]
+custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("2_browser")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="IconLabel" type="Label" parent="Desktop/IconBrowser/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
 text = "Browser"
 horizontal_alignment = 1
 
-[node name="IconButton" type="Button" parent="Desktop/IconBrowser"]
-layout_mode = 2
-text = "Open"
-
-[node name="IconMessages" type="VBoxContainer" parent="Desktop"]
+[node name="IconMessages" type="Button" parent="Desktop"]
 layout_mode = 0
 offset_left = 50.0
-offset_top = 200.0
-offset_right = 150.0
-offset_bottom = 320.0
+offset_top = 230.0
+offset_right = 178.0
+offset_bottom = 390.0
+flat = true
 
-[node name="IconSprite" type="ColorRect" parent="Desktop/IconMessages"]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-color = Color(0.2, 0.7, 0.3, 1)
+[node name="VBox" type="VBoxContainer" parent="Desktop/IconMessages"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
 
-[node name="IconLabel" type="Label" parent="Desktop/IconMessages"]
+[node name="IconTexture" type="TextureRect" parent="Desktop/IconMessages/VBox"]
+custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("3_messages")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="IconLabel" type="Label" parent="Desktop/IconMessages/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
 text = "Messages"
 horizontal_alignment = 1
 
-[node name="IconButton" type="Button" parent="Desktop/IconMessages"]
-layout_mode = 2
-text = "Open"
-
-[node name="IconFiles" type="VBoxContainer" parent="Desktop"]
+[node name="IconFiles" type="Button" parent="Desktop"]
 layout_mode = 0
 offset_left = 50.0
-offset_top = 350.0
-offset_right = 150.0
-offset_bottom = 470.0
+offset_top = 410.0
+offset_right = 178.0
+offset_bottom = 570.0
+flat = true
 
-[node name="IconSprite" type="ColorRect" parent="Desktop/IconFiles"]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-color = Color(0.8, 0.6, 0.2, 1)
+[node name="VBox" type="VBoxContainer" parent="Desktop/IconFiles"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
 
-[node name="IconLabel" type="Label" parent="Desktop/IconFiles"]
+[node name="IconTexture" type="TextureRect" parent="Desktop/IconFiles/VBox"]
+custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("5_t34nj")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="IconLabel" type="Label" parent="Desktop/IconFiles/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
 text = "My Files"
 horizontal_alignment = 1
-
-[node name="IconButton" type="Button" parent="Desktop/IconFiles"]
-layout_mode = 2
-text = "Open"
 
 [node name="Taskbar" type="Panel" parent="."]
 layout_mode = 1
@@ -97,17 +151,18 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -50.0
+offset_top = -60.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_taskbar")
 
 [node name="StartButton" type="Button" parent="Taskbar"]
 layout_mode = 0
 offset_left = 10.0
 offset_top = 10.0
 offset_right = 100.0
-offset_bottom = 40.0
-text = "Start"
+offset_bottom = 50.0
+text = "⊞ Start"
 
 [node name="TimeLabel" type="Label" parent="Taskbar"]
 layout_mode = 1
@@ -117,11 +172,12 @@ anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
 offset_left = -120.0
-offset_top = -11.5
+offset_top = -15.0
 offset_right = -20.0
-offset_bottom = 11.5
+offset_bottom = 15.0
 grow_horizontal = 0
 grow_vertical = 2
+theme_override_font_sizes/font_size = 18
 text = "3:45 PM"
 horizontal_alignment = 2
 vertical_alignment = 1
@@ -130,9 +186,9 @@ vertical_alignment = 1
 layout_mode = 0
 offset_left = 120.0
 offset_top = 10.0
-offset_right = 220.0
-offset_bottom = 40.0
-text = "Exit Computer"
+offset_right = 240.0
+offset_bottom = 50.0
+text = "← Back to Room"
 
 [node name="WindowBrowser" type="Panel" parent="."]
 visible = false
