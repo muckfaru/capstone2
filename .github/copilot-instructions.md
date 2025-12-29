@@ -491,11 +491,11 @@ Match end:
 
 ### Final Card Set (10 cards, using existing assets)
 Defense:
-- **MFA** (cost 1): blocks the next **Phishing**.
-- **IDS** (cost 2): reduces the next incoming attack by **3**, then draws **1**.
-- **Encryption Key** (cost 2): reduces **Phishing/Virus/Trojan** by **2**.
+- **MFA** (cost 3): blocks the next **Phishing**.
+- **IDS** (cost 2): reduces the next incoming attack by **1**, then draws **2**.
+- **Encryption Key** (cost 3): reduces **Phishing/Virus/Trojan** by **1**.
 - **Firewall Shield** (cost 2): increases FW (refill/boost).
-- **Antivirus Core** (cost 2): removes infection-style statuses (e.g., **Infected**).
+- **Antivirus Core** (cost 3): removes infection-style statuses (e.g., **Infected**).
 
 Attack:
 - **Phishing** (cost 1, base dmg 2)
@@ -507,8 +507,8 @@ Attack:
 ### Damage / Mitigation Order (Important)
 When an attack resolves, apply mitigation in this order:
 1. **MFA** (blocks *Phishing* or *Trojan*)
-2. **IDS** (−3 damage, then draw 1)
-3. **Encryption** (−2 damage; applies to Phishing/Virus/Trojan)
+2. **IDS** (−1 damage, then draw 2)
+3. **Encryption** (−1 damage; applies to Phishing/Virus/Trojan)
 4. **FW soak** (remaining damage reduces FW)
 5. **SI** (remaining damage reduces SI)
 
@@ -516,8 +516,8 @@ When an attack resolves, apply mitigation in this order:
 
 ### Statuses (Final)
 - **MFA Active:** blocks next Phishing.
-- **IDS Active:** next incoming attack −3, then draw 1.
-- **Encrypted:** next incoming attack −2.
+- **IDS Active:** next incoming attack −1, then draw 2. (1 turn)
+- **Encrypted:** next incoming attack −1. (2 turns)
 - **Infected:** tick damage at start of turn until cleansed by Antivirus.
 - **Credential Compromised:** boosts next defense effectiveness (one-time).
 - **Lag:** next turn BW refresh −1.

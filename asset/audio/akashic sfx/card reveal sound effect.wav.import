@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cbo274brqf4bn"
+path="res://.godot/imported/card reveal sound effect.wav-e13a02cfde01884e771a0db1215dba7e.sample"
+
+[deps]
+
+source_file="res://asset/audio/akashic sfx/card reveal sound effect.wav"
+dest_files=["res://.godot/imported/card reveal sound effect.wav-e13a02cfde01884e771a0db1215dba7e.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

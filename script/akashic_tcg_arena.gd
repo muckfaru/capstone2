@@ -12,12 +12,15 @@ const _CardView = preload("res://script/AkashicTCGCardView.gd")
 @onready var _you_si_bar: ProgressBar = $HUD/PlayerBars/YouSIBar
 @onready var _you_fw_bar: ProgressBar = $HUD/PlayerBars/YouFWBar
 @onready var _resource_label: Label = $HUD/PlayerBars/ResourceLabel
+@onready var _drop_timer_label: Label = $HUD/PlayerBars/YouSIBar/DropTimerLabel
 
 @onready var _sidebar_opp_name: Label = $HUD/Sidebar/OppName
 @onready var _sidebar_you_name: Label = $HUD/Sidebar/YouName
 @onready var _timer_label: Label = $HUD/Sidebar/TimerLabel
 @onready var _countdown_label: Label = $HUD/CountdownLabel
 @onready var _end_turn_btn: Button = $HUD/PlayerBars/EndTurnButton
+@onready var _menu_panel: Control = $MenuPanel
+@onready var _menu_button: Button = $MenuButton
 @onready var _arena_chat: Panel = $HUD/ArenaChat
 @onready var _arena_chat_header: Panel = $HUD/ArenaChat/VBoxContainer/Header
 @onready var _arena_chat_scroll: ScrollContainer = $HUD/ArenaChat/VBoxContainer/ScrollContainer
@@ -43,6 +46,100 @@ var _start_countdown_active: bool = false
 var _match_timer: Timer = null
 var _match_timer_started: bool = false
 var _match_start_msec: int = 0
+
+const DROP_TIME_LIMIT_SEC := 30
+
+var _drop_timer: Timer = null
+var _drop_timer_turn: int = -1
+var _drop_deadline_msec: int = 0
+var _drop_timer_running: bool = false
+var _auto_pass_turn: int = -1
+
+func _ensure_drop_timer() -> void:
+	if _drop_timer != null and is_instance_valid(_drop_timer):
+		return
+	_drop_timer = Timer.new()
+	_drop_timer.wait_time = 0.2
+	_drop_timer.one_shot = false
+	_drop_timer.autostart = true
+	_drop_timer.timeout.connect(_on_drop_timer_tick)
+	add_child(_drop_timer)
+
+func _has_submitted_any_card_this_round() -> bool:
+	var pending_val: Variant = _state.get("pending", {})
+	var pending: Dictionary = pending_val if typeof(pending_val) == TYPE_DICTIONARY else {}
+	var my_cards_val: Variant = pending.get(_player_id, [])
+	var my_cards: Array = my_cards_val if typeof(my_cards_val) == TYPE_ARRAY else []
+	for c in my_cards:
+		if str(c) != "":
+			return true
+	return false
+
+func _is_my_round_done() -> bool:
+	var done_val: Variant = _state.get("round_done", {})
+	var round_done: Dictionary = done_val if typeof(done_val) == TYPE_DICTIONARY else {}
+	return bool(round_done.get(_player_id, false))
+
+func _set_drop_timer_label(visible: bool, seconds_left: int = 0) -> void:
+	if _drop_timer_label == null:
+		return
+	_drop_timer_label.visible = visible
+	if visible:
+		_drop_timer_label.text = "%ds" % maxi(0, seconds_left)
+
+func _on_drop_timer_tick() -> void:
+	# Only run after the arena has started.
+	if not _match_timer_started:
+		_drop_timer_running = false
+		_set_drop_timer_label(false)
+		return
+	if _start_countdown_active:
+		_drop_timer_running = false
+		_set_drop_timer_label(false)
+		return
+	if typeof(_state) != TYPE_DICTIONARY or _state.is_empty():
+		_drop_timer_running = false
+		_set_drop_timer_label(false)
+		return
+	if str(_state.get("winner_id", "")) != "":
+		_drop_timer_running = false
+		_set_drop_timer_label(false)
+		return
+
+	var turn_i: int = int(_state.get("turn", 0))
+
+	# If you've already acted (dropped) or you've already passed/finished, hide timer.
+	if _is_my_round_done() or _has_submitted_any_card_this_round():
+		_drop_timer_running = false
+		_set_drop_timer_label(false)
+		return
+
+	# If we already auto-passed this turn (waiting for sync), don't re-arm.
+	if _auto_pass_turn == turn_i:
+		_drop_timer_running = false
+		_set_drop_timer_label(false)
+		return
+
+	# (Re)arm on new turn.
+	if turn_i != _drop_timer_turn:
+		_drop_timer_turn = turn_i
+		_drop_deadline_msec = Time.get_ticks_msec() + int(DROP_TIME_LIMIT_SEC * 1000)
+		_drop_timer_running = true
+
+	if not _drop_timer_running:
+		_set_drop_timer_label(false)
+		return
+
+	var now_msec: int = Time.get_ticks_msec()
+	var remaining_msec: int = maxi(0, _drop_deadline_msec - now_msec)
+	var remaining_sec: int = int(ceil(remaining_msec / 1000.0))
+	_set_drop_timer_label(true, remaining_sec)
+
+	if remaining_msec <= 0:
+		_drop_timer_running = false
+		_set_drop_timer_label(false)
+		_auto_pass_turn = turn_i
+		_send_or_apply_action("pass", {})
 
 func _ensure_match_timer() -> void:
 	if _match_timer != null and is_instance_valid(_match_timer):
@@ -148,6 +245,45 @@ const HAND_CARD_VIEW_SIZE := Vector2(140, 200)
 const REVEAL_DELAY_SEC := 0.7
 const FLIP_HALF_SEC := 0.12
 
+const _SFX_CARD_DROP: AudioStream = preload("res://asset/audio/akashic sfx/card drop sound effect.wav")
+const _SFX_CARD_REVEAL: AudioStream = preload("res://asset/audio/akashic sfx/card reveal sound effect.wav")
+
+const _SFX_DROP_VOLUME_DB := -4.0
+const _SFX_REVEAL_VOLUME_DB := -9.0
+
+var _sfx_drop_player: AudioStreamPlayer = null
+var _sfx_reveal_player: AudioStreamPlayer = null
+var _sfx_initialized: bool = false
+var _reveal_sfx_turn: int = -1
+
+func _ensure_sfx_players() -> void:
+	if _sfx_drop_player == null or not is_instance_valid(_sfx_drop_player):
+		_sfx_drop_player = AudioStreamPlayer.new()
+		add_child(_sfx_drop_player)
+	if _sfx_reveal_player == null or not is_instance_valid(_sfx_reveal_player):
+		_sfx_reveal_player = AudioStreamPlayer.new()
+		add_child(_sfx_reveal_player)
+
+func _play_drop_sfx() -> void:
+	if not _sfx_initialized:
+		return
+	_ensure_sfx_players()
+	if _sfx_drop_player == null:
+		return
+	_sfx_drop_player.volume_db = _SFX_DROP_VOLUME_DB
+	_sfx_drop_player.stream = _SFX_CARD_DROP
+	_sfx_drop_player.play()
+
+func _play_reveal_sfx() -> void:
+	if not _sfx_initialized:
+		return
+	_ensure_sfx_players()
+	if _sfx_reveal_player == null:
+		return
+	_sfx_reveal_player.volume_db = _SFX_REVEAL_VOLUME_DB
+	_sfx_reveal_player.stream = _SFX_CARD_REVEAL
+	_sfx_reveal_player.play()
+
 enum CardType { ATTACK, DEFENSE }
 
 const _TEX := {
@@ -167,9 +303,9 @@ const _BACK_TEX: Texture2D = preload("res://asset/cards for AkashicTGC/back card
 
 const _CARD_DB := {
 	# Defense
-	"mfa": {"name": "MULTI-FACTOR AUTH", "type": CardType.DEFENSE, "cost": 1},
-	"antivirus": {"name": "ANTIVIRUS CORE", "type": CardType.DEFENSE, "cost": 2},
-	"encryption": {"name": "ENCRYPTION KEY", "type": CardType.DEFENSE, "cost": 2},
+	"mfa": {"name": "MULTI-FACTOR AUTH", "type": CardType.DEFENSE, "cost": 3},
+	"antivirus": {"name": "ANTIVIRUS CORE", "type": CardType.DEFENSE, "cost": 3},
+	"encryption": {"name": "ENCRYPTION KEY", "type": CardType.DEFENSE, "cost": 3},
 	"firewall": {"name": "FIREWALL SHIELD", "type": CardType.DEFENSE, "cost": 2},
 	"ids": {"name": "INTRUSION DETECTION", "type": CardType.DEFENSE, "cost": 2},
 	# Attack
@@ -249,6 +385,11 @@ func _ready() -> void:
 			_play_zone.card_dropped.connect(_on_play_zone_card_dropped)
 
 	_end_turn_btn.pressed.connect(_on_end_turn_pressed)
+	if _menu_button != null and not _menu_button.pressed.is_connected(_on_menu_button_pressed):
+		_menu_button.pressed.connect(_on_menu_button_pressed)
+	_ensure_drop_timer()
+	if _menu_panel != null:
+		_menu_panel.visible = false
 
 	# Click-to-cancel on your dropped slots.
 	for i in range(_you_dropped_cards.size()):
@@ -272,6 +413,14 @@ func _ready() -> void:
 		_request_state()
 	_render()
 	_run_start_countdown()
+
+
+func _on_menu_button_pressed() -> void:
+	if _menu_panel == null:
+		return
+	_menu_panel.visible = not _menu_panel.visible
+	if _menu_panel.visible:
+		_menu_panel.move_to_front()
 
 
 func _init_arena_chat() -> void:
@@ -735,6 +884,8 @@ func _render() -> void:
 
 	# Show the cards currently dropped/submitted this round.
 	_render_dropped_cards(pending)
+	if not _sfx_initialized:
+		_sfx_initialized = true
 
 func _render_opp_hand_count(count: int) -> void:
 	if _opp_hand_hbox == null:
@@ -770,6 +921,12 @@ func _render_dropped_cards(pending: Dictionary) -> void:
 	var you_cards_val: Variant = pending.get(_player_id, [])
 	var opp_cards: Array = opp_cards_val if typeof(opp_cards_val) == TYPE_ARRAY else []
 	var you_cards: Array = you_cards_val if typeof(you_cards_val) == TYPE_ARRAY else []
+	var turn_i: int = int(_state.get("turn", 0))
+	var reveal_sfx_played_this_tick := false
+	if reveal_now and _reveal_sfx_turn != turn_i and opp_cards.size() > 0:
+		_reveal_sfx_turn = turn_i
+		_play_reveal_sfx()
+		reveal_sfx_played_this_tick = true
 
 	# Note: Your cards are always visible to you; opponent cards reveal all-at-once
 	# only when BOTH players are finished (PASS or auto-finish).
@@ -786,6 +943,8 @@ func _render_dropped_cards(pending: Dictionary) -> void:
 			_you_dropped_cards[i].mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if _can_cancel_now() else Control.CURSOR_ARROW
 			if you_prev == "" and you_key != "":
 				_slide_in(_you_dropped_cards[i])
+				if not reveal_sfx_played_this_tick:
+					_play_drop_sfx()
 			_last_you_slot_keys[i] = you_key
 		else:
 			_you_dropped_cards[i].texture = null
@@ -815,6 +974,9 @@ func _render_dropped_cards(pending: Dictionary) -> void:
 			# Do NOT slide-in again when we switch back->faceup on reveal.
 			if opp_prev == "" and opp_key != "":
 				_slide_in(_opp_dropped_cards[i])
+				# If the first time we learn opponent cards is at reveal, prefer reveal SFX.
+				if not reveal_sfx_played_this_tick and not reveal_now:
+					_play_drop_sfx()
 			_last_opp_slot_keys[i] = opp_key
 		else:
 			_opp_dropped_cards[i].texture = null
@@ -912,9 +1074,9 @@ func _card_description(card_id: String) -> String:
 		"mfa":
 			return "For 2 turns: blocks the next Phishing or Trojan."
 		"ids":
-			return "Arms IDS: next incoming Attack −3 damage, then draw 1."
+			return "Arms IDS (1 turn): next incoming Attack −1 damage, then draw 2."
 		"encryption":
-			return "For 3 turns: reduces incoming Phishing/Virus/Trojan by 2."
+			return "For 2 turns: reduces incoming Phishing/Virus/Trojan by 1."
 		"firewall":
 			return "Increase your FW by 6 (max 12)."
 		"antivirus":
@@ -1527,13 +1689,13 @@ func _apply_defense(actor_id: String, card_id: String) -> void:
 			_push_recent(p, "recent_defense", card_id)
 		"ids":
 			st = p.get("status", {})
-			st["ids"] = {"turns": 2}
+			st["ids"] = {"turns": 1}
 			p["status"] = st
 			_append_log(_state, "%s deployed IDS" % _name_for(actor_id))
 			_push_recent(p, "recent_defense", card_id)
 		"encryption":
 			st = p.get("status", {})
-			st["encrypted"] = {"turns": 3}
+			st["encrypted"] = {"turns": 2}
 			p["status"] = st
 			_append_log(_state, "%s enabled Encryption" % _name_for(actor_id))
 			_push_recent(p, "recent_defense", card_id)
@@ -1576,19 +1738,20 @@ func _apply_attack(actor_id: String, card_id: String) -> void:
 		_state["players"][defender_id] = defender
 		return
 
-	# IDS reduces next Attack by 3 and draws 1
+	# IDS reduces next Attack by 1 and draws 2
 	if defender_status.has("ids"):
-		dmg = max(0, dmg - 3)
+		dmg = max(0, dmg - 1)
 		defender_status.erase("ids")
 		defender["status"] = defender_status
 		_state["players"][defender_id] = defender
 		_draw_card(_state, defender_id)
+		_draw_card(_state, defender_id)
 		_append_log(_state, "%s IDS reduced damage" % _name_for(defender_id))
 		defender = _state["players"][defender_id]
 
-	# Encryption reduces PHISHING/VIRUS/TROJAN by 2
+	# Encryption reduces PHISHING/VIRUS/TROJAN by 1
 	if defender_status.has("encrypted") and (card_id == "phishing" or card_id == "virus" or card_id == "trojan"):
-		dmg = max(0, dmg - 2)
+		dmg = max(0, dmg - 1)
 
 	# DDOS minimum final damage is 3 (unless fully blocked by MFA)
 	if card_id == "ddos" and dmg < 3:

@@ -37,6 +37,12 @@ const XP_WIN := 200
 const XP_LOSE := -50
 const TOTAL_DECK_CARDS := 25
 
+const _SFX_VICTORY: AudioStream = preload("res://asset/audio/akashic sfx/player victory.wav")
+const _SFX_DEFEAT: AudioStream = preload("res://asset/audio/akashic sfx/player defeat.wav")
+
+var _outcome_sfx_player: AudioStreamPlayer = null
+var _outcome_sfx_played: bool = false
+
 const COLOR_WINNER := Color(1, 0.84, 0, 1)
 const COLOR_LOSER := Color(1, 0.36, 0.43, 1)
 const COLOR_XP_WIN := Color(0, 1, 0.5, 1)
@@ -63,8 +69,23 @@ func _ready() -> void:
 	_client_cards_used_ids = init.get("client_cards_used", [])
 
 	_setup_ui()
+	_play_outcome_sfx()
 	_back_button.pressed.connect(_on_back_to_landing_pressed)
 	_animate_in()
+
+
+func _play_outcome_sfx() -> void:
+	if _outcome_sfx_played:
+		return
+	_outcome_sfx_played = true
+	if _winner_id.strip_edges() == "" or _player_id.strip_edges() == "":
+		return
+	if _outcome_sfx_player == null or not is_instance_valid(_outcome_sfx_player):
+		_outcome_sfx_player = AudioStreamPlayer.new()
+		add_child(_outcome_sfx_player)
+	var local_won: bool = (_winner_id == _player_id)
+	_outcome_sfx_player.stream = _SFX_VICTORY if local_won else _SFX_DEFEAT
+	_outcome_sfx_player.play()
 
 
 func _setup_ui() -> void:

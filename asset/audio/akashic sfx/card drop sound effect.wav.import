@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bbg2kbr4erhoh"
+path="res://.godot/imported/card drop sound effect.wav-00a0adaf706207d253052a1ef0b21820.sample"
+
+[deps]
+
+source_file="res://asset/audio/akashic sfx/card drop sound effect.wav"
+dest_files=["res://.godot/imported/card drop sound effect.wav-00a0adaf706207d253052a1ef0b21820.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

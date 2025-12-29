@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b2nr4ve7q1376"
+path="res://.godot/imported/akashic background music øneheart x reidenshi - distorted memories.mp3-b28c983425ca11ea1b5de10ba74103ba.mp3str"
+
+[deps]
+
+source_file="res://asset/background/akashic background music øneheart x reidenshi - distorted memories.mp3"
+dest_files=["res://.godot/imported/akashic background music øneheart x reidenshi - distorted memories.mp3-b28c983425ca11ea1b5de10ba74103ba.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
