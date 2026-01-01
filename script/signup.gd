@@ -270,15 +270,15 @@ func _check_firestore_username_and_route():
 					print("🏠 Changing to landing.tscn...")
 					get_tree().change_scene_to_file("res://scene/landing.tscn")
 				else:
-					print("🆕 Google user exists but no username")
-					print("📝 Changing to intro_scene.tscn...")
-					get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
+					print("🆕 Google user exists but no username - NEW USER")
+					print("📖 Starting story cutscene for NEW USER...")
+					get_tree().change_scene_to_file("res://scene/entryingtohouse.tscn")
 			else:
-				print("⚠️ Invalid response structure")
-				get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
+				print("⚠️ Invalid response structure - NEW USER")
+				get_tree().change_scene_to_file("res://scene/entryingtohouse.tscn")
 		else:
-			print("🆕 New Google user (", response_code, "), showing intro scene")
-			get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
+			print("🆕 New Google user (", response_code, "), starting story")
+			get_tree().change_scene_to_file("res://scene/entryingtohouse.tscn")
 	)
 	
 	var err = http.request(url, headers, HTTPClient.METHOD_GET)

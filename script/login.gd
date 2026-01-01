@@ -125,16 +125,16 @@ func _check_firestore_username_and_route():
 					call_deferred("_route_existing_user_after_login")
 					return
 				else:
-					print("🆕 User document exists but no username found")
-					# User exists but no username - go to intro
-					get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
+					print("🆕 User document exists but no username found - NEW USER")
+					# User exists but no username - NEW USER, start story!
+					get_tree().change_scene_to_file("res://scene/entryingtohouse.tscn")
 			else:
-				print("⚠️ Invalid response structure")
-				get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
+				print("⚠️ Invalid response structure - treating as NEW USER")
+				get_tree().change_scene_to_file("res://scene/entryingtohouse.tscn")
 		else:
 			# 🆕 User document doesn't exist (404 or other error)
-			print("🆕 User document not found (", response_code, "), showing intro scene")
-			get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
+			print("🆕 User document not found (", response_code, "), starting story for NEW USER")
+			get_tree().change_scene_to_file("res://scene/entryingtohouse.tscn")
 	)
 	http.request(url, headers, HTTPClient.METHOD_GET)
 

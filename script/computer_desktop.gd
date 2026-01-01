@@ -17,8 +17,50 @@ var typing_speed = 0.03
 var dialogue_box_ui = null
 var dialogue_text_label = null
 var dialogue_continue_indicator = null
+var dialogue_name_label = null
+var popup_sfx_player: AudioStreamPlayer
+var popup_sound: AudioStream = preload("res://asset/audio/sfx/popup_warning.mp3")
+
+
+
+var button_sfx_player: AudioStreamPlayer
+var typing_sfx_player: AudioStreamPlayer
+var error_sfx_player: AudioStreamPlayer
+var download_sfx_player: AudioStreamPlayer
+
+
+@export var button_click_sound: AudioStream
+@export var typing_sound: AudioStream
+@export var error_sound: AudioStream
+@export var download_complete_sound: AudioStream
 
 func _ready():
+
+	popup_sfx_player = AudioStreamPlayer.new()
+	popup_sfx_player.name = "PopupSFXPlayer"
+	popup_sfx_player.volume_db = -10.0  # Adjust volume as needed
+	add_child(popup_sfx_player)
+
+	button_sfx_player = AudioStreamPlayer.new()
+	button_sfx_player.name = "ButtonSFXPlayer"
+	button_sfx_player.volume_db = -8.0
+	add_child(button_sfx_player)
+	
+	typing_sfx_player = AudioStreamPlayer.new()
+	typing_sfx_player.name = "TypingSFXPlayer"
+	typing_sfx_player.volume_db = -10.0
+	add_child(typing_sfx_player)
+	
+	error_sfx_player = AudioStreamPlayer.new()
+	error_sfx_player.name = "ErrorSFXPlayer"
+	error_sfx_player.volume_db = -3.0
+	add_child(error_sfx_player)
+	
+	download_sfx_player = AudioStreamPlayer.new()
+	download_sfx_player.name = "DownloadSFXPlayer"
+	download_sfx_player.volume_db = -5.0
+	add_child(download_sfx_player)
+
 	# Set this control to fill the entire screen
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	
@@ -51,9 +93,12 @@ func _ready():
 	# Start dialogue sequence after a delay
 	await get_tree().create_timer(1.5).timeout
 	
-	print("Starting dialogue...")
-	
-	if not GlobalState.has_opened_computer_before:
+	# Check game state and show appropriate dialogue
+	if GlobalState.joined_ca_organization and not GlobalState.ca_training_completed:
+		# Player joined CA - show training mission
+		start_ca_training_sequence()
+	elif not GlobalState.has_opened_computer_before:
+		# First time opening computer - original tutorial
 		print("First time opening computer")
 		GlobalState.has_opened_computer_before = true
 		start_dialogue([
@@ -65,7 +110,7 @@ func _ready():
 		await get_tree().create_timer(0.5).timeout
 		start_tutorial()
 	else:
-		print("Returning to computer")
+		# Returning to computer after infection (if not joined CA yet)
 		start_tutorial()
 
 func create_dialogue_ui():
@@ -74,7 +119,7 @@ func create_dialogue_ui():
 	# Create dialogue box UI
 	dialogue_box_ui = Panel.new()
 	dialogue_box_ui.name = "DialogueBox"
-	dialogue_box_ui.z_index = 1000  # Make sure it's on top
+	dialogue_box_ui.z_index = 1000
 	
 	# Position at bottom of screen
 	dialogue_box_ui.anchor_left = 0.0
@@ -118,12 +163,12 @@ func create_dialogue_ui():
 	margin.add_child(vbox)
 	
 	# Character name label
-	var name_label = Label.new()
-	name_label.name = "NameLabel"
-	name_label.text = "You"
-	name_label.add_theme_font_size_override("font_size", 20)
-	name_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))
-	vbox.add_child(name_label)
+	dialogue_name_label = Label.new()
+	dialogue_name_label.name = "NameLabel"
+	dialogue_name_label.text = "You"
+	dialogue_name_label.add_theme_font_size_override("font_size", 20)
+	dialogue_name_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	vbox.add_child(dialogue_name_label)
 	
 	# Dialogue text
 	dialogue_text_label = Label.new()
@@ -152,21 +197,70 @@ func create_dialogue_ui():
 	
 	print("Dialogue UI created successfully!")
 
-func start_dialogue(lines: Array):
-	print("Starting dialogue with ", lines.size(), " lines")
+# ============================================
+# CA TRAINING SEQUENCE
+# ============================================
+
+func start_ca_training_sequence():
+	print("Starting CA training sequence...")
+	
+	# Agent Reeves gives training instructions
+	start_dialogue_with_name([
+		"Welcome back, recruit.",
+		"Your computer has been fully restored and secured.",
+		"Now it's time for your first mission.",
+		"I've registered you for CyberArena - our training platform.",
+		"You need to create your operative username and complete the tutorial."
+	], "Anonymouse")
+	await dialogue_finished()
+	
+	await get_tree().create_timer(0.5).timeout
+	
+	start_dialogue_with_name([
+		"I'm redirecting you to the registration portal now.",
+		"Create your operative username carefully - this will be your identity.",
+		"I'll see you on the other side, recruit. Good luck."
+	], "Anonymouse")
+	await dialogue_finished()
+	
+	# Mark training as complete and transition to username creation
+	GlobalState.ca_training_completed = true
+	
+	await get_tree().create_timer(1.5).timeout
+	print("✅ CA Training complete! Transitioning to username creation...")
+	get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
+
+func start_dialogue_with_name(lines: Array, character_name: String):
 	dialogue_lines = lines
 	current_dialogue_index = 0
 	dialogue_active = true
 	
 	if dialogue_box_ui:
 		dialogue_box_ui.visible = true
-		dialogue_box_ui.z_index = 1000  # Ensure it's on top
+		dialogue_box_ui.z_index = 1000
+		
+		# Set character name and color
+		if dialogue_name_label:
+			dialogue_name_label.text = character_name
+			dialogue_name_label.visible = true
+			
+			# Color code based on character
+			if character_name == "Anonymouse":
+				dialogue_name_label.add_theme_color_override("font_color", Color(1, 0.5, 0))  # Orange
+			elif character_name == "You":
+				dialogue_name_label.add_theme_color_override("font_color", Color(0.5, 1, 0.5))  # Green
+			else:
+				dialogue_name_label.add_theme_color_override("font_color", Color(0, 1, 1))  # Cyan
+		
 		print("Dialogue box is now visible")
 	else:
 		print("ERROR: dialogue_box_ui is null!")
 		return
 	
 	show_current_line()
+
+func start_dialogue(lines: Array):
+	start_dialogue_with_name(lines, "You")
 
 func show_current_line():
 	if current_dialogue_index >= dialogue_lines.size():
@@ -183,10 +277,11 @@ func show_current_line():
 
 func type_next_character():
 	if current_char_index < dialogue_lines[current_dialogue_index].length():
+		play_typing_sound()
 		dialogue_text_label.text += dialogue_lines[current_dialogue_index][current_char_index]
 		current_char_index += 1
 		await get_tree().create_timer(typing_speed).timeout
-		if typing_active:  # Check if not skipped
+		if typing_active:
 			type_next_character()
 	else:
 		finish_typing()
@@ -199,12 +294,10 @@ func finish_typing():
 
 func advance_dialogue():
 	if typing_active:
-		# Skip typing animation
 		print("Skipping typing animation")
 		typing_active = false
 		finish_typing()
 	else:
-		# Move to next line
 		print("Advancing to next line")
 		current_dialogue_index += 1
 		show_current_line()
@@ -217,7 +310,6 @@ func end_dialogue():
 	dialogue_lines.clear()
 
 func dialogue_finished():
-	# Wait until dialogue is done
 	while dialogue_active:
 		await get_tree().create_timer(0.1).timeout
 
@@ -231,6 +323,10 @@ func _input(event):
 			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 				print("Mouse clicked during dialogue")
 				advance_dialogue()
+
+# ============================================
+# ORIGINAL TUTORIAL (First time on computer)
+# ============================================
 
 func start_tutorial():
 	print("Starting tutorial")
@@ -279,7 +375,12 @@ func update_time():
 		hour = 12
 	$Taskbar/TimeLabel.text = "%d:%02d %s" % [hour, time.minute, am_pm]
 
+# ============================================
+# ICON CLICK HANDLERS
+# ============================================
+
 func _on_browser_clicked():
+	play_button_sound()
 	stop_all_highlights()
 	
 	if has_node("WindowBrowser"):
@@ -287,7 +388,14 @@ func _on_browser_clicked():
 		$WindowBrowser/AddressBar.text = ""
 		clear_search_results()
 		
-		if not search_tutorial_shown:
+		# Check if CA training mission
+		if GlobalState.joined_ca_organization and not GlobalState.ca_training_completed:
+			# Show hint for cyberarena.com
+			await get_tree().create_timer(0.5).timeout
+			start_dialogue_with_name([
+				"Remember: Go to cyberarena.com to start your training."
+			], "Anonymouse")
+		elif not search_tutorial_shown:
 			search_tutorial_shown = true
 			await get_tree().create_timer(0.5).timeout
 			start_dialogue([
@@ -295,7 +403,16 @@ func _on_browser_clicked():
 			])
 
 func _on_messages_clicked():
+	play_button_sound()
 	stop_all_highlights()
+	
+	# Don't allow messages during CA training
+	if GlobalState.joined_ca_organization and not GlobalState.ca_training_completed:
+		start_dialogue_with_name([
+			"Focus on your mission, recruit.",
+			"Check your messages later."
+		], "Anonymouse")
+		return
 	
 	if has_node("WindowMessages"):
 		$WindowMessages.visible = true
@@ -333,9 +450,21 @@ func _on_messages_close():
 
 func _on_exit_clicked():
 	stop_all_highlights()
-	get_tree().change_scene_to_file("res://scene/Main.tscn")
+	
+	# If CA training is complete and no username yet, go to intro scene
+	if GlobalState.ca_training_completed and (Auth.current_username == "" or Auth.current_username == null):
+		print("✅ Training done, going to username creation...")
+		get_tree().change_scene_to_file("res://scene/intro_scene.tscn")
+	else:
+		# Otherwise go back to main room
+		get_tree().change_scene_to_file("res://scene/Main.tscn")
+
+# ============================================
+# SEARCH FUNCTIONALITY
+# ============================================
 
 func _on_search_clicked():
+	play_button_sound()
 	if has_node("WindowBrowser"):
 		perform_search($WindowBrowser/AddressBar.text)
 
@@ -348,12 +477,104 @@ func perform_search(query: String):
 	if has_node("WindowBrowser/ContentArea/SearchResults"):
 		$WindowBrowser/ContentArea/SearchResults.add_theme_constant_override("separation", 15)
 	
+	# Check if searching for CyberArena (CA training mission)
+	if GlobalState.joined_ca_organization and not GlobalState.ca_training_completed:
+		if query.to_lower().contains("cyberarena") or query.to_lower() == "cyberarena.com":
+			# Found the correct site!
+			add_ca_training_result()
+			return
+		else:
+			add_search_result("No results found", "", "Try searching for 'cyberarena.com'", false)
+			return
+	
+	# Original search logic (for free game download)
 	if query.to_lower().contains("free") and (query.to_lower().contains("game") or query.to_lower().contains("cyberrun")):
 		add_search_result("CyberRun 2024 - Official Store", "https://officialgamestore.com", "₱1,000 - Official download with updates and support", false)
 		add_search_result("⚠️ FREE GAMES DOWNLOAD - CyberRun 2024", "http://freegamesdownload123.xyz", "Download CyberRun 2024 FREE! No payment needed! CLICK HERE!", true)
 		add_search_result("GameShare Forum - CyberRun Discussion", "https://gameshare.com/cyberrun", "Users discussing the game. Mixed reviews on third-party sites.", false)
 	else:
 		add_search_result("No results found", "", "Try searching for 'free game download' or 'cyberrun free'", false)
+
+func add_ca_training_result():
+	if not has_node("WindowBrowser/ContentArea/SearchResults"):
+		return
+	
+	var result_panel = Panel.new()
+	result_panel.custom_minimum_size = Vector2(0, 200)
+	result_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 15)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 15)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	result_panel.add_child(margin)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	margin.add_child(vbox)
+	
+	var title_label = Label.new()
+	title_label.text = "🛡️ CyberArena - Official CA Training Platform"
+	title_label.add_theme_font_size_override("font_size", 18)
+	title_label.add_theme_color_override("font_color", Color(0, 1, 0))  # Green - safe
+	vbox.add_child(title_label)
+	
+	var url_label = Label.new()
+	url_label.text = "https://cyberarena.com"
+	url_label.add_theme_color_override("font_color", Color.DARK_GREEN)
+	url_label.add_theme_font_size_override("font_size", 12)
+	vbox.add_child(url_label)
+	
+	var desc_label = Label.new()
+	desc_label.text = "Official Cyber Anomaly Organization training platform. Create your operative profile and begin your cybersecurity training."
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	desc_label.add_theme_font_size_override("font_size", 14)
+	vbox.add_child(desc_label)
+	
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 5)
+	vbox.add_child(spacer)
+	
+	var enter_btn = Button.new()
+	enter_btn.text = "✓ ENTER CYBERARENA"
+	enter_btn.custom_minimum_size = Vector2(200, 40)
+	enter_btn.pressed.connect(_on_cyberarena_clicked)
+	vbox.add_child(enter_btn)
+	
+	var bottom_spacer = Control.new()
+	bottom_spacer.custom_minimum_size = Vector2(0, 15)
+	vbox.add_child(bottom_spacer)
+	
+	$WindowBrowser/ContentArea/SearchResults.add_child(result_panel)
+
+func _on_cyberarena_clicked():
+	print("Loading CyberArena registration...")
+	
+	# Store tree reference
+	var tree = get_tree()
+	if not tree:
+		return
+	
+	# Show message WITHOUT dialogue system (instant)
+	if dialogue_box_ui:
+		dialogue_box_ui.visible = true
+		dialogue_name_label.text = "Anonymouse"
+		dialogue_name_label.add_theme_color_override("font_color", Color(1, 0.5, 0))
+		dialogue_text_label.text = "Perfect. Loading CyberArena...\nCreate your username carefully. This will be your operative ID."
+		dialogue_continue_indicator.visible = false
+	
+	# Wait and transition
+	await tree.create_timer(2.0).timeout
+	
+	if dialogue_box_ui:
+		dialogue_box_ui.visible = false
+	
+	if not is_inside_tree():
+		return
+	
+	print("Changing to intro_scene.tscn...")
+	tree.change_scene_to_file("res://scene/intro_scene.tscn")
 
 func clear_search_results():
 	if has_node("WindowBrowser/ContentArea/SearchResults"):
@@ -420,6 +641,10 @@ func add_search_result(title: String, url: String, description: String, is_suspi
 	
 	$WindowBrowser/ContentArea/SearchResults.add_child(result_panel)
 
+# ============================================
+# INFECTION SEQUENCE (Original game flow)
+# ============================================
+
 func _on_download_clicked(is_suspicious: bool):
 	if download_started:
 		return
@@ -432,9 +657,10 @@ func _on_download_clicked(is_suspicious: bool):
 
 func show_download_warning():
 	start_dialogue([
-		"Hmm, this site looks a bit sketchy...",
-		"But it's free! What could go wrong?",
-		"Let me just download it real quick..."
+		"Found it I hope it's safe to download...",
+		"I always get free games from this site, I think it's fine.",
+		"Let me just download it real quick...",
+		
 	])
 	await dialogue_finished()
 	start_infection_sequence()
@@ -466,7 +692,7 @@ func show_fake_loading():
 	loading_overlay.add_child(vbox)
 	
 	var loading_label = Label.new()
-	loading_label.text = "Downloading CyberRun2024_Free.exe..."
+	loading_label.text = "Downloading CyberRun2026_Free.exe..."
 	loading_label.add_theme_font_size_override("font_size", 24)
 	loading_label.add_theme_color_override("font_color", Color.WHITE)
 	loading_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -490,6 +716,8 @@ func show_fake_loading():
 	for i in range(101):
 		await get_tree().create_timer(0.035).timeout
 		percent_label.text = str(i) + "%"
+		if i == 100:
+			play_download_complete()
 
 func spawn_malware_popups():
 	var popup_messages = [
@@ -510,6 +738,7 @@ func spawn_malware_popups():
 	show_infection_result()
 
 func create_popup_window(message: String, index: int):
+	play_popup_sound()
 	var popup = Panel.new()
 	popup.custom_minimum_size = Vector2(300, 150)
 	popup.z_index = 600 + index
@@ -552,6 +781,7 @@ func create_popup_window(message: String, index: int):
 	
 	var close_btn = Button.new()
 	close_btn.text = "X"
+	close_btn.focus_mode = Control.FOCUS_NONE
 	close_btn.custom_minimum_size = Vector2(30, 30)
 	close_btn.pressed.connect(popup.queue_free)
 	popup.add_child(close_btn)
@@ -626,7 +856,7 @@ func show_shutdown_animation():
 	get_tree().change_scene_to_file("res://scene/Main.tscn")
 
 func load_chat_messages():
-	add_message("Mark", "Bro have you played CyberRun 2024 yet?!", "2:30 PM")
+	add_message("Mark", "Bro have you played CyberRun 2026 yet?!", "2:30 PM")
 	add_message("Sarah", "It's so good! Already level 15!", "2:31 PM")
 	add_message("Mark", "Costs 1000 pesos though 😅", "2:32 PM")
 	add_message("Sarah", "Worth every peso IMO", "2:33 PM")
@@ -662,3 +892,36 @@ func show_message(text: String):
 	dialog.dialog_text = text
 	add_child(dialog)
 	dialog.popup_centered()
+
+
+func play_popup_sound():
+	if popup_sound and popup_sfx_player:
+		# Stop current sound to allow rapid-fire popups
+		if popup_sfx_player.playing:
+			popup_sfx_player.stop()
+		
+		popup_sfx_player.stream = popup_sound
+		popup_sfx_player.pitch_scale = randf_range(0.95, 1.05)  # Slight variation
+		popup_sfx_player.play()
+
+func play_button_sound():
+	if button_click_sound and button_sfx_player:
+		button_sfx_player.stream = button_click_sound
+		button_sfx_player.pitch_scale = randf_range(0.98, 1.02)
+		button_sfx_player.play()
+
+func play_typing_sound():
+	if typing_sound and typing_sfx_player:
+		if not typing_sfx_player.playing:
+			typing_sfx_player.stream = typing_sound
+			typing_sfx_player.play()
+
+func play_error_sound():
+	if error_sound and error_sfx_player:
+		error_sfx_player.stream = error_sound
+		error_sfx_player.play()
+
+func play_download_complete():
+	if download_complete_sound and download_sfx_player:
+		download_sfx_player.stream = download_complete_sound
+		download_sfx_player.play()

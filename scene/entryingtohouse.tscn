@@ -1,11 +1,12 @@
-[gd_scene load_steps=8 format=3 uid="uid://cg2ianeb8klhv"]
+[gd_scene load_steps=9 format=3 uid="uid://cg2ianeb8klhv"]
 
-[ext_resource type="Script" uid="uid://b7de0vbxuxwb" path="res://script/story_cutscene.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://c5nbxayrj76g4" path="res://asset/story/panel1_friends_gaming (2).png" id="2_selfa"]
-[ext_resource type="Texture2D" uid="uid://dmrkvdek6et15" path="res://asset/story/panel2.png" id="3_qpm5x"]
-[ext_resource type="Texture2D" uid="uid://i1w1vq4tv6t0" path="res://asset/story/panel3.png" id="4_k7my2"]
-[ext_resource type="Texture2D" uid="uid://bqaa4swl8isip" path="res://asset/story/panel4.png" id="5_tit3s"]
-[ext_resource type="Texture2D" uid="uid://birqsy3lec364" path="res://asset/story/panel5.png" id="6_gmllg"]
+[ext_resource type="Script" uid="uid://b7de0vbxuxwb" path="res://script/story_cutscene.gd" id="1_feu1t"]
+[ext_resource type="Texture2D" uid="uid://c5nbxayrj76g4" path="res://asset/story/panel1_friends_gaming (2).png" id="2_lfqu3"]
+[ext_resource type="Texture2D" uid="uid://dmrkvdek6et15" path="res://asset/story/panel2.png" id="3_olqtg"]
+[ext_resource type="Texture2D" uid="uid://i1w1vq4tv6t0" path="res://asset/story/panel3.png" id="4_2jmxa"]
+[ext_resource type="Texture2D" uid="uid://bqaa4swl8isip" path="res://asset/story/panel4.png" id="5_rru6p"]
+[ext_resource type="Texture2D" uid="uid://birqsy3lec364" path="res://asset/story/panel5.png" id="6_l1o3c"]
+[ext_resource type="AudioStream" uid="uid://cx2nbxuubg5mq" path="res://asset/audio/sfx/handle-paper-foley-2-172689.mp3" id="7_h48n5"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 bg_color = Color(0.0509804, 0.0509804, 0.0509804, 1)
@@ -20,14 +21,16 @@ corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [node name="StoryCutscene" type="CanvasLayer"]
-script = ExtResource("1")
+script = ExtResource("1_feu1t")
+next_scene_path = "uid://3txf6278rjx6"
 auto_advance_time = 4.5
 fade_duration = 1.0
-panel1_image = ExtResource("2_selfa")
-panel2_image = ExtResource("3_qpm5x")
-panel3_image = ExtResource("4_k7my2")
-panel4_image = ExtResource("5_tit3s")
-panel5_image = ExtResource("6_gmllg")
+panel1_image = ExtResource("2_lfqu3")
+panel2_image = ExtResource("3_olqtg")
+panel3_image = ExtResource("4_2jmxa")
+panel4_image = ExtResource("5_rru6p")
+panel5_image = ExtResource("6_l1o3c")
+turn_page_sound = ExtResource("7_h48n5")
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
@@ -98,7 +101,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 25
+theme_override_font_sizes/font_size = 20
 text = "Story text appears here..."
 autowrap_mode = 3
 
@@ -133,3 +136,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
+
+[node name="SFXPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_h48n5")
+volume_db = -22.004

@@ -25,12 +25,12 @@ func show_exploration_tip():
 		"Press E to interact with objects when you see the prompt."
 	]
 	
-	DialogueManager.show_dialogue(tip_lines, "Tutorial")
+	DialogueManager.show_dialogue(tip_lines, "SYSTEM")
 	await DialogueManager.dialogue_box.dialogue_finished
 	exploration_tip_finished.emit()
 	
 	# After tip, wait for player to explore or go to computer
-	await get_tree().create_timer(5.0).timeout
+	await get_tree().create_timer(4.0).timeout
 	show_intro_monologue()
 
 func show_intro_monologue():
@@ -40,7 +40,7 @@ func show_intro_monologue():
 	has_shown_intro_dialogue = true
 	
 	var monologue_lines = [
-		"Man, all my friends are playing CyberRun 2024...",
+		"Man, all my friends are playing CyberRun 2026... I really want to try it out.",
 		"Everyone's talking about it in the group chat.",
 		"It costs 1000 pesos though. That's way too much for me right now.",
 		"Maybe I can find it somewhere online for free?",

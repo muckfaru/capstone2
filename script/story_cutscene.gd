@@ -11,11 +11,15 @@ extends CanvasLayer
 @export var panel4_image: Texture2D
 @export var panel5_image: Texture2D
 
+# ADD YOUR SOUND EFFECT HERE
+@export var turn_page_sound: AudioStream
+
 @onready var panel_display = $Control/ImageContainer/TextureRect
 @onready var dialogue_box = $Control/DialogueBox
 @onready var dialogue_label = $Control/DialogueBox/MarginContainer/Label
 @onready var fade_overlay = $Control/FadeOverlay
 @onready var next_indicator = $Control/NextIndicator
+@onready var sfx_player = $SFXPlayer  # Reference to the AudioStreamPlayer
 
 var story_panels = []
 var current_panel = 0
@@ -24,29 +28,30 @@ var auto_timer = 0.0
 var is_transitioning = false
 
 func _ready():
-	# No need to preload next_scene_path anymore since we're using transition screen
-	
 	# Build story panels from exported images
 	story_panels = [
 		{
 			"image": panel1_image,
-			"text": "My friend just got the new game everyone's talking about..."
+			"text": "Wow they're having fun playing CyberRun 2026, the new game.
+					 I want to play that too it looks good..."
 		},
 		{
 			"image": panel2_image,
-			"text": "₱3,500... That's way too expensive for me."
+			"text": "₱1000...That's way too expensive for me."
 		},
 		{
 			"image": panel3_image,
-			"text": "He keeps showing me screenshots. It looks amazing..."
+			"text": "My friends keeps showing me the screenshots. It looks amazing with all the new features!
+					 I wish I could join them..."
 		},
 		{
 			"image": panel4_image,
-			"text": "Why does he get everything? It's not fair..."
+			"text": "Why it's so expensive though? I wonder if I can find it for free somewhere..."
 		},
 		{
 			"image": panel5_image,
-			"text": "Maybe... maybe there's another way to get it."
+			"text": "Maybe I can find it online somewhere... I'll just check my computer.
+					 and see if I can download it. and so i can join my friends playing it."
 		}
 	]
 	
@@ -76,6 +81,11 @@ func show_panel(index: int):
 	if index >= story_panels.size():
 		end_story()
 		return
+	
+	# Play turn page sound when transitioning to a new panel
+	if turn_page_sound and sfx_player:
+		sfx_player.stream = turn_page_sound
+		sfx_player.play()
 	
 	can_advance = false
 	current_panel = index

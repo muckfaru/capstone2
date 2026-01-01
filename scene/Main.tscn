@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://3txf6278rjx6"]
+[gd_scene load_steps=35 format=3 uid="uid://3txf6278rjx6"]
 
 [ext_resource type="PackedScene" uid="uid://bla8ljgx2846q" path="res://Neo3D/scifi_sofa.glb" id="1_3sxgj"]
 [ext_resource type="PackedScene" uid="uid://cpl2nhu0y8yne" path="res://3D/refrigerator.glb" id="1_764rb"]
@@ -9,13 +9,20 @@
 [ext_resource type="Script" uid="uid://dxpmg7s5d8rmg" path="res://script/Main.gd" id="1_ob58h"]
 [ext_resource type="PackedScene" uid="uid://c3o26q1dxjod3" path="res://Neo3D/neon_sign_letters_and_elements.glb" id="1_s5yxy"]
 [ext_resource type="PackedScene" uid="uid://cdcue61ow5osi" path="res://Neo3D/wires.glb" id="1_x4yfu"]
+[ext_resource type="AudioStream" uid="uid://dkyrmt8fai22b" path="res://asset/audio/sfx/static-electicity-193505_SPPG1Lmp.mp3" id="2_gjnlk"]
+[ext_resource type="AudioStream" uid="uid://ctk3pslm0yyjf" path="res://asset/audio/sfx/single-keypad-beep-433456.mp3" id="3_kxuod"]
 [ext_resource type="PackedScene" uid="uid://1skaywena3tj" path="res://3D/old_bed.glb" id="3_yiwpq"]
+[ext_resource type="AudioStream" uid="uid://c8u8tuok4ki6g" path="res://asset/audio/sfx/success-48018.mp3" id="4_1dr5g"]
 [ext_resource type="Shader" uid="uid://c3mlgru35r7c0" path="res://scene/floorshader.gdshader" id="4_3sxgj"]
+[ext_resource type="AudioStream" uid="uid://p4ipeo2stdf" path="res://asset/audio/sfx/disconnect-47336.mp3" id="5_wosyn"]
 [ext_resource type="Shader" uid="uid://bwy4nlb3swa13" path="res://Shaders/wood_pattern.gdshader" id="6_pnqar"]
 [ext_resource type="PackedScene" uid="uid://b0q3egwxpmjj3" path="res://3D/wooden_door.glb" id="9_pnqar"]
 [ext_resource type="Script" uid="uid://ct4b7o7ojthyi" path="res://script/neon_blink.gd" id="11_blink"]
 [ext_resource type="AudioStream" uid="uid://u6011cie6b4d" path="res://asset/audio/dergunerin.mp3" id="14_hrl0l"]
 [ext_resource type="Script" uid="uid://caetawdr00udj" path="res://script/story_manager.gd" id="story_manager"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ob58h"]
+size = Vector3(1.85156, 1, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_764rb"]
 size = Vector3(25.1346, 1, 4.28705)
@@ -104,6 +111,10 @@ size = Vector3(0.893555, 2.10498, 0.876465)
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_ob58h")
+screen_flicker_sound = ExtResource("2_gjnlk")
+beep_sound = ExtResource("3_kxuod")
+call_connect_sound = ExtResource("4_1dr5g")
+call_disconnect_sound = ExtResource("5_wosyn")
 
 [node name="radio" parent="." instance=ExtResource("1_aex65")]
 transform = Transform3D(0.143584, 0, 0.139225, 0, 0.2, 0, -0.139225, 0, 0.143584, -3.30437, 1.41802, 7.42244)
@@ -136,8 +147,13 @@ transform = Transform3D(0.3, 0, 0, 0, -0.000266768, 0.3, 0, -0.3, -0.000266768, 
 transform = Transform3D(0.783157, 2.79397e-09, 5.94867, 0.316617, 5.9915, -0.0416834, -5.94024, 0.319349, 0.782047, -0.670289, -0.14012, -2.17779)
 
 [node name="hologram" parent="." instance=ExtResource("1_eik88")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.65866, 2.2591, -1.92122)
-visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.03344, 2.20366, -1.92122)
+
+[node name="StaticBody3D" type="StaticBody3D" parent="hologram"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="hologram/StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.425781, 0.0612388, 0)
+shape = SubResource("BoxShape3D_ob58h")
 
 [node name="neosign" parent="." instance=ExtResource("1_s5yxy")]
 transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, -0.184531, 2.89293, -3.95791)
@@ -178,10 +194,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -150.0
-offset_top = -100.0
-offset_right = 150.0
-offset_bottom = -50.0
+offset_left = -132.0
+offset_top = -168.0
+offset_right = 168.0
+offset_bottom = -118.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(0, 1, 1, 1)
@@ -252,7 +268,7 @@ spot_range = 8.67251
 spot_angle = 60.0
 
 [node name="NeonStrip1" type="SpotLight3D" parent="."]
-transform = Transform3D(-0.805815, 0, 0.592168, 0, 1, 0, -0.592168, 0, -0.805815, 9.80663, 5.02354, -4.01624)
+transform = Transform3D(-0.751293, -0.253945, 0.609156, -0.387938, 0.916638, -0.0963298, -0.533912, -0.308687, -0.787179, 9.80663, 5.02354, -4.01624)
 light_color = Color(1, 0, 0.4, 1)
 light_energy = 2.0
 spot_range = 54.1251
@@ -317,6 +333,7 @@ script = ExtResource("story_manager")
 [editable path="ref"]
 [editable path="wires2"]
 [editable path="wires"]
+[editable path="hologram"]
 [editable path="neosign"]
 [editable path="Sketchfab_Scene"]
 [editable path="bed"]

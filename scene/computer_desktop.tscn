@@ -1,9 +1,12 @@
-[gd_scene load_steps=7 format=3 uid="uid://bjg11hwbs4b2n"]
+[gd_scene load_steps=10 format=3 uid="uid://bjg11hwbs4b2n"]
 
 [ext_resource type="Script" uid="uid://yaxegflmrqln" path="res://script/computer_desktop.gd" id="1"]
+[ext_resource type="AudioStream" uid="uid://434ciwbb7kcy" path="res://asset/audio/sfx/click-short-411516.mp3" id="2_07waw"]
 [ext_resource type="Texture2D" uid="uid://cdj0n8dbrosd1" path="res://asset/icons/browser_icons.png" id="2_browser"]
 [ext_resource type="Texture2D" uid="uid://dwcbmtvhpjifc" path="res://asset/icons/desktop_bg.jpg" id="2_t34nj"]
 [ext_resource type="Texture2D" uid="uid://dey0uchbqt8m6" path="res://asset/icons/messages_icons.png" id="3_messages"]
+[ext_resource type="AudioStream" uid="uid://buae13e83e8pc" path="res://asset/audio/sfx/pc-speaker-error-beep-104100.mp3" id="4_akfn5"]
+[ext_resource type="AudioStream" uid="uid://be3vq0gly3l24" path="res://asset/audio/sfx/success-340660.mp3" id="5_8mjvp"]
 [ext_resource type="Texture2D" uid="uid://cbxnk50mvs60f" path="res://asset/icons/open-folder.png" id="5_t34nj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_taskbar"]
@@ -17,6 +20,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+button_click_sound = ExtResource("2_07waw")
+error_sound = ExtResource("4_akfn5")
+download_complete_sound = ExtResource("5_8mjvp")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
