@@ -1,14 +1,53 @@
 ﻿# Copilot Instructions for capstone2
 
 ## 🎮 Big Picture
-**Godot 4.4 multi-game social platform** with Firebase authentication and **WebSocket Relay multiplayer** (no port forwarding required). Architecture: Auth → Landing (hub) → Game Lobbies → Rooms → Loading → Arenas (1v1 gameplay). Two games: **Code Breaker** (submit-based typing combat) and **Akashic TCG** (turn-based card game). Scene navigation uses visibility toggles for Landing, `change_scene_to_packed()` for game flows. REST via transient `HTTPRequest` nodes; Multiplayer via **Node.js relay server** on Render.com.
+**Godot 4.4 multi-game social platform** with Firebase authentication and **WebSocket Relay multiplayer** (no port forwarding required). Core gameplay loop is still Landing (hub) → Game Lobbies → Rooms → Loading → Arenas (1v1 gameplay) for two games: **Code Breaker** (submit-based typing combat) and **Akashic TCG** (turn-based card game).
+
+The repo now also includes a **story-driven onboarding flow** for new users (comic cutscene → 3D room exploration → “computer desktop” sequence → operative codename creation) before they reach Landing.
 
 ```
-Firebase Auth ──→ Landing (profile/chat) ──→ Game Lobbies ──→ Rooms ──→ Loading ──→ Arenas
-                           │                        │               │          │
-                    Auth.gd (autoload)      Relay Connection   Sync Screen  Combat
-                    ChatManager.gd          (no port fwd!)     (30s max)   (Submit-Based)
+Boot (project.godot run/main_scene)
+  loadingAni → 2ndloading → 3rdanimationld → login
+
+Post-login routing
+  Existing user (Firestore has `users/<uid>.username`) → (resume sessions if any) → Landing
+  New user (missing user doc or missing username) → entryingtohouse (StoryCutscene) → Main (3D room) → computer_desktop → intro_scene (create codename) → Landing
+
+Multiplayer loop (from Landing)
+  Landing → Lobbies → Rooms → Loading → Arenas
 ```
+
+## 🧩 Story / Onboarding Flow (New)
+
+### Startup Scenes
+- Entry point is `scene/loadingAni.tscn` → `scene/2ndloading.tscn` → `scene/3rdanimationld.tscn` → `scene/login.tscn`.
+- These loaders use `ResourceLoader.load_threaded_request()` and then swap `get_tree().current_scene`.
+
+### New User Detection (Login)
+- `script/login.gd` checks Firestore `GET users/<uid>` after auth.
+  - If `fields.username.stringValue` exists → treat as existing user and route to resume/landing.
+  - If user doc missing OR username missing → route to `scene/entryingtohouse.tscn` (start story).
+
+### Story Cutscene → 3D Room
+- `scene/entryingtohouse.tscn` uses `script/story_cutscene.gd` (comic panels + page-turn SFX) and then transitions into the 3D room (`scene/Main.tscn`).
+- `scene/Main.tscn` + `script/Main.gd` is the player’s room exploration scene.
+  - `script/story_manager.gd` shows the exploration tip and intro monologue.
+
+### Narrative State Flags
+- `script/GlobalState.gd` (autoload) is the single source of truth for branching story flags (returning from computer, infected status, CA offer accepted/declined, training complete, etc.).
+
+### Dialogue System
+- `script/dialogue_manager.gd` (autoload) provides the global dialogue box + choice UI.
+  - Use `DialogueManager.show_dialogue(lines, speaker)` for linear dialogue.
+  - Use `await DialogueManager.show_choices(question, choices)` for branching choices.
+
+### “Computer Desktop” Sequence
+- `scene/computer_desktop.tscn` + `script/computer_desktop.gd` handles the desktop minigame/tutorial and story beats.
+- When CA training triggers username creation, it routes to `scene/intro_scene.tscn`.
+
+### Operative Codename Creation
+- `scene/intro_scene.tscn` + `scene/intro_scene.gd` collects the player’s codename and writes the Firestore user doc if missing.
+- Safety: if `Auth.current_username` is already set, `intro_scene.gd` skips straight to `scene/landing.tscn`.
 
 ## 🎓 Tutorial System
 
@@ -238,6 +277,9 @@ Emit Signals:
 | **ChatManager** | `script/ChatManager.gd` | RTDB polling for real-time chat. Two timers: 2s (current chat) + 5s (all unread counts). Methods: `set_current_user()`, `load_chat_history()`, `send_message()`, `get_unread_count()`. Signals: `message_received`, `chat_loaded`, `unread_count_changed`. |
 | **TutorialManager** | `script/TutorialManager.gd` | XP/rank tracking, tutorial completion, game unlocks. Methods: `complete_tutorial()`, `get_rank()`, `is_game_unlocked()`, `load_user_data()`, `save_user_data()`. Signals: `xp_updated`, `rank_up`, `game_unlocked`, `data_loaded`, `save_completed`. Firestore integration for persistence. |
 | **MultiplayerConfig** | `script/MultiplayerConfig.gd` | Server URL configuration. `current_mode` = `Mode.PRODUCTION` or `Mode.LOCALHOST`. Returns lobby server URL for room operations and relay connections. Used by lobby and room scenes. |
+| **DialogueManager** | `script/dialogue_manager.gd` | Global dialogue UI + choice UI for story/tutorial scenes. Provides `show_dialogue()` and `show_choices()`; manages input/mouse mode during choices. |
+| **GlobalState** | `script/GlobalState.gd` | Global story flags for onboarding/narrative flow (computer infection, CA offer, returning-from-computer routing, etc.). |
+| **ForceNetworkMode** | `script/ForceNetworkMode.gd` | Forces network mode/config for builds/dev (used alongside `MultiplayerConfig`). |
 
 ## 📊 Data Schema
 
@@ -283,6 +325,11 @@ chats/<user_a_user_b>/messages/<pushKey>
 ```
 users/<uid> = {
   username, avatar, level, wins, losses, xp,
+  friends: [String],
+  requests_received: [String],
+  first_login: bool,
+  tutorial_completed: bool,
+  welcome_tutorial_completed: bool,
   total_xp: int,              // Total XP earned from tutorials
   unlocked_games: [String],   // Array of unlocked game IDs
   tutorials: {                // Map of completed tutorials
@@ -319,6 +366,11 @@ codebreaker_rooms/<roomId>
 ```
 users/<uid> = {
   username, avatar, level, wins, losses, xp,
+  friends: [String],
+  requests_received: [String],
+  first_login: bool,
+  tutorial_completed: bool,
+  welcome_tutorial_completed: bool,
   total_xp: int,              // Total XP earned from tutorials
   unlocked_games: [String],   // Array of unlocked game IDs
   tutorials: {                // Map of completed tutorials
