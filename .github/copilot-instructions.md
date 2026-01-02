@@ -724,7 +724,7 @@ To prevent early DOS/DDOS dominance:
      - Power-ups used: count of activated buffs
    - **Firestore Integration:**
      - Saves XP to `users/{uid}/total_xp`
-     - Appends match history to `users/<uid>.recent_matches` (used by Landing Profile; reliable even if `match_history` is rules-blocked)
+     - Appends match history to `users/<uid>.recent_matches` (Landing Profile’s reliable source; `match_history` may be rules-blocked)
    - **Back to Landing:** Button navigates to landing hub (NOT lobby)
    - Relay connection freed on exit
 
@@ -891,7 +891,7 @@ var current_mode: Mode = Mode.PRODUCTION  # Render.com
 | **TGC Arena** | `script/akashic_tcg_arena.gd` | Host-authoritative round-based submit system; `tgc_state_sync`/`tgc_action_request` |
 | **TGC Reconnect** | `script/akashic_tcg_reconnect.gd` | Reconnect/resume routing into Loading or Arena based on session `phase` |
 | **TGC Postgame** | `script/akashic_tcg_postgame.gd` | Result screen; clears TGC session; saves to `users/<uid>.recent_matches` |
-| **Landing/Profile** | `script/landing.gd` | Hub UI + Profile panel; loads match history (prefers `match_history`, falls back to `users/<uid>.recent_matches`) |
+| **Landing/Profile** | `script/landing.gd` | Hub UI + Profile panel; loads match history from `users/<uid>.recent_matches` (may optionally attempt `match_history` first, but it can 403 depending on rules) |
 | **CB Postgame** | `script/code_breaker_postgame.gd` | Result screen; saves to `users/<uid>.recent_matches` (most reliable save hook) |
 | **Lobby Server** | `server/server.js` | Express + express-ws, REST API + WebSocket relay, in-memory rooms |
 
