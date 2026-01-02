@@ -332,6 +332,22 @@ users/<uid> = {
   welcome_tutorial_completed: bool,
   total_xp: int,              // Total XP earned from tutorials
   unlocked_games: [String],   // Array of unlocked game IDs
+  recent_matches: [           // Match history shown in Landing Profile (latest-first, max ~20)
+    {
+      game_type: "code_breaker" | "akashic_tcg",
+      timestamp: int,         // unix ms
+      result: "WIN" | "LOSE",
+      opponent: String,
+      my_score: int,          // Code Breaker: score | Akashic: final SI
+      opp_score: int,         // Code Breaker: score | Akashic: final SI
+      duration_s: int,
+      room_id: String,
+      host_id: String,
+      client_id: String,
+      winner_id: String,
+      ended_at_unix: int       // stored but hidden in UI
+    }
+  ],
   tutorials: {                // Map of completed tutorials
     <tutorial_id>: {
       score: int,
@@ -373,6 +389,22 @@ users/<uid> = {
   welcome_tutorial_completed: bool,
   total_xp: int,              // Total XP earned from tutorials
   unlocked_games: [String],   // Array of unlocked game IDs
+  recent_matches: [           // Match history shown in Landing Profile (latest-first, max ~20)
+    {
+      game_type: "code_breaker" | "akashic_tcg",
+      timestamp: int,         // unix ms
+      result: "WIN" | "LOSE",
+      opponent: String,
+      my_score: int,          // Code Breaker: score | Akashic: final SI
+      opp_score: int,         // Code Breaker: score | Akashic: final SI
+      duration_s: int,
+      room_id: String,
+      host_id: String,
+      client_id: String,
+      winner_id: String,
+      ended_at_unix: int       // stored but hidden in UI
+    }
+  ],
   tutorials: {                // Map of completed tutorials
     <tutorial_id>: {
       score: int,
@@ -398,6 +430,16 @@ http.request_completed.connect(func(_r, code, _h, body):
         var data = JSON.parse_string(body.get_string_from_utf8())
 )
 http.request("GET", url)
+```
+
+### 1b. HTTPRequests That Must Survive Scene Changes
+If you need a Firestore write/read to continue while changing scenes (e.g., Arena → Postgame → Landing), parent the HTTPRequest to the scene tree root:
+```gdscript
+var http := HTTPRequest.new()
+get_tree().root.add_child(http)
+http.request_completed.connect(func(_r, _code, _h, _b):
+  http.queue_free()
+)
 ```
 
 ### 2. Polling Timers (Scene-Local)
@@ -469,6 +511,7 @@ After auth, the client validates the session via `GET /api/rooms/:id` and routes
 ### Scene-Level Recovery
 - `script/akashic_tcg_room.gd`, `script/akashic_tcg_loading.gd`, and `script/akashic_tcg_arena.gd` route to reconnect on relay disconnect/timeouts.
 - `script/akashic_tcg_postgame.gd` clears the session on entry to prevent reconnect loops into finished matches.
+- `script/akashic_tcg_postgame.gd` also appends a match entry to `users/<uid>.recent_matches` (permissions-safe history used by Landing Profile).
 
 ## 🃏 Akashic TCG Multiplayer + Round-Based State Sync
 
@@ -681,7 +724,7 @@ To prevent early DOS/DDOS dominance:
      - Power-ups used: count of activated buffs
    - **Firestore Integration:**
      - Saves XP to `users/{uid}/total_xp`
-     - Records match history to `match_history/{match_id}`
+     - Appends match history to `users/<uid>.recent_matches` (used by Landing Profile; reliable even if `match_history` is rules-blocked)
    - **Back to Landing:** Button navigates to landing hub (NOT lobby)
    - Relay connection freed on exit
 
@@ -847,7 +890,9 @@ var current_mode: Mode = Mode.PRODUCTION  # Render.com
 | **TGC Loading** | `script/akashic_tcg_loading.gd` | Loading handshake; routes to reconnect on timeout/disconnect |
 | **TGC Arena** | `script/akashic_tcg_arena.gd` | Host-authoritative round-based submit system; `tgc_state_sync`/`tgc_action_request` |
 | **TGC Reconnect** | `script/akashic_tcg_reconnect.gd` | Reconnect/resume routing into Loading or Arena based on session `phase` |
-| **TGC Postgame** | `script/akashic_tcg_postgame.gd` | Minimal result screen; clears TGC session on entry |
+| **TGC Postgame** | `script/akashic_tcg_postgame.gd` | Result screen; clears TGC session; saves to `users/<uid>.recent_matches` |
+| **Landing/Profile** | `script/landing.gd` | Hub UI + Profile panel; loads match history (prefers `match_history`, falls back to `users/<uid>.recent_matches`) |
+| **CB Postgame** | `script/code_breaker_postgame.gd` | Result screen; saves to `users/<uid>.recent_matches` (most reliable save hook) |
 | **Lobby Server** | `server/server.js` | Express + express-ws, REST API + WebSocket relay, in-memory rooms |
 
 ### Arena Animation Functions
@@ -949,7 +994,7 @@ Phone (Mobile Data) ────────────────────
 - ✅ **Post-Game Analytics Scene:** Complete results screen with winner/loser cards, XP awards, match duration
 - ✅ **Winner Determination Fix:** Health-based logic ensures only ONE winner per match (no double winners bug)
 - ✅ **Firestore XP Integration:** Auto-saves +500 XP for winner, +0 for loser to `users/{uid}/total_xp`
-- ✅ **Match History Recording:** Saves detailed match data to `match_history/{match_id}` collection
+- ✅ **Match History Recording:** Saves profile history to `users/<uid>.recent_matches` (used when `match_history` is rules-blocked)
 - ✅ **Back to Landing Button:** Post-game returns to landing hub (not lobby)
 - ✅ **Health Bar Initialization:** Explicit min/max/value setup (0-100) prevents display bugs
 - ✅ **Stats Sync Timer Fix:** Only starts AFTER countdown completes, prevents premature stats updates
@@ -974,6 +1019,11 @@ Phone (Mobile Data) ────────────────────
 - ✅ **Landing/Login Resume:** `script/landing.gd` + `script/login.gd` now route `waiting|in_game|finished|404` for Akashic too
 - ✅ **Round-Based Arena State Sync:** `script/akashic_tcg_arena.gd` host-authoritative `tgc_state_sync` + `tgc_action_request`
 - ✅ **Disconnect Recovery:** Room/Loading/Arena route to reconnect on relay disconnect/timeout
+
+**Latest Updates (Jan 2, 2026):**
+- ✅ **Landing Profile Match History:** Profile shows a unified recent match list
+- ✅ **Permissions-Safe Persistence:** Both Code Breaker + Akashic TCG append to `users/<uid>.recent_matches`
+- ✅ **Akashic Postgame Stats Snapshot:** `tgc_postgame_init` now includes final SI + duration for history rows
 
 **Previous Updates (Dec 8, 2025):**
 - ✅ **Tutorial System Overhaul:** Complete XP-based progression system with 9 ranks (Iron to Challenger)

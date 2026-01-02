@@ -22,6 +22,12 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 @onready var avatar_grid: GridContainer = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/GridContainer
 @onready var menu_panel: Control = $MenuPanel
 
+# Match history (Profile)
+@onready var match_history_panel: Panel = $VideoStreamPlayer/ProfilePanel/MatchHistoyPanel
+
+var _match_history_scroll: ScrollContainer = null
+var _match_history_vbox: VBoxContainer = null
+
 # Dynamic UI elements (created at runtime)
 var file_dialog: FileDialog
 var xp_progress: ProgressBar
@@ -40,6 +46,7 @@ var last_avatar_change: int = 0
 var avatar_cooldown: int = 2592000 # 30 days
 var first_mission_active: bool = false
 var firestore_base_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users"
+var match_history_base_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents:runQuery"
 var http: HTTPRequest
 var ui_initialized: bool = false
 
@@ -72,6 +79,7 @@ func _ready() -> void:
 	
 	# Load user data
 	_load_user_data_and_check_tutorial()
+	_ensure_match_history_ui()
 	_instantiate_chat_panel()
 	Auth.set_user_online()
 	
@@ -208,6 +216,418 @@ func _force_initial_ui_layout() -> void:
 		ui_initialized = true
 	
 	print("[Landing] ✅ Initial UI layout forced")
+
+
+func _ensure_match_history_ui() -> void:
+	if not match_history_panel:
+		return
+
+	# Create ScrollContainer/VBox only if missing (keeps scene unchanged)
+	_match_history_scroll = match_history_panel.get_node_or_null("ScrollContainer")
+	if not _match_history_scroll:
+		_match_history_scroll = ScrollContainer.new()
+		_match_history_scroll.name = "ScrollContainer"
+		_match_history_scroll.anchor_left = 0.0
+		_match_history_scroll.anchor_top = 0.0
+		_match_history_scroll.anchor_right = 1.0
+		_match_history_scroll.anchor_bottom = 1.0
+		# Leave space for the header (approx 70px)
+		_match_history_scroll.offset_left = 8.0
+		_match_history_scroll.offset_top = 72.0
+		_match_history_scroll.offset_right = -8.0
+		_match_history_scroll.offset_bottom = -8.0
+		match_history_panel.add_child(_match_history_scroll)
+
+	_match_history_vbox = _match_history_scroll.get_node_or_null("VBoxContainer")
+	if not _match_history_vbox:
+		_match_history_vbox = VBoxContainer.new()
+		_match_history_vbox.name = "VBoxContainer"
+		_match_history_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_match_history_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_match_history_vbox.add_theme_constant_override("separation", 8)
+		_match_history_scroll.add_child(_match_history_vbox)
+
+	# Placeholder
+	_clear_match_history_rows()
+	_add_match_history_placeholder("Loading…")
+
+
+func _clear_match_history_rows() -> void:
+	if not _match_history_vbox:
+		return
+	for child in _match_history_vbox.get_children():
+		child.queue_free()
+
+
+func _add_match_history_placeholder(text: String) -> void:
+	if not _match_history_vbox:
+		return
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_match_history_vbox.add_child(lbl)
+
+
+func _load_match_history() -> void:
+	if not match_history_panel or not _match_history_vbox:
+		return
+	if Auth.current_id_token == "":
+		_clear_match_history_rows()
+		_add_match_history_placeholder("Not logged in")
+		return
+	if Auth.current_local_id == "" and Auth.current_username == "":
+		_clear_match_history_rows()
+		_add_match_history_placeholder("No user")
+		return
+
+	_clear_match_history_rows()
+	_add_match_history_placeholder("Loading…")
+
+	# Prefer UID-based query if available (new schema). Fallback to username OR query (legacy schema).
+	_query_match_history_by_uid(Auth.current_local_id)
+
+
+func _query_match_history_by_uid(uid: String) -> void:
+	if uid == "":
+		# No UID available; fall back to legacy username query.
+		_query_match_history_by_username(Auth.current_username)
+		return
+
+	var token = Auth.current_id_token
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+
+	var query_body := {
+		"structuredQuery": {
+			"from": [{"collectionId": "match_history"}],
+			"where": {
+				"fieldFilter": {
+					"field": {"fieldPath": "participant_ids"},
+					"op": "ARRAY_CONTAINS",
+					"value": {"stringValue": uid}
+				}
+			},
+			# Avoid composite-index requirements by sorting client-side.
+			"limit": 50
+		}
+	}
+
+	var http_hist := HTTPRequest.new()
+	add_child(http_hist)
+	http_hist.request_completed.connect(func(_r, code, _h, body):
+		http_hist.queue_free()
+		if code != 200:
+			var err_text: String = body.get_string_from_utf8() if body.size() > 0 else ""
+			print("[Landing] ⚠️ Match history UID query failed: %d\n%s" % [code, err_text])
+			if code == 403:
+				print("[Landing] 🔒 match_history denied by rules; loading users/%s.recent_matches instead" % Auth.current_local_id)
+				_load_match_history_from_user_doc()
+				return
+			_query_match_history_by_username(Auth.current_username)
+			return
+		if code == 200:
+			var items = _parse_match_history_query(body)
+			if items.size() > 0:
+				_render_match_history(items)
+				return
+		# Fallback to legacy schema by username
+		_query_match_history_by_username(Auth.current_username)
+	)
+
+	http_hist.request(match_history_base_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+
+
+func _query_match_history_by_username(username: String) -> void:
+	if username == "":
+		_clear_match_history_rows()
+		_add_match_history_placeholder("No matches yet")
+		return
+
+	var token = Auth.current_id_token
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+
+	# Legacy documents store host/client as usernames.
+	var query_body := {
+		"structuredQuery": {
+			"from": [{"collectionId": "match_history"}],
+			"where": {
+				"compositeFilter": {
+					"op": "OR",
+					"filters": [
+						{
+							"fieldFilter": {
+								"field": {"fieldPath": "host"},
+								"op": "EQUAL",
+								"value": {"stringValue": username}
+							}
+						},
+						{
+							"fieldFilter": {
+								"field": {"fieldPath": "client"},
+								"op": "EQUAL",
+								"value": {"stringValue": username}
+							}
+						}
+					]
+				}
+			},
+			# Avoid composite-index requirements by sorting client-side.
+			"limit": 50
+		}
+	}
+
+	var http_hist := HTTPRequest.new()
+	add_child(http_hist)
+	http_hist.request_completed.connect(func(_r, code, _h, body):
+		http_hist.queue_free()
+		if code != 200:
+			var err_text: String = body.get_string_from_utf8() if body.size() > 0 else ""
+			print("[Landing] ⚠️ Match history username query failed: %d\n%s" % [code, err_text])
+			if code == 403:
+				print("[Landing] 🔒 match_history denied by rules; loading users/%s.recent_matches instead" % Auth.current_local_id)
+				_load_match_history_from_user_doc()
+				return
+			_clear_match_history_rows()
+			_add_match_history_placeholder("Failed to load history")
+			return
+		var items = _parse_match_history_query(body)
+		_render_match_history(items)
+	)
+
+	http_hist.request(match_history_base_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+
+
+func _parse_match_history_query(body: PackedByteArray) -> Array:
+	var text := body.get_string_from_utf8() if body.size() > 0 else ""
+	var parsed = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_ARRAY:
+		# Firestore returns {"error": {...}} on failure; log it for debugging.
+		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("error"):
+			print("[Landing] ⚠️ Match history query error:\n%s" % text)
+		return []
+
+	var items: Array = []
+	for entry in parsed:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		if not entry.has("document"):
+			continue
+		var doc = entry["document"]
+		if typeof(doc) != TYPE_DICTIONARY or not doc.has("fields"):
+			continue
+		items.append(doc)
+
+	items.sort_custom(func(a, b):
+		var ta := _doc_timestamp_ms(a)
+		var tb := _doc_timestamp_ms(b)
+		return ta > tb
+	)
+
+	return items
+
+
+func _doc_timestamp_ms(doc: Dictionary) -> int:
+	var fields: Dictionary = doc.get("fields", {})
+	var ts := _fs_int(fields, "timestamp", 0)
+	if ts != 0:
+		return ts
+	# Older docs might not have timestamp; try ended_at/created_at.
+	var ended := _fs_int(fields, "ended_at", 0)
+	if ended != 0:
+		return ended
+	return _fs_int(fields, "created_at", 0)
+
+
+func _render_match_history(items: Array) -> void:
+	_clear_match_history_rows()
+
+	if items.is_empty():
+		_add_match_history_placeholder("No matches yet")
+		return
+
+	# Render each match as a compact row.
+	for doc in items:
+		var fields: Dictionary = doc.get("fields", {})
+		var row := HBoxContainer.new()
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_theme_constant_override("separation", 10)
+		row.custom_minimum_size = Vector2(0, 46)
+
+		var left := VBoxContainer.new()
+		left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		left.add_theme_constant_override("separation", 2)
+
+		var right := VBoxContainer.new()
+		right.size_flags_horizontal = Control.SIZE_SHRINK_END
+		right.add_theme_constant_override("separation", 2)
+
+		var game_type := _fs_string(fields, "game_type", "code_breaker")
+		var game_label := "CODE BREAKER" if game_type == "code_breaker" else "AKASHIC TCG"
+
+		var my_username := Auth.current_username
+		var host := _fs_string(fields, "host", "")
+		var client := _fs_string(fields, "client", "")
+		var opponent := ""
+		if fields.has("opponent"):
+			opponent = _fs_string(fields, "opponent", "")
+		if host != "" and client != "":
+			opponent = client if host == my_username else host
+		else:
+			# New schema could have players map; best-effort
+			opponent = _fs_string(fields, "opponent", "")
+
+		var winner := _fs_string(fields, "winner", "")
+		var loser := _fs_string(fields, "loser", "")
+		var result := "UNKNOWN"
+		if fields.has("result"):
+			result = _fs_string(fields, "result", "UNKNOWN").to_upper()
+		if winner != "" and loser != "" and my_username != "":
+			result = "WIN" if winner == my_username else ("LOSE" if loser == my_username else "UNKNOWN")
+		else:
+			var key_res = "%s_result" % my_username
+			var res_raw = _fs_string(fields, key_res, "")
+			if res_raw != "":
+				result = res_raw.to_upper()
+
+		var duration := _fs_string(fields, "time_ended", "")
+		var my_score := _fs_int(fields, "my_score", -1)
+		var opp_score := _fs_int(fields, "opp_score", -1)
+		if my_score < 0:
+			my_score = _fs_int(fields, my_username, -1)
+		if opp_score < 0:
+			opp_score = _fs_int(fields, opponent, -1)
+
+		var title := Label.new()
+		title.text = "%s — %s" % [game_label, result]
+		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		title.clip_text = true
+		title.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+		title.add_theme_font_size_override("font_size", 14)
+		left.add_child(title)
+
+		var subtitle := Label.new()
+		if opponent != "":
+			subtitle.text = "vs %s" % opponent
+		else:
+			subtitle.text = "vs …"
+		subtitle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		subtitle.clip_text = true
+		subtitle.add_theme_color_override("font_color", Color(0, 0.75, 1, 0.9))
+		subtitle.add_theme_font_size_override("font_size", 12)
+		left.add_child(subtitle)
+
+		var stats := Label.new()
+		var stats_parts: Array[String] = []
+		if my_score >= 0 and opp_score >= 0:
+			stats_parts.append("%d–%d" % [my_score, opp_score])
+		if duration != "":
+			stats_parts.append(duration)
+		stats.text = "  ".join(stats_parts)
+		stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		stats.add_theme_color_override("font_color", Color(0.8, 0.9, 1, 0.85))
+		stats.add_theme_font_size_override("font_size", 12)
+		right.add_child(stats)
+
+		row.add_child(left)
+		row.add_child(right)
+		_match_history_vbox.add_child(row)
+
+
+func _load_match_history_from_user_doc() -> void:
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		_clear_match_history_rows()
+		_add_match_history_placeholder("Not logged in")
+		return
+	print("[Landing] 📜 Loading recent_matches from users/%s" % Auth.current_local_id)
+
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	var url = "%s/%s" % [firestore_base_url, uid]
+	var headers := PackedStringArray(["Authorization: Bearer %s" % token])
+
+	var http_user := HTTPRequest.new()
+	http_user.timeout = 10.0
+	add_child(http_user)
+	http_user.request_completed.connect(func(_r, code, _h, body):
+		http_user.queue_free()
+		print("[Landing] 📜 recent_matches user doc GET code: %d" % code)
+		if code != 200:
+			var err_text: String = body.get_string_from_utf8() if body.size() > 0 else ""
+			print("[Landing] ⚠️ Failed to load user doc recent_matches: %d\n%s" % [code, err_text])
+			_clear_match_history_rows()
+			_add_match_history_placeholder("Failed to load history")
+			return
+
+		var data = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(data) != TYPE_DICTIONARY or not data.has("fields"):
+			_clear_match_history_rows()
+			_add_match_history_placeholder("No matches yet")
+			return
+
+		var fields: Dictionary = data.get("fields", {})
+		if not fields.has("recent_matches"):
+			print("[Landing] 📜 users/%s has no recent_matches field" % uid)
+			_clear_match_history_rows()
+			_add_match_history_placeholder("No matches yet")
+			return
+
+		var rm = fields["recent_matches"]
+		var rm_items: Array = []
+		if typeof(rm) == TYPE_DICTIONARY and rm.has("arrayValue"):
+			var av = rm.get("arrayValue", {})
+			var values = av.get("values", [])
+			if typeof(values) == TYPE_ARRAY:
+				for v in values:
+					# v is a Firestore value; wrap as a pseudo-document (doc.fields)
+					if typeof(v) == TYPE_DICTIONARY and v.has("mapValue"):
+						var mv = v.get("mapValue", {})
+						var f = mv.get("fields", {})
+						if typeof(f) == TYPE_DICTIONARY:
+							rm_items.append({"fields": f})
+
+		print("[Landing] 📜 recent_matches loaded: %d" % rm_items.size())
+		_render_match_history(rm_items)
+	)
+
+	print("[Landing] 📜 recent_matches GET starting: %s" % url)
+	var req_err: int = http_user.request(url, headers, HTTPClient.METHOD_GET)
+	if req_err != OK:
+		print("[Landing] ⚠️ recent_matches request() failed immediately: %d" % req_err)
+		http_user.queue_free()
+		_clear_match_history_rows()
+		_add_match_history_placeholder("Failed to load history")
+
+
+func _fs_string(fields: Dictionary, key: String, default_value: String) -> String:
+	if not fields.has(key):
+		return default_value
+	var v = fields[key]
+	if typeof(v) != TYPE_DICTIONARY:
+		return default_value
+	if v.has("stringValue"):
+		return str(v["stringValue"])
+	if v.has("integerValue"):
+		return str(v["integerValue"])
+	return default_value
+
+
+func _fs_int(fields: Dictionary, key: String, default_value: int) -> int:
+	if not fields.has(key):
+		return default_value
+	var v = fields[key]
+	if typeof(v) != TYPE_DICTIONARY:
+		return default_value
+	if v.has("integerValue"):
+		return int(str(v["integerValue"]))
+	if v.has("doubleValue"):
+		return int(float(v["doubleValue"]))
+	return default_value
 
 
 func _initialize_profile_ui() -> void:
@@ -385,7 +805,7 @@ func _update_xp_display() -> void:
 	
 	if rank_label:
 		var icon_path = rank.get("icon", "")
-		var name = rank.get("name", "Iron")
+		var rank_name = rank.get("name", "Iron")
 		var color = rank.get("color", Color(0.5, 0.5, 0.5))
 		
 		var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
@@ -410,15 +830,15 @@ func _update_xp_display() -> void:
 				_add_glow_to_rank_icon(rank_icon_rect, color)
 				
 				# ✅ Use constant
-				rank_label.text = name
+				rank_label.text = rank_name
 				rank_label.position = RANK_LABEL_POSITION
 				rank_label.size = Vector2(200, 30)
 				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			else:
-				rank_label.text = name
+				rank_label.text = rank_name
 				rank_label.position = RANK_LABEL_POSITION
 		else:
-			rank_label.text = "%s\n%s" % [icon_path, name]
+			rank_label.text = "%s\n%s" % [icon_path, rank_name]
 			rank_label.position = RANK_LABEL_POSITION
 		
 		rank_label.add_theme_color_override("font_color", color)
@@ -940,13 +1360,13 @@ func _save_profile_changes() -> void:
 
 func _show_success_notification() -> void:
 	"""Show a quick success notification"""
-	var notification = Panel.new()
-	notification.custom_minimum_size = Vector2(300, 60)
-	notification.position = Vector2(
+	var notif_panel = Panel.new()
+	notif_panel.custom_minimum_size = Vector2(300, 60)
+	notif_panel.position = Vector2(
 		(get_viewport().size.x - 300) / 2,
 		50
 	)
-	notification.z_index = 2000
+	notif_panel.z_index = 2000
 	
 	var notif_style = StyleBoxFlat.new()
 	notif_style.bg_color = Color(0, 0.6, 0.7, 0.95)
@@ -961,7 +1381,7 @@ func _show_success_notification() -> void:
 	notif_style.corner_radius_bottom_right = 8
 	notif_style.shadow_color = Color(0, 1, 1, 0.6)
 	notif_style.shadow_size = 15
-	notification.add_theme_stylebox_override("panel", notif_style)
+	notif_panel.add_theme_stylebox_override("panel", notif_style)
 	
 	var notif_label = Label.new()
 	notif_label.text = "✓ Profile Updated Successfully!"
@@ -970,26 +1390,26 @@ func _show_success_notification() -> void:
 	notif_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	notif_label.add_theme_color_override("font_color", Color.WHITE)
 	notif_label.add_theme_font_size_override("font_size", 16)
-	notification.add_child(notif_label)
+	notif_panel.add_child(notif_label)
 	
-	add_child(notification)
+	add_child(notif_panel)
 	
 	# Animate in
-	notification.modulate.a = 0
-	notification.position.y -= 20
+	notif_panel.modulate.a = 0
+	notif_panel.position.y -= 20
 	var tween_in = create_tween()
 	tween_in.set_parallel(true)
-	tween_in.tween_property(notification, "modulate:a", 1.0, 0.3)
-	tween_in.tween_property(notification, "position:y", 50, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween_in.tween_property(notif_panel, "modulate:a", 1.0, 0.3)
+	tween_in.tween_property(notif_panel, "position:y", 50, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	
 	# Wait and fade out
 	await get_tree().create_timer(2.0).timeout
 	var tween_out = create_tween()
 	tween_out.set_parallel(true)
-	tween_out.tween_property(notification, "modulate:a", 0.0, 0.5)
-	tween_out.tween_property(notification, "position:y", 30, 0.5)
+	tween_out.tween_property(notif_panel, "modulate:a", 0.0, 0.5)
+	tween_out.tween_property(notif_panel, "position:y", 30, 0.5)
 	await tween_out.finished
-	notification.queue_free()
+	notif_panel.queue_free()
 
 
 
@@ -1002,14 +1422,14 @@ func _setup_username_editing() -> void:
 	# Get parent and position
 	var parent = username_input.get_parent()
 	var pos = username_input.position
-	var size = username_input.size
+	var username_size = username_input.size
 	
 	# Create LineEdit replacement
 	var username_edit = LineEdit.new()
 	username_edit.name = "usernameInput"
 	username_edit.text = username_input.text
 	username_edit.position = pos
-	username_edit.size = size
+	username_edit.size = username_size
 	username_edit.max_length = 20
 	username_edit.placeholder_text = "Enter username"
 	
@@ -1045,7 +1465,7 @@ func _setup_username_editing() -> void:
 	parent.add_child(username_edit)
 	username_input = username_edit
 
-func _on_username_changed(new_text: String) -> void:
+func _on_username_changed(_new_text: String) -> void:
 	"""Called when username is edited"""
 	_check_for_changes()
 
@@ -1349,13 +1769,13 @@ void fragment() {
 	var shader = Shader.new()
 	shader.code = shader_code
 	
-	var material = ShaderMaterial.new()
-	material.shader = shader
-	material.set_shader_parameter("glow_color", glow_color)
-	material.set_shader_parameter("glow_strength", 1.5)  # Reduced for subtlety
-	material.set_shader_parameter("glow_size", 0.05)     # Reduced for tighter glow
+	var shader_material = ShaderMaterial.new()
+	shader_material.shader = shader
+	shader_material.set_shader_parameter("glow_color", glow_color)
+	shader_material.set_shader_parameter("glow_strength", 1.5)  # Reduced for subtlety
+	shader_material.set_shader_parameter("glow_size", 0.05)     # Reduced for tighter glow
 	
-	icon.material = material
+	icon.material = shader_material
 	
 	print("[Landing] ✅ Glow effect applied to rank icon with color:", glow_color)
 
@@ -2091,13 +2511,13 @@ func _show_welcome_reward() -> void:
 	popup.show_rewards(rewards, " Welcome Aboard, Agent!")
 
 
-func _apply_font_to_children(node: Node, font: Font, size: int) -> void:
+func _apply_font_to_children(node: Node, font: Font, font_size: int) -> void:
 		if node is Label or node is Button or node is RichTextLabel:
 			node.add_theme_font_override("font", font)
-			node.add_theme_font_size_override("font_size", size)
+			node.add_theme_font_size_override("font_size", font_size)
 		
 		for child in node.get_children():
-			_apply_font_to_children(child, font, size)
+			_apply_font_to_children(child, font, font_size)
 
 func _complete_first_mission() -> void:
 	"""Mark first mission as completed with animated rewards"""
@@ -2168,7 +2588,7 @@ func _on_xp_updated(new_xp: int) -> void:
 	
 	if rank_label:
 		var icon_path = rank.get("icon", "")
-		var name = rank.get("name", "Iron")
+		var rank_name = rank.get("name", "Iron")
 		var color = rank.get("color", Color(0.5, 0.5, 0.5))
 		
 		var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
@@ -2184,15 +2604,15 @@ func _on_xp_updated(new_xp: int) -> void:
 				rank_icon_rect.position = RANK_ICON_POSITION
 				rank_icon_rect.size = RANK_ICON_SIZE
 				
-				rank_label.text = name
+				rank_label.text = rank_name
 				rank_label.position = RANK_LABEL_POSITION
 				rank_label.size = Vector2(200, 30)
 				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			else:
-				rank_label.text = name
+				rank_label.text = rank_name
 				rank_label.position = RANK_LABEL_POSITION
 		else:
-			rank_label.text = "%s\n%s" % [icon_path, name]
+			rank_label.text = "%s\n%s" % [icon_path, rank_name]
 			rank_label.position = RANK_LABEL_POSITION
 		
 		rank_label.add_theme_color_override("font_color", color)
@@ -2211,10 +2631,10 @@ func _on_rank_up(new_rank: Dictionary) -> void:
 	
 	var notification_scene = load("res://scene/rank_up_notification.tscn")
 	if notification_scene:
-		var notification = notification_scene.instantiate()
-		add_child(notification)
-		notification.show_rank_up(old_rank, new_rank)
-		await notification.notification_closed
+		var rank_up_notification = notification_scene.instantiate()
+		add_child(rank_up_notification)
+		rank_up_notification.show_rank_up(old_rank, new_rank)
+		await rank_up_notification.notification_closed
 		print("[Landing] ✅ Rank-up notification closed")
 	else:
 		push_error("[Landing] ❌ Failed to load rank_up_notification.tscn")
@@ -2392,6 +2812,10 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 	
 	original_avatar = selected_avatar
 
+	# Load match history after we have username/uid
+	_ensure_match_history_ui()
+	_load_match_history()
+
 # ============================================
 # STEP 7: Update _refresh_profile_ui_positions
 # ============================================
@@ -2421,6 +2845,9 @@ func _show_panel(panel_paths: Dictionary, panel_name: String) -> void:
 		# ✅ If showing profile panel, ensure UI is properly positioned
 		if panel_name == "profile":
 			_refresh_profile_ui_positions()
+			# Refresh match history when opening profile
+			_ensure_match_history_ui()
+			_load_match_history()
 
 	var friend_list = $VideoStreamPlayer.get_node_or_null("FriendListPanel")
 	if friend_list:

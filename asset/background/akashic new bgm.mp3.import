@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bomghqd2ev4cr"
+path="res://.godot/imported/akashic new bgm.mp3-f5b3e0c024540c0a49e71ddcdf5601ae.mp3str"
+
+[deps]
+
+source_file="res://asset/background/akashic new bgm.mp3"
+dest_files=["res://.godot/imported/akashic new bgm.mp3-f5b3e0c024540c0a49e71ddcdf5601ae.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

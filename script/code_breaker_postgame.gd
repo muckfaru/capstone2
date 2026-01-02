@@ -89,12 +89,202 @@ func _ready() -> void:
 	
 	# Setup UI with results
 	_setup_ui()
+	# Persist match history (permissions-safe user doc field)
+	_save_recent_match_best_effort()
 	
 	# Connect button
 	_back_button.pressed.connect(_on_back_to_landing_pressed)
 	
 	# Animate in
 	_animate_in()
+
+
+func _save_recent_match_best_effort() -> void:
+	# Only save when we have enough info.
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		return
+	if _result_unknown:
+		return
+	if _host_data.is_empty() or _client_data.is_empty():
+		return
+
+	var my_uid := Auth.current_local_id
+	var host_id: String = str(_host_data.get("player_id", ""))
+	var client_id: String = str(_client_data.get("player_id", ""))
+
+	# Determine if this device is host or client (best-effort).
+	# Prefer _player_id when available.
+	var i_am_host := false
+	if _player_id != "":
+		i_am_host = _player_id == host_id
+	elif my_uid != "":
+		i_am_host = my_uid == host_id
+
+	var opponent_username := str(_client_data.get("username", "")) if i_am_host else str(_host_data.get("username", ""))
+	if opponent_username == "":
+		# Fallback using UI labels
+		opponent_username = _client_username.text if i_am_host else _host_username.text
+
+	var winner_id := _winner_id
+	var result_text := "WIN" if winner_id == my_uid else "LOSE"
+	# If winner_id matches host/client id but not my_uid, try _player_id.
+	if _player_id != "" and winner_id == _player_id:
+		result_text = "WIN"
+	elif _player_id != "" and winner_id != "" and winner_id != _player_id:
+		result_text = "LOSE"
+
+	var my_score := _host_score if i_am_host else _client_score
+	var opp_score := _client_score if i_am_host else _host_score
+	var duration_s: int = int(_game_duration)
+	var now_ms: int = int(Time.get_unix_time_from_system() * 1000.0)
+
+	var entry := {
+		"game_type": "code_breaker",
+		"timestamp": now_ms,
+		"result": result_text,
+		"opponent": opponent_username,
+		"my_score": my_score,
+		"opp_score": opp_score,
+		"duration_s": duration_s,
+		"time_ended": _format_time(_game_duration),
+		"room_id": _room_id,
+		"host_id": host_id,
+		"client_id": client_id,
+		"winner_id": winner_id
+	}
+
+	_append_recent_match_to_user_doc(entry)
+
+
+func _append_recent_match_to_user_doc(entry: Dictionary) -> void:
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	if uid == "" or token == "":
+		return
+
+	var user_doc_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % uid
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	])
+
+	# 1) GET existing recent_matches
+	var http_get := HTTPRequest.new()
+	http_get.timeout = 10.0
+	get_tree().root.add_child(http_get)
+	var done := {"ok": false}
+
+	http_get.request_completed.connect(func(_r, code, _h, body):
+		http_get.queue_free()
+		done["ok"] = true
+		if code != 200:
+			var err_text: String = body.get_string_from_utf8() if body.size() > 0 else ""
+			print("[PostGame] ⚠️ recent_matches GET failed: %d\n%s" % [code, err_text])
+			return
+
+		var doc = JSON.parse_string(body.get_string_from_utf8())
+		var recent: Array = []
+		if typeof(doc) == TYPE_DICTIONARY and doc.has("fields"):
+			var fields: Dictionary = doc.get("fields", {})
+			if fields.has("recent_matches"):
+				recent = _from_firestore_value(fields["recent_matches"])
+				if typeof(recent) != TYPE_ARRAY:
+					recent = []
+
+		recent.append(entry)
+		recent.sort_custom(func(a, b):
+			return int(a.get("timestamp", 0)) > int(b.get("timestamp", 0))
+		)
+		if recent.size() > 20:
+			recent = recent.slice(0, 20)
+
+		# 2) PATCH back
+		var payload := {
+			"fields": {
+				"recent_matches": _to_firestore_value(recent)
+			}
+		}
+		var patch_url := "%s?updateMask.fieldPaths=recent_matches" % user_doc_url
+		var http_patch := HTTPRequest.new()
+		http_patch.timeout = 10.0
+		get_tree().root.add_child(http_patch)
+		http_patch.request_completed.connect(func(_r2, code2, _h2, body2):
+			http_patch.queue_free()
+			if code2 == 200:
+				print("[PostGame] ✅ recent_matches updated in users/%s" % uid)
+			else:
+				var err_text2: String = body2.get_string_from_utf8() if body2.size() > 0 else ""
+				print("[PostGame] ⚠️ recent_matches PATCH failed: %d\n%s" % [code2, err_text2])
+		)
+		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(payload))
+	)
+
+	var req_err: int = http_get.request(user_doc_url, headers, HTTPClient.METHOD_GET)
+	if req_err != OK:
+		http_get.queue_free()
+		print("[PostGame] ⚠️ recent_matches GET request() failed immediately: %d" % req_err)
+		return
+
+	# Best-effort wait (don't block scene)
+	var start_ms := Time.get_ticks_msec()
+	while not done["ok"] and is_inside_tree() and Time.get_ticks_msec() - start_ms < 1500:
+		await get_tree().process_frame
+
+
+func _to_firestore_value(value) -> Dictionary:
+	if value == null:
+		return {"nullValue": "NULL_VALUE"}
+	if value is String:
+		return {"stringValue": value}
+	if value is int:
+		return {"integerValue": str(value)}
+	if value is float:
+		return {"doubleValue": value}
+	if value is bool:
+		return {"booleanValue": value}
+	if value is Array:
+		var values: Array = []
+		for item in value:
+			values.append(_to_firestore_value(item))
+		return {"arrayValue": {"values": values}}
+	if value is Dictionary:
+		var map_fields: Dictionary = {}
+		for k in value.keys():
+			map_fields[str(k)] = _to_firestore_value(value[k])
+		return {"mapValue": {"fields": map_fields}}
+	return {"stringValue": str(value)}
+
+
+func _from_firestore_value(v) -> Variant:
+	if typeof(v) != TYPE_DICTIONARY:
+		return null
+	if v.has("stringValue"):
+		return str(v["stringValue"])
+	if v.has("integerValue"):
+		return int(str(v["integerValue"]))
+	if v.has("doubleValue"):
+		return float(v["doubleValue"])
+	if v.has("booleanValue"):
+		return bool(v["booleanValue"])
+	if v.has("nullValue"):
+		return null
+	if v.has("arrayValue"):
+		var out: Array = []
+		var av = v.get("arrayValue", {})
+		var values = av.get("values", [])
+		if typeof(values) == TYPE_ARRAY:
+			for item in values:
+				out.append(_from_firestore_value(item))
+		return out
+	if v.has("mapValue"):
+		var mv = v.get("mapValue", {})
+		var f = mv.get("fields", {})
+		var out_d: Dictionary = {}
+		if typeof(f) == TYPE_DICTIONARY:
+			for k in f.keys():
+				out_d[str(k)] = _from_firestore_value(f[k])
+		return out_d
+	return null
 
 func _setup_ui() -> void:
 	"""Setup UI with game results"""

@@ -22,7 +22,7 @@ corner_radius_bottom_left = 10
 
 [node name="StoryCutscene" type="CanvasLayer"]
 script = ExtResource("1_feu1t")
-next_scene_path = "uid://3txf6278rjx6"
+next_scene_path = "res://scene/Main.tscn"
 auto_advance_time = 4.5
 fade_duration = 1.0
 panel1_image = ExtResource("2_lfqu3")

@@ -1445,13 +1445,37 @@ func _leave_arena() -> void:
 	# Determine winner/loser names and result
 	var winner_name = _host_username if we_won == _is_host else _client_username
 	var loser_name = _client_username if we_won == _is_host else _host_username
-	var game_duration_str = _format_game_duration(Time.get_ticks_msec() / 1000.0 - _game_start_time)
+	var duration_seconds: int = int(Time.get_ticks_msec() / 1000.0 - _game_start_time)
+	var game_duration_str = _format_game_duration(float(duration_seconds))
 	
 	# Save XP to Firestore
 	if Auth.current_id_token:
 		_save_xp_to_firestore(xp_earned)
 		# Also save match history
-		_save_match_history(winner_name, loser_name, player_score, _opponent_score, game_duration_str, _powerups_used)
+		var host_id = str(_host_data.get("player_id", ""))
+		var client_id = str(_client_data.get("player_id", ""))
+		var winner_id = host_id if winner_name == _host_username else client_id
+		var loser_id = client_id if winner_id == host_id else host_id
+		_save_match_history(winner_name, loser_name, winner_id, loser_id, host_id, client_id, player_score, _opponent_score, duration_seconds, game_duration_str, _powerups_used)
+
+		# Permissions-safe fallback: store under users/<uid> so profile can load even if match_history collection is locked by rules.
+		var result_text := "DRAW" if _is_draw else ("WIN" if we_won else "LOSE")
+		var opponent_name := _client_username if _is_host else _host_username
+		_append_recent_match_to_user_doc({
+			"game_type": "code_breaker",
+			"timestamp": int(Time.get_unix_time_from_system() * 1000.0),
+			"result": result_text,
+			"opponent": opponent_name,
+			"my_score": player_score,
+			"opp_score": _opponent_score,
+			"duration_s": duration_seconds,
+			"time_ended": game_duration_str,
+			"room_id": _room_id,
+			"host_id": host_id,
+			"client_id": client_id,
+			"winner_id": winner_id,
+			"loser_id": loser_id
+		})
 	
 	# Reparent relay_client to root
 	if _relay_client and _relay_client.get_parent():
@@ -1534,7 +1558,10 @@ func _set_lobby_room_status(new_status: String) -> void:
 	if not ["waiting", "in_game", "finished"].has(new_status):
 		return
 	var http := HTTPRequest.new()
-	add_child(http)
+	if get_tree() and get_tree().root:
+		get_tree().root.add_child(http)
+	else:
+		add_child(http)
 	http.request_completed.connect(func(_r, _code, _h, _body: PackedByteArray):
 		http.queue_free()
 	)
@@ -1558,7 +1585,9 @@ func _save_xp_to_firestore(xp_earned: int) -> void:
 	
 	# Create HTTP request
 	var http := HTTPRequest.new()
-	if is_node_ready():
+	if get_tree() and get_tree().root:
+		get_tree().root.add_child(http)
+	elif is_node_ready():
 		add_child(http)
 	
 	var uid = Auth.current_local_id
@@ -1601,7 +1630,10 @@ func _save_xp_to_firestore(xp_earned: int) -> void:
 func _update_xp_in_firestore(new_xp: int) -> void:
 	"""Update total_xp field in Firestore"""
 	var http := HTTPRequest.new()
-	add_child(http)
+	if get_tree() and get_tree().root:
+		get_tree().root.add_child(http)
+	else:
+		add_child(http)
 	
 	var uid = Auth.current_local_id
 	var firestore_url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s?updateMask.fieldPaths=total_xp" % uid
@@ -1902,7 +1934,7 @@ func _format_game_duration(seconds: float) -> String:
 	var secs = int(seconds) % 60
 	return "%d:%02d" % [mins, secs]
 
-func _save_match_history(winner_name: String, loser_name: String, winner_score: int, loser_score: int, duration: String, powerups_count: int) -> void:
+func _save_match_history(winner_name: String, loser_name: String, winner_id: String, loser_id: String, host_id: String, client_id: String, winner_score: int, loser_score: int, duration_seconds: int, duration: String, powerups_count: int) -> void:
 	"""Save match history to Firestore under match_history collection"""
 	if not Auth.current_id_token:
 		push_error("[Arena] No auth token for Firestore!")
@@ -1916,10 +1948,14 @@ func _save_match_history(winner_name: String, loser_name: String, winner_score: 
 	print("[Arena] 📝 Saving match history...")
 	
 	# Generate unique match ID (timestamp-based)
-	var match_id = "%d_%s" % [Time.get_ticks_msec(), Auth.current_local_id]
+	var now_unix_ms: int = int(Time.get_unix_time_from_system() * 1000.0)
+	var match_id = "%d_%s" % [now_unix_ms, Auth.current_local_id]
 	
 	# Create match document
+	# Keep legacy fields (host/client by username + dynamic score keys) for backward compatibility.
+	# Add unified fields for reliable profile history queries.
 	var match_data = {
+		# Legacy (username-based)
 		"host": winner_name,
 		"client": loser_name,
 		winner_name: winner_score,
@@ -1931,13 +1967,25 @@ func _save_match_history(winner_name: String, loser_name: String, winner_score: 
 		"winner": winner_name,
 		"loser": loser_name,
 		"time_ended": duration,
-		"timestamp": Time.get_ticks_msec(),
+
+		# Unified (uid-based)
+		"participant_ids": [host_id, client_id],
+		"host_id": host_id,
+		"client_id": client_id,
+		"winner_id": winner_id,
+		"loser_id": loser_id,
+		"created_at": now_unix_ms - int(duration_seconds) * 1000,
+		"ended_at": now_unix_ms,
+		"duration_s": duration_seconds,
+		"timestamp": now_unix_ms,
 		"game_type": "code_breaker"
 	}
 	
 	# Create HTTP request
 	var http := HTTPRequest.new()
-	if is_node_ready():
+	if get_tree() and get_tree().root:
+		get_tree().root.add_child(http)
+	elif is_node_ready():
 		add_child(http)
 	
 	var firestore_url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/match_history?documentId=%s" % match_id
@@ -1951,29 +1999,150 @@ func _save_match_history(winner_name: String, loser_name: String, winner_score: 
 	
 	http.request_completed.connect(func(_r, code, _h, _body):
 		http.queue_free()
-		
-		if code == 200:
+		var response_text: String = _body.get_string_from_utf8() if _body.size() > 0 else ""
+		if code == 200 or code == 201:
 			print("[Arena] ✅ Match history saved! ID: %s" % match_id)
 		else:
-			print("[Arena] ⚠️ Failed to save match history: %d" % code)
+			print("[Arena] ⚠️ Failed to save match history: %d\n%s" % [code, response_text])
 	)
 	
 	http.request(firestore_url, headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
 
 func _format_firestore_payload(data: Dictionary) -> Dictionary:
-	"""Convert data dictionary to Firestore document format"""
-	var fields = {}
-	
+	"""Convert data dictionary to Firestore document format (supports nested maps/arrays)."""
+	var fields: Dictionary = {}
 	for key in data.keys():
-		var value = data[key]
-		
-		if value is String:
-			fields[key] = {"stringValue": value}
-		elif value is int:
-			fields[key] = {"integerValue": str(value)}
-		elif value is float:
-			fields[key] = {"doubleValue": value}
-		elif value is bool:
-			fields[key] = {"booleanValue": value}
-	
+		fields[key] = _to_firestore_value(data[key])
 	return {"fields": fields}
+
+
+func _to_firestore_value(value) -> Dictionary:
+	if value == null:
+		return {"nullValue": "NULL_VALUE"}
+	if value is String:
+		return {"stringValue": value}
+	if value is int:
+		return {"integerValue": str(value)}
+	if value is float:
+		return {"doubleValue": value}
+	if value is bool:
+		return {"booleanValue": value}
+	if value is Array:
+		var values: Array = []
+		for item in value:
+			values.append(_to_firestore_value(item))
+		return {"arrayValue": {"values": values}}
+	if value is Dictionary:
+		var map_fields: Dictionary = {}
+		for k in value.keys():
+			map_fields[str(k)] = _to_firestore_value(value[k])
+		return {"mapValue": {"fields": map_fields}}
+
+	# Fallback: stringify
+	return {"stringValue": str(value)}
+
+
+func _append_recent_match_to_user_doc(entry: Dictionary) -> void:
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		return
+	print("[Arena] 📝 Saving recent match to users/%s" % Auth.current_local_id)
+
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	var user_doc_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % uid
+	var headers = PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	])
+
+	# 1) Load existing list
+	var http_get := HTTPRequest.new()
+	if get_tree() and get_tree().root:
+		get_tree().root.add_child(http_get)
+	elif is_node_ready():
+		add_child(http_get)
+
+	http_get.request_completed.connect(func(_r, code, _h, body):
+		http_get.queue_free()
+
+		if code != 200:
+			var err_text: String = body.get_string_from_utf8() if body.size() > 0 else ""
+			print("[Arena] ⚠️ Could not read user doc for recent_matches: %d\n%s" % [code, err_text])
+			return
+
+		var doc = JSON.parse_string(body.get_string_from_utf8())
+		var recent: Array = []
+		if typeof(doc) == TYPE_DICTIONARY and doc.has("fields"):
+			var fields: Dictionary = doc.get("fields", {})
+			if fields.has("recent_matches"):
+				recent = _from_firestore_value(fields["recent_matches"])
+				if typeof(recent) != TYPE_ARRAY:
+					recent = []
+
+		recent.append(entry)
+		recent.sort_custom(func(a, b):
+			var ta := int(a.get("timestamp", 0))
+			var tb := int(b.get("timestamp", 0))
+			return ta > tb
+		)
+		if recent.size() > 20:
+			recent = recent.slice(0, 20)
+
+		# 2) Patch updated list back
+		print("[Arena] 📝 recent_matches count -> %d" % recent.size())
+		var payload := {
+			"fields": {
+				"recent_matches": _to_firestore_value(recent)
+			}
+		}
+
+		var patch_url := "%s?updateMask.fieldPaths=recent_matches" % user_doc_url
+		var http_patch := HTTPRequest.new()
+		if get_tree() and get_tree().root:
+			get_tree().root.add_child(http_patch)
+		elif is_node_ready():
+			add_child(http_patch)
+		http_patch.request_completed.connect(func(_r2, code2, _h2, body2):
+			http_patch.queue_free()
+			if code2 == 200:
+				print("[Arena] ✅ recent_matches updated in users/%s" % uid)
+			else:
+				var err_text2: String = body2.get_string_from_utf8() if body2.size() > 0 else ""
+				print("[Arena] ⚠️ Failed to write recent_matches: %d\n%s" % [code2, err_text2])
+		)
+		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(payload))
+	)
+
+	http_get.request(user_doc_url, headers, HTTPClient.METHOD_GET)
+
+
+func _from_firestore_value(v) -> Variant:
+	if typeof(v) != TYPE_DICTIONARY:
+		return null
+	if v.has("stringValue"):
+		return str(v["stringValue"])
+	if v.has("integerValue"):
+		return int(str(v["integerValue"]))
+	if v.has("doubleValue"):
+		return float(v["doubleValue"])
+	if v.has("booleanValue"):
+		return bool(v["booleanValue"])
+	if v.has("nullValue"):
+		return null
+	if v.has("arrayValue"):
+		var out: Array = []
+		var av = v.get("arrayValue", {})
+		var values = av.get("values", [])
+		if typeof(values) == TYPE_ARRAY:
+			for item in values:
+				out.append(_from_firestore_value(item))
+		return out
+	if v.has("mapValue"):
+		var mv = v.get("mapValue", {})
+		var f = mv.get("fields", {})
+		var out_d: Dictionary = {}
+		if typeof(f) == TYPE_DICTIONARY:
+			for k in f.keys():
+				out_d[str(k)] = _from_firestore_value(f[k])
+		return out_d
+	return null

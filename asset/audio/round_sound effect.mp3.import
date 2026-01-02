@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://d1xt8qf2mdgxb"
+path="res://.godot/imported/round_sound effect.mp3-62297e41c27e4d92d2eaed7f929aa727.mp3str"
+
+[deps]
+
+source_file="res://asset/audio/round_sound effect.mp3"
+dest_files=["res://.godot/imported/round_sound effect.mp3-62297e41c27e4d92d2eaed7f929aa727.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

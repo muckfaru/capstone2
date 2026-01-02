@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bfjo3v3mjq1jt"
+path="res://.godot/imported/flipcard-91468.mp3-8c0c51b82798eaea242a6c72dbb3b513.mp3str"
+
+[deps]
+
+source_file="res://asset/audio/akashic sfx/flipcard-91468.mp3"
+dest_files=["res://.godot/imported/flipcard-91468.mp3-8c0c51b82798eaea242a6c72dbb3b513.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

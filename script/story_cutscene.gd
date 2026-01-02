@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-@export_file("*.tscn") var next_scene_path: String = "res://scene/main.tscn"
+@export_file("*.tscn") var next_scene_path: String = "res://scene/Main.tscn"
 @export var auto_advance_time: float = 4.0
 @export var fade_duration: float = 0.8
 

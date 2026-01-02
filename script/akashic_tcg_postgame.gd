@@ -33,6 +33,10 @@ var _ended_at_unix: int = 0
 var _host_cards_used_ids: Array = []
 var _client_cards_used_ids: Array = []
 
+var _host_si: int = 0
+var _client_si: int = 0
+var _duration_s: int = 0
+
 const XP_WIN := 200
 const XP_LOSE := -50
 const TOTAL_DECK_CARDS := 25
@@ -67,11 +71,212 @@ func _ready() -> void:
 	_ended_at_unix = int(init.get("ended_at_unix", 0))
 	_host_cards_used_ids = init.get("host_cards_used", [])
 	_client_cards_used_ids = init.get("client_cards_used", [])
+	_host_si = int(init.get("host_si", 0))
+	_client_si = int(init.get("client_si", 0))
+	_duration_s = int(init.get("duration_s", 0))
 
 	_setup_ui()
 	_play_outcome_sfx()
+	_save_recent_match_best_effort()
 	_back_button.pressed.connect(_on_back_to_landing_pressed)
 	_animate_in()
+
+
+func _save_recent_match_best_effort() -> void:
+	# Persist into users/<uid>.recent_matches (match_history collection may be rules-blocked).
+	if not Engine.has_singleton("Auth"):
+		return
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		return
+	if _host_data.is_empty() or _client_data.is_empty():
+		return
+
+	var my_uid := Auth.current_local_id
+	var host_id: String = str(_host_data.get("player_id", ""))
+	var client_id: String = str(_client_data.get("player_id", ""))
+
+	# Determine perspective (prefer local arena-assigned _player_id).
+	var i_am_host := false
+	if _player_id != "":
+		i_am_host = _player_id == host_id
+	elif my_uid != "":
+		i_am_host = my_uid == host_id
+
+	var opponent_username := str(_client_data.get("username", "")) if i_am_host else str(_host_data.get("username", ""))
+	if opponent_username == "":
+		opponent_username = _client_username.text if i_am_host else _host_username.text
+
+	var winner_id := _winner_id
+	var result_text := "WIN" if winner_id == my_uid else "LOSE"
+	# If winner_id matches arena _player_id (not Firebase uid), still treat that as win for this device.
+	if _player_id != "" and winner_id == _player_id:
+		result_text = "WIN"
+	elif _player_id != "" and winner_id != "" and winner_id != _player_id:
+		result_text = "LOSE"
+
+	var my_score := _host_si if i_am_host else _client_si
+	var opp_score := _client_si if i_am_host else _host_si
+	var now_ms: int = int(Time.get_unix_time_from_system() * 1000.0)
+	var ended_at_unix := _ended_at_unix
+	if ended_at_unix <= 0:
+		ended_at_unix = int(Time.get_unix_time_from_system())
+
+	var entry := {
+		"game_type": "akashic_tcg",
+		"timestamp": now_ms,
+		"result": result_text,
+		"opponent": opponent_username,
+		"my_score": int(my_score),
+		"opp_score": int(opp_score),
+		"duration_s": int(_duration_s),
+		"time_ended": _format_time(int(_duration_s)),
+		"room_id": _room_id,
+		"host_id": host_id,
+		"client_id": client_id,
+		"winner_id": winner_id,
+		"ended_at_unix": ended_at_unix,
+	}
+
+	_append_recent_match_to_user_doc(entry)
+
+
+func _append_recent_match_to_user_doc(entry: Dictionary) -> void:
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	if uid == "" or token == "":
+		return
+
+	var user_doc_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % uid
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	])
+
+	var http_get := HTTPRequest.new()
+	http_get.timeout = 10.0
+	get_tree().root.add_child(http_get)
+	var done := {"ok": false}
+
+	http_get.request_completed.connect(func(_r, code, _h, body):
+		http_get.queue_free()
+		done["ok"] = true
+		if code != 200:
+			var err_text: String = body.get_string_from_utf8() if body.size() > 0 else ""
+			print("[TGC PostGame] ⚠️ recent_matches GET failed: %d\n%s" % [code, err_text])
+			return
+
+		var doc = JSON.parse_string(body.get_string_from_utf8())
+		var recent: Array = []
+		if typeof(doc) == TYPE_DICTIONARY and doc.has("fields"):
+			var fields: Dictionary = doc.get("fields", {})
+			if fields.has("recent_matches"):
+				recent = _from_firestore_value(fields["recent_matches"])
+				if typeof(recent) != TYPE_ARRAY:
+					recent = []
+
+		recent.append(entry)
+		recent.sort_custom(func(a, b):
+			return int(a.get("timestamp", 0)) > int(b.get("timestamp", 0))
+		)
+		if recent.size() > 20:
+			recent = recent.slice(0, 20)
+
+		var payload := {
+			"fields": {
+				"recent_matches": _to_firestore_value(recent)
+			}
+		}
+		var patch_url := "%s?updateMask.fieldPaths=recent_matches" % user_doc_url
+		var http_patch := HTTPRequest.new()
+		http_patch.timeout = 10.0
+		get_tree().root.add_child(http_patch)
+		http_patch.request_completed.connect(func(_r2, code2, _h2, body2):
+			http_patch.queue_free()
+			if code2 == 200:
+				print("[TGC PostGame] ✅ recent_matches updated in users/%s" % uid)
+			else:
+				var err_text2: String = body2.get_string_from_utf8() if body2.size() > 0 else ""
+				print("[TGC PostGame] ⚠️ recent_matches PATCH failed: %d\n%s" % [code2, err_text2])
+		)
+		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(payload))
+	)
+
+	var req_err: int = http_get.request(user_doc_url, headers, HTTPClient.METHOD_GET)
+	if req_err != OK:
+		http_get.queue_free()
+		print("[TGC PostGame] ⚠️ recent_matches GET request() failed immediately: %d" % req_err)
+		return
+
+	var start_ms := Time.get_ticks_msec()
+	while not done["ok"] and is_inside_tree() and Time.get_ticks_msec() - start_ms < 1500:
+		await get_tree().process_frame
+
+
+func _to_firestore_value(value) -> Dictionary:
+	if value == null:
+		return {"nullValue": "NULL_VALUE"}
+	if value is String:
+		return {"stringValue": value}
+	if value is int:
+		return {"integerValue": str(value)}
+	if value is float:
+		return {"doubleValue": value}
+	if value is bool:
+		return {"booleanValue": value}
+	if value is Array:
+		var values: Array = []
+		for item in value:
+			values.append(_to_firestore_value(item))
+		return {"arrayValue": {"values": values}}
+	if value is Dictionary:
+		var map_fields: Dictionary = {}
+		for k in value.keys():
+			map_fields[str(k)] = _to_firestore_value(value[k])
+		return {"mapValue": {"fields": map_fields}}
+	return {"stringValue": str(value)}
+
+
+func _from_firestore_value(v) -> Variant:
+	if typeof(v) != TYPE_DICTIONARY:
+		return null
+	if v.has("stringValue"):
+		return str(v.get("stringValue", ""))
+	if v.has("integerValue"):
+		return int(str(v.get("integerValue", "0")))
+	if v.has("doubleValue"):
+		return float(v.get("doubleValue", 0.0))
+	if v.has("booleanValue"):
+		return bool(v.get("booleanValue", false))
+	if v.has("nullValue"):
+		return null
+	if v.has("arrayValue"):
+		var arr: Array = []
+		var av_val: Variant = v.get("arrayValue", {})
+		var av: Dictionary = av_val if typeof(av_val) == TYPE_DICTIONARY else {}
+		if av.has("values"):
+			var values_val: Variant = av.get("values", [])
+			var values: Array = values_val if typeof(values_val) == TYPE_ARRAY else []
+			for item in values:
+				arr.append(_from_firestore_value(item))
+		return arr
+	if v.has("mapValue"):
+		var mv_val: Variant = v.get("mapValue", {})
+		var mv: Dictionary = mv_val if typeof(mv_val) == TYPE_DICTIONARY else {}
+		var out: Dictionary = {}
+		if mv.has("fields"):
+			var fields_val: Variant = mv.get("fields", {})
+			var fields: Dictionary = fields_val if typeof(fields_val) == TYPE_DICTIONARY else {}
+			for k in fields.keys():
+				out[str(k)] = _from_firestore_value(fields[k])
+		return out
+	return null
+
+
+func _format_time(seconds: int) -> String:
+	var s: int = maxi(0, seconds)
+	var m: int = int(s / 60.0)
+	var sec: int = s % 60
+	return "%dm %ds" % [m, sec]
 
 
 func _play_outcome_sfx() -> void:
@@ -224,6 +429,10 @@ func _on_back_to_landing_pressed() -> void:
 
 
 func _leave_room_best_effort() -> void:
+	# If we are already leaving the scene tree (or during shutdown), get_tree() can be null.
+	if not is_inside_tree():
+		return
+
 	if _lobby_server_url == "" or _room_id == "" or _player_id == "":
 		return
 	var http := HTTPRequest.new()
@@ -235,5 +444,15 @@ func _leave_room_best_effort() -> void:
 	)
 	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/leave"
 	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify({"player_id": _player_id}))
+	var start_ms: int = Time.get_ticks_msec()
 	while not done["ok"]:
-		await get_tree().create_timer(0.1).timeout
+		# Bail out quickly if the scene is being torn down.
+		if not is_inside_tree():
+			break
+		# Best-effort only: don't block scene transitions forever.
+		if Time.get_ticks_msec() - start_ms > 1500:
+			break
+		await get_tree().process_frame
+
+	if http and is_instance_valid(http) and not done["ok"]:
+		http.queue_free()

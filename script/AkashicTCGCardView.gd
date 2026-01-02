@@ -12,6 +12,12 @@ var card_data: Dictionary = {}
 var drag_enabled: bool = true
 var click_enabled: bool = true
 
+# Optional hover SFX (used for player's hand cards).
+const _SFX_HOVER: AudioStream = preload("res://asset/audio/akashic sfx/flipcard-91468.mp3")
+const _SFX_HOVER_VOLUME_DB := -10.0
+var hover_sfx_enabled: bool = false
+var _hover_sfx_player: AudioStreamPlayer = null
+
 var _pre_drag_modulate: Color = Color(1, 1, 1, 1)
 var _pre_hover_modulate: Color = Color(1, 1, 1, 1)
 var _is_dragging: bool = false
@@ -55,6 +61,27 @@ func _ready() -> void:
 
 	# Note: We avoid animating Control.position while inside Containers.
 	# Hover uses an overlay preview instead.
+	
+	if hover_sfx_enabled:
+		_ensure_hover_sfx_player()
+
+
+func _ensure_hover_sfx_player() -> void:
+	if _hover_sfx_player != null and is_instance_valid(_hover_sfx_player):
+		return
+	_hover_sfx_player = AudioStreamPlayer.new()
+	_hover_sfx_player.stream = _SFX_HOVER
+	_hover_sfx_player.volume_db = _SFX_HOVER_VOLUME_DB
+	add_child(_hover_sfx_player)
+
+
+func _play_hover_sfx() -> void:
+	if not hover_sfx_enabled:
+		return
+	_ensure_hover_sfx_player()
+	if _hover_sfx_player == null or not is_instance_valid(_hover_sfx_player):
+		return
+	_hover_sfx_player.play()
 
 
 func _on_gui_input(event: InputEvent) -> void:
@@ -154,6 +181,7 @@ func _ensure_hover_overlay() -> void:
 func _on_mouse_entered() -> void:
 	if _is_dragging:
 		return
+	_play_hover_sfx()
 	_is_hovered = true
 	_ensure_hover_overlay()
 	_kill_hover_tween()

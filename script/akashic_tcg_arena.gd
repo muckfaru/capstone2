@@ -18,6 +18,7 @@ const _CardView = preload("res://script/AkashicTCGCardView.gd")
 @onready var _sidebar_you_name: Label = $HUD/Sidebar/YouName
 @onready var _timer_label: Label = $HUD/Sidebar/TimerLabel
 @onready var _countdown_label: Label = $HUD/CountdownLabel
+@onready var _round_label: Label = $HUD/RoundLabel
 @onready var _end_turn_btn: Button = $HUD/PlayerBars/EndTurnButton
 @onready var _menu_panel: Control = $MenuPanel
 @onready var _menu_button: Button = $MenuButton
@@ -80,12 +81,14 @@ func _is_my_round_done() -> bool:
 	var round_done: Dictionary = done_val if typeof(done_val) == TYPE_DICTIONARY else {}
 	return bool(round_done.get(_player_id, false))
 
-func _set_drop_timer_label(visible: bool, seconds_left: int = 0) -> void:
+func _set_drop_timer_label(show_label: bool, seconds_left: int = 0) -> void:
 	if _drop_timer_label == null:
 		return
-	_drop_timer_label.visible = visible
-	if visible:
+	_drop_timer_label.visible = show_label
+	if show_label:
 		_drop_timer_label.text = "%ds" % maxi(0, seconds_left)
+	if _buff_icons_hbox != null and is_instance_valid(_buff_icons_hbox) and _buff_icons_runtime_created:
+		call_deferred("_position_buff_icons_ui")
 
 func _on_drop_timer_tick() -> void:
 	# Only run after the arena has started.
@@ -248,6 +251,37 @@ const FLIP_HALF_SEC := 0.12
 const _SFX_CARD_DROP: AudioStream = preload("res://asset/audio/akashic sfx/card drop sound effect.wav")
 const _SFX_CARD_REVEAL: AudioStream = preload("res://asset/audio/akashic sfx/card reveal sound effect.wav")
 
+const _SFX_ROUND_PATH := "res://asset/audio/akashic sfx/round_sound effect.mp3"
+const _SFX_ROUND_VOLUME_DB := -8.0
+
+const _BUFF_ICON_SIZE := Vector2(25, 25)
+const _ICON_MFA: Texture2D = preload("res://asset/icons/Multi fartor auth card icon.png")
+const _ICON_IDS: Texture2D = preload("res://asset/icons/intrusion detection card icon.png")
+const _ICON_ENCRYPTED: Texture2D = preload("res://asset/icons/encryption key card icon.png")
+
+const _BUFF_TOOLTIP := {
+	"mfa": {
+		"title": "MFA",
+		"desc": "Blocks the next Phishing/Trojan.",
+	},
+	"ids": {
+		"title": "IDS",
+		"desc": "Next incoming attack -1 damage, then draw 2.",
+	},
+	"encrypted": {
+		"title": "ENCRYPTION",
+		"desc": "Next Phishing/Virus/Trojan -1 damage.",
+	},
+}
+
+const _ROUND_LABEL_DELAY_SEC := 0.35
+const _ROUND_LABEL_SHOW_SEC := 1.25
+
+const _ROUND_LABEL_IN_SEC := 0.18
+const _ROUND_LABEL_OUT_SEC := 0.14
+const _ROUND_LABEL_POP_SCALE := 1.08
+const _ROUND_LABEL_START_SCALE := 0.86
+
 const _SFX_DROP_VOLUME_DB := -4.0
 const _SFX_REVEAL_VOLUME_DB := -9.0
 
@@ -255,6 +289,332 @@ var _sfx_drop_player: AudioStreamPlayer = null
 var _sfx_reveal_player: AudioStreamPlayer = null
 var _sfx_initialized: bool = false
 var _reveal_sfx_turn: int = -1
+
+var _round_sfx_stream: AudioStream = null
+var _sfx_round_player: AudioStreamPlayer = null
+var _last_round_ui: int = -1
+var _round_announce_inflight: bool = false
+var _round_label_tween: Tween = null
+var _round_input_blocker: Control = null
+
+var _buff_icons_hbox: HBoxContainer = null
+var _buff_icons_runtime_created: bool = false
+
+
+func _ensure_round_input_blocker() -> void:
+	if _round_input_blocker != null and is_instance_valid(_round_input_blocker):
+		return
+	var hud: Control = $HUD
+	_round_input_blocker = Control.new()
+	_round_input_blocker.name = "RoundInputBlocker"
+	_round_input_blocker.mouse_filter = Control.MOUSE_FILTER_STOP
+	_round_input_blocker.focus_mode = Control.FOCUS_NONE
+	_round_input_blocker.visible = false
+	_round_input_blocker.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_round_input_blocker.offset_left = 0
+	_round_input_blocker.offset_top = 0
+	_round_input_blocker.offset_right = 0
+	_round_input_blocker.offset_bottom = 0
+	hud.add_child(_round_input_blocker)
+
+
+func _set_round_input_blocker_active(active: bool) -> void:
+	_ensure_round_input_blocker()
+	if _round_input_blocker == null or not is_instance_valid(_round_input_blocker):
+		return
+	_round_input_blocker.visible = active
+
+
+func _ensure_buff_icons_ui() -> void:
+	if _buff_icons_hbox != null and is_instance_valid(_buff_icons_hbox):
+		return
+	# Option 2: if it's authored in the scene, use it.
+	var existing := get_node_or_null("HUD/PlayerBars/YouSIBar/BuffIconsHBox")
+	if existing != null and existing is HBoxContainer:
+		_buff_icons_hbox = existing as HBoxContainer
+		return
+	if _drop_timer_label == null:
+		return
+	var parent: Node = _drop_timer_label.get_parent()
+	if parent == null or not (parent is Control):
+		return
+
+	_buff_icons_hbox = HBoxContainer.new()
+	_buff_icons_hbox.name = "BuffIconsHBox"
+	_buff_icons_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_buff_icons_hbox.visible = false
+	(parent as Control).add_child(_buff_icons_hbox)
+	_buff_icons_runtime_created = true
+	call_deferred("_position_buff_icons_ui")
+
+
+func _position_buff_icons_ui() -> void:
+	if _buff_icons_hbox == null or not is_instance_valid(_buff_icons_hbox):
+		return
+	# If authored in the scene (Option 2), the editor controls placement.
+	if not _buff_icons_runtime_created:
+		return
+	if _drop_timer_label == null:
+		return
+	var label_pos: Vector2 = _drop_timer_label.position
+	var label_size: Vector2 = _drop_timer_label.size
+	var max_w: float = (_BUFF_ICON_SIZE.x * 3.0) + 8.0
+	_buff_icons_hbox.position = Vector2(label_pos.x - max_w - 6.0, label_pos.y - 2.0)
+	_buff_icons_hbox.custom_minimum_size = Vector2(max_w, max(label_size.y, _BUFF_ICON_SIZE.y))
+	_buff_icons_hbox.size = _buff_icons_hbox.custom_minimum_size
+	_buff_icons_hbox.add_theme_constant_override("separation", 4)
+
+
+func _status_active(status: Dictionary, key: String) -> bool:
+	if not status.has(key):
+		return false
+	var v: Variant = status.get(key)
+	if typeof(v) == TYPE_BOOL:
+		return bool(v)
+	if typeof(v) == TYPE_INT:
+		return int(v) > 0
+	if typeof(v) == TYPE_FLOAT:
+		return float(v) > 0.0
+	if typeof(v) == TYPE_DICTIONARY:
+		return int((v as Dictionary).get("turns", 1)) > 0
+	return true
+
+
+func _turns_left_from_status(status: Dictionary, key: String) -> int:
+	if not status.has(key):
+		return 0
+	var v: Variant = status.get(key)
+	if typeof(v) == TYPE_DICTIONARY:
+		return int((v as Dictionary).get("turns", 1))
+	if typeof(v) == TYPE_INT:
+		return int(v)
+	return 1
+
+
+func _make_buff_icon(tex: Texture2D, key: String, status: Dictionary) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.mouse_filter = Control.MOUSE_FILTER_STOP
+	icon.texture = tex
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_SCALE
+	icon.custom_minimum_size = _BUFF_ICON_SIZE
+
+	var meta: Dictionary = _BUFF_TOOLTIP.get(key, {})
+	var title: String = str(meta.get("title", key.to_upper()))
+	var desc: String = str(meta.get("desc", ""))
+	var turns_left: int = _turns_left_from_status(status, key)
+	if desc != "":
+		icon.tooltip_text = "%s\n%s\nTurns left: %d" % [title, desc, turns_left]
+	else:
+		icon.tooltip_text = "%s\nTurns left: %d" % [title, turns_left]
+	return icon
+
+
+func _render_my_buff_icons(my_player: Dictionary) -> void:
+	_ensure_buff_icons_ui()
+	if _buff_icons_hbox == null or not is_instance_valid(_buff_icons_hbox):
+		return
+	var st_val: Variant = my_player.get("status", {})
+	var st: Dictionary = st_val if typeof(st_val) == TYPE_DICTIONARY else {}
+
+	var show_mfa := _status_active(st, "mfa")
+	var show_ids := _status_active(st, "ids")
+	var show_enc := _status_active(st, "encrypted")
+
+	for c in _buff_icons_hbox.get_children():
+		c.queue_free()
+
+	if show_mfa:
+		_buff_icons_hbox.add_child(_make_buff_icon(_ICON_MFA, "mfa", st))
+	if show_ids:
+		_buff_icons_hbox.add_child(_make_buff_icon(_ICON_IDS, "ids", st))
+	if show_enc:
+		_buff_icons_hbox.add_child(_make_buff_icon(_ICON_ENCRYPTED, "encrypted", st))
+
+	_buff_icons_hbox.visible = show_mfa or show_ids or show_enc
+
+func _ensure_round_sfx_player() -> void:
+	if _sfx_round_player != null and is_instance_valid(_sfx_round_player):
+		return
+	_sfx_round_player = AudioStreamPlayer.new()
+	add_child(_sfx_round_player)
+
+
+func _play_round_sfx() -> void:
+	if _round_sfx_stream == null:
+		return
+	_ensure_round_sfx_player()
+	if _sfx_round_player == null or not is_instance_valid(_sfx_round_player):
+		return
+	_sfx_round_player.stream = _round_sfx_stream
+	_sfx_round_player.volume_db = _SFX_ROUND_VOLUME_DB
+	_sfx_round_player.play()
+
+
+func _hide_round_label() -> void:
+	if _round_label == null:
+		return
+	_set_round_input_blocker_active(false)
+	if _round_label_tween != null and is_instance_valid(_round_label_tween):
+		_round_label_tween.kill()
+		_round_label_tween = null
+	_round_label.visible = false
+	_round_label.text = ""
+	_round_label.scale = Vector2.ONE
+	_round_label.modulate = Color(1, 1, 1, 1)
+
+
+func _refresh_round_label_pivot() -> void:
+	if _round_label == null:
+		return
+	# Keep scaling centered.
+	_round_label.pivot_offset = _round_label.size * 0.5
+
+
+func _animate_round_label_in() -> void:
+	if _round_label == null:
+		return
+	_set_round_input_blocker_active(true)
+	if _round_label_tween != null and is_instance_valid(_round_label_tween):
+		_round_label_tween.kill()
+		_round_label_tween = null
+
+	# Start hidden-ish, then pop in.
+	_round_label.visible = true
+	_round_label.scale = Vector2.ONE * _ROUND_LABEL_START_SCALE
+	_round_label.modulate = Color(1, 1, 1, 0)
+	call_deferred("_refresh_round_label_pivot")
+
+	_round_label_tween = create_tween()
+	_round_label_tween.set_trans(Tween.TRANS_BACK)
+	_round_label_tween.set_ease(Tween.EASE_OUT)
+	_round_label_tween.parallel().tween_property(
+		_round_label,
+		"scale",
+		Vector2.ONE * _ROUND_LABEL_POP_SCALE,
+		_ROUND_LABEL_IN_SEC
+	)
+	_round_label_tween.parallel().tween_property(
+		_round_label,
+		"modulate",
+		Color(1, 1, 1, 1),
+		_ROUND_LABEL_IN_SEC
+	)
+	_round_label_tween.tween_property(
+		_round_label,
+		"scale",
+		Vector2.ONE,
+		0.08
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func _animate_round_label_out() -> void:
+	if _round_label == null:
+		return
+	if _round_label_tween != null and is_instance_valid(_round_label_tween):
+		_round_label_tween.kill()
+		_round_label_tween = null
+	if not _round_label.visible:
+		return
+
+	_round_label_tween = create_tween()
+	_round_label_tween.set_trans(Tween.TRANS_SINE)
+	_round_label_tween.set_ease(Tween.EASE_IN)
+	_round_label_tween.parallel().tween_property(
+		_round_label,
+		"scale",
+		Vector2.ONE * 0.92,
+		_ROUND_LABEL_OUT_SEC
+	)
+	_round_label_tween.parallel().tween_property(
+		_round_label,
+		"modulate",
+		Color(1, 1, 1, 0),
+		_ROUND_LABEL_OUT_SEC
+	)
+	_round_label_tween.tween_callback(func():
+		if _round_label == null:
+			return
+		_round_label.visible = false
+		_round_label.text = ""
+		_round_label.scale = Vector2.ONE
+		_round_label.modulate = Color(1, 1, 1, 1)
+		_set_round_input_blocker_active(false)
+	)
+
+
+func _show_round_banner(round_i: int) -> void:
+	if _round_label == null:
+		_round_announce_inflight = false
+		return
+	if not is_inside_tree():
+		_round_announce_inflight = false
+		return
+	if typeof(_state) != TYPE_DICTIONARY or _state.is_empty():
+		_hide_round_label()
+		_round_announce_inflight = false
+		return
+	if str(_state.get("winner_id", "")) != "":
+		_hide_round_label()
+		_round_announce_inflight = false
+		return
+	if int(_state.get("turn", 0)) != round_i:
+		# State advanced; don't show stale banner.
+		_hide_round_label()
+		_round_announce_inflight = false
+		return
+	if _start_countdown_active:
+		# Wait until countdown finishes, then try again.
+		get_tree().create_timer(0.25).timeout.connect(func():
+			_show_round_banner(round_i)
+		)
+		return
+
+	_round_label.text = "ROUND %d" % round_i
+	_animate_round_label_in()
+	_play_round_sfx()
+	_last_round_ui = round_i
+	_round_announce_inflight = false
+
+	# Auto-hide after a short time.
+	get_tree().create_timer(_ROUND_LABEL_SHOW_SEC).timeout.connect(func():
+		if not is_inside_tree():
+			return
+		if _round_label == null:
+			return
+		# Only hide if we're still on the same round.
+		if typeof(_state) == TYPE_DICTIONARY and not _state.is_empty() and int(_state.get("turn", 0)) == round_i:
+			_animate_round_label_out()
+	)
+
+
+func _maybe_announce_round_start() -> void:
+	if _round_label == null:
+		return
+	if typeof(_state) != TYPE_DICTIONARY or _state.is_empty():
+		_hide_round_label()
+		_last_round_ui = -1
+		_round_announce_inflight = false
+		return
+	if str(_state.get("winner_id", "")) != "":
+		_hide_round_label()
+		_last_round_ui = -1
+		_round_announce_inflight = false
+		return
+	var round_i: int = int(_state.get("turn", 0))
+	if round_i <= 0:
+		_hide_round_label()
+		_last_round_ui = -1
+		_round_announce_inflight = false
+		return
+
+	# If a new round is detected, schedule a banner.
+	if round_i != _last_round_ui and not _round_announce_inflight:
+		_round_announce_inflight = true
+		_hide_round_label()
+		get_tree().create_timer(_ROUND_LABEL_DELAY_SEC).timeout.connect(func():
+			_show_round_banner(round_i)
+		)
 
 func _ensure_sfx_players() -> void:
 	if _sfx_drop_player == null or not is_instance_valid(_sfx_drop_player):
@@ -385,8 +745,17 @@ func _ready() -> void:
 			_play_zone.card_dropped.connect(_on_play_zone_card_dropped)
 
 	_end_turn_btn.pressed.connect(_on_end_turn_pressed)
+	# Load round SFX (runtime load so missing files won't break parsing).
+	var loaded: Variant = load(_SFX_ROUND_PATH)
+	if loaded != null and loaded is AudioStream:
+		_round_sfx_stream = loaded as AudioStream
+	else:
+		_round_sfx_stream = null
+		push_warning("[TGC Arena] Round SFX not found at: " + _SFX_ROUND_PATH)
 	if _menu_button != null and not _menu_button.pressed.is_connected(_on_menu_button_pressed):
 		_menu_button.pressed.connect(_on_menu_button_pressed)
+	_ensure_round_input_blocker()
+	_ensure_buff_icons_ui()
 	_ensure_drop_timer()
 	if _menu_panel != null:
 		_menu_panel.visible = false
@@ -815,6 +1184,7 @@ func _render() -> void:
 		_render_opp_hand_count(0)
 		_clear_hand_ui()
 		_render_dropped_cards({})
+		_maybe_announce_round_start()
 		return
 
 	var opp_id := _other_player(_player_id)
@@ -851,6 +1221,8 @@ func _render() -> void:
 		else:
 			_status.text = "Round %d" % int(_state.get("turn", 0))
 
+	_maybe_announce_round_start()
+
 	_opp_si_bar.max_value = STARTING_SI
 	_opp_fw_bar.max_value = MAX_FW
 	_you_si_bar.max_value = STARTING_SI
@@ -881,6 +1253,7 @@ func _render() -> void:
 	_end_turn_btn.disabled = over or my_done
 
 	_render_hand(my, (not my_done), over)
+	_render_my_buff_icons(my)
 
 	# Show the cards currently dropped/submitted this round.
 	_render_dropped_cards(pending)
@@ -1106,6 +1479,8 @@ func _render_hand(my: Dictionary, is_my_turn: bool, over: bool) -> void:
 		card.set_script(_CardView)
 		card.texture = _texture_for_id(card_id)
 		_setup_card_slot(card)
+		# Hover flip SFX for your hand cards.
+		card.hover_sfx_enabled = true
 		# Hand cards are intentionally larger than the center dropped slots.
 		card.custom_minimum_size = HAND_CARD_VIEW_SIZE
 		card.z_as_relative = true
@@ -1860,6 +2235,19 @@ func _transition_to_postgame(winner_id: String, reason: String, ended_at_unix: i
 		return
 	if _relay_client and _relay_client.has_method("disconnect_from_relay"):
 		_relay_client.disconnect_from_relay()
+
+	# Snapshot stats for postgame/history.
+	var players_val: Variant = _state.get("players", {})
+	var players: Dictionary = players_val if typeof(players_val) == TYPE_DICTIONARY else {}
+	var host_p_val: Variant = players.get(_host_id, {})
+	var client_p_val: Variant = players.get(_client_id, {})
+	var host_p: Dictionary = host_p_val if typeof(host_p_val) == TYPE_DICTIONARY else {}
+	var client_p: Dictionary = client_p_val if typeof(client_p_val) == TYPE_DICTIONARY else {}
+	var host_si: int = int(host_p.get("si", STARTING_SI))
+	var client_si: int = int(client_p.get("si", STARTING_SI))
+	var duration_s: int = 0
+	if _match_timer_started and _match_start_msec > 0:
+		duration_s = int(maxi(0, Time.get_ticks_msec() - _match_start_msec) / 1000.0)
 	var ended: int = ended_at_unix
 	if ended <= 0:
 		ended = int(Time.get_unix_time_from_system())
@@ -1874,6 +2262,9 @@ func _transition_to_postgame(winner_id: String, reason: String, ended_at_unix: i
 		"client_data": _client_data,
 		"host_cards_used": _cards_used_from_state(_host_id),
 		"client_cards_used": _cards_used_from_state(_client_id),
+		"host_si": host_si,
+		"client_si": client_si,
+		"duration_s": duration_s,
 	})
 	var scene := load("res://scene/akashic_tcg_postgame.tscn")
 	if scene:

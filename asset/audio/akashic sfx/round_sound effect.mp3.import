@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://coajvgsqokorb"
+path="res://.godot/imported/round_sound effect.mp3-646c6812dd6f97459c97eb9afd162284.mp3str"
+
+[deps]
+
+source_file="res://asset/audio/akashic sfx/round_sound effect.mp3"
+dest_files=["res://.godot/imported/round_sound effect.mp3-646c6812dd6f97459c97eb9afd162284.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
