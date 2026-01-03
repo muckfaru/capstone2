@@ -47,11 +47,16 @@ func _on_settings_pressed() -> void:
 	var cs = get_tree().get_current_scene()
 	if cs:
 		cs.add_child(inst)
-		# If the current scene has a BattleMusic node, pass it to the settings panel
-		if cs.has_node("BattleMusic"):
-			var bm = cs.get_node("BattleMusic")
-			if bm and inst.has_method("set_target_music"):
-				inst.set_target_music(bm)
+		# Pass a best-effort music target so volume works per-scene (Landing uses BackgroundMusicPlayer)
+		var music_target: Node = null
+		if cs.has_node("BackgroundMusicPlayer"):
+			music_target = cs.get_node("BackgroundMusicPlayer")
+		elif cs.has_node("BackgroundMusic"):
+			music_target = cs.get_node("BackgroundMusic")
+		elif cs.has_node("BattleMusic"):
+			music_target = cs.get_node("BattleMusic")
+		if music_target and inst.has_method("set_target_music"):
+			inst.set_target_music(music_target)
 	visible = false
 
 

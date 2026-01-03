@@ -42,20 +42,8 @@ func _on_apply_pressed() -> void:
 	var vol_db = _map_level_to_db(vol_level)
 	var is_full = (display_mode.selected == 1)
 
-	# Apply to music player if present (try BackgroundMusic first, then BattleMusic)
-	var music = _target_music
-	if not music:
-		music = _find_node_by_name(get_tree().get_current_scene(), "BackgroundMusic")
-	if not music:
-		music = _find_node_by_name(get_tree().get_current_scene(), "BattleMusic")
-	if music and music is AudioStreamPlayer:
-		music.volume_db = vol_db
-
-	# Apply fullscreen setting
-	if is_full:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-	else:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+	_apply_music_volume_db(vol_db)
+	_apply_display_mode(is_full)
 
 	# Persist settings (save integer 1..100)
 	var cfg := ConfigFile.new()
@@ -76,19 +64,45 @@ func _load_settings() -> void:
 		volume_value_label.text = "%d" % int(vol_level)
 		display_mode.select(1 if full else 0)
 
-		# Apply music volume immediately if present
-		var music = _target_music
-		if not music:
-			music = _find_node_by_name(get_tree().get_current_scene(), "BackgroundMusic")
-		if not music:
-			music = _find_node_by_name(get_tree().get_current_scene(), "BattleMusic")
-		if music and music is AudioStreamPlayer:
-			music.volume_db = _map_level_to_db(vol_level)
+		_apply_music_volume_db(_map_level_to_db(vol_level))
+		_apply_display_mode(bool(full))
+	else:
+		# No settings yet; keep defaults but keep label in sync
+		volume_value_label.text = "%d" % int(volume_slider.value)
 
 
 func set_target_music(node: Node) -> void:
 	if node and node is AudioStreamPlayer:
 		_target_music = node
+
+
+func _apply_music_volume_db(vol_db: float) -> void:
+	# Apply to explicit target if set
+	if _target_music and is_instance_valid(_target_music):
+		_target_music.volume_db = vol_db
+		return
+
+	# Try common music node names across scenes
+	var cs := get_tree().get_current_scene()
+	var music: Node = null
+	if cs:
+		music = _find_node_by_name(cs, "BackgroundMusic")
+		if not music:
+			music = _find_node_by_name(cs, "BackgroundMusicPlayer") # Landing
+		if not music:
+			music = _find_node_by_name(cs, "BattleMusic")
+
+	if music and music is AudioStreamPlayer:
+		(music as AudioStreamPlayer).volume_db = vol_db
+
+
+func _apply_display_mode(fullscreen: bool) -> void:
+	# Prefer Window API (more reliable in Godot 4), fallback to DisplayServer
+	var window := get_viewport().get_window()
+	if window:
+		window.mode = Window.MODE_FULLSCREEN if fullscreen else Window.MODE_WINDOWED
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
 
 
 func _find_node_by_name(node: Node, target: String) -> Node:
