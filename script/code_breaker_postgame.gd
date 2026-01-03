@@ -45,7 +45,7 @@ const COLOR_LOSER := Color(1, 0.36, 0.43, 1)  # Pink-red
 const COLOR_XP_WIN := Color(0, 1, 0.5, 1)  # Green
 const COLOR_XP_LOSE := Color(0.8, 0.8, 0.8, 1)  # Grey
 
-const XP_WINNER := 500
+const XP_WINNER := 200
 const XP_LOSER := 0
 
 func _ready() -> void:
@@ -91,12 +91,94 @@ func _ready() -> void:
 	_setup_ui()
 	# Persist match history (permissions-safe user doc field)
 	_save_recent_match_best_effort()
+	# Award XP to Firestore total_xp
+	_award_total_xp_best_effort()
 	
 	# Connect button
 	_back_button.pressed.connect(_on_back_to_landing_pressed)
 	
 	# Animate in
 	_animate_in()
+
+
+func _award_total_xp_best_effort() -> void:
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		return
+	if _result_unknown:
+		return
+	if _host_data.is_empty() or _client_data.is_empty():
+		return
+
+	# Decide win/loss for this device. Prefer winner_id == Auth uid, but fall back to arena player_id.
+	var local_won := false
+	if _winner_id != "" and _winner_id == Auth.current_local_id:
+		local_won = true
+	elif _player_id != "" and _winner_id != "" and _winner_id == _player_id:
+		local_won = true
+
+	var delta_xp: int = XP_WINNER if local_won else XP_LOSER
+	if delta_xp == 0:
+		return
+
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	var user_doc_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % uid
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	])
+
+	# GET current total_xp
+	var http_get := HTTPRequest.new()
+	http_get.timeout = 10.0
+	get_tree().root.add_child(http_get)
+	var done := {"ok": false}
+
+	http_get.request_completed.connect(func(_r, code, _h, body):
+		http_get.queue_free()
+		done["ok"] = true
+		if code != 200:
+			var err_text: String = body.get_string_from_utf8() if body.size() > 0 else ""
+			print("[PostGame] ⚠️ total_xp GET failed: %d\n%s" % [code, err_text])
+			return
+
+		var doc = JSON.parse_string(body.get_string_from_utf8())
+		var current_xp: int = 0
+		if typeof(doc) == TYPE_DICTIONARY and doc.has("fields"):
+			var fields: Dictionary = doc.get("fields", {})
+			if fields.has("total_xp"):
+				current_xp = int(_from_firestore_value(fields["total_xp"]))
+
+		var new_xp: int = maxi(0, current_xp + delta_xp)
+		var patch_url := "%s?updateMask.fieldPaths=total_xp" % user_doc_url
+		var http_patch := HTTPRequest.new()
+		http_patch.timeout = 10.0
+		get_tree().root.add_child(http_patch)
+		var payload := {
+			"fields": {
+				"total_xp": {"integerValue": str(new_xp)}
+			}
+		}
+		http_patch.request_completed.connect(func(_r2, code2, _h2, body2):
+			http_patch.queue_free()
+			if code2 == 200:
+				print("[PostGame] ✅ total_xp updated: %d -> %d" % [current_xp, new_xp])
+			else:
+				var err_text2: String = body2.get_string_from_utf8() if body2.size() > 0 else ""
+				print("[PostGame] ⚠️ total_xp PATCH failed: %d\n%s" % [code2, err_text2])
+		)
+		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(payload))
+	)
+
+	var req_err: int = http_get.request(user_doc_url, headers, HTTPClient.METHOD_GET)
+	if req_err != OK:
+		http_get.queue_free()
+		print("[PostGame] ⚠️ total_xp GET request() failed immediately: %d" % req_err)
+		return
+
+	var start_ms := Time.get_ticks_msec()
+	while not done["ok"] and is_inside_tree() and Time.get_ticks_msec() - start_ms < 1500:
+		await get_tree().process_frame
 
 
 func _save_recent_match_best_effort() -> void:
