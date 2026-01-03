@@ -47,6 +47,7 @@ func _ready():
 	refresh_timer.autostart = true
 	refresh_timer.timeout.connect(func():
 		load_friend_requests()
+		_load_friend_accepts_rtdb()
 		load_friend_list()
 	)
 	add_child(refresh_timer)
@@ -60,10 +61,15 @@ func _ready():
 
 	add_button.pressed.connect(func():
 		var target = add_input.text.strip_edges()
+		var has_uid := Auth.current_local_id != ""
+		var has_token := Auth.current_id_token != ""
+		print("[FriendList] Add clicked target='%s' uid=%s token=%s" % [target, str(has_uid), str(has_token)])
 		if target == "":
+			push_warning("[FriendList] Add clicked with empty target.")
 			return
 		add_button.disabled = true
 		send_friend_request(target)
+		# Safety re-enable in case request fails early / no callback.
 		await get_tree().create_timer(1.0).timeout
 		add_button.disabled = false
 	)
@@ -89,27 +95,61 @@ func load_friend_requests() -> void:
 	http.request_completed.connect(func(_r, code, _h, body):
 		http.queue_free()
 		if code != 200:
+			# Firestore read failed; still try RTDB fallback
+			_load_friend_requests_rtdb([])
 			return
 
 		var data = JSON.parse_string(body.get_string_from_utf8())
 		if not data.has("fields"):
 			return
 
-		var new_requests: Array = []
+		var from_firestore: Array = []
 		if data["fields"].has("requests_received"):
 			var arr = data["fields"]["requests_received"].get("arrayValue", {})
 			if arr.has("values"):
 				for v in arr["values"]:
 					var sender = v.get("stringValue", "")
 					if sender != "":
-						new_requests.append(sender)
+						from_firestore.append(sender)
 
-		if new_requests != last_request_list:
-			last_request_list = new_requests.duplicate()
-			print("[UI] 🔄 Friend requests changed → refreshing UI")
-			_update_request_ui(new_requests)
+		# Merge with RTDB-based requests (works even when Firestore queries are blocked)
+		_load_friend_requests_rtdb(from_firestore)
 	)
 	http.request(url, headers, HTTPClient.METHOD_GET)
+
+
+func _load_friend_requests_rtdb(existing: Array) -> void:
+	var token = Auth.current_id_token
+	var my_username := str(Auth.current_username)
+	if token == "" or my_username == "":
+		_update_requests_if_changed(existing)
+		return
+
+	var url = "%s/friend_requests/%s.json?auth=%s" % [RTDB_BASE, my_username.uri_encode(), token]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		var merged: Array = existing.duplicate()
+		if code == 200:
+			var txt: String = body.get_string_from_utf8()
+			if txt != "" and txt != "null":
+				var parsed = JSON.parse_string(txt)
+				if typeof(parsed) == TYPE_DICTIONARY:
+					for sender_name in parsed.keys():
+						var s := str(sender_name)
+						if s != "" and not merged.has(s):
+							merged.append(s)
+		_update_requests_if_changed(merged)
+	)
+	http.request(url, [], HTTPClient.METHOD_GET)
+
+
+func _update_requests_if_changed(new_requests: Array) -> void:
+	if new_requests != last_request_list:
+		last_request_list = new_requests.duplicate()
+		print("[UI] 🔄 Friend requests changed → refreshing UI")
+		_update_request_ui(new_requests)
 
 
 # ======================================================
@@ -528,6 +568,7 @@ func send_friend_request(target_username: String) -> void:
 	var token = Auth.current_id_token
 	var sender_uid = Auth.current_local_id
 	if token == "" or sender_uid == "":
+		push_warning("[FriendRequest] Missing Auth token/uid. uid='%s' token_present=%s" % [str(sender_uid), str(token != "")])
 		return
 
 	print("[FriendRequest] Sending to:", target_username)
@@ -555,26 +596,29 @@ func send_friend_request(target_username: String) -> void:
 	http_query.request_completed.connect(func(_r, code, _h, body):
 		http_query.queue_free()
 		if code != 200:
-			push_warning("[FriendRequest] Query failed.")
+			print("[FriendRequest] ❌ runQuery failed. code=%s body=%s" % [str(code), body.get_string_from_utf8()])
+			# Firestore rules often block list/runQuery. Fall back to RTDB request bus.
+			if code == 403:
+				_send_friend_request_rtdb(target_username)
 			return
 
 		var arr = JSON.parse_string(body.get_string_from_utf8())
 		if typeof(arr) != TYPE_ARRAY or arr.size() == 0:
-			push_warning("[FriendRequest] User not found.")
+			print("[FriendRequest] ❌ User not found via runQuery: '%s'" % target_username)
+			return
+		if not arr[0].has("document") or not arr[0]["document"].has("name"):
+			print("[FriendRequest] ❌ Unexpected runQuery result: %s" % body.get_string_from_utf8())
 			return
 
 		var target_uid = arr[0]["document"]["name"].get_file()
-		var sender_url = "%s/users/%s" % [BASE_URL, sender_uid]
-		var http_sender := HTTPRequest.new()
-		add_child(http_sender)
-		http_sender.request_completed.connect(func(_r2, code2, _h2, body2):
-			http_sender.queue_free()
-			if code2 != 200:
-				return
+		print("[FriendRequest] ✅ Resolved target uid=%s for username=%s" % [str(target_uid), target_username])
+		var sender_name := str(Auth.current_username)
+		if sender_name == "":
+			print("[FriendRequest] ❌ Sender username missing; cannot send request.")
+			return
 
-			var data2 = JSON.parse_string(body2.get_string_from_utf8())
-			var sender_name = data2["fields"]["username"]["stringValue"]
-
+		_ensure_requests_received_field(target_uid, headers, func():
+			print("[FriendRequest] Target field ready; committing request...")
 			var commit_url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit" % PROJECT_ID
 			var commit_body = {
 				"writes": [{
@@ -582,7 +626,7 @@ func send_friend_request(target_username: String) -> void:
 						"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, target_uid],
 						"fieldTransforms": [{
 							"fieldPath": "requests_received",
-							"append_missing_elements": {
+							"appendMissingElements": {
 								"values": [{"stringValue": sender_name}]
 							}
 						}]
@@ -591,17 +635,104 @@ func send_friend_request(target_username: String) -> void:
 			}
 			var http_commit := HTTPRequest.new()
 			add_child(http_commit)
-			http_commit.request_completed.connect(func(_r3, code3, _h3, _b3):
+			http_commit.request_completed.connect(func(_r3, code3, _h3, b3):
 				http_commit.queue_free()
 				if code3 == 200:
 					print("[FriendRequest] Friend request sent to:", target_username)
 					add_input.text = ""
+					# Optional verification fetch (may fail if rules block reading other users)
+					var verify_url = "%s/users/%s" % [BASE_URL, target_uid]
+					var http_verify := HTTPRequest.new()
+					add_child(http_verify)
+					http_verify.request_completed.connect(func(_vr, vcode, _vh, vbody):
+						http_verify.queue_free()
+						print("[FriendRequest] Verify GET target code=%s body=%s" % [str(vcode), vbody.get_string_from_utf8()])
+					)
+					http_verify.request(verify_url, headers, HTTPClient.METHOD_GET)
+				else:
+					print("[FriendRequest] ❌ Commit failed. code=%s body=%s" % [str(code3), b3.get_string_from_utf8()])
 			)
 			http_commit.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
 		)
-		http_sender.request(sender_url, headers, HTTPClient.METHOD_GET)
 	)
 	http_query.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+
+
+func _send_friend_request_rtdb(target_username: String) -> void:
+	var token = Auth.current_id_token
+	var sender_name := str(Auth.current_username)
+	if token == "" or sender_name == "" or target_username == "":
+		print("[FriendRequest] RTDB fallback missing auth/username")
+		return
+	if target_username == sender_name:
+		print("[FriendRequest] RTDB fallback cannot send to self")
+		return
+
+	var url = "%s/friend_requests/%s/%s.json?auth=%s" % [RTDB_BASE, target_username.uri_encode(), sender_name.uri_encode(), token]
+	var body = {
+		"timestamp": Time.get_unix_time_from_system()
+	}
+	var headers = ["Content-Type: application/json"]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp):
+		http.queue_free()
+		if code == 200:
+			print("[FriendRequest] ✅ RTDB request queued for:", target_username)
+			add_input.text = ""
+		else:
+			print("[FriendRequest] ❌ RTDB request failed. code=%s body=%s" % [str(code), resp.get_string_from_utf8()])
+	)
+	http.request(url, headers, HTTPClient.METHOD_PUT, JSON.stringify(body))
+
+
+func _ensure_requests_received_field(target_uid: String, headers: Array, on_ready: Callable) -> void:
+	# If the user doc doesn't have requests_received yet, Firestore transform may fail.
+	# We initialize it once (only when missing) to an empty array.
+	var url = "%s/users/%s" % [BASE_URL, target_uid]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		if code != 200:
+			print("[FriendRequest] ❌ Target doc fetch failed. code=%s body=%s" % [str(code), body.get_string_from_utf8()])
+			return
+
+		var doc = JSON.parse_string(body.get_string_from_utf8())
+		var needs_init := true
+		if typeof(doc) == TYPE_DICTIONARY and doc.has("fields"):
+			var fields = doc["fields"]
+			if typeof(fields) == TYPE_DICTIONARY and fields.has("requests_received"):
+				var rr = fields["requests_received"]
+				if typeof(rr) == TYPE_DICTIONARY and rr.has("arrayValue"):
+					needs_init = false
+
+		if not needs_init:
+			print("[FriendRequest] Target already has requests_received field.")
+			on_ready.call()
+			return
+
+		print("[FriendRequest] Target missing requests_received; initializing...")
+
+		var patch_url = "%s/users/%s?updateMask.fieldPaths=requests_received" % [BASE_URL, target_uid]
+		var patch_body = {
+			"fields": {
+				"requests_received": {"arrayValue": {"values": []}}
+			}
+		}
+		var http_patch := HTTPRequest.new()
+		add_child(http_patch)
+		http_patch.request_completed.connect(func(_r2, code2, _h2, body2):
+			http_patch.queue_free()
+			if code2 != 200:
+				print("[FriendRequest] ❌ Target init failed. code=%s body=%s" % [str(code2), body2.get_string_from_utf8()])
+				return
+			print("[FriendRequest] ✅ Target init success.")
+			on_ready.call()
+		)
+		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(patch_body))
+	)
+	http.request(url, headers, HTTPClient.METHOD_GET)
 
 
 # ======================================================
@@ -639,6 +770,11 @@ func accept_friend_request(sender_name: String) -> void:
 	http_query.request_completed.connect(func(_r, code, _h, body):
 		http_query.queue_free()
 		if code != 200:
+			# If Firestore query is blocked, accept via owner-only Firestore update + RTDB notification.
+			if code == 403:
+				print("[FriendRequest] Firestore query blocked; accepting via RTDB fallback")
+				_accept_friend_request_owner_only(sender_name)
+				return
 			return
 
 		var arr = JSON.parse_string(body.get_string_from_utf8())
@@ -692,6 +828,38 @@ func accept_friend_request(sender_name: String) -> void:
 	http_query.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
 
 
+func _accept_friend_request_owner_only(sender_name: String) -> void:
+	var token = Auth.current_id_token
+	var my_username := str(Auth.current_username)
+	if token == "" or my_username == "":
+		return
+
+	# 1) Add sender to MY Firestore friends list (owner-only write).
+	_append_friend_to_my_firestore(sender_name)
+
+	# 2) Remove incoming request from RTDB queue.
+	_remove_friend_request_rtdb(my_username, sender_name)
+
+	# 3) Notify sender via RTDB so they can add me locally.
+	var url = "%s/friend_accepts/%s/%s.json?auth=%s" % [RTDB_BASE, sender_name.uri_encode(), my_username.uri_encode(), token]
+	var body = {"timestamp": Time.get_unix_time_from_system()}
+	var headers = ["Content-Type: application/json"]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp):
+		http.queue_free()
+		if code == 200:
+			print("[FriendRequest] ✅ RTDB accept notify sent to:", sender_name)
+		else:
+			print("[FriendRequest] ❌ RTDB accept notify failed. code=%s body=%s" % [str(code), resp.get_string_from_utf8()])
+	)
+	http.request(url, headers, HTTPClient.METHOD_PUT, JSON.stringify(body))
+
+	await get_tree().create_timer(0.5).timeout
+	load_friend_requests()
+	load_friend_list()
+
+
 # ======================================================
 # 🚫 DECLINE FRIEND REQUEST
 # ======================================================
@@ -729,6 +897,103 @@ func decline_friend_request(sender_name: String) -> void:
 			load_friend_requests()
 	)
 	http.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
+
+	# Also remove from RTDB queue (covers locked-down Firestore setups)
+	_remove_friend_request_rtdb(str(Auth.current_username), sender_name)
+
+
+func _remove_friend_request_rtdb(target_username: String, sender_name: String) -> void:
+	var token = Auth.current_id_token
+	if token == "" or target_username == "" or sender_name == "":
+		return
+	var url = "%s/friend_requests/%s/%s.json?auth=%s" % [RTDB_BASE, target_username.uri_encode(), sender_name.uri_encode(), token]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		if code == 200:
+			print("[FriendRequest] ✅ RTDB request removed for sender:", sender_name)
+		else:
+			print("[FriendRequest] ❌ RTDB remove failed. code=%s body=%s" % [str(code), body.get_string_from_utf8()])
+	)
+	http.request(url, [], HTTPClient.METHOD_DELETE)
+
+
+func _append_friend_to_my_firestore(friend_name: String) -> void:
+	var uid = Auth.current_local_id
+	var token = Auth.current_id_token
+	if uid == "" or token == "" or friend_name == "":
+		return
+
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+	var commit_url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:commit" % PROJECT_ID
+	var commit_body = {
+		"writes": [
+			{
+				"transform": {
+					"document": "projects/%s/databases/(default)/documents/users/%s" % [PROJECT_ID, uid],
+					"fieldTransforms": [
+						{
+							"fieldPath": "friends",
+							"appendMissingElements": {"values": [{"stringValue": friend_name}]}
+						}
+					]
+				}
+			}
+		]
+	}
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		if code == 200:
+			print("[FriendList] ✅ Added friend to my Firestore doc:", friend_name)
+			load_friend_list()
+		else:
+			print("[FriendList] ❌ Failed to add friend to my Firestore doc. code=%s body=%s" % [str(code), body.get_string_from_utf8()])
+	)
+	http.request(commit_url, headers, HTTPClient.METHOD_POST, JSON.stringify(commit_body))
+
+
+func _load_friend_accepts_rtdb() -> void:
+	var token = Auth.current_id_token
+	var my_username := str(Auth.current_username)
+	if token == "" or my_username == "":
+		return
+
+	var url = "%s/friend_accepts/%s.json?auth=%s" % [RTDB_BASE, my_username.uri_encode(), token]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		if code != 200:
+			return
+		var txt: String = body.get_string_from_utf8()
+		if txt == "" or txt == "null":
+			return
+		var parsed = JSON.parse_string(txt)
+		if typeof(parsed) != TYPE_DICTIONARY:
+			return
+
+		for accepter in parsed.keys():
+			var friend_name := str(accepter)
+			if friend_name == "":
+				continue
+			print("[FriendList] ✅ Detected accept from:", friend_name)
+			_append_friend_to_my_firestore(friend_name)
+			# Remove the accept notification after processing
+			var del_url = "%s/friend_accepts/%s/%s.json?auth=%s" % [RTDB_BASE, my_username.uri_encode(), friend_name.uri_encode(), token]
+			var http_del := HTTPRequest.new()
+			add_child(http_del)
+			http_del.request_completed.connect(func(_r2, _c2, _h2, _b2):
+				http_del.queue_free()
+			)
+			http_del.request(del_url, [], HTTPClient.METHOD_DELETE)
+	)
+	http.request(url, [], HTTPClient.METHOD_GET)
 
 
 # ======================================================

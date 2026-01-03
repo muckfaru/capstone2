@@ -2,6 +2,7 @@ extends Control
 
 const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
 
+
 @onready var _room_id_label: Label = $RoomHeader/RoomIDLabel
 @onready var _room_state_label: Label = $RoomHeader/RoomStateLabel
 @onready var _host_username: Label = $CardsContainer/HostCard/Username
@@ -10,6 +11,8 @@ const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
 @onready var _client_username: Label = $CardsContainer/ClientCard/Username
 @onready var _client_level: Label = $CardsContainer/ClientCard/Level
 @onready var _client_status: Label = $CardsContainer/ClientCard/StatusLabel
+@onready var _host_card_node: NinePatchRect = $CardsContainer/HostCard
+@onready var _client_card_node: NinePatchRect = $CardsContainer/ClientCard
 @onready var _message_label: Label = $MessageLabel
 @onready var _start_btn: Button = $ButtonPanel/StartButton
 @onready var _leave_btn: Button = $ButtonPanel/LeaveButton
@@ -191,6 +194,8 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 	var client_val = room_data.get("client", null)
 	var host_present: bool = host_val != null and typeof(host_val) == TYPE_DICTIONARY
 	var client_present: bool = client_val != null and typeof(client_val) == TYPE_DICTIONARY
+	var my_uid: String = Auth.current_local_id if Auth else ""
+	var my_bg: String = Auth.current_card_bg_path if Auth else ""
 	
 	# Store latest player data for passing to loading screen
 	if host_present:
@@ -211,20 +216,50 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 
 	# Host UI
 	if host_present:
+		# Fallback: if snapshot lacks cosmetics, try cache learned via relay.
+		if Auth and str(host_val.get("card_bg", "")).strip_edges() == "":
+			var host_pid_cache := str(host_val.get("player_id", ""))
+			var cached_bg := Auth.get_remote_card_bg(host_pid_cache)
+			if cached_bg.strip_edges() != "":
+				host_val["card_bg"] = cached_bg
+
+		# Keep lobby snapshot updated with my equipped background
+		if my_uid != "" and str(host_val.get("player_id", "")) == my_uid:
+			var snapshot_bg := str(host_val.get("card_bg", ""))
+			if my_bg != "" and snapshot_bg != my_bg:
+				_sync_my_card_bg_to_lobby(my_bg)
+				host_val["card_bg"] = my_bg
+
 		_host_username.text = str(host_val.get("username", "Host"))
 		var host_lvl_val = host_val.get("level", 0)
 		_host_level.text = "Level: " + str(int(host_lvl_val))
 		var host_status_str := str(host_val.get("status", "ready"))
 		_host_status.text = host_status_str.to_upper()
 		_host_status.add_theme_color_override("font_color", COLOR_ACCENT)
+		CardCosmetics.apply_card_background(_host_card_node, str(host_val.get("card_bg", "")))
 	else:
 		_host_username.text = "."
 		_host_level.text = ""
 		_host_status.text = "LEFT"
 		_host_status.add_theme_color_override("font_color", COLOR_DANGER)
+		CardCosmetics.apply_card_background(_host_card_node, "")
 
 	# Client UI
 	if client_present:
+		# Fallback: if snapshot lacks cosmetics, try cache learned via relay.
+		if Auth and str(client_val.get("card_bg", "")).strip_edges() == "":
+			var client_pid_cache := str(client_val.get("player_id", ""))
+			var cached_bg2 := Auth.get_remote_card_bg(client_pid_cache)
+			if cached_bg2.strip_edges() != "":
+				client_val["card_bg"] = cached_bg2
+
+		# Keep lobby snapshot updated with my equipped background (if I'm the client)
+		if my_uid != "" and str(client_val.get("player_id", "")) == my_uid:
+			var snapshot_bg2 := str(client_val.get("card_bg", ""))
+			if my_bg != "" and snapshot_bg2 != my_bg:
+				_sync_my_card_bg_to_lobby(my_bg)
+				client_val["card_bg"] = my_bg
+
 		_client_username.text = str(client_val.get("username", "."))
 		var client_lvl_val = client_val.get("level", 0)
 		_client_level.text = "Level: " + str(int(client_lvl_val))
@@ -234,7 +269,6 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 		
 		# Check if this client is me
 		var client_uid := str(client_val.get("player_id", ""))
-		var my_uid := Auth.current_local_id if Auth else ""
 		var is_me := (client_uid == my_uid)
 		
 		# If I'm the client viewing myself AND I've toggled ready, use button state
@@ -255,6 +289,8 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 			_client_status.text = ("READY" if client_ready else "NOT READY")
 			_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if client_ready else COLOR_DANGER))
 			print("[CodeBreakerRoom] Client ready from lobby: ", client_ready, " is_me: ", is_me)
+
+		CardCosmetics.apply_card_background(_client_card_node, str(client_val.get("card_bg", "")))
 		
 		if not _last_client_present:
 			_message_label.text = "Player joined!"
@@ -266,8 +302,11 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 		_client_level.text = "."
 		_client_status.text = "Searching.."
 		_client_status.add_theme_color_override("font_color", COLOR_MUTED)
-		if _last_client_present:
-			_message_label.text = "Player left."
+		CardCosmetics.apply_card_background(_client_card_node, "")
+
+	# Join/leave message + presence tracking
+	if _last_client_present and not client_present:
+		_message_label.text = "Player left."
 	_last_client_present = client_present
 
 	# State + Start/Ready button enablement
@@ -282,6 +321,28 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 			_is_host = true
 			_message_label.text = "You are the host now."
 			_configure_buttons()
+
+
+func _sync_my_card_bg_to_lobby(bg_path: String) -> void:
+	if _room_id == "" or _lobby_server_url == "":
+		return
+	if not Auth or Auth.current_local_id == "":
+		return
+
+	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/cosmetics"
+	var body := {
+		"player_id": Auth.current_local_id,
+		"card_bg": bg_path
+	}
+	var http := HTTPRequest.new()
+	http.timeout = 8.0
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code != 200:
+			push_warning("[CodeBreakerRoom] Cosmetics update failed HTTP %d" % code)
+	)
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(body))
 
 func _transition_to_arena_from_poll(room_data: Dictionary) -> void:
 	# Called by polling client when it detects state: "in_game"
@@ -825,6 +886,17 @@ func _on_relay_connected() -> void:
 	"""Called when relay connection is established"""
 	_relay_connected = true
 	print("[CodeBreakerRoom] Relay connection established")
+	# Share cosmetics via relay so opponents can see them even if lobby snapshot is stale.
+	if _relay_client and Auth:
+		_relay_client.send_message({
+			"type": "cosmetics_update",
+			"player_id": Auth.current_local_id,
+			"card_bg": Auth.current_card_bg_path
+		})
+		_relay_client.send_message({
+			"type": "cosmetics_request",
+			"player_id": Auth.current_local_id
+		})
 
 
 func _on_relay_disconnected() -> void:
@@ -843,6 +915,22 @@ func _on_relay_message_received(data: Dictionary) -> void:
 	
 	# Handle different message types
 	match msg_type:
+		"cosmetics_request":
+			# Another player is asking for our cosmetics.
+			if _relay_client and Auth:
+				_relay_client.send_message({
+					"type": "cosmetics_update",
+					"player_id": Auth.current_local_id,
+					"card_bg": Auth.current_card_bg_path
+				})
+		"cosmetics_update":
+			# Cache the other player's cosmetics; next poll will render via cache fallback.
+			if Auth:
+				var pid := str(data.get("player_id", ""))
+				if pid != "" and pid != Auth.current_local_id:
+					Auth.set_remote_card_bg(pid, str(data.get("card_bg", "")))
+					_fetch_room()
+
 		"player_connected":
 			var other_username = data.get("username", "Player")
 			var players_count = data.get("players_count", 0)

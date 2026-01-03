@@ -88,7 +88,7 @@ alignment = 1
 [node name="HostCard" type="NinePatchRect" parent="CardsContainer"]
 modulate = Color(0.101961, 0.6, 0.901961, 0.996078)
 self_modulate = Color(0.615686, 0.615686, 0.615686, 1)
-custom_minimum_size = Vector2(300, 400)
+custom_minimum_size = Vector2(260, 400)
 layout_mode = 2
 
 [node name="Username" type="Label" parent="CardsContainer/HostCard"]
@@ -136,7 +136,7 @@ vertical_alignment = 1
 
 [node name="ClientCard" type="NinePatchRect" parent="CardsContainer"]
 self_modulate = Color(0.617455, 0.617455, 0.617455, 1)
-custom_minimum_size = Vector2(300, 400)
+custom_minimum_size = Vector2(260, 400)
 layout_mode = 2
 
 [node name="Username" type="Label" parent="CardsContainer/ClientCard"]

@@ -126,7 +126,8 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 		"host_avatar": avatar,
 		"host_level": level,
 		"room_name": final_room_name,
-		"game_type": "code_breaker"
+		"game_type": "code_breaker",
+		"host_card_bg": (Auth.current_card_bg_path if Auth else "")
 		# No public_ip, port, or is_lan needed for relay
 	}
 	
@@ -384,7 +385,8 @@ func _join_room_via_lobby(room_id: String) -> void:
 		"client_id": uid,
 		"client_username": username,
 		"client_avatar": avatar,
-		"client_level": level
+		"client_level": level,
+		"client_card_bg": (Auth.current_card_bg_path if Auth else "")
 	}
 
 	# Debug: print join request details

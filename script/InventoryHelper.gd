@@ -10,6 +10,220 @@ signal inventory_loaded(items: Array)
 
 var firestore_base_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents"
 
+const EQUIP_SLOT_CARD_BACKGROUND := "card_background"
+const STARTER_CHARIOT_ITEM_ID := "reward_bg_chariot_7"
+
+const REWARD_BACKGROUND_CARDS := [
+	{
+		"id": "reward_bg_fool_0",
+		"name": "The Fool",
+		"type": "card",
+		"subtype": EQUIP_SLOT_CARD_BACKGROUND,
+		"rarity": "uncommon",
+		"description": "Equip to change your Host/Client card background.",
+		"icon_path": "res://asset/reward_background_cards/the fool 0 card.jpeg",
+		"amount": 1,
+	},
+	{
+		"id": "reward_bg_hermit_4",
+		"name": "The Hermit",
+		"type": "card",
+		"subtype": EQUIP_SLOT_CARD_BACKGROUND,
+		"rarity": "rare",
+		"description": "Equip to change your Host/Client card background.",
+		"icon_path": "res://asset/reward_background_cards/the hermit 4 card.jpeg",
+		"amount": 1,
+	},
+	{
+		"id": "reward_bg_magician_1",
+		"name": "The Magician I",
+		"type": "card",
+		"subtype": EQUIP_SLOT_CARD_BACKGROUND,
+		"rarity": "epic",
+		"description": "Equip to change your Host/Client card background.",
+		"icon_path": "res://asset/reward_background_cards/the magician card 1.jpeg",
+		"amount": 1,
+	},
+	{
+		"id": "reward_bg_magician_2",
+		"name": "The Magician II",
+		"type": "card",
+		"subtype": EQUIP_SLOT_CARD_BACKGROUND,
+		"rarity": "epic",
+		"description": "Equip to change your Host/Client card background.",
+		"icon_path": "res://asset/reward_background_cards/the magician card 2.jpeg",
+		"amount": 1,
+	},
+	{
+		"id": "reward_bg_priestess",
+		"name": "The Priestess",
+		"type": "card",
+		"subtype": EQUIP_SLOT_CARD_BACKGROUND,
+		"rarity": "rare",
+		"description": "Equip to change your Host/Client card background.",
+		"icon_path": "res://asset/reward_background_cards/the priestest card.jpeg",
+		"amount": 1,
+	},
+	{
+		"id": "reward_bg_lovers_6",
+		"name": "The Lovers",
+		"type": "card",
+		"subtype": EQUIP_SLOT_CARD_BACKGROUND,
+		"rarity": "rare",
+		"description": "Equip to change your Host/Client card background.",
+		"icon_path": "res://asset/reward_background_cards/the lovers 6 card.jpeg",
+		"amount": 1,
+	},
+	{
+		"id": "reward_bg_chariot_7",
+		"name": "The Chariot",
+		"type": "card",
+		"subtype": EQUIP_SLOT_CARD_BACKGROUND,
+		"rarity": "uncommon",
+		"description": "Equip to change your Host/Client card background.",
+		"icon_path": "res://asset/reward_background_cards/the chariot 7 card.jpeg",
+		"amount": 1,
+	},
+	{
+		"id": "reward_bg_strength_8",
+		"name": "The Strength",
+		"type": "card",
+		"subtype": EQUIP_SLOT_CARD_BACKGROUND,
+		"rarity": "epic",
+		"description": "Equip to change your Host/Client card background.",
+		"icon_path": "res://asset/reward_background_cards/the strength 8 card.jpeg",
+		"amount": 1,
+	},
+]
+
+func ensure_reward_background_cards_in_inventory() -> void:
+	"""Best-effort: create deterministic inventory docs for the reward backgrounds."""
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	if user_id == "" or id_token == "":
+		return
+
+	for item in REWARD_BACKGROUND_CARDS:
+		_upsert_inventory_item(str(item.get("id", "")), item)
+
+func set_equipped_card_background(texture_path: String) -> void:
+	"""Persist equipped background on the user doc (owner-only)."""
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	if user_id == "" or id_token == "":
+		return
+
+	if Auth:
+		Auth.current_card_bg_path = texture_path
+
+	var doc_url := "%s/users/%s?updateMask.fieldPaths=equipped_card_bg_path" % [firestore_base_url, user_id]
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	var body := {
+		"fields": {
+			"equipped_card_bg_path": {"stringValue": texture_path}
+		}
+	}
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code != 200:
+			push_warning("[InventoryHelper] Failed to persist equipped_card_bg_path HTTP %d" % code)
+	)
+	http.request(doc_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+
+func grant_reward_background_card(item_id: String, equipped: bool) -> void:
+	"""Create/overwrite a reward background card inventory doc with a deterministic ID."""
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	if user_id == "" or id_token == "":
+		return
+
+	var template: Dictionary = {}
+	for item in REWARD_BACKGROUND_CARDS:
+		if str(item.get("id", "")) == item_id:
+			template = item
+			break
+
+	if template.is_empty():
+		push_warning("[InventoryHelper] Unknown reward background id: %s" % item_id)
+		return
+
+	var timestamp := int(Time.get_unix_time_from_system())
+	var url = "%s/users/%s/inventory/%s" % [firestore_base_url, user_id, item_id]
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+
+	var fields := {
+		"name": {"stringValue": str(template.get("name", "Unknown"))},
+		"type": {"stringValue": str(template.get("type", "card"))},
+		"subtype": {"stringValue": str(template.get("subtype", EQUIP_SLOT_CARD_BACKGROUND))},
+		"rarity": {"stringValue": str(template.get("rarity", "common"))},
+		"description": {"stringValue": str(template.get("description", ""))},
+		"icon_path": {"stringValue": str(template.get("icon_path", ""))},
+		"amount": {"integerValue": str(int(template.get("amount", 1)))},
+		"date_acquired": {"integerValue": str(timestamp)},
+		"is_equipped": {"booleanValue": equipped},
+		"is_used": {"booleanValue": false},
+	}
+
+	var body := {"fields": fields}
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code != 200:
+			var err = resp_body.get_string_from_utf8() if resp_body.size() > 0 else ""
+			push_warning("[InventoryHelper] Failed to grant %s HTTP %d\n%s" % [item_id, code, err])
+	)
+	http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+
+func grant_starter_chariot_equipped() -> void:
+	grant_reward_background_card(STARTER_CHARIOT_ITEM_ID, true)
+
+func _upsert_inventory_item(item_id: String, item_data: Dictionary) -> void:
+	if item_id.strip_edges() == "":
+		return
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	if user_id == "" or id_token == "":
+		return
+
+	var url = "%s/users/%s/inventory/%s" % [firestore_base_url, user_id, item_id]
+
+	# Note: Do NOT include date_acquired/is_equipped here so re-running this won't overwrite user state.
+	var fields := {
+		"name": {"stringValue": str(item_data.get("name", "Unknown"))},
+		"type": {"stringValue": str(item_data.get("type", "item"))},
+		"subtype": {"stringValue": str(item_data.get("subtype", ""))},
+		"rarity": {"stringValue": str(item_data.get("rarity", "common"))},
+		"description": {"stringValue": str(item_data.get("description", ""))},
+		"icon_path": {"stringValue": str(item_data.get("icon_path", ""))},
+		"amount": {"integerValue": str(int(item_data.get("amount", 1)))},
+		"is_used": {"booleanValue": false},
+	}
+
+	var body := {"fields": fields}
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+
+	var http = HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code != 200:
+			var err = resp_body.get_string_from_utf8() if resp_body.size() > 0 else ""
+			push_warning("[InventoryHelper] Reward card upsert failed (%s) HTTP %d\n%s" % [item_id, code, err])
+	)
+	http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+
 # ✅ Save item to inventory
 func add_item_to_inventory(item_data: Dictionary) -> void:
 	"""
@@ -41,19 +255,20 @@ func add_item_to_inventory(item_data: Dictionary) -> void:
 	var url = "%s/users/%s/inventory/%s" % [firestore_base_url, user_id, item_id]
 	
 	# Build Firestore document
-	var body = {
-		"fields": {
-			"name": {"stringValue": item_data.get("name", "Unknown")},
-			"type": {"stringValue": item_type},
-			"rarity": {"stringValue": item_data.get("rarity", "common")},
-			"description": {"stringValue": item_data.get("description", "")},
-			"icon_path": {"stringValue": item_data.get("icon_path", "")},
-			"amount": {"integerValue": str(item_data.get("amount", 1))},
-			"date_acquired": {"integerValue": str(timestamp)},
-			"is_equipped": {"booleanValue": item_data.get("is_equipped", false)},
-			"is_used": {"booleanValue": false}
-		}
+	var fields := {
+		"name": {"stringValue": item_data.get("name", "Unknown")},
+		"type": {"stringValue": item_type},
+		"rarity": {"stringValue": item_data.get("rarity", "common")},
+		"description": {"stringValue": item_data.get("description", "")},
+		"icon_path": {"stringValue": item_data.get("icon_path", "")},
+		"amount": {"integerValue": str(item_data.get("amount", 1))},
+		"date_acquired": {"integerValue": str(timestamp)},
+		"is_equipped": {"booleanValue": item_data.get("is_equipped", false)},
+		"is_used": {"booleanValue": false}
 	}
+	if item_data.has("subtype"):
+		fields["subtype"] = {"stringValue": str(item_data.get("subtype", ""))}
+	var body := {"fields": fields}
 	
 	var headers = [
 		"Content-Type: application/json",
@@ -246,36 +461,36 @@ func _parse_inventory_response(body: PackedByteArray) -> Array:
 # ========== QUICK ADD FUNCTIONS (NON-STATIC) ==========
 # ✅ FIX: Remove "static" keyword - these are now instance methods
 
-func quick_add_badge(name: String, rarity: String = "common", description: String = "") -> void:
+func quick_add_badge(item_name: String, rarity: String = "common", description: String = "") -> void:
 	add_item_to_inventory({
-		"name": name,
+		"name": item_name,
 		"type": "badge",
 		"rarity": rarity,
 		"description": description,
 		"icon_path": "res://asset/icons/badge_icon.png"
 	})
 
-func quick_add_card(name: String, rarity: String = "common", description: String = "") -> void:
+func quick_add_card(item_name: String, rarity: String = "common", description: String = "") -> void:
 	add_item_to_inventory({
-		"name": name,
+		"name": item_name,
 		"type": "card",
 		"rarity": rarity,
 		"description": description,
 		"icon_path": "res://asset/icons/card_icon.png"
 	})
 
-func quick_add_avatar(name: String, avatar_path: String, rarity: String = "rare") -> void:
+func quick_add_avatar(item_name: String, avatar_path: String, rarity: String = "rare") -> void:
 	add_item_to_inventory({
-		"name": name,
+		"name": item_name,
 		"type": "avatar",
 		"rarity": rarity,
 		"description": "Unlocked avatar",
 		"icon_path": avatar_path
 	})
 
-func quick_add_powerup(name: String, amount: int = 1, description: String = "") -> void:
+func quick_add_powerup(item_name: String, amount: int = 1, description: String = "") -> void:
 	add_item_to_inventory({
-		"name": name,
+		"name": item_name,
 		"type": "powerup",
 		"rarity": "uncommon",
 		"description": description,

@@ -2,14 +2,19 @@ extends Control
 
 const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
 
+
 # UI References
 @onready var _host_username: Label = $HostCard/HostUsername
 @onready var _host_status: Label = $HostCard/HostStatus
 @onready var _host_progress: ProgressBar = $HostCard/HostProgressBar
 
+@onready var _left_card_node: NinePatchRect = $HostCard
+
 @onready var _client_username: Label = $ClientCard/ClientUsername
 @onready var _client_status: Label = $ClientCard/ClientStatus
 @onready var _client_progress: ProgressBar = $ClientCard/ClientProgressBar
+
+@onready var _right_card_node: NinePatchRect = $ClientCard
 
 @onready var _status_message: Label = $StatusMessage
 
@@ -137,30 +142,51 @@ func _on_relay_connected_for_loading() -> void:
 
 func _setup_ui() -> void:
 	"""Setup player cards - Left is YOU, Right is OPPONENT"""
+	var left_bg := ""
+	var right_bg := ""
 	if _is_host:
 		# I am host - show myself on left, client on right
 		_host_username.text = str(_host_data.get("username", "Host"))
+		left_bg = str(_host_data.get("card_bg", ""))
 		_host_status.text = "⏳ Loading..."
 		_host_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_host_progress.value = 0.0
 		
 		_client_username.text = str(_client_data.get("username", "Client"))
+		right_bg = str(_client_data.get("card_bg", ""))
 		_client_status.text = "⏳ Loading..."
 		_client_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_client_progress.value = 0.0
 	else:
 		# I am client - show myself on left, host on right
 		_host_username.text = str(_client_data.get("username", "Client"))
+		left_bg = str(_client_data.get("card_bg", ""))
 		_host_status.text = "⏳ Loading..."
 		_host_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_host_progress.value = 0.0
 		
 		_client_username.text = str(_host_data.get("username", "Host"))
+		right_bg = str(_host_data.get("card_bg", ""))
 		_client_status.text = "⏳ Loading..."
 		_client_status.add_theme_color_override("font_color", COLOR_LOADING)
 		_client_progress.value = 0.0
 	
 	_status_message.text = "Preparing arena..."
+
+	# Fallback: if lobby snapshot didn't have cosmetics yet, at least show local equipped background.
+	if Auth and left_bg.strip_edges() == "" and Auth.current_card_bg_path.strip_edges() != "":
+		left_bg = Auth.current_card_bg_path
+	# Fallback: if opponent bg missing, try relay-learned cache.
+	if Auth and right_bg.strip_edges() == "":
+		var opp_pid := ""
+		if _is_host:
+			opp_pid = str(_client_data.get("player_id", ""))
+		else:
+			opp_pid = str(_host_data.get("player_id", ""))
+		right_bg = Auth.get_remote_card_bg(opp_pid)
+
+	CardCosmetics.apply_card_background(_left_card_node, left_bg)
+	CardCosmetics.apply_card_background(_right_card_node, right_bg)
 
 func _setup_timers() -> void:
 	"""Setup loading and timeout timers"""

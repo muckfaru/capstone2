@@ -1,6 +1,7 @@
 extends Control
 
 const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
+ 
 
 # UI References (match Code Breaker postgame design)
 @onready var _host_username: Label = $HostCard/HostUsername
@@ -16,6 +17,9 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 @onready var _client_time: Label = $ClientCard/ClientTime
 @onready var _client_cards_used: OptionButton = $ClientCard/ClientPowerups
 @onready var _client_winner_badge: Label = $ClientCard/WinnerBadge
+
+@onready var _host_card_node: NinePatchRect = $HostCard
+@onready var _client_card_node: NinePatchRect = $ClientCard
 
 @onready var _room_time_label: Label = $RoomTimeLabel
 
@@ -374,6 +378,22 @@ func _play_outcome_sfx() -> void:
 
 
 func _setup_ui() -> void:
+	var host_bg := str(_host_data.get("card_bg", ""))
+	var client_bg := str(_client_data.get("card_bg", ""))
+	# If we learned cosmetics via relay, use them as a fallback for either player.
+	if Auth:
+		if host_bg.strip_edges() == "":
+			host_bg = Auth.get_remote_card_bg(str(_host_data.get("player_id", "")))
+		if client_bg.strip_edges() == "":
+			client_bg = Auth.get_remote_card_bg(str(_client_data.get("player_id", "")))
+	if Auth and Auth.current_card_bg_path.strip_edges() != "":
+		if host_bg.strip_edges() == "" and str(_host_data.get("player_id", "")) == Auth.current_local_id:
+			host_bg = Auth.current_card_bg_path
+		if client_bg.strip_edges() == "" and str(_client_data.get("player_id", "")) == Auth.current_local_id:
+			client_bg = Auth.current_card_bg_path
+	CardCosmetics.apply_card_background(_host_card_node, host_bg)
+	CardCosmetics.apply_card_background(_client_card_node, client_bg)
+
 	var host_pid: String = str(_host_data.get("player_id", ""))
 	var client_pid: String = str(_client_data.get("player_id", ""))
 	var host_won: bool = (_winner_id != "" and _winner_id == host_pid)

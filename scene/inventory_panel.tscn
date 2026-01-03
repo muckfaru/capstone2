@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://7tjwuknii5ij"]
 
-[ext_resource type="Script" path="res://script/inventory_panel.gd" id="1_inventory"]
+[ext_resource type="Script" uid="uid://7gmira7sv3on" path="res://script/inventory_panel.gd" id="1_inventory"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_sccuv"]
 [ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="3_jw66u"]
 
@@ -19,7 +19,7 @@ shadow_color = Color(0.360971, 0.532191, 0.996142, 0.74902)
 shadow_size = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_detail_panel"]
-bg_color = Color(0.537255, 0.403922, 0.584314, 1)
+bg_color = Color(0.184314, 0.403922, 0.439216, 0.670588)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
@@ -118,6 +118,6 @@ visible = false
 layout_mode = 0
 offset_left = 277.0
 offset_top = 164.0
-offset_right = 577.0
-offset_bottom = 444.0
+offset_right = 655.0
+offset_bottom = 476.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_detail_panel")

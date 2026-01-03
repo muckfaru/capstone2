@@ -70,6 +70,7 @@ app.post('/api/rooms/create', (req, res) => {
     host_level,
     room_name,
     game_type,
+    host_card_bg,
     public_ip,
     port,
     is_lan
@@ -102,6 +103,7 @@ app.post('/api/rooms/create', (req, res) => {
       username: host_username,
       avatar: host_avatar || 'default.png',
       level: host_level || 1,
+      card_bg: typeof host_card_bg === 'string' ? host_card_bg : '',
       public_ip: public_ip || null,       // Optional for relay
       port: port || null,                 // Optional for relay
       is_lan: is_lan || false
@@ -240,7 +242,7 @@ app.get('/api/rooms/:room_id', (req, res) => {
  */
 app.post('/api/rooms/:room_id/join', (req, res) => {
   const { room_id } = req.params;
-  const { client_id, client_username, client_avatar, client_level } = req.body;
+  const { client_id, client_username, client_avatar, client_level, client_card_bg } = req.body;
 
   // Validate
   if (!client_id || !client_username) {
@@ -279,7 +281,8 @@ app.post('/api/rooms/:room_id/join', (req, res) => {
     player_id: client_id,
     username: client_username,
     avatar: client_avatar || 'default.png',
-    level: client_level || 1
+    level: client_level || 1,
+    card_bg: typeof client_card_bg === 'string' ? client_card_bg : ''
   };
   room.current_players = 2;
   room.last_heartbeat = Date.now();
@@ -346,6 +349,51 @@ app.post('/api/rooms/:room_id/status', (req, res) => {
   console.log(`[Lobby] Room ${room_id} status: ${status}`);
 
   res.json({ ok: true });
+});
+
+/**
+ * POST /api/rooms/:room_id/cosmetics
+ * Update player cosmetics for an existing room.
+ * Body: { player_id: "uid", card_bg: "res://..." }
+ */
+app.post('/api/rooms/:room_id/cosmetics', (req, res) => {
+  const { room_id } = req.params;
+  const { player_id, card_bg } = req.body;
+
+  if (!player_id) {
+    return res.status(400).json({
+      error: 'Missing required fields',
+      required: ['player_id']
+    });
+  }
+
+  const room = rooms.get(room_id);
+  if (!room) {
+    return res.status(404).json({
+      error: 'Room not found',
+      room_id
+    });
+  }
+
+  const newBg = typeof card_bg === 'string' ? card_bg : '';
+
+  if (room.host && room.host.player_id === player_id) {
+    room.host.card_bg = newBg;
+    room.last_heartbeat = Date.now();
+    return res.json({ ok: true, updated: 'host', room_id });
+  }
+
+  if (room.client && room.client.player_id === player_id) {
+    room.client.card_bg = newBg;
+    room.last_heartbeat = Date.now();
+    return res.json({ ok: true, updated: 'client', room_id });
+  }
+
+  return res.status(400).json({
+    error: 'Player not in room',
+    room_id,
+    player_id
+  });
 });
 
 /**

@@ -26,6 +26,12 @@ var sound_reveal: AudioStreamPlayer
 var save_status_label: Label = null
 var is_saving: bool = false
 
+# Starter layout (special arrangement for Starter Rewards)
+var _starter_layout_root: VBoxContainer = null
+var _starter_mid_row: HBoxContainer = null
+var _starter_bottom_center: CenterContainer = null
+var _reward_spawn_count: int = 0
+
 var save_to_inventory: bool = true
 # === Animation State ===
 var rewards: Array = []
@@ -120,7 +126,7 @@ func _load_sound(player: AudioStreamPlayer, path: String) -> void:
 	else:
 		push_warning("[RewardPopup] ⚠️ File not found: %s" % path)
 
-func _generate_beep(frequency: float, duration: float) -> AudioStreamGenerator:
+func _generate_beep(_frequency: float, duration: float) -> AudioStreamGenerator:
 	var generator = AudioStreamGenerator.new()
 	generator.mix_rate = 44100
 	generator.buffer_length = duration
@@ -179,10 +185,24 @@ func show_rewards(reward_list: Array, popup_title: String = "🎉 Rewards!") -> 
 	
 	rewards = reward_list
 	revealed_rewards = 0
+	_reward_spawn_count = 0
 	title_label.text = popup_title
-	
+
+	# Clear existing reward UI
 	for child in reward_grid.get_children():
 		child.queue_free()
+	if _starter_mid_row:
+		for child in _starter_mid_row.get_children():
+			child.queue_free()
+	if _starter_bottom_center:
+		for child in _starter_bottom_center.get_children():
+			child.queue_free()
+
+	var use_starter_layout := _should_use_starter_layout(rewards, popup_title)
+	if _starter_layout_root:
+		_starter_layout_root.visible = use_starter_layout
+	if reward_grid:
+		reward_grid.visible = not use_starter_layout
 	
 	# ✅ FIX: Only initialize progress bar, don't animate yet
 	if xp_progress_bar:
@@ -194,8 +214,36 @@ func show_rewards(reward_list: Array, popup_title: String = "🎉 Rewards!") -> 
 		xp_label.text = "XP: %d / %d" % [current_xp, max_xp]
 	
 	# Create reward items (with "?" overlay)
-	for reward in rewards:
-		_create_reward_item(reward)
+	if use_starter_layout:
+		var xp_reward: RewardItem = null
+		var guide_reward: RewardItem = null
+		var chariot_reward: RewardItem = null
+		for reward in rewards:
+			if reward.type == "xp" and xp_reward == null:
+				xp_reward = reward
+			elif str(reward.name).to_lower() == "beginner guide" and guide_reward == null:
+				guide_reward = reward
+			elif str(reward.name).to_lower() == "the chariot" and chariot_reward == null:
+				chariot_reward = reward
+
+		# Middle row: XP + Beginner Guide (centered)
+		if xp_reward:
+			_create_reward_item_in(_starter_mid_row, xp_reward)
+		if guide_reward:
+			_create_reward_item_in(_starter_mid_row, guide_reward)
+
+		# Bottom row: The Chariot centered
+		if chariot_reward:
+			_create_reward_item_in(_starter_bottom_center, chariot_reward)
+
+		# Any extras (fallback): put into middle row
+		for reward in rewards:
+			if reward == xp_reward or reward == guide_reward or reward == chariot_reward:
+				continue
+			_create_reward_item_in(_starter_mid_row, reward)
+	else:
+		for reward in rewards:
+			_create_reward_item(reward)
 	
 	visible = true
 	_animate_entrance()
@@ -233,7 +281,8 @@ func _build_ui() -> void:
 	_start_animated_border()
 	
 	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 15)
+	# Keep the popup usable on small resolutions: tighter vertical spacing.
+	vbox.add_theme_constant_override("separation", 8)
 	panel_container.add_child(vbox)
 	
 	# Remove glow rect (not in new design)
@@ -267,8 +316,8 @@ func _build_ui() -> void:
 	var progress_container = MarginContainer.new()
 	progress_container.add_theme_constant_override("margin_left", 50)
 	progress_container.add_theme_constant_override("margin_right", 50)
-	progress_container.add_theme_constant_override("margin_top", 10)
-	progress_container.add_theme_constant_override("margin_bottom", 5)
+	progress_container.add_theme_constant_override("margin_top", 6)
+	progress_container.add_theme_constant_override("margin_bottom", 3)
 	vbox.add_child(progress_container)
 	
 	var progress_vbox = VBoxContainer.new()
@@ -308,11 +357,11 @@ func _build_ui() -> void:
 	progress_vbox.add_child(xp_progress_bar)
 	
 	var spacer1 = Control.new()
-	spacer1.custom_minimum_size = Vector2(0, 20)  # ✅ Increased spacing
+	spacer1.custom_minimum_size = Vector2(0, 10)
 	vbox.add_child(spacer1)
 	
 	var center_container = CenterContainer.new()
-	center_container.custom_minimum_size = Vector2(0, 180)  # ✅ Reduced from 200 to 180
+	center_container.custom_minimum_size = Vector2(0, 240)
 	vbox.add_child(center_container)
 	
 	reward_grid = GridContainer.new()
@@ -320,9 +369,25 @@ func _build_ui() -> void:
 	reward_grid.add_theme_constant_override("h_separation", 20)
 	reward_grid.add_theme_constant_override("v_separation", 15)
 	center_container.add_child(reward_grid)
+
+	# Starter layout container (hidden by default)
+	_starter_layout_root = VBoxContainer.new()
+	_starter_layout_root.visible = false
+	_starter_layout_root.add_theme_constant_override("separation", 18)
+	center_container.add_child(_starter_layout_root)
+
+	var mid_center := CenterContainer.new()
+	_starter_layout_root.add_child(mid_center)
+
+	_starter_mid_row = HBoxContainer.new()
+	_starter_mid_row.add_theme_constant_override("separation", 20)
+	mid_center.add_child(_starter_mid_row)
+
+	_starter_bottom_center = CenterContainer.new()
+	_starter_layout_root.add_child(_starter_bottom_center)
 	
 	var spacer2 = Control.new()
-	spacer2.custom_minimum_size = Vector2(0, 15)  # ✅ Increased spacing
+	spacer2.custom_minimum_size = Vector2(0, 8)
 	vbox.add_child(spacer2)
 	
 	# ✅ NEW: "Click to reveal your reward" label
@@ -344,7 +409,7 @@ func _build_ui() -> void:
 
 
 	var spacer3 = Control.new()
-	spacer3.custom_minimum_size = Vector2(0, 20)  # ✅ Increased spacing before button
+	spacer3.custom_minimum_size = Vector2(0, 8)
 	vbox.add_child(spacer3)
 	
 	claim_button = Button.new()
@@ -387,7 +452,7 @@ func _build_ui() -> void:
 	
 	# ✅ Add bottom padding
 	var spacer_bottom = Control.new()
-	spacer_bottom.custom_minimum_size = Vector2(0, 15)
+	spacer_bottom.custom_minimum_size = Vector2(0, 6)
 	vbox.add_child(spacer_bottom)
 	
 	# Multiple colored particle systems (confetti)
@@ -428,7 +493,28 @@ func _create_confetti_particles() -> void:
 			particle_system = particles  # Store first one for main reference
 
 # ✅ IMPROVED: Create reward item with rarity and click-to-reveal
+func _should_use_starter_layout(reward_list: Array, popup_title: String) -> bool:
+	# We only special-case the starter popup.
+	if str(popup_title).to_lower().find("starter") == -1:
+		return false
+	var has_xp := false
+	var has_guide := false
+	var has_chariot := false
+	for reward in reward_list:
+		if reward.type == "xp":
+			has_xp = true
+		elif str(reward.name).to_lower() == "beginner guide":
+			has_guide = true
+		elif str(reward.name).to_lower() == "the chariot":
+			has_chariot = true
+	return has_xp and has_guide and has_chariot
+
+
 func _create_reward_item(reward: RewardItem) -> void:
+	_create_reward_item_in(reward_grid, reward)
+
+
+func _create_reward_item_in(parent: Node, reward: RewardItem) -> void:
 	var item_panel = PanelContainer.new()
 	item_panel.custom_minimum_size = Vector2(280, 110)
 	item_panel.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -595,13 +681,15 @@ func _create_reward_item(reward: RewardItem) -> void:
 		desc_label.custom_minimum_size.x = 180
 		text_vbox.add_child(desc_label)
 	
-	reward_grid.add_child(item_panel)
+	if parent:
+		parent.add_child(item_panel)
 	
 	item_panel.modulate.a = 0
 	item_panel.position.y = 150
 	item_panel.scale = Vector2(0.85, 0.85)
 	
-	var item_index = reward_grid.get_child_count() - 1
+	var item_index = _reward_spawn_count
+	_reward_spawn_count += 1
 	var delay = item_index * 0.12
 	await get_tree().create_timer(delay).timeout
 	
@@ -963,24 +1051,24 @@ func _on_claim_pressed() -> void:
 static func show_xp_reward(parent: Node, xp_amount: int, title: String = "🎉 Reward!") -> void:
 	var popup = preload("res://scene/reward_popup.tscn").instantiate()
 	parent.add_child(popup)
-	var rewards = [
+	var reward_list = [
 		RewardItem.new("xp", xp_amount, "Experience Points", null, "Level up!")
 	]
-	popup.show_rewards(rewards, title)
+	popup.show_rewards(reward_list, title)
 
 static func show_multiple_rewards(parent: Node, reward_data: Array, title: String = "🎉 Rewards!") -> void:
 	var popup = preload("res://scene/reward_popup.tscn").instantiate()
 	parent.add_child(popup)
-	var rewards: Array = []
+	var reward_list: Array = []
 	for data in reward_data:
-		rewards.append(RewardItem.new(
+		reward_list.append(RewardItem.new(
 			data.get("type", "xp"),
 			data.get("amount", 0),
 			data.get("name", "Reward"),
 			data.get("icon", null),
 			data.get("description", "")
 		))
-	popup.show_rewards(rewards, title)
+	popup.show_rewards(reward_list, title)
 
 # ✅ NEW: Async version that waits for completion
 # ✅ FIXED: Now uses integer timestamps

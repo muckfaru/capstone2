@@ -42,19 +42,39 @@ func _on_apply_pressed() -> void:
 	var vol_db = _map_level_to_db(vol_level)
 	var is_full = (display_mode.selected == 1)
 
-	_apply_music_volume_db(vol_db)
-	_apply_display_mode(is_full)
+	# Prefer global SettingsManager so settings persist across scenes/relogins
+	if has_node("/root/SettingsManager"):
+		var sm := get_node("/root/SettingsManager")
+		sm.music_level = clampi(vol_level, 1, 100)
+		sm.fullscreen = bool(is_full)
+		sm.apply_music_volume_db(vol_db)
+		sm.apply_display_mode(bool(is_full))
+		sm.save_settings()
+	else:
+		_apply_music_volume_db(vol_db)
+		_apply_display_mode(is_full)
 
-	# Persist settings (save integer 1..100)
-	var cfg := ConfigFile.new()
-	cfg.set_value("audio", "music_level", vol_level)
-	cfg.set_value("display", "fullscreen", is_full)
-	cfg.save(SETTINGS_PATH)
+		# Persist settings (save integer 1..100)
+		var cfg := ConfigFile.new()
+		cfg.set_value("audio", "music_level", vol_level)
+		cfg.set_value("display", "fullscreen", is_full)
+		cfg.save(SETTINGS_PATH)
 	
 	print("✅ Settings applied: Volume=%d, Fullscreen=%s" % [vol_level, is_full])
 
 
 func _load_settings() -> void:
+	if has_node("/root/SettingsManager"):
+		var sm := get_node("/root/SettingsManager")
+		var vol_level := int(sm.music_level)
+		var full := bool(sm.fullscreen)
+		volume_slider.value = float(vol_level)
+		volume_value_label.text = "%d" % int(vol_level)
+		display_mode.select(1 if full else 0)
+		# Ensure current session matches saved settings
+		sm.apply_all()
+		return
+
 	var cfg := ConfigFile.new()
 	var err := cfg.load(SETTINGS_PATH)
 	if err == OK:
@@ -77,6 +97,11 @@ func set_target_music(node: Node) -> void:
 
 
 func _apply_music_volume_db(vol_db: float) -> void:
+	# If SettingsManager exists, apply via AudioServer bus for global consistency
+	if has_node("/root/SettingsManager"):
+		get_node("/root/SettingsManager").apply_music_volume_db(vol_db)
+		return
+	
 	# Apply to explicit target if set
 	if _target_music and is_instance_valid(_target_music):
 		_target_music.volume_db = vol_db

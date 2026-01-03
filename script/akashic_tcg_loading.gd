@@ -2,6 +2,7 @@ extends Control
 
 const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 
+
 # Minimal loading/sync screen for Akashic TCG (Milestone 1)
 # Reuses the same relay handshake idea as Code Breaker: both players announce "loading" then "ready".
 
@@ -9,9 +10,13 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 @onready var _host_status: Label = $HostCard/HostStatus
 @onready var _host_progress: ProgressBar = $HostCard/HostProgressBar
 
+@onready var _left_card_node: NinePatchRect = $HostCard
+
 @onready var _client_username: Label = $ClientCard/ClientUsername
 @onready var _client_status: Label = $ClientCard/ClientStatus
 @onready var _client_progress: ProgressBar = $ClientCard/ClientProgressBar
+
+@onready var _right_card_node: NinePatchRect = $ClientCard
 
 @onready var _status_message: Label = $StatusMessage
 
@@ -90,12 +95,18 @@ func _ready() -> void:
 
 func _setup_ui() -> void:
 	# Left card = YOU, Right card = OPPONENT
+	var left_bg := ""
+	var right_bg := ""
 	if _is_host:
 		_host_username.text = str(_host_data.get("username", "Host"))
 		_client_username.text = str(_client_data.get("username", "Client"))
+		left_bg = str(_host_data.get("card_bg", ""))
+		right_bg = str(_client_data.get("card_bg", ""))
 	else:
 		_host_username.text = str(_client_data.get("username", "Client"))
 		_client_username.text = str(_host_data.get("username", "Host"))
+		left_bg = str(_client_data.get("card_bg", ""))
+		right_bg = str(_host_data.get("card_bg", ""))
 
 	_host_status.text = "⏳ Loading..."
 	_client_status.text = "⏳ Loading..."
@@ -106,6 +117,21 @@ func _setup_ui() -> void:
 
 	_status_message.visible = true
 	_status_message.text = "Syncing players..."
+
+	# Fallback: if lobby snapshot didn't have cosmetics yet, at least show local equipped background.
+	if Auth and left_bg.strip_edges() == "" and Auth.current_card_bg_path.strip_edges() != "":
+		left_bg = Auth.current_card_bg_path
+	# Fallback: if opponent bg missing, try relay-learned cache.
+	if Auth and right_bg.strip_edges() == "":
+		var opp_pid := ""
+		if _is_host:
+			opp_pid = str(_client_data.get("player_id", ""))
+		else:
+			opp_pid = str(_host_data.get("player_id", ""))
+		right_bg = Auth.get_remote_card_bg(opp_pid)
+
+	CardCosmetics.apply_card_background(_left_card_node, left_bg)
+	CardCosmetics.apply_card_background(_right_card_node, right_bg)
 
 func _setup_timers() -> void:
 	_progress_timer = Timer.new()

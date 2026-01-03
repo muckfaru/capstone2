@@ -21,6 +21,22 @@ var current_user_email: String = ""  # ✨ Added to store user email
 var current_avatar: String = ""
 var current_level: int = 0
 
+# Equipped cosmetics (loaded from Firestore user doc)
+var current_card_bg_path: String = ""
+
+# Remote cosmetics cache (learned via relay messages)
+var remote_card_bg_by_player_id: Dictionary = {}
+
+func set_remote_card_bg(player_id: String, bg_path: String) -> void:
+	if player_id.strip_edges() == "":
+		return
+	remote_card_bg_by_player_id[player_id] = bg_path
+
+func get_remote_card_bg(player_id: String) -> String:
+	if player_id.strip_edges() == "":
+		return ""
+	return str(remote_card_bg_by_player_id.get(player_id, ""))
+
 # ✅ NEW: Welcome Tutorial Cache
 var welcome_tutorial_completed: bool = false
 var welcome_tutorial_loaded: bool = false  # Track if we've loaded this from Firestore

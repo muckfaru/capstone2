@@ -101,7 +101,8 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 		"host_avatar": avatar,
 		"host_level": level,
 		"room_name": final_room_name,
-		"game_type": "akashic_tcg"
+		"game_type": "akashic_tcg",
+		"host_card_bg": (Auth.current_card_bg_path if Auth else "")
 	}
 	
 	var http := HTTPRequest.new()
@@ -304,7 +305,8 @@ func _post_join_room(room_id: String, uid: String, username: String, avatar: Str
 		"client_id": uid,
 		"client_username": username,
 		"client_avatar": avatar,
-		"client_level": level
+		"client_level": level,
+		"client_card_bg": (Auth.current_card_bg_path if Auth else "")
 	}
 	http.request_completed.connect(func(_result, code, _headers, response_body: PackedByteArray):
 		http.queue_free()

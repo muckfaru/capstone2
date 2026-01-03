@@ -54,6 +54,9 @@ var ui_initialized: bool = false
 # ✅ CRITICAL: Flag to prevent duplicate welcome bonus
 var welcome_bonus_awarded: bool = false
 
+# Starter reward state (cached from Firestore)
+var _starter_reward_claimed_cache: bool = false
+
 # Resume retry guard (prevents infinite loops if server is down)
 var _code_breaker_resume_retries: int = 0
 var _tgc_resume_retries: int = 0
@@ -2424,6 +2427,13 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 		Auth.current_username = f["username"]["stringValue"]
 		username_input.text = Auth.current_username
 
+	# Equipped card background (for Host/Client cards)
+	if Auth:
+		if f.has("equipped_card_bg_path"):
+			Auth.current_card_bg_path = str(f["equipped_card_bg_path"].get("stringValue", ""))
+		else:
+			Auth.current_card_bg_path = ""
+
 	if f.has("level"):
 		var lvl := int(f["level"]["integerValue"])
 		level_input.text = str(lvl)
@@ -2449,12 +2459,114 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 		welcome_completed = false
 	
 	Auth.set_welcome_tutorial_status(welcome_completed)
-	
+
+	# One-time starter reward (first time the player starts the game)
+	var starter_claimed := false
+	if f.has("starter_chariot_reward_claimed"):
+		starter_claimed = bool(f["starter_chariot_reward_claimed"].get("booleanValue", false))
+	_starter_reward_claimed_cache = starter_claimed
+
+	# IMPORTANT: new users should finish the Pokemon welcome UI first
+	if not starter_claimed:
+		if not welcome_completed:
+			print("[Landing] 🎉 NEW USER DETECTED - Starting Pokemon Welcome Tutorial")
+			_start_welcome_tutorial()
+			return
+		print("[Landing] 🎁 Starter reward not claimed - showing popup")
+		call_deferred("_show_starter_reward_popup", true)
+		return
+
 	if not welcome_completed:
 		print("[Landing] 🎉 NEW USER DETECTED - Starting Pokemon Welcome Tutorial")
 		_start_welcome_tutorial()
 	else:
 		print("[Landing] ✅ Welcome tutorial already completed")
+
+
+func _show_starter_reward_popup(welcome_completed: bool) -> void:
+	# Show the same RewardPopup design/concept as other rewards.
+	await get_tree().process_frame
+
+	var popup = preload("res://scene/reward_popup.tscn").instantiate()
+	add_child(popup)
+	popup.save_to_inventory = false  # we'll save the custom items ourselves (needs subtype for cosmetics)
+
+	var custom_font = load("res://asset/fonts/NicoMoji-Regular.ttf")
+	_apply_font_to_children(popup, custom_font, 20)
+
+	var guide_icon: Texture2D = null
+	if ResourceLoader.exists("res://asset/icons/hologram_guide.png"):
+		guide_icon = load("res://asset/icons/hologram_guide.png")
+
+	var chariot_path := "res://asset/reward_background_cards/the chariot 7 card.jpeg"
+	var chariot_icon: Texture2D = null
+	if ResourceLoader.exists(chariot_path):
+		chariot_icon = load(chariot_path)
+
+	var rewards = [
+		RewardItem.new("xp", 50, "Experience Points", null, "Welcome bonus"),
+		RewardItem.new("badge", 1, "Beginner Guide", guide_icon, "Your quick-start guide."),
+		RewardItem.new("card", 1, "The Chariot", chariot_icon, "Equip to change your Host/Client card background."),
+	]
+	popup.show_rewards(rewards, "🎁 Starter Rewards")
+
+	popup.rewards_claimed.connect(func():
+		_show_starter_reward_claimed_async(welcome_completed)
+	)
+
+
+func _show_starter_reward_claimed_async(welcome_completed: bool) -> void:
+	# Grant the custom rewards to Firestore, then continue onboarding.
+	if has_node("/root/InventoryHelper"):
+		# Beginner guide as a badge item
+		InventoryHelper.add_item_to_inventory({
+			"name": "Beginner Guide",
+			"type": "badge",
+			"rarity": "common",
+			"description": "Your quick-start guide.",
+			"icon_path": "res://asset/icons/hologram_guide.png",
+			"amount": 1,
+		})
+
+		# The Chariot card background (equippable) - deterministic ID + default equipped
+		InventoryHelper.grant_starter_chariot_equipped()
+		InventoryHelper.set_equipped_card_background("res://asset/reward_background_cards/the chariot 7 card.jpeg")
+
+	_mark_starter_reward_claimed()
+
+	if not welcome_completed:
+		print("[Landing] ▶ Continuing into welcome tutorial")
+		_start_welcome_tutorial()
+	else:
+		print("[Landing] ▶ Starter rewards claimed")
+
+
+func _mark_starter_reward_claimed() -> void:
+	_starter_reward_claimed_cache = true
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	if user_id == "" or id_token == "":
+		return
+
+	var url = "%s/%s?updateMask.fieldPaths=starter_chariot_reward_claimed" % [firestore_base_url, user_id]
+	var body = {
+		"fields": {
+			"starter_chariot_reward_claimed": {"booleanValue": true}
+		}
+	}
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+
+	var starter_http := HTTPRequest.new()
+	add_child(starter_http)
+	starter_http.request_completed.connect(func(_r, code, _h, _b):
+		starter_http.queue_free()
+		if code != 200:
+			push_warning("[Landing] Failed to mark starter reward claimed HTTP %d" % code)
+	)
+	starter_http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
 
 # ===== REMOVE OLD FUNCTIONS - REPLACED BY COMBINED VERSION =====
 # _check_and_start_welcome_tutorial() is now replaced by _load_user_data_and_check_tutorial()
@@ -2498,7 +2610,8 @@ func _on_welcome_tutorial_completed() -> void:
 	Auth.mark_welcome_tutorial_complete()
 	
 	# ✅ Use call_deferred to avoid any conflicts
-	call_deferred("_show_welcome_reward")
+	if not _starter_reward_claimed_cache:
+		call_deferred("_show_starter_reward_popup", true)
 	call_deferred("_activate_first_mission")
 
 func _show_welcome_reward() -> void:
