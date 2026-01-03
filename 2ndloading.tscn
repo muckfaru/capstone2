@@ -1,0 +1,66 @@
+[gd_scene load_steps=6 format=3 uid="uid://b5unsd7g2bjhe"]
+
+[ext_resource type="Script" uid="uid://ple4i5626d48" path="res://scene/2_ndloading.gd" id="1_f0plf"]
+[ext_resource type="Texture2D" uid="uid://bnibx5snemo06" path="res://asset/4e838cbb-ea7e-4663-a1a3-5e2937ba793d (1).jpg" id="2_mbn7y"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_4hsv1"]
+[ext_resource type="Texture2D" uid="uid://cos1wds7eol12" path="res://asset/icons/logo-removebg-preview.png" id="4_416rf"]
+[ext_resource type="Script" uid="uid://d022p4coyf0y4" path="res://scene/texture_rect_2.gd" id="5_50jcu"]
+
+[node name="2Ndloading" type="CanvasLayer"]
+script = ExtResource("1_f0plf")
+next_scene_path = "uid://cx1uayh2v0n4q"
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="Control"]
+self_modulate = Color(0.412152, 0.412152, 0.412152, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_mbn7y")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Label" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -60.0
+offset_top = 77.0
+offset_right = 70.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("3_4hsv1")
+theme_override_font_sizes/font_size = 35
+horizontal_alignment = 1
+
+[node name="TextureRect2" type="TextureRect" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -97.0
+offset_top = -104.0
+offset_right = 133.0
+offset_bottom = 65.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_416rf")
+expand_mode = 2
+stretch_mode = 3
+script = ExtResource("5_50jcu")

@@ -1,10 +1,7 @@
-extends RefCounted
 class_name RewardItem
+extends RefCounted
 
-## Represents a reward item (XP, badge, currency, etc.)
-## Usage: RewardItem.new("xp", 50, "Experience Points")
-
-var type: String  # "xp", "badge", "currency", "item"
+var type: String  # "xp", "badge", "currency", "item", "card", "avatar", "powerup"
 var amount: int
 var name: String
 var icon: Texture2D

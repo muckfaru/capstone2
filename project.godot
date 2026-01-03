@@ -24,6 +24,7 @@ ForceNetworkMode="*res://script/ForceNetworkMode.gd"
 TutorialManager="*res://script/TutorialManager.gd"
 DialogueManager="*res://script/dialogue_manager.gd"
 GlobalState="*res://script/GlobalState.gd"
+InventoryHelper="*res://script/InventoryHelper.gd"
 
 [display]
 

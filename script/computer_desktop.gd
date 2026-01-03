@@ -399,7 +399,7 @@ func _on_browser_clicked():
 			search_tutorial_shown = true
 			await get_tree().create_timer(0.5).timeout
 			start_dialogue([
-				"Try searching for 'free games' or 'cyberrun free download'."
+				"I need to search for a free download of CyberRun 2026.",
 			])
 
 func _on_messages_clicked():

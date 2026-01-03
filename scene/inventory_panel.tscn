@@ -1,0 +1,123 @@
+[gd_scene load_steps=6 format=3 uid="uid://7tjwuknii5ij"]
+
+[ext_resource type="Script" path="res://script/inventory_panel.gd" id="1_inventory"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_sccuv"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="3_jw66u"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_main_panel"]
+bg_color = Color(0, 0, 0, 0.619608)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.489834, 0.654026, 1, 0.545098)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.360971, 0.532191, 0.996142, 0.74902)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_detail_panel"]
+bg_color = Color(0.537255, 0.403922, 0.584314, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.415686, 0.717647, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.854864, 4.33177e-06, 0.531595, 0.4)
+shadow_size = 12
+
+[node name="InventoryPanel" type="Panel"]
+custom_minimum_size = Vector2(800, 600)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -416.0
+offset_top = -310.0
+offset_right = 384.0
+offset_bottom = 290.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_main_panel")
+script = ExtResource("1_inventory")
+
+[node name="CloseButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 750.0
+offset_top = 10.0
+offset_right = 790.0
+offset_bottom = 50.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_hover_color = Color(1, 0.5, 0.5, 1)
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 24
+text = "✕"
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 0
+offset_top = 20.0
+offset_right = 800.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 28
+text = "🎒 YOUR INVENTORY"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CategoryContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 75.0
+offset_right = 750.0
+offset_bottom = 125.0
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="SortContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 50.0
+offset_top = 135.0
+offset_right = 750.0
+offset_bottom = 175.0
+theme_override_constants/separation = 10
+
+[node name="SortLabel" type="Label" parent="SortContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_fonts/font = ExtResource("3_jw66u")
+theme_override_font_sizes/font_size = 14
+text = "Sort by:"
+vertical_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 185.0
+offset_right = 780.0
+offset_bottom = 575.0
+horizontal_scroll_mode = 0
+
+[node name="ItemsGrid" type="GridContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+columns = 4
+
+[node name="ItemDetailPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 277.0
+offset_top = 164.0
+offset_right = 577.0
+offset_bottom = 444.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_detail_panel")

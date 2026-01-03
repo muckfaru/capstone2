@@ -1,12 +1,17 @@
-[gd_scene load_steps=4 format=3 uid="uid://d0infgusfi845"]
+[gd_scene load_steps=5 format=3 uid="uid://d0infgusfi845"]
 
 [ext_resource type="Script" uid="uid://d2rxkk4fy6h00" path="res://script/chat.gd" id="1_chatgd"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_1781r"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_odng3"]
-bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x0o17"]
 bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
 
 [node name="ChatPanel" type="Panel"]
 offset_left = 66.0
@@ -42,6 +47,7 @@ offset_right = 75.0
 offset_bottom = 12.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_1781r")
 text = "CHAT"
 horizontal_alignment = 1
 vertical_alignment = 1

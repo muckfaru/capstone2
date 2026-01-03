@@ -1,7 +1,6 @@
-[gd_scene load_steps=41 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=40 format=3 uid="uid://5o3qtaqdnl8s"]
 
 [ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_86hhj"]
-[ext_resource type="VideoStream" uid="uid://copge130jsikm" path="res://asset/Cyberpunk_City_Video_Generation.ogv" id="2_qr7a0"]
 [ext_resource type="Texture2D" uid="uid://cq7k5uvykyfbt" path="res://asset/icons/code breaker 1.png" id="3_7xp6e"]
 [ext_resource type="PackedScene" uid="uid://bohnaxmk78jfw" path="res://scene/friend_list.tscn" id="3_hlv06"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_nicomoji"]
@@ -22,11 +21,14 @@
 bg_color = Color(0.164706, 0.164706, 0.164706, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hlv06"]
-bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
+shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+shadow_size = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1dlu4"]
 bg_color = Color(0, 0, 0, 1)
@@ -40,14 +42,16 @@ bg_color = Color(0.243137, 0.243137, 0.243137, 0)
 bg_color = Color(0.164706, 0.164706, 0.164706, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bsyjm"]
-bg_color = Color(0.117647, 0.117647, 0.117647, 0.619608)
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.027451, 0.482353, 0.596078, 1)
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
 corner_radius_top_left = 20
 corner_radius_bottom_left = 20
+shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+shadow_size = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_08qf3"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -60,20 +64,23 @@ bg_color = Color(0.117647, 0.117647, 0.117647, 0)
 border_color = Color(0.8, 0.8, 0.8, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aar1m"]
-bg_color = Color(0.117647, 0.117647, 0.117647, 0.619608)
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.0313726, 0.47451, 0.584314, 1)
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
+shadow_color = Color(1, 0.313726, 0.247059, 0.611765)
+shadow_size = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_34s58"]
 bg_color = Color(0.0177324, 0.0177324, 0.0177324, 1)
 corner_radius_top_right = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q33pn"]
-bg_color = Color(0, 0, 0, 1)
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 
 [sub_resource type="Theme" id="Theme_qdyf0"]
 
@@ -169,22 +176,24 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 23.0
-offset_bottom = 29.0
+offset_right = 107.0
+offset_bottom = 10.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_86hhj")
+background_music = "res://asset/background/homearena.mp3"
 
 [node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
-layout_mode = 0
-offset_left = -131.0
-offset_top = -23.0
-offset_right = 1311.0
-offset_bottom = 695.0
-stream = ExtResource("2_qr7a0")
-autoplay = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 3.0
+offset_bottom = 2.0
+grow_horizontal = 2
+grow_vertical = 2
+volume_db = -80.0
 expand = true
-loop = true
 buffering_msec = 800
 
 [node name="ViewPlayerProfileModal" parent="VideoStreamPlayer" instance=ExtResource("10_xyz99")]
@@ -192,7 +201,6 @@ size = Vector2i(700, 400)
 visible = false
 
 [node name="HomePanel" type="Panel" parent="VideoStreamPlayer"]
-visible = false
 layout_mode = 0
 offset_left = 133.0
 offset_top = 22.0
@@ -202,10 +210,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_irntn")
 
 [node name="NewsPanel" type="Panel" parent="VideoStreamPlayer/HomePanel"]
 layout_mode = 0
-offset_left = 67.0
-offset_top = 120.0
-offset_right = 476.0
-offset_bottom = 449.0
+offset_left = -102.0
+offset_top = 78.0
+offset_right = 307.0
+offset_bottom = 407.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hlv06")
 
 [node name="Panel" type="Panel" parent="VideoStreamPlayer/HomePanel/NewsPanel"]
@@ -217,10 +225,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_1dlu4")
 [node name="GameSelectPanel" type="Panel" parent="VideoStreamPlayer"]
 visible = false
 layout_mode = 0
-offset_left = 127.0
-offset_top = 26.0
-offset_right = 1308.0
-offset_bottom = 674.0
+offset_left = 11.0
+offset_top = -30.0
+offset_right = 1192.0
+offset_bottom = 618.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_irntn")
 
 [node name="allgame" type="Panel" parent="VideoStreamPlayer/GameSelectPanel"]
@@ -261,10 +269,10 @@ texture = ExtResource("3_7xp6e")
 [node name="RankingPanel" type="Panel" parent="VideoStreamPlayer"]
 visible = false
 layout_mode = 0
-offset_left = 139.0
-offset_top = 22.0
-offset_right = 1298.0
-offset_bottom = 679.0
+offset_left = 19.0
+offset_top = -12.0
+offset_right = 1178.0
+offset_bottom = 645.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_irntn")
 
 [node name="AkashicTgcRank" type="Button" parent="VideoStreamPlayer/RankingPanel"]
@@ -296,10 +304,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_hlv06")
 [node name="ProfilePanel" type="Panel" parent="VideoStreamPlayer"]
 visible = false
 layout_mode = 0
-offset_left = 107.0
-offset_top = 14.0
-offset_right = 1360.0
-offset_bottom = 711.0
+offset_left = 8.0
+offset_top = -67.0
+offset_right = 1261.0
+offset_bottom = 630.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_qdyf0")
 
 [node name="UserPanel" type="Panel" parent="VideoStreamPlayer/ProfilePanel"]
@@ -325,15 +333,17 @@ offset_left = 120.0
 offset_top = 65.0
 offset_right = 170.0
 offset_bottom = 88.0
+theme_override_fonts/font = ExtResource("3_nicomoji")
 text = "Level: "
 
 [node name="winsLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 layout_mode = 0
-offset_left = 29.0
+offset_left = 24.0
 offset_top = 95.0
-offset_right = 59.0
+offset_right = 67.0
 offset_bottom = 118.0
-text = "W :  "
+theme_override_fonts/font = ExtResource("3_nicomoji")
+text = "W:  "
 
 [node name="MatchPlayedLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 layout_mode = 0
@@ -341,6 +351,7 @@ offset_left = 29.0
 offset_top = 121.0
 offset_right = 159.0
 offset_bottom = 144.0
+theme_override_fonts/font = ExtResource("3_nicomoji")
 text = "Match Played :"
 
 [node name="WinrateLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
@@ -349,15 +360,17 @@ offset_left = 146.0
 offset_top = 95.0
 offset_right = 186.0
 offset_bottom = 118.0
-text = "WR : "
+theme_override_fonts/font = ExtResource("3_nicomoji")
+text = "WR: "
 
 [node name="losesLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 layout_mode = 0
-offset_left = 91.0
+offset_left = 86.0
 offset_top = 95.0
-offset_right = 116.0
+offset_right = 119.0
 offset_bottom = 118.0
-text = "L : "
+theme_override_fonts/font = ExtResource("3_nicomoji")
+text = "L: "
 
 [node name="StatusLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 visible = false
@@ -374,30 +387,34 @@ offset_left = 120.0
 offset_top = 35.0
 offset_right = 240.0
 offset_bottom = 65.0
+theme_override_fonts/font = ExtResource("3_nicomoji")
 text = "MRKARK"
 
 [node name="levelInput" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 layout_mode = 0
-offset_left = 170.0
+offset_left = 184.0
 offset_top = 65.0
-offset_right = 220.0
+offset_right = 234.0
 offset_bottom = 88.0
+theme_override_fonts/font = ExtResource("3_nicomoji")
 text = "32"
 
 [node name="winsInput" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 layout_mode = 0
-offset_left = 56.0
+offset_left = 54.0
 offset_top = 95.0
-offset_right = 86.0
+offset_right = 84.0
 offset_bottom = 118.0
+theme_override_fonts/font = ExtResource("3_nicomoji")
 text = "23"
 
 [node name="winrateInput" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 layout_mode = 0
-offset_left = 187.0
+offset_left = 190.0
 offset_top = 95.0
-offset_right = 227.0
+offset_right = 231.0
 offset_bottom = 118.0
+theme_override_fonts/font = ExtResource("3_nicomoji")
 text = "46%"
 
 [node name="losesInput" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
@@ -406,6 +423,7 @@ offset_left = 114.0
 offset_top = 95.0
 offset_right = 144.0
 offset_bottom = 118.0
+theme_override_fonts/font = ExtResource("3_nicomoji")
 text = "32"
 
 [node name="xpLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
@@ -485,10 +503,11 @@ offset_bottom = 96.0
 
 [node name="MatchPlayedInput" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 layout_mode = 0
-offset_left = 165.0
+offset_left = 186.0
 offset_top = 121.0
-offset_right = 215.0
+offset_right = 236.0
 offset_bottom = 144.0
+theme_override_fonts/font = ExtResource("3_nicomoji")
 text = "55"
 
 [node name="MatchHistoyPanel" type="Panel" parent="VideoStreamPlayer/ProfilePanel"]
@@ -513,6 +532,7 @@ offset_left = 58.0
 offset_top = 9.0
 offset_right = 309.0
 offset_bottom = 51.0
+theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 25
 text = "MATCH HISTORY"
 horizontal_alignment = 1
@@ -521,18 +541,18 @@ vertical_alignment = 1
 [node name="CodeBreakerLobby" parent="VideoStreamPlayer" instance=ExtResource("9_08qf3")]
 visible = false
 layout_mode = 0
-offset_left = 15.0
-offset_top = 37.0
-offset_right = 1364.0
-offset_bottom = 651.0
+offset_left = -113.0
+offset_top = -23.0
+offset_right = 1236.0
+offset_bottom = 591.0
 
 [node name="AkashicLobby" parent="VideoStreamPlayer" instance=ExtResource("11_tgc")]
 visible = false
 layout_mode = 0
-offset_left = 11.0
-offset_top = 20.0
-offset_right = 1360.0
-offset_bottom = 634.0
+offset_left = -122.0
+offset_top = -28.0
+offset_right = 1227.0
+offset_bottom = 586.0
 
 [node name="NavigationPanel" type="Panel" parent="."]
 custom_minimum_size = Vector2(0, 50)
@@ -567,6 +587,7 @@ offset_left = 19.0
 offset_top = 24.0
 offset_right = 87.0
 offset_bottom = 41.0
+theme_override_colors/font_color = Color(1, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 12
 text = "Arena"
@@ -579,6 +600,7 @@ offset_left = 36.0
 offset_top = 14.0
 offset_right = 77.0
 offset_bottom = 31.0
+theme_override_colors/font_color = Color(0.444314, 0.621122, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 12
 text = "Cyber"
@@ -644,6 +666,17 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Module"
 
+[node name="BagNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
+theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
+text = "Bag"
+
 [node name="Spacer" type="Control" parent="NavigationPanel/HBoxContainer"]
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
@@ -661,7 +694,7 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_menu_focus")
 theme_override_styles/hover = SubResource("StyleBoxFlat_menu_focus")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_menu_pressed")
 theme_override_styles/normal = SubResource("StyleBoxFlat_menu")
-text = "☰"
+text = "☰              "
 
 [node name="ChatPanel" parent="." instance=ExtResource("9_1dlu4")]
 layout_mode = 0
@@ -672,10 +705,10 @@ offset_bottom = 625.0
 
 [node name="FriendListPanel" parent="." instance=ExtResource("3_hlv06")]
 layout_mode = 0
-offset_left = 901.0
-offset_top = 84.0
-offset_right = 1135.0
-offset_bottom = 601.0
+offset_left = 871.0
+offset_top = 75.0
+offset_right = 1105.0
+offset_bottom = 592.0
 
 [node name="MenuPanel" parent="." instance=ExtResource("13_aar1m")]
 visible = false
@@ -684,12 +717,13 @@ visible = false
 script = ExtResource("14_irntn")
 
 [node name="Overlay" type="ColorRect" parent="PokemonStyleWelcomeUI"]
+visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.7)
+color = Color(0.544974, 0.544974, 0.544974, 0.7)
 
 [node name="DialogueBox" type="Panel" parent="PokemonStyleWelcomeUI"]
 anchors_preset = 7

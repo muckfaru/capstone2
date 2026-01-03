@@ -11,7 +11,7 @@ signal canceled
 var _default_name: String = ""
 
 func _ready() -> void:
-	# Wire UI
+
 	_create_btn.pressed.connect(_on_create_pressed)
 	_cancel_btn.pressed.connect(_on_cancel_pressed)
 	_anonymous_check.toggled.connect(func(_pressed: bool):
@@ -19,7 +19,7 @@ func _ready() -> void:
 	)
 	close_requested.connect(_on_close_requested)
 
-	# Ensure initial text reflects current toggle state
+	
 	_apply_name()
 
 func init_with_username(username: String) -> void:

@@ -1,16 +1,32 @@
-[gd_scene load_steps=4 format=3 uid="uid://clvghcukrtua8"]
+[gd_scene load_steps=7 format=3 uid="uid://clvghcukrtua8"]
 
 [ext_resource type="Script" uid="uid://cd7kr0oyf5nsp" path="res://script/akashic_tcg_lobby.gd" id="1_tgc"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_35hl6"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.00392157, 0.0745098, 0.160784, 0.690196)
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
+shadow_color = Color(1, 0.313726, 0.247059, 0.611765)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_35hl6"]
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
+shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4lqk3"]
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
+shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+shadow_size = 10
 
 [node name="AkashicLobby" type="Panel"]
 offset_left = -99.0
@@ -32,6 +48,7 @@ offset_left = -260.65
 offset_top = 14.88
 offset_right = -384.35
 offset_bottom = 64.88
+theme_override_fonts/font = ExtResource("2_35hl6")
 theme_override_font_sizes/font_size = 36
 text = "AKASHIC TGC"
 horizontal_alignment = 1
@@ -62,24 +79,28 @@ anchor_bottom = 0.05
 [node name="LabelNo" type="Label" parent="LobbyPanel/HeaderRow"]
 custom_minimum_size = Vector2(50, 30)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_35hl6")
 text = "No."
 horizontal_alignment = 1
 
 [node name="LabelUser" type="Label" parent="LobbyPanel/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_35hl6")
 text = "Room name"
 horizontal_alignment = 1
 
 [node name="LabelPlayers" type="Label" parent="LobbyPanel/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_35hl6")
 text = "Players"
 horizontal_alignment = 1
 
 [node name="LabelAction" type="Label" parent="LobbyPanel/HeaderRow"]
 custom_minimum_size = Vector2(100, 30)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_35hl6")
 text = "Action"
 horizontal_alignment = 1
 
@@ -103,6 +124,8 @@ anchor_right = 0.95
 anchor_bottom = 0.9
 mouse_default_cursor_shape = 2
 theme_type_variation = &"PrimaryButton"
+theme_override_fonts/font = ExtResource("2_35hl6")
+theme_override_styles/normal = SubResource("StyleBoxFlat_35hl6")
 text = "CREATE ROOM"
 
 [node name="BackButton" type="Button" parent="LobbyPanel"]
@@ -113,4 +136,6 @@ offset_right = 96.0
 offset_bottom = 365.0
 mouse_default_cursor_shape = 2
 theme_type_variation = &"GhostButton"
-text = "← Back"
+theme_override_fonts/font = ExtResource("2_35hl6")
+theme_override_styles/normal = SubResource("StyleBoxFlat_4lqk3")
+text = "Back"

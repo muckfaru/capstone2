@@ -13,12 +13,12 @@ extends CanvasLayer
 var original_dialogue_style: StyleBoxFlat
 var original_indicator_text := "▼ Tap the screen"
 var original_indicator_color := Color(1, 1, 0, 1)  # Yellow
-var original_portrait_texture: Texture2D  # ✅ Store original portrait image
+var original_portrait_texture: Texture2D
 
 # Tutorial data
 var tutorial_steps := [
 	{
-		"text": "Welcome to Cyber Arena, trainer! I'm your guide to this digital world.",
+		"text": "Welcome to Cyber Arena, ! I'm your guide to this digital world.",
 		"highlight": null,
 		"action": null
 	},
@@ -48,22 +48,17 @@ var tutorial_steps := [
 		"action": null
 	},
 	{
-		"text": "New alert! Our systems has under attack! User data is at risk! the virus is spreading fast!",
+		"text": "I have your first mission ready. Are you prepared to take it on?",
 		"highlight": null,
-		"action": "alert_red_and_change_image"
+		"action": "show_mission_file"
 	},
 	{
-		"text": "This is your first mission,  can you handle it?",
+		"text": "I'm sending you the mission file now. Review it carefully and complete the tasks.",
 		"highlight": null,
-		"action": "mission_prompt"
+		"action": null
 	},
 	{
-		"text": "I send the file immediately. review it, execute the required tasks, and ensure the mission is completed. I await the data.",
-		"highlight": null,
-		"action": "reset_colors_and_restore_image"
-	},
-	{
-		"text": "That's all for now! Good luck on your journey, trainer!",
+		"text": "That's all for now! Good luck on your journey, Take your throne!",
 		"highlight": null,
 		"action": "complete"
 	}
@@ -79,7 +74,7 @@ var current_text := ""
 var highlighted_node: Control = null
 var highlight_rect: ReferenceRect = null
 
-# ✅ Track active tweens to prevent memory leaks
+# Track active tweens to prevent memory leaks
 var active_tweens: Array[Tween] = []
 
 signal tutorial_completed
@@ -94,7 +89,7 @@ func _ready() -> void:
 	if dialogue_box and dialogue_box.get_theme_stylebox("panel"):
 		original_dialogue_style = dialogue_box.get_theme_stylebox("panel").duplicate()
 	
-	# ✅ Store original portrait texture
+	# Store original portrait texture
 	if portrait and portrait.texture:
 		original_portrait_texture = portrait.texture
 		print("[PokemonWelcomeUI] Original portrait saved")
@@ -238,7 +233,7 @@ func _highlight_element(element_name: String) -> void:
 	_animate_highlight()
 
 func _clear_highlight() -> void:
-	# ✅ Kill any active tweens before clearing highlight
+	# Kill any active tweens before clearing highlight
 	_kill_all_tweens()
 	
 	if highlight_rect:
@@ -246,13 +241,12 @@ func _clear_highlight() -> void:
 		highlight_rect = null
 	highlighted_node = null
 
-# ✅ FIX: Use finite loops instead of infinite loops
 func _animate_highlight() -> void:
 	if not highlight_rect:
 		return
 	
 	var tween = create_tween()
-	tween.set_loops(100)  # ✅ FIXED: Use finite loops (100 loops = ~100 seconds)
+	tween.set_loops(100)
 	tween.tween_property(highlight_rect, "modulate:a", 0.3, 0.5)
 	tween.tween_property(highlight_rect, "modulate:a", 1.0, 0.5)
 	
@@ -260,13 +254,12 @@ func _animate_highlight() -> void:
 	active_tweens.append(tween)
 	tween.finished.connect(func(): active_tweens.erase(tween))
 
-# ✅ FIX: Use finite loops instead of infinite loops
 func _animate_continue_indicator() -> void:
 	if not continue_indicator:
 		return
 	
 	var tween = create_tween()
-	tween.set_loops(100)  # ✅ FIXED: Use finite loops
+	tween.set_loops(100)
 	tween.tween_property(continue_indicator, "modulate:a", 0.3, 0.5)
 	tween.tween_property(continue_indicator, "modulate:a", 1.0, 0.5)
 	
@@ -274,7 +267,6 @@ func _animate_continue_indicator() -> void:
 	active_tweens.append(tween)
 	tween.finished.connect(func(): active_tweens.erase(tween))
 
-# ✅ NEW: Kill all active tweens
 func _kill_all_tweens() -> void:
 	for tween in active_tweens:
 		if tween and tween.is_valid():
@@ -300,51 +292,10 @@ func _execute_action(action: String) -> void:
 			landing._show_panel(panel_paths, "game")
 		"show_profile":
 			landing._show_panel(panel_paths, "profile")
-		"alert_red_and_change_image":
-			_trigger_alert_effect()
+		"show_mission_file":
 			_change_portrait_to_mission_file()
-		"mission_prompt":
-			_change_indicator_to_confused()
-		"reset_colors_and_restore_image":
-			_reset_to_normal_colors()
-			_restore_original_portrait()
 		"complete":
 			_complete_tutorial()
-
-func _trigger_alert_effect() -> void:
-	"""Make dialogue box red and shake screen"""
-	print("[PokemonWelcomeUI] 🚨 ALERT TRIGGERED!")
-	
-	# Change dialogue box to red
-	if dialogue_box:
-		var red_style = original_dialogue_style.duplicate() if original_dialogue_style else StyleBoxFlat.new()
-		red_style.border_color = Color(1, 0, 0, 1)  # Red border
-		red_style.bg_color = Color(0.2, 0.05, 0.05, 0.95)  # Dark red background
-		dialogue_box.add_theme_stylebox_override("panel", red_style)
-	
-	# Screen shake effect
-	_shake_screen(0.8, 10.0)
-
-func _shake_screen(duration: float, intensity: float) -> void:
-	"""Shake the dialogue box"""
-	if not dialogue_box:
-		return
-	
-	var original_position = dialogue_box.position
-	var shake_timer = 0.0
-	var shake_interval = 0.05
-	
-	while shake_timer < duration:
-		var shake_offset = Vector2(
-			randf_range(-intensity, intensity),
-			randf_range(-intensity, intensity)
-		)
-		dialogue_box.position = original_position + shake_offset
-		await get_tree().create_timer(shake_interval).timeout
-		shake_timer += shake_interval
-	
-	# Reset to original position
-	dialogue_box.position = original_position
 
 func _change_portrait_to_mission_file() -> void:
 	"""Change the portrait to show mission file icon"""
@@ -355,7 +306,7 @@ func _change_portrait_to_mission_file() -> void:
 		return
 	
 	# Load mission file image - CHANGE THIS PATH TO YOUR MISSION FILE IMAGE
-	var mission_texture = load("res://asset/icons/mission_file.png")  # ← Change this!
+	var mission_texture = load("res://asset/icons/mission_file.png")
 	
 	if mission_texture:
 		portrait.texture = mission_texture
@@ -363,45 +314,10 @@ func _change_portrait_to_mission_file() -> void:
 	else:
 		push_warning("[PokemonWelcomeUI] ⚠️ Mission file image not found at path")
 
-func _restore_original_portrait() -> void:
-	"""Restore the original portrait image"""
-	print("[PokemonWelcomeUI] 🔄 Restoring original portrait")
-	
-	if not portrait:
-		push_error("[PokemonWelcomeUI] Portrait not found!")
-		return
-	
-	if original_portrait_texture:
-		portrait.texture = original_portrait_texture
-		print("[PokemonWelcomeUI] ✅ Original portrait restored")
-	else:
-		push_warning("[PokemonWelcomeUI] ⚠️ No original portrait texture saved!")
-
-func _change_indicator_to_confused() -> void:
-	"""Change continue indicator to red confused text"""
-	print("[PokemonWelcomeUI] 😰 Mission prompt - player confused!")
-	
-	if continue_indicator:
-		continue_indicator.text = "I dont know what to do"
-		continue_indicator.add_theme_color_override("font_color", Color(1, 0, 0, 1))  # Red
-
-func _reset_to_normal_colors() -> void:
-	"""Reset dialogue box and indicator to normal blue/yellow"""
-	print("[PokemonWelcomeUI] ✅ Resetting to normal colors")
-	
-	# Reset dialogue box to original blue style
-	if dialogue_box and original_dialogue_style:
-		dialogue_box.add_theme_stylebox_override("panel", original_dialogue_style)
-	
-	# Reset continue indicator
-	if continue_indicator:
-		continue_indicator.text = original_indicator_text
-		continue_indicator.add_theme_color_override("font_color", original_indicator_color)
-
 func _complete_tutorial() -> void:
 	print("[PokemonWelcomeUI] ========== COMPLETING TUTORIAL ==========")
 	
-	# ✅ Kill all tweens before completing
+	# Kill all tweens before completing
 	_kill_all_tweens()
 	_clear_highlight()
 	
@@ -415,7 +331,7 @@ func _complete_tutorial() -> void:
 	# Hide after a delay
 	await get_tree().create_timer(2.0).timeout
 	
-	# ✅ Kill any remaining tweens one more time
+	# Kill any remaining tweens one more time
 	_kill_all_tweens()
 	
 	hide()
@@ -461,7 +377,6 @@ func _mark_tutorial_complete() -> void:
 		push_error("[PokemonWelcomeUI] HTTP request failed: %s" % err)
 		http.queue_free()
 
-# ✅ Cleanup on exit
 func _exit_tree() -> void:
 	_kill_all_tweens()
 	print("[PokemonWelcomeUI] Cleaned up all tweens on exit")

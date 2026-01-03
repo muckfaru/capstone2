@@ -28,6 +28,7 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 var _match_history_scroll: ScrollContainer = null
 var _match_history_vbox: VBoxContainer = null
 
+@onready var inventory_panel: Panel = null
 # Dynamic UI elements (created at runtime)
 var file_dialog: FileDialog
 var xp_progress: ProgressBar
@@ -58,14 +59,26 @@ var _code_breaker_resume_retries: int = 0
 var _tgc_resume_retries: int = 0
 var _resume_routed: bool = false
 
+var current_video_index: int = 0
+
+@export var background_video: String = "res://asset/background/video_background_2.ogv"
+@export var transition_video: String = "res://asset/background/video_background_1.ogv"
+@export var background_music: String = "res://asset/background/LETHAL DOSE.mp3"
+@export var video_fade_duration: float = 0.8  # Faster fade looks more natural
+@export var music_fade_duration: float = 2.0
+var video_player: VideoStreamPlayer = null
+var audio_player: AudioStreamPlayer = null
+var fade_overlay: ColorRect = null
 # === Lifecycle ===
 func _ready() -> void:
+
+	
 	http = HTTPRequest.new()
 	add_child(http)
-	
+	_setup_inventory_system()
 	# ✅ CRITICAL: Force UI positions IMMEDIATELY before anything else
 	call_deferred("_force_initial_ui_layout")
-	
+	_setup_video_and_music()
 	_load_avatars()
 	change_btn.pressed.connect(_on_change_avatar_pressed)
 
@@ -81,6 +94,7 @@ func _ready() -> void:
 	_load_user_data_and_check_tutorial()
 	_ensure_match_history_ui()
 	_instantiate_chat_panel()
+	_setup_inventory_system()  # ✅ Initialize inventory system
 	Auth.set_user_online()
 	
 	# Connect XP signals
@@ -114,7 +128,7 @@ func _ready() -> void:
 		print("[Landing] ✅ Connected tutorial_completed signal (ONE_SHOT)")
 	else:
 		push_error("[Landing] ❌ PokemonStyleWelcomeUI node not found!")
-
+	
 
 # Replace these functions in your landing.gd script
 
@@ -2866,6 +2880,7 @@ func _setup_navigation() -> void:
 	$NavigationPanel/HBoxContainer/RankingNavigate.pressed.connect(func(): _show_panel(panel_paths, "ranking"))
 	$NavigationPanel/HBoxContainer/ProfileNavigate.pressed.connect(func(): _show_panel(panel_paths, "profile"))
 	$NavigationPanel/HBoxContainer/LogoButton.pressed.connect(func(): _show_panel(panel_paths, "home"))
+	$NavigationPanel/HBoxContainer/BagNavigate.pressed.connect(open_inventory)
 	$NavigationPanel/HBoxContainer/MenuButton.pressed.connect(_on_menu_button_pressed)
 	
 	# ✅ Module button navigation
@@ -3039,3 +3054,151 @@ func _setup_profile_picture_constraints() -> void:
 	profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	print("[Landing] ✅ Profile picture locked: 80x80 at (30, 25)")
+
+func _setup_inventory_system() -> void:
+	"""Load and setup the inventory panel"""
+	var inventory_scene = load("res://scene/inventory_panel.tscn")
+	if inventory_scene:
+		inventory_panel = inventory_scene.instantiate()
+		add_child(inventory_panel)
+		inventory_panel.z_index = 999
+		
+		if inventory_panel.has_signal("inventory_closed"):
+			inventory_panel.inventory_closed.connect(_on_inventory_closed)
+		
+		print("[Landing] ✅ Inventory system initialized")
+	else:
+		push_error("[Landing] ❌ Failed to load inventory_panel.tscn")
+
+func _on_inventory_closed() -> void:
+	"""Called when inventory panel is closed"""
+	print("[Landing] Inventory panel closed")
+
+func open_inventory() -> void:
+	"""Open the inventory/bag panel"""
+	if inventory_panel:
+		inventory_panel.show_inventory()
+	else:
+		push_error("[Landing] Inventory panel not initialized!")
+
+
+func _setup_video_and_music() -> void:
+	"""Setup video with fade overlay system and transition support"""
+	
+	# Setup video player
+	video_player = $VideoStreamPlayer
+	video_player.loop = false  # ✅ Disable auto-loop, we'll control it manually
+	video_player.autoplay = false
+	video_player.z_index = -90
+	video_player.modulate = Color(1, 1, 1, 1)
+	video_player.finished.connect(_on_video_finished)
+	
+	# ✅ Create BLACK OVERLAY (starts invisible)
+	fade_overlay = ColorRect.new()
+	fade_overlay.name = "VideoFadeOverlay"
+	fade_overlay.color = Color(0, 0, 0, 1)
+	fade_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fade_overlay.z_index = -80
+	fade_overlay.modulate.a = 0.0
+	fade_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(fade_overlay)
+	
+	# Load and play first video
+	_load_and_play_video(0)
+	
+	# Setup background music
+	audio_player = AudioStreamPlayer.new()
+	audio_player.name = "BackgroundMusicPlayer"
+	audio_player.volume_db = -15.0
+	audio_player.finished.connect(_on_music_finished)
+	add_child(audio_player)
+	
+	var music = load(background_music)
+	if music:
+		audio_player.stream = music
+		audio_player.play()
+		print("[Landing] ✅ Music playing")
+	
+	print("[Landing] ✅ Video transition system initialized")
+
+func _load_and_play_video(video_index: int) -> void:
+	"""Load and play a specific video by index"""
+	var video_path: String
+	
+	if video_index == 0:
+		video_path = background_video
+	else:
+		video_path = transition_video
+	
+	var video = load(video_path)
+	if video:
+		video_player.stream = video
+		video_player.play()
+		current_video_index = video_index
+		print("[Landing] ✅ Playing video %d: %s" % [video_index, video_path])
+	else:
+		push_error("[Landing] ❌ Failed to load video: %s" % video_path)
+
+func _on_video_finished() -> void:
+	"""Handle video completion based on current state"""
+	
+	if current_video_index == 0:
+		# Video 1 finished → transition to Video 2 (with fade)
+		print("[Landing] 🎬 Video 1 finished, transitioning to Video 2...")
+		_transition_to_video2()
+	
+	elif current_video_index == 1:
+		# Video 2 finished → just loop it (no fade)
+		print("[Landing] 🔁 Video 2 looping...")
+		video_player.play()  # Simple restart, no fade
+
+
+func _transition_to_video2() -> void:
+	"""Transition from Video 1 to Video 2 with fade"""
+	# Fade to black
+	var tween_out = create_tween()
+	tween_out.set_ease(Tween.EASE_IN_OUT)
+	tween_out.set_trans(Tween.TRANS_SINE)
+	tween_out.tween_property(fade_overlay, "modulate:a", 1.0, video_fade_duration)
+	await tween_out.finished
+	
+	# Load and play Video 2
+	_load_and_play_video(1)
+	
+	# Wait for video to start
+	await get_tree().create_timer(0.1).timeout
+	
+	# Fade from black
+	var tween_in = create_tween()
+	tween_in.set_ease(Tween.EASE_IN_OUT)
+	tween_in.set_trans(Tween.TRANS_SINE)
+	tween_in.tween_property(fade_overlay, "modulate:a", 0.0, video_fade_duration)
+	await tween_in.finished
+
+func _on_music_finished() -> void:
+	"""Music finished - restart with fade"""
+	print("[Landing] 🎵 Music finished, restarting with fade...")
+	_fade_loop_music()
+
+
+func _fade_loop_music() -> void:
+	"""Fade out music, restart, fade in"""
+	
+	# Fade out
+	var tween_out = create_tween()
+	tween_out.set_ease(Tween.EASE_IN_OUT)
+	tween_out.set_trans(Tween.TRANS_SINE)
+	tween_out.tween_property(audio_player, "volume_db", -80.0, music_fade_duration)
+	await tween_out.finished
+	
+	# Restart
+	audio_player.play()
+	
+	# Fade in
+	var tween_in = create_tween()
+	tween_in.set_ease(Tween.EASE_IN_OUT)
+	tween_in.set_trans(Tween.TRANS_SINE)
+	tween_in.tween_property(audio_player, "volume_db", -15.0, music_fade_duration)
+	await tween_in.finished
+	
+	print("[Landing] ✅ Music loop complete")

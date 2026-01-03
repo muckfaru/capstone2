@@ -1,7 +1,7 @@
 [gd_scene load_steps=17 format=3 uid="uid://bhgomehtb5guv"]
 
-[ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="1_7yur4"]
 [ext_resource type="Script" uid="uid://b2q0proc6qek6" path="res://script/login.gd" id="1_u7yg4"]
+[ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="2_ayshr"]
 [ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="2_xhhai"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_i5fi3"]
 [ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="4_7yur4"]
@@ -68,10 +68,10 @@ script = ExtResource("1_u7yg4")
 [node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
 layout_mode = 0
 offset_left = -7.0
-offset_top = -2.0
-offset_right = 1370.0
-offset_bottom = 652.0
-stream = ExtResource("1_7yur4")
+offset_top = -13.0
+offset_right = 1336.0
+offset_bottom = 662.0
+stream = ExtResource("2_ayshr")
 autoplay = true
 expand = true
 loop = true

@@ -1,12 +1,23 @@
-[gd_scene load_steps=10 format=3 uid="uid://bohnaxmk78jfw"]
+[gd_scene load_steps=12 format=3 uid="uid://bohnaxmk78jfw"]
 
 [ext_resource type="Script" uid="uid://q2bbcw5bdvqc" path="res://script/friend_list.gd" id="1_30j1j"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_2r4jo"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="3_js1fy"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hlv06"]
-bg_color = Color(0.00784314, 0.0666667, 0.137255, 0.670588)
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(1, 0.313726, 0.247059, 0.611765)
+shadow_size = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e1816"]
 bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o4l4v"]
 bg_color = Color(0, 0, 0, 0.317647)
@@ -15,7 +26,11 @@ bg_color = Color(0, 0, 0, 0.317647)
 draw_center = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2r4jo"]
-bg_color = Color(0.0509804, 0.0784314, 0.109804, 0.705882)
+bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
 corner_detail = 20
 expand_margin_left = 8.0
 expand_margin_right = 8.0
@@ -64,6 +79,8 @@ offset_left = 14.0
 offset_top = 3.0
 offset_right = 216.0
 offset_bottom = 43.0
+theme_override_fonts/font = ExtResource("2_2r4jo")
+theme_override_font_sizes/font_size = 15
 text = "Friends"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -91,6 +108,7 @@ offset_left = 15.0
 offset_top = -1.0
 offset_right = 217.0
 offset_bottom = 39.0
+theme_override_fonts/font = ExtResource("2_2r4jo")
 text = "Friend Request"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -125,6 +143,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.35
 mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("3_js1fy")
 theme_override_styles/focus = SubResource("StyleBoxFlat_js1fy")
 theme_override_styles/hover = SubResource("StyleBoxFlat_3d7hl")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_44a1m")

@@ -1,3 +1,5 @@
+#RewardPopup.gd
+
 extends CanvasLayer  # ✅ Changed from CanvasLayer to Control
 
 # === Signals ===
@@ -21,7 +23,10 @@ var sound_claim: AudioStreamPlayer
 var sound_item_fly: AudioStreamPlayer
 var sound_success: AudioStreamPlayer
 var sound_reveal: AudioStreamPlayer
+var save_status_label: Label = null
+var is_saving: bool = false
 
+var save_to_inventory: bool = true
 # === Animation State ===
 var rewards: Array = []
 var is_animating: bool = false
@@ -328,6 +333,16 @@ func _build_ui() -> void:
 	instruction_label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
 	vbox.add_child(instruction_label)
 	
+	save_status_label = Label.new()
+	save_status_label.text = "💾 Saving rewards..."
+	save_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	save_status_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	save_status_label.add_theme_font_size_override("font_size", 14)
+	save_status_label.visible = false
+	vbox.add_child(save_status_label)
+
+
+
 	var spacer3 = Control.new()
 	spacer3.custom_minimum_size = Vector2(0, 20)  # ✅ Increased spacing before button
 	vbox.add_child(spacer3)
@@ -764,18 +779,21 @@ func _start_animated_border() -> void:
 	shadow_tween.tween_property(panel_style, "shadow_color", Color(0.0, 0.2, 0.5, 0.6), 1.5)  # Darker blue glow
 
 func _animate_claim() -> void:
-	is_animating = true
+	if is_saving:
+		return
+	
+	is_saving = true
 	claim_button.disabled = true
 	
 	_play_sound(sound_claim)
 	_screen_shake(12.0, 0.4)
 	
-	# ✅ Trigger all confetti particles
+	# Trigger confetti
 	for child in panel_container.get_children():
 		if child is CPUParticles2D:
 			child.emitting = true
 	
-	# ✅ Updated flash colors for cyan theme
+	# Flash effect
 	var flash_overlay = ColorRect.new()
 	flash_overlay.color = Color(1, 1, 1, 0)
 	flash_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -786,6 +804,7 @@ func _animate_claim() -> void:
 	flash_tween.tween_property(flash_overlay, "color", Color(1, 1, 1, 0.3), 0.1)
 	flash_tween.tween_property(flash_overlay, "color", Color(1, 1, 1, 0), 0.3)
 	
+	# Animate items flying away
 	var item_index = 0
 	for item in reward_grid.get_children():
 		if item_index < rewards.size():
@@ -810,10 +829,27 @@ func _animate_claim() -> void:
 	
 	await get_tree().create_timer(0.5).timeout
 	
-	_apply_rewards()
+	# ✅ CRITICAL: Show "Saving..." and hide claim button
+	claim_button.visible = false
+	if instruction_label:
+		instruction_label.visible = false
+	if save_status_label:
+		save_status_label.visible = true
+		save_status_label.text = "💾 Saving rewards to inventory..."
+	
+	# ✅ Apply rewards and WAIT for completion
+	await _apply_rewards()
+	
+	# ✅ Update status
+	if save_status_label:
+		save_status_label.text = "✅ All rewards saved!"
 	
 	_play_sound(sound_success)
 	
+	# Wait a moment to show success message
+	await get_tree().create_timer(1.0).timeout
+	
+	# NOW close the popup
 	var panel_exit = create_tween()
 	panel_exit.set_parallel(true)
 	panel_exit.set_ease(Tween.EASE_IN)
@@ -866,19 +902,62 @@ func _create_floating_number(parent_item: Control, amount: int, reward_type: Str
 	float_label.queue_free()
 
 func _apply_rewards() -> void:
+	print("\n========== APPLYING REWARDS ==========")
+	print("[RewardPopup] Total rewards: %d" % rewards.size())
+	
+	var total_items_to_save := 0
+	var items_saved := 0
+	
+	# Count items that need saving
 	for reward in rewards:
+		if save_to_inventory and reward.type in ["badge", "item", "card", "avatar", "powerup"]:
+			total_items_to_save += 1
+	
+	print("[RewardPopup] Items to save to inventory: %d" % total_items_to_save)
+	
+	for i in range(rewards.size()):
+		var reward = rewards[i]
+		print("\n--- Reward %d/%d ---" % [i + 1, rewards.size()])
+		print("Type: %s | Name: %s | Amount: %d" % [reward.type, reward.name, reward.amount])
+		
 		match reward.type:
 			"xp":
+				print("[RewardPopup] → Processing XP reward")
 				if TutorialManager:
 					TutorialManager.add_xp(reward.amount, reward.name)
-			"badge":
-				print("[RewardPopup] Badge: %s" % reward.name)
+					print("[RewardPopup] ✅ XP added")
+			
+			"badge", "item", "card", "avatar", "powerup":
+				if save_to_inventory:
+					items_saved += 1
+					
+					# ✅ Update status label during save
+					if save_status_label:
+						save_status_label.text = "💾 Saving %s (%d/%d)..." % [reward.name, items_saved, total_items_to_save]
+					
+					print("[RewardPopup] → Saving %s to inventory..." % reward.type)
+					var success := await _save_reward_to_inventory_async(reward, reward.type)
+					
+					if success:
+						print("[RewardPopup] ✅ %s saved!" % reward.type.capitalize())
+					else:
+						push_error("[RewardPopup] ❌ Failed to save %s" % reward.type)
+				else:
+					print("[RewardPopup] ⚠️ save_to_inventory is FALSE")
+			
 			"currency":
-				print("[RewardPopup] Currency: %d" % reward.amount)
-			"item":
-				print("[RewardPopup] Item: %s" % reward.name)
+				print("[RewardPopup] → Currency reward (not saved)")
+			
+			_:
+				print("[RewardPopup] ⚠️ Unknown type: %s" % reward.type)
+	
+	print("\n========== REWARDS APPLIED (%d/%d saved) ==========" % [items_saved, total_items_to_save])
 
 func _on_claim_pressed() -> void:
+	if is_saving:
+		print("[RewardPopup] ⚠️ Already saving, ignoring click")
+		return
+	
 	_animate_claim()
 
 static func show_xp_reward(parent: Node, xp_amount: int, title: String = "🎉 Reward!") -> void:
@@ -902,3 +981,200 @@ static func show_multiple_rewards(parent: Node, reward_data: Array, title: Strin
 			data.get("description", "")
 		))
 	popup.show_rewards(rewards, title)
+
+# ✅ NEW: Async version that waits for completion
+# ✅ FIXED: Now uses integer timestamps
+func _save_reward_to_inventory_async(reward: RewardItem, item_type: String) -> bool:
+	"""Save a reward item and return success status"""
+	print("\n========== SAVING TO FIRESTORE ==========")
+	print("[RewardPopup] Item: %s | Type: %s" % [reward.name, item_type])
+	
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	
+	if user_id == "" or id_token == "":
+		push_error("[RewardPopup] ❌ User not logged in")
+		return false
+	
+	# ✅ FIX: Convert timestamp to integer (remove decimals)
+	var timestamp = int(Time.get_unix_time_from_system())
+	var random_suffix = randi() % 10000
+	var item_id = "%d_%s_%d" % [timestamp, item_type, random_suffix]
+	
+	print("[RewardPopup] Item ID: %s" % item_id)
+	
+	# Determine rarity
+	var rarity_value = _get_reward_rarity(reward)
+	var rarity_string = ""
+	match rarity_value:
+		Rarity.COMMON: rarity_string = "common"
+		Rarity.RARE: rarity_string = "rare"
+		Rarity.EPIC: rarity_string = "epic"
+		Rarity.LEGENDARY: rarity_string = "legendary"
+	
+	# Get icon path
+	var icon_path = ""
+	if reward.icon and reward.icon.resource_path:
+		icon_path = reward.icon.resource_path
+	else:
+		icon_path = "res://asset/icons/%s_icon.png" % item_type
+	
+	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s/inventory/%s" % [user_id, item_id]
+	
+	# ✅ FIX: Ensure all integer fields use str(int(...))
+	var body = {
+		"fields": {
+			"name": {"stringValue": reward.name},
+			"type": {"stringValue": item_type},
+			"rarity": {"stringValue": rarity_string},
+			"description": {"stringValue": reward.description},
+			"icon_path": {"stringValue": icon_path},
+			"amount": {"integerValue": str(reward.amount)},
+			"date_acquired": {"integerValue": str(timestamp)},  # ← Now using integer!
+			"is_equipped": {"booleanValue": false},
+			"is_used": {"booleanValue": false}
+		}
+	}
+	
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	
+	# ✅ Create HTTPRequest as child of root, NOT RewardPopup
+	var http = HTTPRequest.new()
+	get_tree().root.add_child(http)
+	
+	print("[RewardPopup] Sending HTTP request...")
+	var err = http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+	
+	if err != OK:
+		push_error("[RewardPopup] ❌ HTTP request failed: %s" % err)
+		http.queue_free()
+		return false
+	
+	# ✅ Wait for response
+	var response = await http.request_completed
+	var code = response[1]
+	var response_body = response[3]
+	
+	print("[RewardPopup] Response code: %d" % code)
+	
+	# Clean up
+	http.queue_free()
+	
+	if code == 200:
+		print("[RewardPopup] ✅ SUCCESS! Item saved: %s" % reward.name)
+		return true
+	else:
+		var error_msg = response_body.get_string_from_utf8() if response_body.size() > 0 else "No error message"
+		push_error("[RewardPopup] ❌ Save failed (Code %d): %s" % [code, error_msg])
+		return false
+
+# ✅ LEGACY: Keep old function for compatibility (but not used anymore)
+func _save_reward_to_inventory(reward: RewardItem, item_type: String) -> void:
+	"""Save a reward item to player's inventory in Firestore with detailed logging"""
+	print("\n========== SAVING REWARD TO INVENTORY ==========")
+	print("[RewardPopup] 🎁 Reward Name: %s" % reward.name)
+	print("[RewardPopup] 🎁 Reward Type: %s" % item_type)
+	print("[RewardPopup] 🎁 Reward Amount: %d" % reward.amount)
+	
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	
+	print("[RewardPopup] 🔑 User ID: %s" % user_id)
+	print("[RewardPopup] 🔑 Has Token: %s" % (id_token != ""))
+	
+	if user_id == "" or id_token == "":
+		push_error("[RewardPopup] ❌ CRITICAL: User not logged in - cannot save to inventory")
+		return
+	
+	# Generate unique item ID (timestamp + random)
+	var timestamp = Time.get_unix_time_from_system()
+	var random_suffix = randi() % 10000
+	var item_id = "%d_%s_%d" % [timestamp, item_type, random_suffix]
+	
+	print("[RewardPopup] 🆔 Generated Item ID: %s" % item_id)
+	
+	# Determine rarity
+	var rarity_value = _get_reward_rarity(reward)
+	var rarity_string = ""
+	match rarity_value:
+		Rarity.COMMON: rarity_string = "common"
+		Rarity.RARE: rarity_string = "rare"
+		Rarity.EPIC: rarity_string = "epic"
+		Rarity.LEGENDARY: rarity_string = "legendary"
+	
+	print("[RewardPopup] ⭐ Rarity: %s" % rarity_string)
+	
+	# Get icon path if available
+	var icon_path = ""
+	if reward.icon and reward.icon.resource_path:
+		icon_path = reward.icon.resource_path
+	else:
+		# Use default icon based on type
+		icon_path = "res://asset/icons/%s_icon.png" % item_type
+	
+	print("[RewardPopup] 🖼️ Icon Path: %s" % icon_path)
+	
+	# ✅ Firestore URL - will auto-create "inventory" subcollection
+	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s/inventory/%s" % [user_id, item_id]
+	
+	print("[RewardPopup] 🌐 Firestore URL: %s" % url)
+	
+	# Build Firestore document
+	var body = {
+		"fields": {
+			"name": {"stringValue": reward.name},
+			"type": {"stringValue": item_type},
+			"rarity": {"stringValue": rarity_string},
+			"description": {"stringValue": reward.description},
+			"icon_path": {"stringValue": icon_path},
+			"amount": {"integerValue": str(reward.amount)},
+			"date_acquired": {"integerValue": str(timestamp)},
+			"is_equipped": {"booleanValue": false},
+			"is_used": {"booleanValue": false}
+		}
+	}
+	
+	print("[RewardPopup] 📦 Request Body: %s" % JSON.stringify(body))
+	
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	
+	var http = HTTPRequest.new()
+	add_child(http)
+	
+	http.request_completed.connect(func(_r, code, _h, response_body):
+		print("\n========== FIRESTORE RESPONSE ==========")
+		print("[RewardPopup] 📥 Response Code: %d" % code)
+		
+		http.queue_free()
+		
+		if code == 200:
+			print("[RewardPopup] ✅✅✅ SUCCESS! Item saved to inventory!")
+			print("[RewardPopup] ✅ Saved: %s (%s)" % [reward.name, item_type])
+			print("[RewardPopup] ✅ Item ID: %s" % item_id)
+		elif code == 403:
+			print("[RewardPopup] ❌ 403 PERMISSION DENIED!")
+			print("[RewardPopup] ❌ Check Firestore Security Rules!")
+			var error_msg = response_body.get_string_from_utf8() if response_body.size() > 0 else "No error message"
+			print("[RewardPopup] ❌ Error Details: %s" % error_msg)
+		else:
+			var error_msg = response_body.get_string_from_utf8() if response_body.size() > 0 else "Unknown error"
+			push_error("[RewardPopup] ❌ Failed to save to inventory (Code %d): %s" % [code, error_msg])
+			print("[RewardPopup] ❌ Full Response: %s" % error_msg)
+		
+		print("========================================\n")
+	)
+	
+	print("[RewardPopup] 📤 Sending HTTP request...")
+	var err = http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+	
+	if err != OK:
+		push_error("[RewardPopup] ❌ HTTP REQUEST FAILED TO START: %s" % err)
+		http.queue_free()
+	else:
+		print("[RewardPopup] ✅ HTTP request sent successfully, waiting for response...")

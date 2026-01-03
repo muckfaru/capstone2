@@ -13,6 +13,16 @@ extends Control
 @onready var highlight_box: Panel = $HighlightBox
 @onready var progress_label: Label = $ProgressLabel
 
+var video_backgrounds: Array[String] = [
+	"res://asset/Cyberpunk_City_Video_Generation.ogv",
+	"res://asset/video_background_2.ogv",  # Add your second video path
+	"res://asset/video_background_3.ogv"   # Add your third video path
+]
+var current_video_index: int = 0
+var video_player_2: VideoStreamPlayer  # Second player for crossfade
+var is_transitioning: bool = false
+var video_transition_duration: float = 1.5  # Seconds for crossfade
+
 # Firestore configuration
 const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users"
 

@@ -1,16 +1,32 @@
-[gd_scene load_steps=4 format=3 uid="uid://b14mflwcapld1"]
+[gd_scene load_steps=7 format=3 uid="uid://b14mflwcapld1"]
 
 [ext_resource type="Script" uid="uid://elvke108a8gu" path="res://script/code_breaker_lobby.gd" id="1_p5ftw"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_0fvqx"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qydhr"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p5ftw"]
-bg_color = Color(0.00392157, 0.0745098, 0.160784, 0.690196)
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
+shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r2bpr"]
+bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
+shadow_color = Color(1, 0.313726, 0.247059, 0.611765)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0lbcp"]
+bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
+shadow_color = Color(1, 0.313726, 0.247059, 0.611765)
+shadow_size = 10
 
 [node name="CodeBreakerLobby" type="Panel"]
 offset_left = -99.0
@@ -32,6 +48,7 @@ offset_left = -260.65
 offset_top = 14.88
 offset_right = -384.35
 offset_bottom = 64.88
+theme_override_fonts/font = ExtResource("2_0fvqx")
 theme_override_font_sizes/font_size = 36
 text = "CODE BREAKER"
 horizontal_alignment = 1
@@ -62,24 +79,28 @@ anchor_bottom = 0.05
 [node name="LabelNo" type="Label" parent="LobbyPanel/HeaderRow"]
 custom_minimum_size = Vector2(50, 30)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_0fvqx")
 text = "No."
 horizontal_alignment = 1
 
 [node name="LabelUser" type="Label" parent="LobbyPanel/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_0fvqx")
 text = "Room name"
 horizontal_alignment = 1
 
 [node name="LabelPlayers" type="Label" parent="LobbyPanel/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_0fvqx")
 text = "Players"
 horizontal_alignment = 1
 
 [node name="LabelAction" type="Label" parent="LobbyPanel/HeaderRow"]
 custom_minimum_size = Vector2(100, 30)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_0fvqx")
 text = "Action"
 horizontal_alignment = 1
 
@@ -103,15 +124,19 @@ anchor_right = 0.95
 anchor_bottom = 0.9
 mouse_default_cursor_shape = 2
 theme_type_variation = &"PrimaryButton"
+theme_override_fonts/font = ExtResource("2_0fvqx")
+theme_override_styles/normal = SubResource("StyleBoxFlat_r2bpr")
 text = "CREATE ROOM"
 
 [node name="BackButton" type="Button" parent="LobbyPanel"]
 visibility_layer = 17
 layout_mode = 0
-offset_left = 27.0
-offset_top = 343.0
-offset_right = 95.0
-offset_bottom = 374.0
+offset_left = 29.0
+offset_top = 332.0
+offset_right = 116.0
+offset_bottom = 363.0
 mouse_default_cursor_shape = 2
 theme_type_variation = &"GhostButton"
-text = " ← Back"
+theme_override_fonts/font = ExtResource("2_0fvqx")
+theme_override_styles/normal = SubResource("StyleBoxFlat_0lbcp")
+text = "Back"
