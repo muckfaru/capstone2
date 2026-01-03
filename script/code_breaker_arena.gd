@@ -1450,7 +1450,7 @@ func _leave_arena() -> void:
 	
 	# Save XP to Firestore
 	if Auth.current_id_token:
-		_save_xp_to_firestore(xp_earned)
+		# XP awarding is handled in PostGame to avoid race conditions / double-awards.
 		# Also save match history
 		var host_id = str(_host_data.get("player_id", ""))
 		var client_id = str(_client_data.get("player_id", ""))
