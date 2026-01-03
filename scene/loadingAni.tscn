@@ -7,7 +7,7 @@
 
 [node name="LoadingAni" type="CanvasLayer"]
 script = ExtResource("1_rss3j")
-next_scene_path = "uid://b5unsd7g2bjhe"
+next_scene_path = "uid://bndqsl31ldabo"
 
 [node name="Control" type="Control" parent="."]
 layout_mode = 3
