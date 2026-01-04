@@ -217,6 +217,19 @@ Emit Signals:
 - `data_loaded()` - Firestore data loaded
 - `save_completed()` - Save finished
 
+### Akashic TCG Onboarding Flow (Pokemon Style)
+Triggered when clicking **AkashicTCG** in the Game Panel (Landing).
+
+1. **First-Time Check:** `landing.gd` checks Firestore `users/<uid>.akashic_tcg_tutorial_completed`.
+2. **Prompt:** "Is this your first time?" (Pokemon-style UI: Dark Blue/Cyan, Rounded Corners).
+   - **Yes:** Go to `scene/akashic_tcg_tutorial_arena.tscn`.
+   - **No:** Mark complete in Firestore -> Go to Lobby.
+3. **Tutorial Arena:**
+   - **Opponent:** AI Bot (simplified logic, plays 1-2 cards/turn).
+   - **Guide:** Agent01 (Pokemon-style portrait/dialogue, 110x110 size) explains UI steps before match.
+   - **Mechanics:** Exact clone of real Arena (same cards, SFX, BGM, visual style).
+   - **Completion:** Saves `akashic_tcg_tutorial_completed = true` in Firestore -> Returns to Landing.
+
 ## 🏗️ Architecture: WebSocket Relay
 
 **NO PORT FORWARDING NEEDED** - Both players connect TO server, server relays messages.

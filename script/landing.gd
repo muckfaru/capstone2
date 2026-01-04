@@ -7,7 +7,7 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 @onready var news_panel = $VideoStreamPlayer/HomePanel/NewsPanel
 @onready var mission_button: Button
 @onready var welcome_ui := $PokemonStyleWelcomeUI
-@onready var username_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/usernameInput  # Keep as Label!
+@onready var username_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/usernameInput # Keep as Label!
 @onready var level_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/levelInput
 @onready var wins_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/winsInput
 @onready var losses_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/losesInput
@@ -67,15 +67,13 @@ var current_video_index: int = 0
 @export var background_video: String = "res://asset/background/video_background_2.ogv"
 @export var transition_video: String = "res://asset/background/video_background_1.ogv"
 @export var background_music: String = "res://asset/background/LETHAL DOSE.mp3"
-@export var video_fade_duration: float = 0.8  # Faster fade looks more natural
+@export var video_fade_duration: float = 0.8 # Faster fade looks more natural
 @export var music_fade_duration: float = 2.0
 var video_player: VideoStreamPlayer = null
 var audio_player: AudioStreamPlayer = null
 var fade_overlay: ColorRect = null
 # === Lifecycle ===
 func _ready() -> void:
-
-	
 	http = HTTPRequest.new()
 	add_child(http)
 	_setup_inventory_system()
@@ -97,7 +95,7 @@ func _ready() -> void:
 	_load_user_data_and_check_tutorial()
 	_ensure_match_history_ui()
 	_instantiate_chat_panel()
-	_setup_inventory_system()  # ✅ Initialize inventory system
+	_setup_inventory_system() # ✅ Initialize inventory system
 	Auth.set_user_online()
 	
 	# Connect XP signals
@@ -150,7 +148,7 @@ func _force_initial_ui_layout() -> void:
 		profile_pic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		profile_pic.custom_minimum_size = Vector2(80, 80)
 		profile_pic.size = Vector2(80, 80)
-		profile_pic.position = Vector2(30, 25)  # Ends at x=110, y=105
+		profile_pic.position = Vector2(30, 25) # Ends at x=110, y=105
 		profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -174,40 +172,40 @@ func _force_initial_ui_layout() -> void:
 	# ✅✅✅ STATS ROW - MOVED DOWN to y=115 (below profile pic at y=105)
 	var wins_label = user_panel.get_node_or_null("winsLabel")
 	if wins_label:
-		wins_label.position = Vector2(29, 115)  # Changed from 95 to 115
+		wins_label.position = Vector2(29, 115) # Changed from 95 to 115
 		wins_label.size = Vector2(30, 23)
 	
 	if wins_input:
-		wins_input.position = Vector2(56, 115)  # Changed from 95 to 115
+		wins_input.position = Vector2(56, 115) # Changed from 95 to 115
 		wins_input.size = Vector2(30, 23)
 	
 	var losses_label = user_panel.get_node_or_null("losesLabel")
 	if losses_label:
-		losses_label.position = Vector2(91, 115)  # Changed from 95 to 115
+		losses_label.position = Vector2(91, 115) # Changed from 95 to 115
 		losses_label.size = Vector2(25, 23)
 	
 	if losses_input:
-		losses_input.position = Vector2(114, 115)  # Changed from 95 to 115
+		losses_input.position = Vector2(114, 115) # Changed from 95 to 115
 		losses_input.size = Vector2(30, 23)
 	
 	var winrate_label = user_panel.get_node_or_null("WinrateLabel")
 	if winrate_label:
-		winrate_label.position = Vector2(146, 115)  # Changed from 95 to 115
+		winrate_label.position = Vector2(146, 115) # Changed from 95 to 115
 		winrate_label.size = Vector2(40, 23)
 	
 	var winrate_input = user_panel.get_node_or_null("winrateInput")
 	if winrate_input:
-		winrate_input.position = Vector2(187, 115)  # Changed from 95 to 115
+		winrate_input.position = Vector2(187, 115) # Changed from 95 to 115
 		winrate_input.size = Vector2(40, 23)
 	
 	# ✅ Match played - also moved down
 	var match_played_label = user_panel.get_node_or_null("MatchPlayedLabel")
 	if match_played_label:
-		match_played_label.position = Vector2(29, 141)  # Changed from 121 to 141
+		match_played_label.position = Vector2(29, 141) # Changed from 121 to 141
 		match_played_label.size = Vector2(130, 23)
 	
 	if match_played_input:
-		match_played_input.position = Vector2(165, 141)  # Changed from 121 to 141
+		match_played_input.position = Vector2(165, 141) # Changed from 121 to 141
 		match_played_input.size = Vector2(50, 23)
 	# ✅ Hide old elements
 	if save_btn:
@@ -319,7 +317,7 @@ func _query_match_history_by_uid(uid: String) -> void:
 
 	var query_body := {
 		"structuredQuery": {
-			"from": [{"collectionId": "match_history"}],
+			"from": [ {"collectionId": "match_history"}],
 			"where": {
 				"fieldFilter": {
 					"field": {"fieldPath": "participant_ids"},
@@ -372,7 +370,7 @@ func _query_match_history_by_username(username: String) -> void:
 	# Legacy documents store host/client as usernames.
 	var query_body := {
 		"structuredQuery": {
-			"from": [{"collectionId": "match_history"}],
+			"from": [ {"collectionId": "match_history"}],
 			"where": {
 				"compositeFilter": {
 					"op": "OR",
@@ -690,8 +688,8 @@ func _initialize_profile_ui() -> void:
 		btn_style_normal.corner_radius_bottom_right = 6
 		
 		# ✅ UNEVEN MARGINS: Less left, more right = shifts content left
-		btn_style_normal.content_margin_left = 20  # Reduced from 10
-		btn_style_normal.content_margin_right = 65  # Increased from 10
+		btn_style_normal.content_margin_left = 20 # Reduced from 10
+		btn_style_normal.content_margin_right = 65 # Increased from 10
 		btn_style_normal.content_margin_top = 8
 		btn_style_normal.content_margin_bottom = 8
 		
@@ -706,7 +704,7 @@ func _initialize_profile_ui() -> void:
 		edit_btn.add_theme_color_override("font_color", Color(0, 1, 1, 1))
 		edit_btn.add_theme_font_size_override("font_size", 15)
 		
-		edit_btn.add_theme_constant_override("h_separation", 20)  # Space between icon and text
+		edit_btn.add_theme_constant_override("h_separation", 20) # Space between icon and text
 		edit_btn.add_theme_constant_override("icon_max_width", 24)
 		
 		edit_btn.pressed.connect(_open_edit_profile_popup)
@@ -726,13 +724,13 @@ func _create_xp_progress_bar() -> void:
 	var existing_bar = user_panel.get_node_or_null("XPProgressBar")
 	if existing_bar:
 		xp_progress = existing_bar
-		xp_progress.position = Vector2(23, 225)  # ✅ Changed from 205 to 225
+		xp_progress.position = Vector2(23, 225) # ✅ Changed from 205 to 225
 		xp_progress.size = Vector2(200, 28)
 		return
 	
 	xp_progress = ProgressBar.new()
 	xp_progress.name = "XPProgressBar"
-	xp_progress.position = Vector2(23, 225)  # ✅ Changed from 205 to 225
+	xp_progress.position = Vector2(23, 225) # ✅ Changed from 205 to 225
 	xp_progress.size = Vector2(200, 28)
 	xp_progress.min_value = 0
 	xp_progress.max_value = 1000
@@ -899,14 +897,14 @@ func _create_edit_profile_button() -> void:
 	edit_btn.name = "EditProfileButton"
 	edit_btn.text = "Edit Profile"
 	edit_btn.custom_minimum_size = Vector2(180, 35)
-	edit_btn.position = Vector2(33, 160)  # ✅ Moved up to where "Select image" was
+	edit_btn.position = Vector2(33, 160) # ✅ Moved up to where "Select image" was
 	edit_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
-	var edit_icon = load("res://asset/icons/edit_icon.png")  # Change path to your icon
+	var edit_icon = load("res://asset/icons/edit_icon.png") # Change path to your icon
 	if edit_icon:
 		edit_btn.icon = edit_icon
-		edit_btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT  # Icon on left side
-		edit_btn.expand_icon = true  # Keep icon crisp		
+		edit_btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT # Icon on left side
+		edit_btn.expand_icon = true # Keep icon crisp
 	# Neon cyan style
 	var btn_style_normal = StyleBoxFlat.new()
 	btn_style_normal.bg_color = Color(0, 0.4, 0.5, 0.8)
@@ -939,7 +937,7 @@ func _create_edit_profile_button() -> void:
 func _open_edit_profile_popup() -> void:
 	"""Show the Edit Profile popup panel"""
 	if edit_profile_popup and is_instance_valid(edit_profile_popup):
-		return  # Already open
+		return # Already open
 	
 	# Store original values
 	original_username = username_input.text
@@ -1345,9 +1343,9 @@ func _save_profile_changes() -> void:
 	var url = "%s/%s?updateMask.fieldPaths=username&updateMask.fieldPaths=avatar&updateMask.fieldPaths=last_avatar_change" % [firestore_base_url, user_id]
 	var body = {
 		"fields": {
-			"username": { "stringValue": username_input.text },
-			"avatar": { "stringValue": selected_avatar },
-			"last_avatar_change": { "integerValue": str(last_avatar_change) }
+			"username": {"stringValue": username_input.text},
+			"avatar": {"stringValue": selected_avatar},
+			"last_avatar_change": {"integerValue": str(last_avatar_change)}
 		}
 	}
 	var headers = [
@@ -1429,8 +1427,6 @@ func _show_success_notification() -> void:
 	notif_panel.queue_free()
 
 
-
-
 func _setup_username_editing() -> void:
 	"""Convert username label to editable LineEdit"""
 	if not username_input:
@@ -1485,7 +1481,6 @@ func _setup_username_editing() -> void:
 func _on_username_changed(_new_text: String) -> void:
 	"""Called when username is edited"""
 	_check_for_changes()
-
 
 
 func _on_custom_avatar_selected(path: String) -> void:
@@ -1553,7 +1548,7 @@ func _check_for_changes() -> void:
 func _show_save_confirmation_popup() -> void:
 	"""Show neon-styled confirmation popup"""
 	if confirmation_popup and is_instance_valid(confirmation_popup):
-		return  # Popup already showing
+		return # Popup already showing
 	
 	# Create popup panel
 	confirmation_popup = Panel.new()
@@ -1714,7 +1709,7 @@ func _close_confirmation_popup() -> void:
 func _confirm_save_profile() -> void:
 	"""Save profile changes"""
 	has_unsaved_changes = false
-	_on_save_profile_pressed()  # Call your existing save function
+	_on_save_profile_pressed() # Call your existing save function
 
 func _discard_changes() -> void:
 	"""Discard changes and restore original values"""
@@ -1789,8 +1784,8 @@ void fragment() {
 	var shader_material = ShaderMaterial.new()
 	shader_material.shader = shader
 	shader_material.set_shader_parameter("glow_color", glow_color)
-	shader_material.set_shader_parameter("glow_strength", 1.5)  # Reduced for subtlety
-	shader_material.set_shader_parameter("glow_size", 0.05)     # Reduced for tighter glow
+	shader_material.set_shader_parameter("glow_strength", 1.5) # Reduced for subtlety
+	shader_material.set_shader_parameter("glow_size", 0.05) # Reduced for tighter glow
 	
 	icon.material = shader_material
 	
@@ -2121,7 +2116,7 @@ func _setup_mission_system() -> void:
 	mission_button.add_theme_stylebox_override("focus", btn_style)
 	mission_button.add_theme_font_size_override("font_size", 16)
 	mission_button.add_theme_color_override("font_color", Color.WHITE)
-	mission_button.add_theme_color_override("font_hover_color", Color.WHITE)  # No color change on hover
+	mission_button.add_theme_color_override("font_hover_color", Color.WHITE) # No color change on hover
 	mission_button.add_theme_color_override("font_pressed_color", Color.WHITE)
 	mission_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	mission_button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
@@ -2131,8 +2126,8 @@ func _setup_mission_system() -> void:
 	var divider = ColorRect.new()
 	divider.name = "MissionDivider"
 	divider.size = Vector2(380, 2)
-	divider.position = Vector2(10, 115)  # Below the text
-	divider.color = Color(0, 0, 0, 1)  # Black color
+	divider.position = Vector2(10, 115) # Below the text
+	divider.color = Color(0, 0, 0, 1) # Black color
 	
 	# Connect button click
 	mission_button.pressed.connect(_on_mission_button_pressed)
@@ -2174,7 +2169,7 @@ func _animate_mission_button() -> void:
 		return
 	
 	var tween = create_tween()
-	tween.set_loops(5)  # Pulse 5 times
+	tween.set_loops(5) # Pulse 5 times
 	tween.tween_property(mission_button, "modulate:a", 0.6, 0.5)
 	tween.tween_property(mission_button, "modulate:a", 1.0, 0.5)
 
@@ -2193,12 +2188,12 @@ func _on_mission_button_pressed() -> void:
 	
 	# Style the panel (matching mode_selection style)
 	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.05, 0.1, 0.15, 0.95)  # Dark blue-ish background
+	panel_style.bg_color = Color(0.05, 0.1, 0.15, 0.95) # Dark blue-ish background
 	panel_style.border_width_left = 2
 	panel_style.border_width_top = 2
 	panel_style.border_width_right = 2
 	panel_style.border_width_bottom = 2
-	panel_style.border_color = Color(0, 0.9, 1, 0.8)  # Cyan border
+	panel_style.border_color = Color(0, 0.9, 1, 0.8) # Cyan border
 	panel_style.corner_radius_top_left = 8
 	panel_style.corner_radius_top_right = 8
 	panel_style.corner_radius_bottom_left = 8
@@ -2223,7 +2218,7 @@ func _on_mission_button_pressed() -> void:
 	mission_title.position = Vector2(0, 50)
 	mission_title.size = Vector2(700, 40)
 	mission_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	mission_title.add_theme_color_override("font_color", Color(0, 1, 1, 1))  # Cyan
+	mission_title.add_theme_color_override("font_color", Color(0, 1, 1, 1)) # Cyan
 	mission_title.add_theme_font_size_override("font_size", 28)
 	dialog_panel.add_child(mission_title)
 	
@@ -2234,7 +2229,7 @@ func _on_mission_button_pressed() -> void:
 	description.size = Vector2(620, 80)
 	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD
-	description.add_theme_color_override("font_color", Color(0, 1, 1, 1))  # Cyan
+	description.add_theme_color_override("font_color", Color(0, 1, 1, 1)) # Cyan
 	description.add_theme_font_size_override("font_size", 16)
 	dialog_panel.add_child(description)
 	
@@ -2248,7 +2243,7 @@ func _on_mission_button_pressed() -> void:
 	mission_label.position = Vector2(40, 190)
 	mission_label.size = Vector2(620, 120)
 	mission_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	mission_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))  # Cyan
+	mission_label.add_theme_color_override("font_color", Color(0, 1, 1, 1)) # Cyan
 	mission_label.add_theme_font_size_override("font_size", 16)
 	dialog_panel.add_child(mission_label)
 	
@@ -2258,7 +2253,7 @@ func _on_mission_button_pressed() -> void:
 	reward_label.position = Vector2(40, 310)
 	reward_label.size = Vector2(620, 30)
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	reward_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))  # Cyan
+	reward_label.add_theme_color_override("font_color", Color(0, 1, 1, 1)) # Cyan
 	reward_label.add_theme_font_size_override("font_size", 18)
 	dialog_panel.add_child(reward_label)
 	
@@ -2268,7 +2263,7 @@ func _on_mission_button_pressed() -> void:
 	challenge_label.position = Vector2(40, 345)
 	challenge_label.size = Vector2(620, 30)
 	challenge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	challenge_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))  # Cyan
+	challenge_label.add_theme_color_override("font_color", Color(0, 1, 1, 1)) # Cyan
 	challenge_label.add_theme_font_size_override("font_size", 16)
 	dialog_panel.add_child(challenge_label)
 	
@@ -2276,7 +2271,7 @@ func _on_mission_button_pressed() -> void:
 	var accept_btn = Button.new()
 	accept_btn.text = "Accept Mission"
 	accept_btn.custom_minimum_size = Vector2(200, 40)
-	accept_btn.position = Vector2(175, 395)  # Centered: (700 - 450) / 2 = 125, then 125 + 50 = 175
+	accept_btn.position = Vector2(175, 395) # Centered: (700 - 450) / 2 = 125, then 125 + 50 = 175
 	accept_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	
 	var btn_style_normal = StyleBoxFlat.new()
@@ -2312,7 +2307,7 @@ func _on_mission_button_pressed() -> void:
 	var later_btn = Button.new()
 	later_btn.text = "Later"
 	later_btn.custom_minimum_size = Vector2(200, 40)
-	later_btn.position = Vector2(395, 395)  # 175 + 200 (button width) + 20 (gap) = 395
+	later_btn.position = Vector2(395, 395) # 175 + 200 (button width) + 20 (gap) = 395
 	later_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	
 	later_btn.add_theme_stylebox_override("normal", btn_style_normal)
@@ -2489,7 +2484,7 @@ func _show_starter_reward_popup(welcome_completed: bool) -> void:
 
 	var popup = preload("res://scene/reward_popup.tscn").instantiate()
 	add_child(popup)
-	popup.save_to_inventory = false  # we'll save the custom items ourselves (needs subtype for cosmetics)
+	popup.save_to_inventory = false # we'll save the custom items ourselves (needs subtype for cosmetics)
 
 	var custom_font = load("res://asset/fonts/NicoMoji-Regular.ttf")
 	_apply_font_to_children(popup, custom_font, 20)
@@ -2626,7 +2621,7 @@ func _show_welcome_reward() -> void:
 	var popup = preload("res://scene/reward_popup.tscn").instantiate()
 	add_child(popup)
 	
-	var custom_font = load("res://asset/fonts/NicoMoji-Regular.ttf")  # or .otf
+	var custom_font = load("res://asset/fonts/NicoMoji-Regular.ttf") # or .otf
 	
 	_apply_font_to_children(popup, custom_font, 20)
 
@@ -2679,7 +2674,7 @@ func _save_mission_completion_to_firestore() -> void:
 	var url = "%s/%s?updateMask.fieldPaths=first_mission_completed" % [firestore_base_url, user_id]
 	var body = {
 		"fields": {
-			"first_mission_completed": { "booleanValue": true }
+			"first_mission_completed": {"booleanValue": true}
 		}
 	}
 	var headers = [
@@ -2811,12 +2806,12 @@ func _on_save_profile_pressed() -> void:
 	var url = "%s/%s?updateMask.fieldPaths=username&updateMask.fieldPaths=level&updateMask.fieldPaths=wins&updateMask.fieldPaths=losses&updateMask.fieldPaths=avatar&updateMask.fieldPaths=last_avatar_change" % [firestore_base_url, user_id]
 	var body = {
 		"fields": {
-			"username": { "stringValue": username_input.text },
-			"level": { "integerValue": level_input.text },
-			"wins": { "integerValue": wins_input.text },
-			"losses": { "integerValue": losses_input.text },
-			"avatar": { "stringValue": selected_avatar },
-			"last_avatar_change": { "integerValue": str(last_avatar_change) }
+			"username": {"stringValue": username_input.text},
+			"level": {"integerValue": level_input.text},
+			"wins": {"integerValue": wins_input.text},
+			"losses": {"integerValue": losses_input.text},
+			"avatar": {"stringValue": selected_avatar},
+			"last_avatar_change": {"integerValue": str(last_avatar_change)}
 		}
 	}
 	var headers = [
@@ -2909,7 +2904,7 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 			Auth.current_avatar = selected_avatar
 		
 		# ✅ IMPORTANT: Call this AFTER setting the texture
-		await get_tree().process_frame  # Wait one frame for texture to apply
+		await get_tree().process_frame # Wait one frame for texture to apply
 		_setup_profile_picture_constraints()
 		
 	if f.has("last_avatar_change"):
@@ -3045,8 +3040,8 @@ func _on_reset_stats_pressed() -> void:
 	var url = "%s/%s?updateMask.fieldPaths=wins&updateMask.fieldPaths=losses" % [firestore_base_url, user_id]
 	var body = {
 		"fields": {
-			"wins": { "integerValue": 0 },
-			"losses": { "integerValue": 0 }
+			"wins": {"integerValue": 0},
+			"losses": {"integerValue": 0}
 		}
 	}
 	var headers = [
@@ -3095,17 +3090,149 @@ func _on_defuse_trojan_gui_input(event: InputEvent) -> void:
 func _on_akashic_tcg_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("[Landing] Akashic TCG clicked")
-		var game_select_panel = $VideoStreamPlayer/GameSelectPanel
-		if game_select_panel:
-			game_select_panel.visible = false
+		# Check if first-time player before showing lobby
+		_check_akashic_tutorial_status()
 
-		var code_breaker_lobby = $VideoStreamPlayer.get_node_or_null("CodeBreakerLobby")
-		if code_breaker_lobby:
-			code_breaker_lobby.visible = false
 
-		var akashic_lobby = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
-		if akashic_lobby:
-			akashic_lobby.visible = true
+func _check_akashic_tutorial_status() -> void:
+	"""Check Firestore for akashic_tcg_tutorial_completed before going to lobby"""
+	print("[Landing] Checking AkashicTCG tutorial status...")
+	
+	if not Auth or Auth.current_local_id == "" or Auth.current_id_token == "":
+		print("[Landing] No auth, skipping tutorial check")
+		_go_to_akashic_lobby()
+		return
+	
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % user_id
+	
+	var tutorial_http = HTTPRequest.new()
+	add_child(tutorial_http)
+	
+	tutorial_http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		tutorial_http.queue_free()
+		
+		if code != 200:
+			print("[Landing] Could not fetch user data, assuming first time")
+			_show_akashic_tutorial_prompt()
+			return
+		
+		var json = JSON.parse_string(body.get_string_from_utf8())
+		if json == null or not json.has("fields"):
+			print("[Landing] Invalid response, assuming first time")
+			_show_akashic_tutorial_prompt()
+			return
+		
+		var fields = json["fields"]
+		if fields.has("akashic_tcg_tutorial_completed"):
+			var val = fields["akashic_tcg_tutorial_completed"]
+			if val.has("booleanValue") and val["booleanValue"] == true:
+				print("[Landing] ✅ Tutorial already completed, going to lobby")
+				_go_to_akashic_lobby()
+				return
+		
+		print("[Landing] 🆕 First time player! Showing tutorial prompt")
+		_show_akashic_tutorial_prompt()
+	)
+	
+	var headers = ["Authorization: Bearer %s" % id_token]
+	var err = tutorial_http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		push_error("[Landing] Failed to check tutorial status")
+		tutorial_http.queue_free()
+		_go_to_akashic_lobby()
+
+
+func _show_akashic_tutorial_prompt() -> void:
+	"""Show Pokemon-style tutorial prompt when clicking AkashicTCG for first time"""
+	print("[Landing] Showing AkashicTCG tutorial prompt...")
+	
+	var popup_scene = load("res://scene/akashic_tcg_tutorial_prompt.tscn")
+	if not popup_scene:
+		push_error("[Landing] Tutorial prompt scene not found!")
+		_go_to_akashic_lobby()
+		return
+	
+	var popup: Window = popup_scene.instantiate()
+	add_child(popup)
+	popup.popup()
+	
+	# Get button references
+	var yes_btn = popup.get_node_or_null("Panel/VBoxContainer/ButtonContainer/YesButton")
+	var no_btn = popup.get_node_or_null("Panel/VBoxContainer/ButtonContainer/NoButton")
+	
+	if yes_btn:
+		yes_btn.pressed.connect(func():
+			popup.queue_free()
+			_go_to_akashic_tutorial()
+		)
+	
+	if no_btn:
+		no_btn.pressed.connect(func():
+			popup.queue_free()
+			_skip_akashic_tutorial()
+		)
+
+
+func _go_to_akashic_tutorial() -> void:
+	"""Navigate directly to tutorial arena"""
+	print("[Landing] 🎮 Going to AkashicTCG Tutorial Arena...")
+	get_tree().change_scene_to_file("res://scene/akashic_tcg_tutorial_arena.tscn")
+
+
+func _skip_akashic_tutorial() -> void:
+	"""Player skipped tutorial, mark complete and go to lobby"""
+	print("[Landing] Player skipped tutorial, going to lobby")
+	_mark_akashic_tutorial_complete()
+	_go_to_akashic_lobby()
+
+
+func _mark_akashic_tutorial_complete() -> void:
+	"""Mark tutorial as completed in Firestore"""
+	if not Auth or Auth.current_local_id == "" or Auth.current_id_token == "":
+		return
+	
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s?updateMask.fieldPaths=akashic_tcg_tutorial_completed" % user_id
+	
+	var body = {
+		"fields": {
+			"akashic_tcg_tutorial_completed": {"booleanValue": true}
+		}
+	}
+	
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	
+	var mark_http = HTTPRequest.new()
+	add_child(mark_http)
+	
+	mark_http.request_completed.connect(func(_r, code, _h, _b):
+		mark_http.queue_free()
+		if code == 200:
+			print("[Landing] ✅ Tutorial skip saved")
+	)
+	
+	mark_http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+
+
+func _go_to_akashic_lobby() -> void:
+	"""Show AkashicTCG lobby panel (normal flow)"""
+	var game_select_panel = $VideoStreamPlayer/GameSelectPanel
+	if game_select_panel:
+		game_select_panel.visible = false
+
+	var code_breaker_lobby = $VideoStreamPlayer.get_node_or_null("CodeBreakerLobby")
+	if code_breaker_lobby:
+		code_breaker_lobby.visible = false
+
+	var akashic_lobby = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
+	if akashic_lobby:
+		akashic_lobby.visible = true
 
 
 func _on_code_breaker_gui_input(event: InputEvent) -> void:
@@ -3137,7 +3264,7 @@ func _show_locked_game_dialog(game_name: String, required_xp: int) -> void:
 	dialog.title = "🔒 Game Locked"
 	dialog.dialog_text = "%s is locked!\n\nYour XP: %d\nRequired XP: %d\nNeeded: %d more XP\n\nComplete tutorials in Mode Selection to earn XP." % [game_name, current_xp, required_xp, xp_needed]
 	dialog.ok_button_text = "Go to Mode Selection"
-	dialog.exclusive = false  # ✅ Allow other windows
+	dialog.exclusive = false # ✅ Allow other windows
 	dialog.canceled.connect(func(): dialog.queue_free(), CONNECT_ONE_SHOT)
 	dialog.confirmed.connect(func():
 		dialog.queue_free()
@@ -3162,7 +3289,7 @@ func _setup_profile_picture_constraints() -> void:
 	profile_pic.position = Vector2(30, 25)
 	
 	# ✅ Prevent texture from scaling beyond container
-	profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE  # Changed from EXPAND_FIT_WIDTH_PROPORTIONAL
+	profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE # Changed from EXPAND_FIT_WIDTH_PROPORTIONAL
 	profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
@@ -3200,7 +3327,7 @@ func _setup_video_and_music() -> void:
 	
 	# Setup video player
 	video_player = $VideoStreamPlayer
-	video_player.loop = false  # ✅ Disable auto-loop, we'll control it manually
+	video_player.loop = false # ✅ Disable auto-loop, we'll control it manually
 	video_player.autoplay = false
 	video_player.z_index = -90
 	video_player.modulate = Color(1, 1, 1, 1)
@@ -3263,7 +3390,7 @@ func _on_video_finished() -> void:
 	elif current_video_index == 1:
 		# Video 2 finished → just loop it (no fade)
 		print("[Landing] 🔁 Video 2 looping...")
-		video_player.play()  # Simple restart, no fade
+		video_player.play() # Simple restart, no fade
 
 
 func _transition_to_video2() -> void:

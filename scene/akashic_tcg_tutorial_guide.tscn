@@ -1,0 +1,131 @@
+[gd_scene load_steps=5 format=3 uid="uid://tutorial_guide_scene"]
+
+[ext_resource type="Script" path="res://script/akashic_tcg_tutorial_guide.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialogue"]
+bg_color = Color(0.05, 0.05, 0.1, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0.8, 1, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_portrait"]
+bg_color = Color(0.1, 0.1, 0.15, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.8, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="AkashicTCGTutorialGuide" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1")
+
+[node name="Overlay" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="HighlightBox" type="ReferenceRect" parent="."]
+offset_left = 100.0
+offset_top = 100.0
+offset_right = 300.0
+offset_bottom = 200.0
+border_color = Color(0, 0.9, 1, 1)
+border_width = 4.0
+editor_only = false
+
+[node name="DialogueBox" type="Panel" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -180.0
+offset_right = 400.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialogue")
+
+[node name="Portrait" type="Panel" parent="DialogueBox"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 130.0
+offset_bottom = 130.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_portrait")
+
+[node name="TextureRect" type="TextureRect" parent="DialogueBox/Portrait"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MarginContainer" type="MarginContainer" parent="DialogueBox"]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 20.0
+offset_right = 780.0
+offset_bottom = 130.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 5
+
+[node name="DialogueText" type="Label" parent="DialogueBox/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 18
+text = "Welcome to the AkashicTCG Arena!"
+autowrap_mode = 3
+clip_text = true
+
+[node name="ContinueIndicator" type="Label" parent="DialogueBox"]
+layout_mode = 0
+offset_left = 550.0
+offset_top = 120.0
+offset_right = 785.0
+offset_bottom = 145.0
+theme_override_colors/font_color = Color(0, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "▼ Tap to continue"
+horizontal_alignment = 2
+
+[node name="SkipButton" type="Button" parent="DialogueBox"]
+layout_mode = 0
+offset_left = 680.0
+offset_top = -40.0
+offset_right = 800.0
+offset_bottom = -10.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(0, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Skip Tutorial"
+flat = true
+alignment = 2

@@ -2,7 +2,7 @@ extends Panel
 
 @onready var room_list: VBoxContainer = $LobbyPanel/RoomListContainer
 @onready var create_btn: Button = $LobbyPanel/CreateRoomButton
-@onready var back_btn: Button = $LobbyPanel/BackButton  # Added back button reference
+@onready var back_btn: Button = $LobbyPanel/BackButton # Added back button reference
 var _rooms: Array = []
 
 var _multiplayer_config: Node = null
@@ -10,6 +10,10 @@ var _lobby_server_url: String = ""
 
 const POLL_INTERVAL := 5.0
 var _poll_timer: Timer = null
+
+# Tutorial check variables
+var _tutorial_checked := false
+var _tutorial_completed := false
 
 func _ready() -> void:
 	_initialize_multiplayer_config()
@@ -27,7 +31,7 @@ func _ready() -> void:
 	else:
 		push_warning("[AkashicLobby] BackButton not found")
 
-	# Poll room list periodically
+	# Poll room list periodically (tutorial check moved to landing.gd)
 	_start_room_polling()
 
 
@@ -368,3 +372,156 @@ func _ping_server_to_wake() -> void:
 		await get_tree().create_timer(0.5).timeout
 		wait_time += 0.5
 	await get_tree().create_timer(0.5).timeout
+
+
+# ============================================
+# TUTORIAL SYSTEM FUNCTIONS
+# ============================================
+
+func _check_tutorial_status() -> void:
+	"""Check if player has completed the AkashicTCG tutorial"""
+	print("[AkashicLobby] Checking tutorial status...")
+	
+	if not Auth or Auth.current_local_id == "" or Auth.current_id_token == "":
+		print("[AkashicLobby] No auth state, skipping tutorial check")
+		_tutorial_checked = true
+		_tutorial_completed = true
+		_start_room_polling()
+		return
+	
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % user_id
+	
+	var http = HTTPRequest.new()
+	add_child(http)
+	
+	http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		http.queue_free()
+		_tutorial_checked = true
+		
+		if code != 200:
+			print("[AkashicLobby] Could not fetch user data, assuming first time")
+			_tutorial_completed = false
+			_show_tutorial_prompt()
+			return
+		
+		var json = JSON.parse_string(body.get_string_from_utf8())
+		if json == null or not json.has("fields"):
+			print("[AkashicLobby] Invalid response, assuming first time")
+			_tutorial_completed = false
+			_show_tutorial_prompt()
+			return
+		
+		var fields = json["fields"]
+		if fields.has("akashic_tcg_tutorial_completed"):
+			var val = fields["akashic_tcg_tutorial_completed"]
+			if val.has("booleanValue") and val["booleanValue"] == true:
+				print("[AkashicLobby] ✅ Tutorial already completed")
+				_tutorial_completed = true
+				_start_room_polling()
+				return
+		
+		print("[AkashicLobby] 🆕 First time player detected!")
+		_tutorial_completed = false
+		_show_tutorial_prompt()
+	)
+	
+	var headers = ["Authorization: Bearer %s" % id_token]
+	var err = http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		push_error("[AkashicLobby] Failed to check tutorial status")
+		http.queue_free()
+		_tutorial_checked = true
+		_tutorial_completed = true
+		_start_room_polling()
+
+
+func _show_tutorial_prompt() -> void:
+	"""Show Pokemon-style tutorial prompt popup"""
+	print("[AkashicLobby] Showing tutorial prompt...")
+	
+	var popup_scene = load("res://scene/akashic_tcg_tutorial_prompt.tscn")
+	if not popup_scene:
+		push_error("[AkashicLobby] Tutorial prompt scene not found!")
+		_start_room_polling()
+		return
+	
+	var popup: Window = popup_scene.instantiate()
+	add_child(popup)
+	popup.popup()
+	
+	# Get button references
+	var yes_btn = popup.get_node_or_null("Panel/VBoxContainer/ButtonContainer/YesButton")
+	var no_btn = popup.get_node_or_null("Panel/VBoxContainer/ButtonContainer/NoButton")
+	
+	if yes_btn:
+		yes_btn.pressed.connect(func():
+			popup.queue_free()
+			_go_to_tutorial()
+		)
+	
+	if no_btn:
+		no_btn.pressed.connect(func():
+			popup.queue_free()
+			_skip_tutorial()
+		)
+
+
+func _go_to_tutorial() -> void:
+	"""Navigate to the tutorial arena"""
+	print("[AkashicLobby] 🎮 Going to tutorial arena...")
+	var tutorial_scene = load("res://scene/akashic_tcg_tutorial_arena.tscn")
+	if tutorial_scene:
+		get_tree().change_scene_to_packed(tutorial_scene)
+	else:
+		push_error("[AkashicLobby] Tutorial arena scene not found!")
+		_start_room_polling()
+
+
+func _skip_tutorial() -> void:
+	"""Player chose to skip tutorial, mark as complete and continue"""
+	print("[AkashicLobby] Player skipped tutorial")
+	_tutorial_completed = true
+	
+	# Mark as complete in Firestore so we don't ask again
+	_mark_tutorial_skipped()
+	
+	# Continue to normal lobby
+	_start_room_polling()
+
+
+func _mark_tutorial_skipped() -> void:
+	"""Mark tutorial as completed in Firestore when skipped"""
+	if not Auth or Auth.current_local_id == "" or Auth.current_id_token == "":
+		return
+	
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s?updateMask.fieldPaths=akashic_tcg_tutorial_completed" % user_id
+	
+	var body = {
+		"fields": {
+			"akashic_tcg_tutorial_completed": {"booleanValue": true}
+		}
+	}
+	
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	
+	var http = HTTPRequest.new()
+	add_child(http)
+	
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code == 200:
+			print("[AkashicLobby] ✅ Tutorial skip saved to Firestore")
+		else:
+			push_warning("[AkashicLobby] Failed to save tutorial skip")
+	)
+	
+	var err = http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+	if err != OK:
+		http.queue_free()
