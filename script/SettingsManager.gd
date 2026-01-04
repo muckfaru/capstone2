@@ -5,8 +5,15 @@ const SETTINGS_PATH := "user://settings.cfg"
 var music_level: int = 50 # 1..100
 var fullscreen: bool = false
 
-func _ready() -> void:
+func _enter_tree() -> void:
+	# Apply as early as possible so onboarding scenes don't play at default volume
+	# for a frame before settings are loaded.
 	load_settings()
+	apply_all()
+
+
+func _ready() -> void:
+	# Defensive re-apply (safe if called twice).
 	apply_all()
 
 
@@ -51,10 +58,9 @@ func _map_level_to_db(level: float) -> float:
 
 
 func apply_music_volume_db(vol_db: float) -> void:
-	var music_bus := AudioServer.get_bus_index("Music")
-	if music_bus >= 0:
-		AudioServer.set_bus_volume_db(music_bus, vol_db)
-		return
+	# The settings UI exposes a single "Volume" slider.
+	# To keep onboarding audio consistent (story/3D/welcome/rewards), apply this
+	# to the Master bus so it affects ALL audio.
 	var master_bus := AudioServer.get_bus_index("Master")
 	if master_bus >= 0:
 		AudioServer.set_bus_volume_db(master_bus, vol_db)
