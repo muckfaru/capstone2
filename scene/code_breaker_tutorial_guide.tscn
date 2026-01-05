@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://cb_tutorial_guide_scene"]
+[gd_scene load_steps=5 format=3 uid="uid://clh2eo1sbw3xh"]
 
 [ext_resource type="Script" path="res://script/code_breaker_tutorial_guide.gd" id="1"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2"]
@@ -123,8 +123,8 @@ offset_top = -40.0
 offset_right = 800.0
 offset_bottom = -10.0
 mouse_default_cursor_shape = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(0, 0.8, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 14
 text = "Skip Tutorial"
 flat = true

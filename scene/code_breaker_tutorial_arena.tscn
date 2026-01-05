@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://cb_tutorial_arena"]
+[gd_scene load_steps=22 format=3 uid="uid://baphwlaswy5hs"]
 
 [ext_resource type="Script" path="res://script/code_breaker_tutorial_arena.gd" id="1_tutorial"]
 [ext_resource type="Texture2D" uid="uid://d4ddfveb65kqw" path="res://asset/background/Code Breaker Arena Background.png" id="2_e4tay"]

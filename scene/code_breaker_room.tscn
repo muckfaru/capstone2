@@ -1,30 +1,57 @@
-[gd_scene load_steps=6 format=3 uid="uid://cvvag1ig1w2l2"]
+[gd_scene load_steps=11 format=3 uid="uid://cvvag1ig1w2l2"]
 
 [ext_resource type="Script" uid="uid://bfl7x4bgwwx3k" path="res://script/code_breaker_room.gd" id="1_w0by1"]
 [ext_resource type="PackedScene" uid="uid://caeteha34m08t" path="res://scene/room_chat.tscn" id="2_room_chat"]
 [ext_resource type="Texture2D" uid="uid://ct0fcceas6r5c" path="res://asset/background/room backround.png" id="3_fpe01"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_wxc2o"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fpe01"]
+bg_color = Color(0.2, 0.2, 0.25098, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wxc2o"]
+bg_color = Color(0.2, 0.2, 0.25098, 1)
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b3n7n"]
+bg_color = Color(1, 0.313726, 0.247059, 0.611765)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n8nu1"]
+bg_color = Color(1, 0.313726, 0.247059, 0.611765)
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="2_btn_hover"]
-bg_color = Color(0.678431, 0.984314, 0.396078, 1)
+bg_color = Color(1, 0.313726, 0.247059, 0.611765)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.678431, 0.984314, 0.396078, 1)
+border_color = Color(0.490196, 0.65098, 1, 0.501961)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-shadow_color = Color(0.678431, 0.984314, 0.396078, 0.733333)
-shadow_size = 8
+shadow_color = Color(0.490196, 0.65098, 1, 0.501961)
+shadow_size = 10
 
 [sub_resource type="StyleBoxFlat" id="1_btn_normal"]
-bg_color = Color(0.678431, 0.984314, 0.396078, 1)
-border_color = Color(1, 1, 1, 0)
+bg_color = Color(0.2, 0.2, 0.25098, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.490196, 0.65098, 1, 0.501961)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+shadow_size = 5
 
 [node name="room" type="Control"]
 layout_mode = 3
@@ -52,7 +79,8 @@ texture = ExtResource("3_fpe01")
 expand_mode = 1
 
 [node name="RoomHeader" type="HBoxContainer" parent="."]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.05
 anchor_right = 0.5
@@ -64,11 +92,16 @@ alignment = 1
 
 [node name="RoomIDLabel" type="Label" parent="RoomHeader"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_font_sizes/font_size = 25
 text = "ROOM: #12345"
 horizontal_alignment = 1
 
 [node name="RoomStateLabel" type="Label" parent="RoomHeader"]
+visible = false
 layout_mode = 2
+theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_font_sizes/font_size = 20
 text = "WAITING"
 horizontal_alignment = 1
 
@@ -92,44 +125,59 @@ custom_minimum_size = Vector2(260, 400)
 layout_mode = 2
 
 [node name="Username" type="Label" parent="CardsContainer/HostCard"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.1
 anchor_right = 0.5
 anchor_bottom = 0.1
-offset_left = -100.0
-offset_right = 100.0
-offset_bottom = 40.0
+offset_left = -130.0
+offset_top = -69.0
+offset_right = 130.0
+offset_bottom = -38.0
+theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_fpe01")
 text = "..."
 horizontal_alignment = 1
 
 [node name="Level" type="Label" parent="CardsContainer/HostCard"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.18
 anchor_right = 0.5
 anchor_bottom = 0.18
-offset_left = -50.0
-offset_right = 50.0
-offset_bottom = 30.0
-text = "..."
+offset_left = -48.0
+offset_top = -66.8
+offset_right = 52.0
+offset_bottom = -36.8
+theme_override_fonts/font = ExtResource("3_wxc2o")
+text = "Level: 1"
 horizontal_alignment = 1
 
 [node name="StatusLabel" type="Label" parent="CardsContainer/HostCard"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.85
 anchor_right = 0.5
 anchor_bottom = 0.85
-offset_left = -60.0
-offset_right = 60.0
-offset_bottom = 30.0
+offset_left = -131.0
+offset_top = 50.0
+offset_right = 131.0
+offset_bottom = 76.0
+theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_wxc2o")
 text = "READY"
 horizontal_alignment = 1
 
 [node name="VSLabel" type="Label" parent="CardsContainer"]
 custom_minimum_size = Vector2(100, 400)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_font_sizes/font_size = 20
 text = "VS"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -140,38 +188,51 @@ custom_minimum_size = Vector2(260, 400)
 layout_mode = 2
 
 [node name="Username" type="Label" parent="CardsContainer/ClientCard"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.1
 anchor_right = 0.5
 anchor_bottom = 0.1
-offset_left = -100.0
-offset_right = 100.0
-offset_bottom = 40.0
+offset_left = -132.0
+offset_top = -70.0
+offset_right = 130.0
+offset_bottom = -39.0
+theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_b3n7n")
 text = "."
 horizontal_alignment = 1
 
 [node name="Level" type="Label" parent="CardsContainer/ClientCard"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.18
 anchor_right = 0.5
 anchor_bottom = 0.18
-offset_left = -50.0
-offset_right = 50.0
-offset_bottom = 30.0
+offset_left = -51.0
+offset_top = -69.8
+offset_right = 49.0
+offset_bottom = -39.8
+theme_override_fonts/font = ExtResource("3_wxc2o")
 text = "."
 horizontal_alignment = 1
 
 [node name="StatusLabel" type="Label" parent="CardsContainer/ClientCard"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.85
 anchor_right = 0.5
 anchor_bottom = 0.85
-offset_left = -60.0
-offset_right = 60.0
-offset_bottom = 30.0
+offset_left = -131.0
+offset_top = 51.0
+offset_right = 130.0
+offset_bottom = 74.0
+theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_n8nu1")
 text = "Searching.."
 horizontal_alignment = 1
 
@@ -196,6 +257,8 @@ theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
 theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_font_sizes/font_size = 17
 theme_override_styles/hover = SubResource("2_btn_hover")
 theme_override_styles/normal = SubResource("1_btn_normal")
 text = "START MATCH"
@@ -220,10 +283,11 @@ anchor_left = 0.5
 anchor_top = 0.93
 anchor_right = 0.5
 anchor_bottom = 0.93
-offset_left = -200.0
-offset_top = 5.0
-offset_right = 200.0
-offset_bottom = 45.0
+offset_left = -199.0
+offset_top = 20.36
+offset_right = 201.0
+offset_bottom = 60.36
+theme_override_fonts/font = ExtResource("3_wxc2o")
 text = "Waiting for player to join..."
 horizontal_alignment = 1
 

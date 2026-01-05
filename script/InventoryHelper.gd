@@ -247,7 +247,7 @@ func add_item_to_inventory(item_data: Dictionary) -> void:
 		return
 	
 	# Generate unique item ID
-	var timestamp = Time.get_unix_time_from_system()
+	var timestamp := int(Time.get_unix_time_from_system())
 	var random_suffix = randi() % 10000
 	var item_type = item_data.get("type", "item")
 	var item_id = "%d_%s_%d" % [timestamp, item_type, random_suffix]

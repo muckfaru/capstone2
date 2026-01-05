@@ -117,7 +117,8 @@ theme_override_constants/separation = 5
 
 [node name="CreateRoomButton" type="Button" parent="LobbyPanel"]
 custom_minimum_size = Vector2(160, 40)
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.75
 anchor_top = 0.82
 anchor_right = 0.95

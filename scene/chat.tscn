@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://d0infgusfi845"]
+[gd_scene load_steps=8 format=3 uid="uid://d0infgusfi845"]
 
 [ext_resource type="Script" uid="uid://d2rxkk4fy6h00" path="res://script/chat.gd" id="1_chatgd"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_1781r"]
@@ -12,6 +12,15 @@ corner_radius_top_right = 20
 bg_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0yfik"]
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1781r"]
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_miach"]
+bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
 
 [node name="ChatPanel" type="Panel"]
 offset_left = 66.0
@@ -78,9 +87,12 @@ layout_mode = 2
 [node name="LineEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxFlat_0yfik")
+theme_override_styles/normal = SubResource("StyleBoxFlat_1781r")
 placeholder_text = "Type a message..."
 
 [node name="Button" type="Button" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
-text = "Send"
+theme_override_styles/normal = SubResource("StyleBoxFlat_miach")
+text = "➤➤"

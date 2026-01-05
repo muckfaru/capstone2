@@ -99,13 +99,13 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 	# STEP 1: Wake up server if sleeping (Render.com free tier fix)
 	if create_btn:
 		create_btn.disabled = true
-		create_btn.text = "Waking up server..."
+		create_btn.text = "Waking Server..."
 	
 	await _ping_server_to_wake()
 	
 	# STEP 2: Continue with room creation
 	if create_btn:
-		create_btn.text = "Creating room..."
+		create_btn.text = "Creating..."
 	
 	# Get user info
 	var uid: String = Auth.current_local_id if Auth else "anonymous"
@@ -506,7 +506,7 @@ func _ping_server_to_wake() -> void:
 		# Update button text with countdown
 		if create_btn and wait_time < 5.0:
 			var remaining := int(5.0 - wait_time)
-			create_btn.text = "Creating Room... (%ds)" % remaining
+			create_btn.text = "Creating... (%ds)" % remaining
 	
 	if not ping_state["completed"]:
 		print("[CodeBreakerLobby] ⚠️ Ping timeout, but continuing anyway...")

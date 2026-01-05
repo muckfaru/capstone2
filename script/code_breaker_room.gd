@@ -112,7 +112,40 @@ func _ready() -> void:
 	add_child(_poll_timer)
 	_poll_timer.timeout.connect(_on_poll_timeout)
 	_fetch_room()
+
+	# Create Leave button style
+	var leave_normal = StyleBoxFlat.new()
+	leave_normal.bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)  # #0d0d1ac3
+	leave_normal.border_width_left = 2
+	leave_normal.border_width_top = 2
+	leave_normal.border_width_right = 2
+	leave_normal.border_width_bottom = 2
+	leave_normal.border_color = Color(0.490196, 0.654902, 1, 0.545098)  # #7da7ff8b
+	leave_normal.set_corner_radius_all(8)
+	leave_normal.shadow_color = Color(1, 0.313726, 0.247059, 0.611765)  # #ff503f9c
+	leave_normal.shadow_size = 10
+	_leave_btn.add_theme_stylebox_override("normal", leave_normal)
+
+	# Optional: Create hover state
+	var leave_hover = StyleBoxFlat.new()
+	leave_hover.bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.9)
+	leave_hover.border_width_left = 2
+	leave_hover.border_width_top = 2
+	leave_hover.border_width_right = 2
+	leave_hover.border_width_bottom = 2
+	leave_hover.border_color = Color(0.490196, 0.654902, 1, 0.8)
+	leave_hover.set_corner_radius_all(8)
+	leave_hover.shadow_color = Color(1, 0.313726, 0.247059, 0.8)
+	leave_hover.shadow_size = 12
+	_leave_btn.add_theme_stylebox_override("hover", leave_hover)
 	
+	var custom_font = load("res://asset/fonts/NicoMoji-Regular.ttf")
+	
+	_start_btn.add_theme_font_override("font", custom_font)
+	_start_btn.add_theme_font_size_override("font_size", 17)
+	
+	_leave_btn.add_theme_font_override("font", custom_font)
+	_leave_btn.add_theme_font_size_override("font_size", 17)
 	# Start heartbeat system (host only)
 	if _is_host:
 		_start_heartbeat()

@@ -1,73 +1,214 @@
-[gd_scene load_steps=2 format=3 uid="uid://duwhmbek552p0"]
+[gd_scene load_steps=8 format=3 uid="uid://duwhmbek552p0"]
 
 [ext_resource type="Script" uid="uid://b5sd78sk5nlci" path="res://script/create_room_popup.gd" id="1_2oyh8"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.05, 0.05, 0.1, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.49, 0.65, 1, 0.8)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0.36, 0.53, 1, 0.75)
+shadow_size = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close"]
+bg_color = Color(0, 0, 0, 0)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
+bg_color = Color(0.1, 0.1, 0.15, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.49, 0.65, 1, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_create"]
+bg_color = Color(0.38, 0.08, 0.11, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.31, 0.25, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(1, 0.31, 0.25, 0.6)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel"]
+bg_color = Color(0.2, 0.2, 0.25, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.49, 0.65, 1, 0.5)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [node name="CreateRoomPopup" type="Window"]
 title = "Create Room"
 initial_position = 1
-size = Vector2i(480, 300)
+size = Vector2i(500, 380)
+transient = true
+borderless = true
 always_on_top = true
 script = ExtResource("1_2oyh8")
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="BackgroundPanel" type="Panel" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
-theme_override_constants/separation = 15
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="CloseButton" type="Button" parent="BackgroundPanel"]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 0
+offset_left = 448.0
+offset_top = 15.0
+offset_right = 484.0
+offset_bottom = 51.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.8)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/hover = SubResource("StyleBoxFlat_close")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_close")
+theme_override_styles/normal = SubResource("StyleBoxFlat_close")
+text = "×"
+
+[node name="VBox" type="VBoxContainer" parent="BackgroundPanel"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = -30.0
+theme_override_constants/separation = 20
 alignment = 1
 
-[node name="HeaderLabel" type="Label" parent="VBox"]
+[node name="HeaderLabel" type="Label" parent="BackgroundPanel/VBox"]
 layout_mode = 2
+mouse_filter = 1
+theme_override_colors/font_color = Color(0.49, 0.65, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 32
 text = "CREATE ROOM"
 horizontal_alignment = 1
 
-[node name="RoomNameContainer" type="VBoxContainer" parent="VBox"]
+[node name="Spacer1" type="Control" parent="BackgroundPanel/VBox"]
+custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
-[node name="RoomNameLabel" type="Label" parent="VBox/RoomNameContainer"]
+[node name="RoomNameContainer" type="VBoxContainer" parent="BackgroundPanel/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RoomNameLabel" type="Label" parent="BackgroundPanel/VBox/RoomNameContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
 text = "Room Name:"
 
-[node name="RoomNameEdit" type="LineEdit" parent="VBox/RoomNameContainer"]
+[node name="RoomNameEdit" type="LineEdit" parent="BackgroundPanel/VBox/RoomNameContainer"]
+custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
+theme_override_colors/font_placeholder_color = Color(0.6, 0.6, 0.7, 0.8)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/focus = SubResource("StyleBoxFlat_input")
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
 text = "Mark"
 placeholder_text = "Room Name"
 editable = false
 
-[node name="AnonymousContainer" type="HBoxContainer" parent="VBox"]
+[node name="Spacer2" type="Control" parent="BackgroundPanel/VBox"]
+custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 
-[node name="AnonymousCheckInsideRoom" type="CheckBox" parent="VBox/AnonymousContainer"]
+[node name="AnonymousContainer" type="HBoxContainer" parent="BackgroundPanel/VBox"]
+layout_mode = 2
+
+[node name="AnonymousCheckInsideRoom" type="CheckBox" parent="BackgroundPanel/VBox/AnonymousContainer"]
 layout_mode = 2
 tooltip_text = "Hide your username and use 'Anonymous' as room name"
-text = "Anonymous inside the room?"
+theme_override_colors/font_color = Color(0.8, 0.85, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+text = " Anonymous inside the room?"
 
-[node name="PasswordContainer" type="VBoxContainer" parent="VBox"]
+[node name="PasswordContainer" type="VBoxContainer" parent="BackgroundPanel/VBox"]
 visible = false
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="PasswordLabel" type="Label" parent="VBox/PasswordContainer"]
+[node name="PasswordLabel" type="Label" parent="BackgroundPanel/VBox/PasswordContainer"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
 text = "Room Password:"
 
-[node name="PasswordEdit" type="LineEdit" parent="VBox/PasswordContainer"]
+[node name="PasswordEdit" type="LineEdit" parent="BackgroundPanel/VBox/PasswordContainer"]
+custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
+theme_override_colors/font_placeholder_color = Color(0.6, 0.6, 0.7, 0.8)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/focus = SubResource("StyleBoxFlat_input")
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
 placeholder_text = "Enter password..."
 secret = true
 
-[node name="Buttons" type="HBoxContainer" parent="VBox"]
+[node name="Spacer3" type="Control" parent="BackgroundPanel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 30
+size_flags_vertical = 3
+
+[node name="Buttons" type="HBoxContainer" parent="BackgroundPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
 alignment = 1
 
-[node name="CreateButton" type="Button" parent="VBox/Buttons"]
+[node name="CreateButton" type="Button" parent="BackgroundPanel/VBox/Buttons"]
+custom_minimum_size = Vector2(170, 50)
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/hover = SubResource("StyleBoxFlat_create")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_create")
+theme_override_styles/normal = SubResource("StyleBoxFlat_create")
 text = "CREATE ROOM"
 
-[node name="CancelButton" type="Button" parent="VBox/Buttons"]
+[node name="CancelButton" type="Button" parent="BackgroundPanel/VBox/Buttons"]
+custom_minimum_size = Vector2(120, 50)
 layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cancel")
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel")
 text = "CANCEL"
