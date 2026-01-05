@@ -56,6 +56,9 @@ const PLAYS_PER_TURN := 3
 const MAX_BW := 10
 const CARD_VIEW_SIZE := Vector2(110, 160)
 const HAND_CARD_VIEW_SIZE := Vector2(140, 200)
+const FLIP_HALF_SEC := 0.12
+
+var _flip_tweens: Dictionary = {}
 
 # ===== SAME CARD TEXTURES AS REAL ARENA =====
 const _TEX := {
@@ -108,12 +111,18 @@ var player_si := STARTING_SI
 var player_fw := MAX_FW
 var ai_si := STARTING_SI
 var ai_fw := MAX_FW
-var player_bw := 3
-var player_max_bw := 3
-var ai_bw := 3
+var player_bw := 2
+var player_max_bw := 10
+var ai_bw := 2
 var player_plays := 0
+var ai_plays := 0
 var current_round := 1
 var is_player_turn := true
+
+# Round done flags for simultaneous submission
+var player_round_done := false
+var ai_round_done := false
+var resolve_in_progress := false
 
 # Card data
 var player_hand: Array = []
@@ -171,9 +180,19 @@ func _setup_dropped_slots() -> void:
 	for slot in _you_dropped_cards:
 		if slot:
 			slot.mouse_filter = Control.MOUSE_FILTER_STOP
+			slot.custom_minimum_size = CARD_VIEW_SIZE
+			slot.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			slot.stretch_mode = TextureRect.STRETCH_SCALE
+			slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			slot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	for slot in _opp_dropped_cards:
 		if slot:
 			slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			slot.custom_minimum_size = CARD_VIEW_SIZE
+			slot.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			slot.stretch_mode = TextureRect.STRETCH_SCALE
+			slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			slot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 func _ensure_sfx_players() -> void:
 	if _sfx_drop_player == null:
@@ -400,6 +419,9 @@ func _on_hand_card_clicked(card_data: Dictionary) -> void:
 	_play_card(card_data)
 
 func _play_card(card_data: Dictionary) -> void:
+	if player_round_done or resolve_in_progress:
+		return
+	
 	var card_id: String = card_data["card_id"]
 	var card_info = _CARD_DB[card_id]
 	var cost: int = card_info["cost"]
@@ -433,15 +455,14 @@ func _play_card(card_data: Dictionary) -> void:
 	# Remove from hand
 	_remove_card_from_hand(card_data)
 	
-	# Show card in dropped zone with animation
-	_animate_card_to_slot(card_id, slot_idx, true)
+	# Show card FACE DOWN (back of card) - no reveal yet!
+	_show_card_face_down(slot_idx, true)
 	_play_drop_sfx()
 	
-	# Apply effect
-	_apply_card_effect(card_id, true)
-	
 	_update_ui()
-	_check_win_condition()
+	
+	# Check if player can still play more cards
+	_check_player_auto_done()
 
 func _remove_card_from_hand(card_data: Dictionary) -> void:
 	var unique_id = card_data["unique_id"]
@@ -465,7 +486,76 @@ func _animate_card_to_slot(card_id: String, slot_idx: int, is_player: bool) -> v
 	if slot == null:
 		return
 	
-	slot.texture = _TEX.get(card_id, _BACK_TEX)
+	if is_player:
+		# Player cards show immediately with animation
+		slot.texture = _TEX.get(card_id, _BACK_TEX)
+		slot.modulate = Color(1, 1, 1, 0)
+		slot.scale = Vector2(0.7, 0.7)
+		slot.pivot_offset = slot.size * 0.5
+		
+		var tween = create_tween()
+		tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tween.tween_property(slot, "modulate:a", 1.0, 0.15)
+		tween.parallel().tween_property(slot, "scale", Vector2(1.1, 1.1), 0.15)
+		tween.tween_property(slot, "scale", Vector2(1.0, 1.0), 0.08)
+	else:
+		# AI cards show back first, then flip reveal
+		slot.texture = _BACK_TEX
+		slot.modulate = Color(1, 1, 1, 0)
+		slot.scale = Vector2(0.7, 0.7)
+		slot.pivot_offset = slot.size * 0.5
+		
+		var tween = create_tween()
+		tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tween.tween_property(slot, "modulate:a", 1.0, 0.15)
+		tween.parallel().tween_property(slot, "scale", Vector2(1.1, 1.1), 0.15)
+		tween.tween_property(slot, "scale", Vector2(1.0, 1.0), 0.08)
+		# Flip to reveal after a delay
+		tween.tween_callback(func(): _flip_reveal(slot, _TEX.get(card_id, _BACK_TEX), _CARD_DB.get(card_id, {}).get("name", "")))
+
+# Flip card reveal animation (same as real arena)
+func _flip_reveal(node: TextureRect, new_texture: Texture2D, new_tooltip: String) -> void:
+	if node == null:
+		return
+	if _flip_tweens.has(node):
+		var old_tw: Variant = _flip_tweens.get(node)
+		if old_tw is Tween and is_instance_valid(old_tw):
+			(old_tw as Tween).kill()
+		_flip_tweens.erase(node)
+	
+	# Ensure we have a "back" visible before flipping
+	if node.texture == null:
+		node.texture = _BACK_TEX
+	
+	# Flip around center
+	node.pivot_offset = node.size * 0.5
+	node.scale = Vector2(1, 1)
+	
+	var tw := create_tween()
+	_flip_tweens[node] = tw
+	tw.tween_property(node, "scale:x", 0.0, FLIP_HALF_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		node.texture = new_texture
+		node.tooltip_text = new_tooltip
+	)
+	tw.tween_property(node, "scale:x", 1.0, FLIP_HALF_SEC).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.finished.connect(func():
+		if _flip_tweens.get(node) == tw:
+			_flip_tweens.erase(node)
+	)
+	_play_reveal_sfx()
+
+# Show card face down (back of card visible)
+func _show_card_face_down(slot_idx: int, is_player: bool) -> void:
+	var slots = _you_dropped_cards if is_player else _opp_dropped_cards
+	if slot_idx < 0 or slot_idx >= slots.size():
+		return
+	
+	var slot = slots[slot_idx]
+	if slot == null:
+		return
+	
+	slot.texture = _BACK_TEX
 	slot.modulate = Color(1, 1, 1, 0)
 	slot.scale = Vector2(0.7, 0.7)
 	slot.pivot_offset = slot.size * 0.5
@@ -475,6 +565,197 @@ func _animate_card_to_slot(card_id: String, slot_idx: int, is_player: bool) -> v
 	tween.tween_property(slot, "modulate:a", 1.0, 0.15)
 	tween.parallel().tween_property(slot, "scale", Vector2(1.1, 1.1), 0.15)
 	tween.tween_property(slot, "scale", Vector2(1.0, 1.0), 0.08)
+
+# Check if player can afford to play more cards
+func _check_player_auto_done() -> void:
+	if player_round_done:
+		return
+	
+	# Auto-done if: max plays reached, or no affordable cards, or hand empty
+	if player_plays >= PLAYS_PER_TURN:
+		_mark_player_done()
+		return
+	
+	# Check if any card in hand is affordable
+	var can_play_any := false
+	for card in player_hand:
+		var card_id = card["card_id"]
+		var cost = _CARD_DB[card_id]["cost"]
+		if cost <= player_bw:
+			can_play_any = true
+			break
+	
+	if not can_play_any:
+		_mark_player_done()
+
+func _mark_player_done() -> void:
+	if player_round_done:
+		return
+	player_round_done = true
+	_end_turn_btn.disabled = true
+	_status.text = "Waiting for AI..."
+	
+	# AI also submits their cards now
+	_ai_submit_cards()
+
+func _ai_submit_cards() -> void:
+	if ai_round_done:
+		_try_resolve_round()
+		return
+	
+	# AI plays 1-2 cards face-down
+	var cards_to_play = mini(2, ai_hand.size())
+	
+	for _i in range(cards_to_play):
+		if ai_hand.is_empty() or ai_bw <= 0 or ai_plays >= PLAYS_PER_TURN:
+			break
+		
+		# Find a card AI can afford
+		var playable_idx = -1
+		for j in range(ai_hand.size()):
+			var check_card = ai_hand[j]
+			var check_cost = _CARD_DB[check_card["card_id"]]["cost"]
+			if check_cost <= ai_bw:
+				playable_idx = j
+				break
+		
+		if playable_idx == -1:
+			break
+		
+		var played_card = ai_hand[playable_idx]
+		var card_id = played_card["card_id"]
+		var card_cost = _CARD_DB[card_id]["cost"]
+		
+		# Find slot
+		var slot_idx = -1
+		for k in range(ai_dropped.size()):
+			if ai_dropped[k] == null:
+				slot_idx = k
+				break
+		
+		if slot_idx == -1:
+			break
+		
+		# Pay and play (face down)
+		ai_bw -= card_cost
+		ai_plays += 1
+		ai_dropped[slot_idx] = played_card
+		ai_hand.remove_at(playable_idx)
+		
+		# Show face down
+		_show_card_face_down(slot_idx, false)
+		_play_drop_sfx()
+		
+		await get_tree().create_timer(0.3).timeout
+	
+	ai_round_done = true
+	_render_ai_hand()
+	_update_ui()
+	
+	# Both done - resolve!
+	_try_resolve_round()
+
+func _try_resolve_round() -> void:
+	if not player_round_done or not ai_round_done:
+		return
+	if resolve_in_progress:
+		return
+	
+	resolve_in_progress = true
+	_status.text = "Revealing cards..."
+	
+	await get_tree().create_timer(0.5).timeout
+	
+	# Reveal all cards with flip animation
+	await _resolve_all_cards()
+
+func _resolve_all_cards() -> void:
+	# First reveal player cards
+	for i in range(player_dropped.size()):
+		var card_data = player_dropped[i]
+		if card_data != null:
+			var card_id = card_data["card_id"]
+			var card_name = _CARD_DB.get(card_id, {}).get("name", "")
+			_flip_reveal(_you_dropped_cards[i], _TEX.get(card_id, _BACK_TEX), card_name)
+			await get_tree().create_timer(0.3).timeout
+	
+	# Then reveal AI cards
+	for i in range(ai_dropped.size()):
+		var card_data = ai_dropped[i]
+		if card_data != null:
+			var card_id = card_data["card_id"]
+			var card_name = _CARD_DB.get(card_id, {}).get("name", "")
+			_flip_reveal(_opp_dropped_cards[i], _TEX.get(card_id, _BACK_TEX), card_name)
+			await get_tree().create_timer(0.3).timeout
+	
+	await get_tree().create_timer(0.5).timeout
+	
+	# Apply all effects (player first, then AI)
+	for i in range(player_dropped.size()):
+		var card_data = player_dropped[i]
+		if card_data != null:
+			_apply_card_effect(card_data["card_id"], true)
+			_update_ui()
+			await get_tree().create_timer(0.4).timeout
+	
+	for i in range(ai_dropped.size()):
+		var card_data = ai_dropped[i]
+		if card_data != null:
+			_apply_card_effect(card_data["card_id"], false)
+			_update_ui()
+			await get_tree().create_timer(0.4).timeout
+	
+	_check_win_condition()
+	
+	if match_started:
+		await get_tree().create_timer(0.5).timeout
+		_start_new_round()
+
+func _start_new_round() -> void:
+	current_round += 1
+	
+	# BW gain per round (matching real arena)
+	var gain: int = 2
+	if current_round >= 11:
+		gain = 5
+	elif current_round >= 7:
+		gain = 4
+	elif current_round >= 3:
+		gain = 3
+	
+	player_bw = mini(player_bw + gain, MAX_BW)
+	ai_bw = mini(ai_bw + gain, MAX_BW)
+	
+	# Reset round state
+	player_plays = 0
+	ai_plays = 0
+	player_round_done = false
+	ai_round_done = false
+	resolve_in_progress = false
+	
+	# Clear dropped zones
+	_clear_dropped_zones()
+	
+	# Draw cards
+	if player_hand.size() < HAND_LIMIT:
+		var card_types = _CARD_DB.keys()
+		var card_id = card_types[randi() % card_types.size()]
+		_add_card_to_player_hand(card_id)
+	
+	if ai_hand.size() < HAND_LIMIT:
+		var card_types = _CARD_DB.keys()
+		var card_id = card_types[randi() % card_types.size()]
+		var card_data = _CARD_DB[card_id].duplicate()
+		card_data["card_id"] = card_id
+		card_data["unique_id"] = _get_unique_card_id()
+		ai_hand.append(card_data)
+	
+	_render_ai_hand()
+	_end_turn_btn.disabled = false
+	_status.text = "Round %d - Your Turn!" % current_round
+	_play_round_sfx()
+	_show_round_banner()
+	_update_ui()
 
 func _apply_card_effect(card_id: String, is_player: bool) -> void:
 	var card_info = _CARD_DB[card_id]
@@ -513,21 +794,17 @@ func _apply_card_effect(card_id: String, is_player: bool) -> void:
 			_status.text = "%s activated!" % card_info["name"]
 
 func _on_end_turn_pressed() -> void:
-	if not match_started or not is_player_turn:
+	if not match_started:
 		return
 	
 	if in_tutorial_phase:
 		return
 	
-	is_player_turn = false
-	_end_turn_btn.disabled = true
-	_status.text = "AI's Turn..."
+	if player_round_done or resolve_in_progress:
+		return
 	
-	# Clear dropped zones for new round
-	_clear_dropped_zones()
-	
-	# Start AI turn after delay
-	ai_timer.start()
+	# Player manually ends their turn - mark as done
+	_mark_player_done()
 
 func _clear_dropped_zones() -> void:
 	for i in range(player_dropped.size()):
@@ -600,10 +877,18 @@ func _on_ai_turn() -> void:
 func _end_ai_turn() -> void:
 	current_round += 1
 	
-	# Reset for new round
-	player_bw = mini(player_max_bw + 1, MAX_BW)
-	player_max_bw = player_bw
-	ai_bw = player_bw
+	# BW gain per round (matching real arena)
+	# Round 1-2: +2, 3-6: +3, 7-10: +4, 11+: +5. Cap at MAX_BW.
+	var gain: int = 2
+	if current_round >= 11:
+		gain = 5
+	elif current_round >= 7:
+		gain = 4
+	elif current_round >= 3:
+		gain = 3
+	
+	player_bw = mini(player_bw + gain, MAX_BW)
+	ai_bw = mini(ai_bw + gain, MAX_BW)
 	player_plays = 0
 	
 	# Draw cards
