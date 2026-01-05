@@ -3243,17 +3243,149 @@ func _on_code_breaker_gui_input(event: InputEvent) -> void:
 			_show_locked_game_dialog("Code Breaker", 500)
 			return
 		
-		var game_select_panel = $VideoStreamPlayer/GameSelectPanel
-		if game_select_panel:
-			game_select_panel.visible = false
+		# Check if first-time player before showing lobby
+		_check_code_breaker_tutorial_status()
+
+
+func _check_code_breaker_tutorial_status() -> void:
+	"""Check Firestore for code_breaker_tutorial_completed before going to lobby"""
+	print("[Landing] Checking Code Breaker tutorial status...")
+	
+	if not Auth or Auth.current_local_id == "" or Auth.current_id_token == "":
+		print("[Landing] No auth, skipping tutorial check")
+		_go_to_code_breaker_lobby()
+		return
+	
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % user_id
+	
+	var cb_tutorial_http = HTTPRequest.new()
+	add_child(cb_tutorial_http)
+	
+	cb_tutorial_http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		cb_tutorial_http.queue_free()
 		
-		var akashic_lobby2 = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
-		if akashic_lobby2:
-			akashic_lobby2.visible = false
+		if code != 200:
+			print("[Landing] Could not fetch user data, assuming first time")
+			_show_code_breaker_tutorial_prompt()
+			return
 		
-		var code_breaker_lobby = $VideoStreamPlayer/CodeBreakerLobby
-		if code_breaker_lobby:
-			code_breaker_lobby.visible = true
+		var json = JSON.parse_string(body.get_string_from_utf8())
+		if json == null or not json.has("fields"):
+			print("[Landing] Invalid response, assuming first time")
+			_show_code_breaker_tutorial_prompt()
+			return
+		
+		var fields = json["fields"]
+		if fields.has("code_breaker_tutorial_completed"):
+			var val = fields["code_breaker_tutorial_completed"]
+			if val.has("booleanValue") and val["booleanValue"] == true:
+				print("[Landing] ✅ Code Breaker tutorial already completed, going to lobby")
+				_go_to_code_breaker_lobby()
+				return
+		
+		print("[Landing] 🆕 First time Code Breaker player! Showing tutorial prompt")
+		_show_code_breaker_tutorial_prompt()
+	)
+	
+	var headers = ["Authorization: Bearer %s" % id_token]
+	var err = cb_tutorial_http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		push_error("[Landing] Failed to check Code Breaker tutorial status")
+		cb_tutorial_http.queue_free()
+		_go_to_code_breaker_lobby()
+
+
+func _show_code_breaker_tutorial_prompt() -> void:
+	"""Show Pokemon-style tutorial prompt when clicking Code Breaker for first time"""
+	print("[Landing] Showing Code Breaker tutorial prompt...")
+	
+	var popup_scene = load("res://scene/code_breaker_tutorial_prompt.tscn")
+	if not popup_scene:
+		push_error("[Landing] Code Breaker tutorial prompt scene not found!")
+		_go_to_code_breaker_lobby()
+		return
+	
+	var popup: Window = popup_scene.instantiate()
+	add_child(popup)
+	popup.popup()
+	
+	# Get button references
+	var yes_btn = popup.get_node_or_null("Panel/VBoxContainer/ButtonContainer/YesButton")
+	var no_btn = popup.get_node_or_null("Panel/VBoxContainer/ButtonContainer/NoButton")
+	
+	if yes_btn:
+		yes_btn.pressed.connect(func():
+			popup.queue_free()
+			_go_to_code_breaker_tutorial()
+		)
+	
+	if no_btn:
+		no_btn.pressed.connect(func():
+			popup.queue_free()
+			_skip_code_breaker_tutorial()
+		)
+
+
+func _go_to_code_breaker_tutorial() -> void:
+	"""Navigate directly to Code Breaker tutorial arena"""
+	print("[Landing] 🎮 Going to Code Breaker Tutorial Arena...")
+	get_tree().change_scene_to_file("res://scene/code_breaker_tutorial_arena.tscn")
+
+
+func _skip_code_breaker_tutorial() -> void:
+	"""Player skipped tutorial, mark complete and go to lobby"""
+	print("[Landing] Player skipped Code Breaker tutorial, going to lobby")
+	_mark_code_breaker_tutorial_complete()
+	_go_to_code_breaker_lobby()
+
+
+func _mark_code_breaker_tutorial_complete() -> void:
+	"""Mark Code Breaker tutorial as completed in Firestore"""
+	if not Auth or Auth.current_local_id == "" or Auth.current_id_token == "":
+		return
+	
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s?updateMask.fieldPaths=code_breaker_tutorial_completed" % user_id
+	
+	var body = {
+		"fields": {
+			"code_breaker_tutorial_completed": {"booleanValue": true}
+		}
+	}
+	
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	
+	var mark_cb_http = HTTPRequest.new()
+	add_child(mark_cb_http)
+	
+	mark_cb_http.request_completed.connect(func(_r, code_resp, _h, _b):
+		mark_cb_http.queue_free()
+		if code_resp == 200:
+			print("[Landing] ✅ Code Breaker tutorial skip saved")
+	)
+	
+	mark_cb_http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+
+
+func _go_to_code_breaker_lobby() -> void:
+	"""Show Code Breaker lobby panel (normal flow)"""
+	var game_select_panel = $VideoStreamPlayer/GameSelectPanel
+	if game_select_panel:
+		game_select_panel.visible = false
+	
+	var akashic_lobby2 = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
+	if akashic_lobby2:
+		akashic_lobby2.visible = false
+	
+	var code_breaker_lobby = $VideoStreamPlayer/CodeBreakerLobby
+	if code_breaker_lobby:
+		code_breaker_lobby.visible = true
 
 
 func _show_locked_game_dialog(game_name: String, required_xp: int) -> void:

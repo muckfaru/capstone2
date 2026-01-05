@@ -230,6 +230,20 @@ Triggered when clicking **AkashicTCG** in the Game Panel (Landing).
    - **Mechanics:** Exact clone of real Arena (same cards, SFX, BGM, visual style).
    - **Completion:** Saves `akashic_tcg_tutorial_completed = true` in Firestore -> Returns to Landing.
 
+### Code Breaker Onboarding Flow (Pokemon Style)
+Triggered when clicking **Code Breaker** in the Game Panel (Landing).
+
+1. **First-Time Check:** `landing.gd` checks Firestore `users/<uid>.code_breaker_tutorial_completed`.
+2. **Prompt:** "First time in Code Breaker?" (Pokemon-style UI: Dark Blue/Cyan).
+   - **Yes:** Go to `scene/code_breaker_tutorial_arena.tscn`.
+   - **No:** Mark complete in Firestore -> Go to Lobby.
+3. **Tutorial Arena:**
+   - **Opponent:** AI Bot (types 150-350ms per char with 8% typo chance).
+   - **Guide:** Agent01 (9-step Pokemon-style dialogue) explains health bars, input, scoring, timer, power-ups.
+   - **Mechanics:** Same snippets, same scoring (+100 correct, -8 wrong, -10 opponent damage).
+   - **Completion:** Saves `code_breaker_tutorial_completed = true` in Firestore -> Returns to Landing.
+
+
 ## 🏗️ Architecture: WebSocket Relay
 
 **NO PORT FORWARDING NEEDED** - Both players connect TO server, server relays messages.
