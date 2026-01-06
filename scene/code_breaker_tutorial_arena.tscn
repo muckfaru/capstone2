@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://cs8t0so4cgohx" path="res://asset/code breaker/panels/normal panel.png" id="5_normal_panel"]
 [ext_resource type="Texture2D" uid="uid://dddfr5tjq8ay5" path="res://asset/code breaker/panels/extend time(yellow) panel.png" id="6_qnug1"]
 [ext_resource type="Texture2D" uid="uid://d0v2uekxdy55w" path="res://asset/code breaker/panels/Defensive panel (grey).png" id="7_n0mag"]
-[ext_resource type="AudioStream" uid="uid://cyvqhddv1l1h2" path="res://asset/audio/plasma-dr-gabba_cut.mp3" id="9_357ew"]
+[ext_resource type="AudioStream" uid="uid://cyvqhddv1l1h2" path="res://asset/background/code breaker new bgm.mp3" id="9_357ew"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n4nb7"]
 bg_color = Color(0, 0, 0, 0.619608)

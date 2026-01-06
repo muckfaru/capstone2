@@ -76,6 +76,10 @@ signal match_completed(player_won: bool)
 
 func _ready() -> void:
 	print("[CBTutorialArena] Tutorial Arena ready")
+	# Ensure we use the latest Code Breaker BGM even if the scene resource is cached.
+	if _battle_music and ResourceLoader.exists("res://asset/background/code breaker new bgm.mp3"):
+		_battle_music.stream = load("res://asset/background/code breaker new bgm.mp3")
+		print("[CBTutorialArena] 🎵 Using BGM: res://asset/background/code breaker new bgm.mp3")
 	
 	# Hide menu button for tutorial
 	if _menu_btn:

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://blrqqq7cw8prx"
+path="res://.godot/imported/code breaker new bgm.mp3-6a96c69d53853f7cd68060ebc521bff6.mp3str"
+
+[deps]
+
+source_file="res://asset/background/code breaker new bgm.mp3"
+dest_files=["res://.godot/imported/code breaker new bgm.mp3-6a96c69d53853f7cd68060ebc521bff6.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

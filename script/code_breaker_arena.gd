@@ -165,6 +165,10 @@ var _last_position_index: int = 0
 
 func _ready() -> void:
 	print("[CodeBreakerArena] 🎮 Arena starting (WebSocket Relay Mode)")
+	# Ensure we use the latest Code Breaker BGM even if the scene resource is cached.
+	if _battle_music and ResourceLoader.exists("res://asset/background/code breaker new bgm.mp3"):
+		_battle_music.stream = load("res://asset/background/code breaker new bgm.mp3")
+		print("[Arena] 🎵 Using BGM: res://asset/background/code breaker new bgm.mp3")
 	
 	# Load init data from loading screen
 	var init: Dictionary = {}
