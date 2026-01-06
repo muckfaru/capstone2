@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://d0405qariamf0"]
+[gd_scene load_steps=6 format=3 uid="uid://d0405qariamf0"]
 
 [ext_resource type="Script" uid="uid://b1qqx7epir20j" path="res://script/code_breaker_loading.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2_t2ari"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_6f2f8"]
 [ext_resource type="Texture2D" uid="uid://c45je8vas4pv8" path="res://asset/avatars/avatar1.png" id="3_s05oh"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6f2f8"]
@@ -41,6 +42,7 @@ offset_right = 200.0
 offset_bottom = 100.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+theme_override_fonts/font = ExtResource("3_6f2f8")
 theme_override_font_sizes/font_size = 32
 text = "CODE BREAKER"
 horizontal_alignment = 1
@@ -66,6 +68,7 @@ offset_top = 20.0
 offset_right = 100.0
 offset_bottom = 54.0
 grow_horizontal = 2
+theme_override_fonts/font = ExtResource("3_6f2f8")
 theme_override_font_sizes/font_size = 24
 text = "Player 1"
 horizontal_alignment = 1
@@ -121,6 +124,7 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.36, 0.43, 1)
+theme_override_fonts/font = ExtResource("3_6f2f8")
 theme_override_font_sizes/font_size = 48
 text = "VS"
 horizontal_alignment = 1
@@ -154,6 +158,7 @@ offset_top = 20.0
 offset_right = 93.0
 offset_bottom = 54.0
 grow_horizontal = 2
+theme_override_fonts/font = ExtResource("3_6f2f8")
 theme_override_font_sizes/font_size = 24
 text = "Player 2"
 horizontal_alignment = 1

@@ -16,7 +16,7 @@ const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
 @onready var _message_label: Label = $MessageLabel
 @onready var _start_btn: Button = $ButtonPanel/StartButton
 @onready var _leave_btn: Button = $ButtonPanel/LeaveButton
-
+var _client_animations_played: bool = false
 # =============================================================================
 # ARCHITECTURE: WebSocket Relay (Option B - No Port Forwarding Required)
 # - RTDB: Room state, player info, ready status (UI coordination) - Legacy
@@ -279,6 +279,11 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 
 	# Client UI
 	if client_present:
+		# Play animations only once when client first joins
+		if not _last_client_present and not _client_animations_played:
+			_play_client_join_animations()
+			_client_animations_played = true
+		
 		# Fallback: if snapshot lacks cosmetics, try cache learned via relay.
 		if Auth and str(client_val.get("card_bg", "")).strip_edges() == "":
 			var client_pid_cache := str(client_val.get("player_id", ""))
@@ -331,6 +336,11 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 		# Lobby server is source of truth
 		# (No RTDB sync needed)
 	else:
+		# Client left - reset animation flag so they play again if someone rejoins
+		if _last_client_present:
+			_client_animations_played = false
+			_play_client_leave_animations()
+		
 		_client_username.text = "."
 		_client_level.text = "."
 		_client_status.text = "Searching.."
@@ -354,6 +364,7 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 			_is_host = true
 			_message_label.text = "You are the host now."
 			_configure_buttons()
+
 
 
 func _sync_my_card_bg_to_lobby(bg_path: String) -> void:
@@ -1188,3 +1199,42 @@ func _notify_server_client_left() -> void:
 		print("[CodeBreakerRoom] ✅ Notified server that client left")
 	else:
 		push_warning("[CodeBreakerRoom] Failed to notify server of client leave: HTTP ", code)
+
+func _play_client_join_animations() -> void:
+	"""Play all client card animations when player joins"""
+	print("[CodeBreakerRoom] Playing client join animations")
+	
+	# Play username slide animation
+	var username_anim = $CardsContainer/ClientCard/Username/AnimationPlayer
+	if username_anim and username_anim.has_animation("usrreadyani"):
+		username_anim.play("usrreadyani")
+	
+	# Play status label slide animation
+	var status_anim = $CardsContainer/ClientCard/StatusLabel/AnimationPlayer
+	if status_anim and status_anim.has_animation("usersearchingani"):
+		status_anim.play("usersearchingani")
+	
+	# Play card fade-in animation
+	var card_anim = $CardsContainer/ClientCard/AnimationPlayer
+	if card_anim and card_anim.has_animation("usercardani"):
+		card_anim.play("usercardani")
+
+func _play_client_leave_animations() -> void:
+	"""Play reverse animations when player leaves (back to original position)"""
+	print("[CodeBreakerRoom] Playing client leave animations")
+	
+	# Play username animation backwards
+	var username_anim = $CardsContainer/ClientCard/Username/AnimationPlayer
+	if username_anim and username_anim.has_animation("usrreadyani"):
+		username_anim.play_backwards("usrreadyani")
+	
+	# Play status label animation backwards
+	var status_anim = $CardsContainer/ClientCard/StatusLabel/AnimationPlayer
+	if status_anim and status_anim.has_animation("usersearchingani"):
+		status_anim.play_backwards("usersearchingani")
+	
+	# Play card fade-out animation backwards
+	var card_anim = $CardsContainer/ClientCard/AnimationPlayer
+	if card_anim and card_anim.has_animation("usercardani"):
+		card_anim.play_backwards("usercardani")
+
