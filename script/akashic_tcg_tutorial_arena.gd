@@ -109,8 +109,8 @@ const _CARD_DB := {
 # Game state
 var player_si := STARTING_SI
 var player_fw := MAX_FW
-var ai_si := STARTING_SI
-var ai_fw := MAX_FW
+var ai_si := 15 # ⚠️ TUTORIAL: AI starts with only 15 SI (easier win)
+var ai_fw := 2 # ⚠️ TUTORIAL: AI has weak firewall
 var player_bw := 2
 var player_max_bw := 10
 var ai_bw := 2
@@ -764,16 +764,18 @@ func _apply_card_effect(card_id: String, is_player: bool) -> void:
 	if card_type == CardType.ATTACK:
 		var damage: int = card_info.get("base_damage", 0)
 		if is_player:
-			# Player attacks AI
+			# Player attacks AI - BONUS DAMAGE for tutorial!
+			damage = damage * 2 # Double player damage!
 			if ai_fw > 0:
 				var fw_dmg = mini(damage, ai_fw)
 				ai_fw -= fw_dmg
 				damage -= fw_dmg
 			if damage > 0:
 				ai_si = maxi(0, ai_si - damage)
-			_status.text = "%s dealt %d damage!" % [card_info["name"], card_info["base_damage"]]
+			_status.text = "%s dealt %d damage!" % [card_info["name"], card_info["base_damage"] * 2]
 		else:
-			# AI attacks player
+			# AI attacks player - REDUCED DAMAGE for tutorial!
+			damage = maxi(1, damage / 2) # Halve AI damage (minimum 1)
 			if player_fw > 0:
 				var fw_dmg = mini(damage, player_fw)
 				player_fw -= fw_dmg
@@ -960,9 +962,233 @@ func _on_match_end(player_won: bool) -> void:
 	
 	match_completed.emit(player_won)
 	
-	# Return to lobby after delay
-	await get_tree().create_timer(4.0).timeout
+	# Show post-game results panel
+	await _show_postgame_results(player_won)
+	
+	# Set meta flag for landing to show rewards
+	get_tree().set_meta("show_akashic_tcg_reward", true)
 	_return_to_lobby()
+
+func _show_postgame_results(player_won: bool) -> void:
+	"""Show post-game results panel with detailed stats"""
+	print("[TutorialArena] Showing post-game results...")
+	
+	# Create overlay
+	var overlay = ColorRect.new()
+	overlay.name = "PostgameOverlay"
+	overlay.color = Color(0, 0, 0, 0.85)
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.z_index = 50
+	add_child(overlay)
+	
+	# Create results panel
+	var panel = Panel.new()
+	panel.name = "PostgamePanel"
+	panel.custom_minimum_size = Vector2(400, 320)
+	panel.z_index = 51
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.offset_left = -200
+	panel.offset_right = 200
+	panel.offset_top = -160
+	panel.offset_bottom = 160
+	
+	# Style panel
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.02, 0.05, 0.08, 0.98)
+	panel_style.border_width_left = 3
+	panel_style.border_width_top = 3
+	panel_style.border_width_right = 3
+	panel_style.border_width_bottom = 3
+	panel_style.border_color = Color(0, 1, 1, 0.9) if player_won else Color(1, 0.3, 0.3, 0.9)
+	panel_style.corner_radius_top_left = 15
+	panel_style.corner_radius_top_right = 15
+	panel_style.corner_radius_bottom_left = 15
+	panel_style.corner_radius_bottom_right = 15
+	panel_style.shadow_color = panel_style.border_color
+	panel_style.shadow_size = 20
+	panel.add_theme_stylebox_override("panel", panel_style)
+	add_child(panel)
+	
+	# Result title
+	var title = Label.new()
+	title.text = "🏆 VICTORY!" if player_won else "💀 DEFEAT"
+	title.position = Vector2(0, 20)
+	title.size = Vector2(500, 50)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", Color(1, 0.84, 0, 1) if player_won else Color(1, 0.3, 0.3, 1))
+	title.add_theme_font_size_override("font_size", 36)
+	panel.add_child(title)
+	
+	# Subtitle
+	var subtitle = Label.new()
+	subtitle.text = "Akashic TCG Tutorial Complete!"
+	subtitle.position = Vector2(0, 70)
+	subtitle.size = Vector2(500, 30)
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_color_override("font_color", Color(0.7, 0.9, 1, 1))
+	subtitle.add_theme_font_size_override("font_size", 18)
+	panel.add_child(subtitle)
+	
+	# Stats container
+	var stats_y = 115
+	var line_height = 32
+	
+	# Your SI
+	var si_color = Color(0.3, 1, 0.3, 1) if player_si > 10 else Color(1, 0.5, 0, 1)
+	_add_tcg_stat_row(panel, "💚 YOUR SI:", "%d / %d" % [player_si, STARTING_SI], stats_y, si_color)
+	stats_y += line_height
+	
+	# Your FW
+	_add_tcg_stat_row(panel, "🛡️ YOUR FW:", "%d / %d" % [player_fw, MAX_FW], stats_y)
+	stats_y += line_height
+	
+	# AI SI
+	_add_tcg_stat_row(panel, "🤖 BOT SI:", "%d" % ai_si, stats_y)
+	stats_y += line_height
+	
+	# Round number
+	_add_tcg_stat_row(panel, "📊 ROUND:", "%d" % current_round, stats_y)
+	stats_y += line_height + 15
+	
+	# Divider
+	var divider = ColorRect.new()
+	divider.color = Color(0, 1, 1, 0.4)
+	divider.position = Vector2(40, stats_y)
+	divider.size = Vector2(420, 2)
+	panel.add_child(divider)
+	stats_y += 15
+	
+	# Hint text
+	var hint = Label.new()
+	hint.text = "Claim your reward on the next screen!"
+	hint.position = Vector2(0, stats_y)
+	hint.size = Vector2(500, 30)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.add_theme_color_override("font_color", Color(0.5, 0.8, 1, 0.9))
+	hint.add_theme_font_size_override("font_size", 14)
+	panel.add_child(hint)
+	
+	# Continue button
+	var continue_btn = Button.new()
+	continue_btn.text = "CONTINUE →"
+	continue_btn.custom_minimum_size = Vector2(200, 50)
+	continue_btn.position = Vector2(150, 330)
+	continue_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	var btn_style = StyleBoxFlat.new()
+	btn_style.bg_color = Color(0, 0.5, 0.6, 0.9)
+	btn_style.border_width_left = 2
+	btn_style.border_width_top = 2
+	btn_style.border_width_right = 2
+	btn_style.border_width_bottom = 2
+	btn_style.border_color = Color(0, 1, 1, 1)
+	btn_style.corner_radius_top_left = 8
+	btn_style.corner_radius_top_right = 8
+	btn_style.corner_radius_bottom_left = 8
+	btn_style.corner_radius_bottom_right = 8
+	
+	var btn_hover = btn_style.duplicate()
+	btn_hover.bg_color = Color(0, 0.7, 0.8, 1)
+	btn_hover.shadow_color = Color(0, 1, 1, 0.5)
+	btn_hover.shadow_size = 10
+	
+	continue_btn.add_theme_stylebox_override("normal", btn_style)
+	continue_btn.add_theme_stylebox_override("hover", btn_hover)
+	continue_btn.add_theme_stylebox_override("pressed", btn_hover)
+	continue_btn.add_theme_color_override("font_color", Color.WHITE)
+	continue_btn.add_theme_font_size_override("font_size", 18)
+	panel.add_child(continue_btn)
+	
+	# Wait for button press
+	var button_pressed = [false] # Use array to allow modification in lambda
+	continue_btn.pressed.connect(func():
+		button_pressed[0] = true
+	)
+	
+	# Animate panel entrance
+	panel.modulate.a = 0
+	panel.scale = Vector2(0.8, 0.8)
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(panel, "modulate:a", 1.0, 0.3)
+	tween.tween_property(panel, "scale", Vector2(1, 1), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	
+	# Wait for user to click continue
+	while not button_pressed[0]:
+		await get_tree().process_frame
+	
+	# Clean up
+	overlay.queue_free()
+	panel.queue_free()
+	print("[TutorialArena] Post-game closed, continuing to landing...")
+
+func _add_tcg_stat_row(parent: Node, label_text: String, value_text: String, y_pos: float, value_color: Color = Color(1, 1, 1, 1)) -> void:
+	"""Add a stat row to the postgame panel"""
+	var label = Label.new()
+	label.text = label_text
+	label.position = Vector2(60, y_pos)
+	label.size = Vector2(180, 28)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	label.add_theme_color_override("font_color", Color(0.7, 0.9, 1, 1))
+	label.add_theme_font_size_override("font_size", 16)
+	parent.add_child(label)
+	
+	var value = Label.new()
+	value.text = value_text
+	value.position = Vector2(280, y_pos)
+	value.size = Vector2(160, 28)
+	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	value.add_theme_color_override("font_color", value_color)
+	value.add_theme_font_size_override("font_size", 16)
+	parent.add_child(value)
+
+func _show_rewards_popup() -> void:
+	"""Show tutorial rewards with card and XP"""
+	print("[TutorialArena] Showing rewards popup...")
+	
+	var popup_scene = load("res://scene/tutorial_rewards_popup.tscn")
+	if not popup_scene:
+		push_error("[TutorialArena] Could not load rewards popup!")
+		_return_to_lobby()
+		return
+	
+	var popup = popup_scene.instantiate()
+	add_child(popup)
+	
+	# Set card image - The Magician 2 for Akashic TCG
+	var card_image = popup.get_node_or_null("Panel/VBox/CardPanel/CardImage")
+	if card_image:
+		var card_tex = load("res://asset/reward_background_cards/the magician card 2.jpeg")
+		if card_tex:
+			card_image.texture = card_tex
+	
+	# Set card name
+	var card_name_label = popup.get_node_or_null("Panel/VBox/CardNameLabel")
+	if card_name_label:
+		card_name_label.text = "✨ THE MAGICIAN 2 ✨"
+	
+	# Set XP
+	var xp_label = popup.get_node_or_null("Panel/VBox/XPLabel")
+	if xp_label:
+		xp_label.text = "+100 XP"
+	
+	# Set Agent01 dialog text - Pokemon style!
+	var dialog_text = popup.get_node_or_null("Panel/VBox/DialogBox/HBox/DialogText")
+	if dialog_text:
+		dialog_text.text = "Outstanding strategy, Agent! You've mastered the Akashic arts! This Magician card is yours - may it bring you power in future battles!"
+	
+	# Add XP to player
+	if TutorialManager:
+		TutorialManager.add_xp(100, "AkashicTCG Tutorial")
+		print("[TutorialArena] Added 100 XP!")
+	
+	# Connect claim button
+	var claim_btn = popup.get_node_or_null("Panel/VBox/ClaimButton")
+	if claim_btn:
+		claim_btn.pressed.connect(func():
+			popup.queue_free()
+			_return_to_lobby()
+		)
 
 func _mark_tutorial_complete() -> void:
 	var user_id = Auth.current_local_id if Auth else ""

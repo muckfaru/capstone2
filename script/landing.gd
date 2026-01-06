@@ -130,6 +130,9 @@ func _ready() -> void:
 	else:
 		push_error("[Landing] ❌ PokemonStyleWelcomeUI node not found!")
 	
+	# Check if returning from tutorial with rewards to show
+	call_deferred("_check_tutorial_rewards")
+	
 
 # Replace these functions in your landing.gd script
 
@@ -3574,3 +3577,262 @@ func _fade_loop_music() -> void:
 	await tween_in.finished
 	
 	print("[Landing] ✅ Music loop complete")
+
+# =============================================================================
+# TUTORIAL REWARDS SYSTEM (Shows on Landing after completing tutorials)
+# =============================================================================
+
+func _check_tutorial_rewards() -> void:
+	"""Check if returning from a tutorial with rewards to claim"""
+	await get_tree().create_timer(1.0).timeout # Wait for landing to fully load
+	
+	# Check Code Breaker tutorial reward
+	if get_tree().has_meta("show_code_breaker_reward"):
+		print("[Landing] 🎁 Code Breaker tutorial reward pending!")
+		get_tree().remove_meta("show_code_breaker_reward")
+		_show_tutorial_reward("code_breaker")
+		return
+	
+	# Check Akashic TCG tutorial reward
+	if get_tree().has_meta("show_akashic_tcg_reward"):
+		print("[Landing] 🎁 Akashic TCG tutorial reward pending!")
+		get_tree().remove_meta("show_akashic_tcg_reward")
+		_show_tutorial_reward("akashic_tcg")
+		return
+
+func _show_tutorial_reward(tutorial_type: String) -> void:
+	"""Show Agent01 dialog first, then Mystery Reward popup separately"""
+	print("[Landing] Starting tutorial reward sequence for: %s" % tutorial_type)
+	
+	# Configure based on tutorial type
+	var card_path := ""
+	var card_name := ""
+	var dialog_text := ""
+	
+	if tutorial_type == "code_breaker":
+		card_path = "res://asset/reward_background_cards/the magician card 1.jpeg"
+		card_name = "✨ THE MAGICIAN 1 ✨"
+		dialog_text = "Excellent work, Agent! You've proven yourself as a Code Breaker! Your skills are truly impressive. I have a special reward waiting for you..."
+	else: # akashic_tcg
+		card_path = "res://asset/reward_background_cards/the magician card 2.jpeg"
+		card_name = "✨ THE MAGICIAN 2 ✨"
+		dialog_text = "Outstanding strategy, Agent! You've mastered the Akashic arts! Your tactical mind is ready for greater challenges. I have a special reward for you..."
+	
+	# STEP 1: Show Agent01 congratulations dialog FIRST (no card yet)
+	await _show_agent_dialog(dialog_text)
+	
+	# STEP 2: Show Mystery Reward popup with card AFTER dialog is closed
+	await _show_mystery_reward_popup(tutorial_type, card_path, card_name)
+	
+	print("[Landing] ✅ Tutorial reward sequence complete!")
+
+func _show_agent_dialog(dialog_text: String) -> void:
+	"""Show Agent01 Pokemon-style congratulations dialog"""
+	print("[Landing] Showing Agent01 dialog...")
+	
+	# Create overlay (but don't block mouse events on children)
+	var overlay = ColorRect.new()
+	overlay.name = "AgentDialogOverlay"
+	overlay.color = Color(0, 0, 0, 0.7)
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.z_index = 98
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE # ✅ Don't block clicks
+	add_child(overlay)
+	
+	# Create dialog panel (Pokemon style - bottom of screen)
+	var dialog_panel = Panel.new()
+	dialog_panel.name = "AgentDialogPanel"
+	dialog_panel.z_index = 99
+	dialog_panel.custom_minimum_size = Vector2(0, 160)
+	dialog_panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	dialog_panel.offset_top = -180
+	dialog_panel.offset_left = 50
+	dialog_panel.offset_right = -50
+	dialog_panel.offset_bottom = -30
+	
+	# Style the panel
+	var panel_style = StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.02, 0.05, 0.1, 0.95)
+	panel_style.border_width_left = 3
+	panel_style.border_width_top = 3
+	panel_style.border_width_right = 3
+	panel_style.border_width_bottom = 3
+	panel_style.border_color = Color(0, 0.8, 1, 1)
+	panel_style.corner_radius_top_left = 15
+	panel_style.corner_radius_top_right = 15
+	panel_style.corner_radius_bottom_left = 15
+	panel_style.corner_radius_bottom_right = 15
+	panel_style.shadow_color = Color(0, 1, 1, 0.3)
+	panel_style.shadow_size = 15
+	dialog_panel.add_theme_stylebox_override("panel", panel_style)
+	add_child(dialog_panel)
+	
+	# Main VBox container
+	var vbox = VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.offset_left = 15
+	vbox.offset_top = 15
+	vbox.offset_right = -15
+	vbox.offset_bottom = -15
+	vbox.add_theme_constant_override("separation", 10)
+	dialog_panel.add_child(vbox)
+	
+	# HBox for portrait + text
+	var hbox = HBoxContainer.new()
+	hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hbox.add_theme_constant_override("separation", 20)
+	vbox.add_child(hbox)
+	
+	# Agent01 portrait
+	var portrait_panel = Panel.new()
+	portrait_panel.custom_minimum_size = Vector2(90, 90)
+	var portrait_style = StyleBoxFlat.new()
+	portrait_style.bg_color = Color(0.1, 0.15, 0.2, 1)
+	portrait_style.border_width_left = 2
+	portrait_style.border_width_top = 2
+	portrait_style.border_width_right = 2
+	portrait_style.border_width_bottom = 2
+	portrait_style.border_color = Color(0, 0.8, 1, 1)
+	portrait_style.corner_radius_top_left = 8
+	portrait_style.corner_radius_top_right = 8
+	portrait_style.corner_radius_bottom_left = 8
+	portrait_style.corner_radius_bottom_right = 8
+	portrait_panel.add_theme_stylebox_override("panel", portrait_style)
+	hbox.add_child(portrait_panel)
+	
+	var portrait = TextureRect.new()
+	portrait.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	portrait.offset_left = 5
+	portrait.offset_top = 5
+	portrait.offset_right = -5
+	portrait.offset_bottom = -5
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var agent_tex = load("res://asset/icons/AGENT01.png")
+	if agent_tex:
+		portrait.texture = agent_tex
+	portrait_panel.add_child(portrait)
+	
+	# Dialog text
+	var text_label = Label.new()
+	text_label.text = dialog_text
+	text_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	text_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	text_label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	text_label.add_theme_font_size_override("font_size", 18)
+	hbox.add_child(text_label)
+	
+	# Button container (right-aligned)
+	var btn_container = HBoxContainer.new()
+	btn_container.alignment = BoxContainer.ALIGNMENT_END
+	vbox.add_child(btn_container)
+	
+	# Continue button
+	var continue_btn = Button.new()
+	continue_btn.text = "Continue ▶"
+	continue_btn.custom_minimum_size = Vector2(150, 40)
+	continue_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	var btn_style = StyleBoxFlat.new()
+	btn_style.bg_color = Color(0, 0.5, 0.6, 0.9)
+	btn_style.border_width_left = 2
+	btn_style.border_width_top = 2
+	btn_style.border_width_right = 2
+	btn_style.border_width_bottom = 2
+	btn_style.border_color = Color(0, 1, 1, 1)
+	btn_style.corner_radius_top_left = 6
+	btn_style.corner_radius_top_right = 6
+	btn_style.corner_radius_bottom_left = 6
+	btn_style.corner_radius_bottom_right = 6
+	
+	var btn_hover = btn_style.duplicate()
+	btn_hover.bg_color = Color(0, 0.7, 0.8, 1)
+	
+	continue_btn.add_theme_stylebox_override("normal", btn_style)
+	continue_btn.add_theme_stylebox_override("hover", btn_hover)
+	continue_btn.add_theme_color_override("font_color", Color.WHITE)
+	continue_btn.add_theme_font_size_override("font_size", 16)
+	btn_container.add_child(continue_btn)
+	
+	# Wait for button press
+	var dialog_closed = [false]
+	continue_btn.pressed.connect(func():
+		dialog_closed[0] = true
+	)
+	
+	# Animate entrance
+	dialog_panel.modulate.a = 0
+	var tween = create_tween()
+	tween.tween_property(dialog_panel, "modulate:a", 1.0, 0.3)
+	
+	# Wait for user to continue
+	while not dialog_closed[0]:
+		await get_tree().process_frame
+	
+	# Clean up dialog
+	overlay.queue_free()
+	dialog_panel.queue_free()
+	print("[Landing] Agent01 dialog closed")
+
+func _show_mystery_reward_popup(tutorial_type: String, card_path: String, card_name: String) -> void:
+	"""Show Mystery Reward popup with card and XP"""
+	print("[Landing] Showing Mystery Reward popup...")
+	
+	var popup_scene = load("res://scene/tutorial_rewards_popup.tscn")
+	if not popup_scene:
+		push_error("[Landing] Could not load tutorial rewards popup!")
+		return
+	
+	var popup = popup_scene.instantiate()
+	add_child(popup)
+	
+	# Set "MYSTERY REWARD" banner
+	var banner = popup.get_node_or_null("Panel/VBox/CongratsBanner")
+	if banner:
+		banner.text = "🎁 MYSTERY REWARD 🎁"
+	
+	# Hide the dialog box (we already showed it separately)
+	var dialog_box = popup.get_node_or_null("Panel/VBox/DialogBox")
+	if dialog_box:
+		dialog_box.visible = false
+	
+	# Set card image
+	var card_image = popup.get_node_or_null("Panel/VBox/CardPanel/CardImage")
+	if card_image:
+		var card_tex = load(card_path)
+		if card_tex:
+			card_image.texture = card_tex
+	
+	# Set card name
+	var name_label = popup.get_node_or_null("Panel/VBox/CardNameLabel")
+	if name_label:
+		name_label.text = card_name
+	
+	# Set XP
+	var xp_label = popup.get_node_or_null("Panel/VBox/XPLabel")
+	if xp_label:
+		xp_label.text = "+100 XP"
+	
+	# Add XP to player
+	if TutorialManager:
+		var source = "Code Breaker Tutorial" if tutorial_type == "code_breaker" else "AkashicTCG Tutorial"
+		TutorialManager.add_xp(100, source)
+		print("[Landing] Added 100 XP from %s!" % source)
+	
+	# Wait for claim button
+	var reward_claimed = [false]
+	var claim_btn = popup.get_node_or_null("Panel/VBox/ClaimButton")
+	if claim_btn:
+		claim_btn.text = "CLAIM REWARD"
+		claim_btn.pressed.connect(func():
+			reward_claimed[0] = true
+		)
+	
+	# Wait for claim
+	while not reward_claimed[0]:
+		await get_tree().process_frame
+	
+	# Clean up
+	popup.queue_free()
+	print("[Landing] Mystery Reward claimed!")

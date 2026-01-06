@@ -1,6 +1,6 @@
-[gd_scene load_steps=15 format=3 uid="uid://tutorial_arena_scene"]
+[gd_scene load_steps=14 format=3 uid="uid://owldu3pgurub"]
 
-[ext_resource type="Script" path="res://script/akashic_tcg_tutorial_arena.gd" id="1"]
+[ext_resource type="Script" uid="uid://bjrayr1ciivx5" path="res://script/akashic_tcg_tutorial_arena.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2"]
 [ext_resource type="Script" uid="uid://bmjpps2v666l8" path="res://script/AkashicTCGPlayZone.gd" id="3"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="5"]
@@ -380,15 +380,14 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -200.0
-offset_top = 20.0
-offset_right = 200.0
-offset_bottom = 50.0
+offset_left = -552.0
+offset_top = 121.0
+offset_right = -375.0
+offset_bottom = 151.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 18
 text = "Tutorial Mode"
-horizontal_alignment = 1
 
 [node name="Table" type="Control" parent="HUD"]
 layout_mode = 1
@@ -409,6 +408,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -11.0
+offset_top = 10.0
+offset_right = -11.0
+offset_bottom = 10.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_zone")
@@ -492,10 +495,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 40.0
-offset_top = 4.0
-offset_right = -19.0
-offset_bottom = 4.0
+offset_left = 29.0
+offset_top = 23.0
+offset_right = -30.0
+offset_bottom = 23.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = -60
