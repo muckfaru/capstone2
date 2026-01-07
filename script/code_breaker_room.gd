@@ -1237,4 +1237,3 @@ func _play_client_leave_animations() -> void:
 	var card_anim = $CardsContainer/ClientCard/AnimationPlayer
 	if card_anim and card_anim.has_animation("usercardani"):
 		card_anim.play_backwards("usercardani")
-

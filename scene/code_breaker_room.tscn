@@ -13,21 +13,6 @@ border_width_right = 5
 border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 corner_radius_top_left = 8
 
-[sub_resource type="Animation" id="Animation_fpe01"]
-resource_name = "hostnameani"
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.966667),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(0, 171.2), Vector2(0, -29.8)]
-}
-
 [sub_resource type="Animation" id="Animation_wxc2o"]
 length = 0.001
 tracks/0/type = "value"
@@ -41,6 +26,21 @@ tracks/0/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Vector2(0, 171.2)]
+}
+
+[sub_resource type="Animation" id="Animation_fpe01"]
+resource_name = "hostnameani"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.966667),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 171.2), Vector2(0, -29.8)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_b3n7n"]
@@ -57,21 +57,6 @@ border_width_bottom = 5
 border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 corner_radius_bottom_right = 8
 
-[sub_resource type="Animation" id="Animation_b3n7n"]
-resource_name = "readyhostani"
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.966667),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(0, 202), Vector2(0, 391.2)]
-}
-
 [sub_resource type="Animation" id="Animation_n8nu1"]
 length = 0.001
 tracks/0/type = "value"
@@ -87,10 +72,40 @@ tracks/0/keys = {
 "values": [Vector2(0, 202)]
 }
 
+[sub_resource type="Animation" id="Animation_b3n7n"]
+resource_name = "readyhostani"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.966667),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 202), Vector2(0, 391.2)]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_e7bgt"]
 _data = {
 &"RESET": SubResource("Animation_n8nu1"),
 &"readyhostani": SubResource("Animation_b3n7n")
+}
+
+[sub_resource type="Animation" id="Animation_otuqm"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.615686, 0.615686, 0.615686, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_e7bgt"]
@@ -109,21 +124,6 @@ tracks/0/keys = {
 "values": [Color(0.615686, 0.615686, 0.615686, 0), Color(0.615686, 0.615686, 0.615686, 1)]
 }
 
-[sub_resource type="Animation" id="Animation_otuqm"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:self_modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(0.615686, 0.615686, 0.615686, 1)]
-}
-
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_3n4ps"]
 _data = {
 &"RESET": SubResource("Animation_otuqm"),
@@ -139,21 +139,6 @@ border_color = Color(0.827396, 0.01185, 3.56168e-06, 0.784314)
 border_blend = true
 corner_radius_top_right = 8
 
-[sub_resource type="Animation" id="Animation_3n4ps"]
-resource_name = "usrreadyani"
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 1),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(-4, 171.2), Vector2(0, -29.8)]
-}
-
 [sub_resource type="Animation" id="Animation_qbngv"]
 length = 0.001
 tracks/0/type = "value"
@@ -167,6 +152,21 @@ tracks/0/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Vector2(-4, 171.2)]
+}
+
+[sub_resource type="Animation" id="Animation_3n4ps"]
+resource_name = "usrreadyani"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-4, 171.2), Vector2(0, -29.8)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_q15t4"]
@@ -184,21 +184,6 @@ border_color = Color(0.827451, 0.0117647, 0, 0.784314)
 border_blend = true
 corner_radius_bottom_left = 8
 
-[sub_resource type="Animation" id="Animation_q15t4"]
-resource_name = "usersearchingani"
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 1),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector2(-4, 202), Vector2(-4, 391.2)]
-}
-
 [sub_resource type="Animation" id="Animation_33bhg"]
 length = 0.001
 tracks/0/type = "value"
@@ -214,10 +199,40 @@ tracks/0/keys = {
 "values": [Vector2(-4, 202)]
 }
 
+[sub_resource type="Animation" id="Animation_q15t4"]
+resource_name = "usersearchingani"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-4, 202), Vector2(-4, 391.2)]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_exlih"]
 _data = {
 &"RESET": SubResource("Animation_33bhg"),
 &"usersearchingani": SubResource("Animation_q15t4")
+}
+
+[sub_resource type="Animation" id="Animation_4eksq"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:self_modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0.617455, 0.617455, 0.617455, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_exlih"]
@@ -234,21 +249,6 @@ tracks/0/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Color(0.568627, 0, 0.0941176, 1), Color(0.615686, 0.615686, 0.615686, 1)]
-}
-
-[sub_resource type="Animation" id="Animation_4eksq"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:self_modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(0.617455, 0.617455, 0.617455, 1)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_sqk46"]
