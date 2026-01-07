@@ -26,6 +26,7 @@ var ai_turn_delay := 2.0
 @onready var _you_fw_bar: ProgressBar = $HUD/PlayerBars/YouFWBar
 @onready var _resource_label: Label = $HUD/PlayerBars/ResourceLabel
 @onready var _drop_timer_label: Label = $HUD/PlayerBars/YouSIBar/DropTimerLabel
+@onready var _buff_icons_hbox: HBoxContainer = $HUD/PlayerBars/YouSIBar/BuffIconsHBox
 @onready var _sidebar_opp_name: Label = $HUD/Sidebar/OppName
 @onready var _sidebar_you_name: Label = $HUD/Sidebar/YouName
 @onready var _timer_label: Label = $HUD/Sidebar/TimerLabel
@@ -35,6 +36,7 @@ var ai_turn_delay := 2.0
 @onready var _play_zone: Panel = $HUD/Table/PlayZone
 @onready var _hand_hbox: HBoxContainer = $HUD/HandArea/HandHBox
 @onready var _menu_btn: Button = $MenuButton
+@onready var _menu_panel: Control = $MenuPanel
 
 @onready var _opp_dropped_cards: Array[TextureRect] = [
 	$HUD/Table/PlayZone/ZoneVBox/DroppedCards/OppDroppedRow/OppDropped1,
@@ -82,6 +84,27 @@ const _SFX_VICTORY: AudioStream = preload("res://asset/audio/akashic sfx/player 
 const _SFX_DEFEAT: AudioStream = preload("res://asset/audio/akashic sfx/player defeat.wav")
 const _SFX_ROUND_PATH := "res://asset/audio/akashic sfx/round_sound effect.mp3"
 
+# ===== BUFF ICONS (MATCH ONLINE ARENA) =====
+const _BUFF_ICON_SIZE := Vector2(25, 25)
+const _ICON_MFA: Texture2D = preload("res://asset/icons/Multi fartor auth card icon.png")
+const _ICON_IDS: Texture2D = preload("res://asset/icons/intrusion detection card icon.png")
+const _ICON_ENCRYPTED: Texture2D = preload("res://asset/icons/encryption key card icon.png")
+
+const _BUFF_TOOLTIP := {
+	"mfa": {
+		"title": "MFA",
+		"desc": "Blocks the next Phishing/Trojan.",
+	},
+	"ids": {
+		"title": "IDS",
+		"desc": "Next incoming attack -1 damage, then draw 2.",
+	},
+	"encrypted": {
+		"title": "ENCRYPTION",
+		"desc": "Next Phishing/Virus/Trojan -1 damage.",
+	},
+}
+
 var _sfx_drop_player: AudioStreamPlayer = null
 var _sfx_reveal_player: AudioStreamPlayer = null
 var _sfx_result_player: AudioStreamPlayer = null
@@ -119,6 +142,10 @@ var ai_plays := 0
 var current_round := 1
 var is_player_turn := true
 
+# Minimal status tracking for buff icon display (turn-based).
+var _player_status: Dictionary = {}
+var _ai_status: Dictionary = {}
+
 # Round done flags for simultaneous submission
 var player_round_done := false
 var ai_round_done := false
@@ -138,10 +165,29 @@ signal match_completed(player_won: bool)
 
 func _ready() -> void:
 	print("[TutorialArena] Tutorial Arena ready - using real arena assets")
+	# Ensure round banner/countdown are never hidden behind HUD elements.
+	if _round_label:
+		_round_label.visible = false
+		_round_label.z_index = 1000
+		_round_label.z_as_relative = false
+		_round_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_round_label.move_to_front()
+	if _countdown_label:
+		_countdown_label.visible = false
+		_countdown_label.z_index = 1000
+		_countdown_label.z_as_relative = false
+		_countdown_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_countdown_label.move_to_front()
 	
-	# Hide menu for tutorial
-	if _menu_btn:
-		_menu_btn.visible = false
+	# Menu (match online arena: toggleable)
+	if _menu_btn != null and not _menu_btn.pressed.is_connected(_on_menu_button_pressed):
+		_menu_btn.pressed.connect(_on_menu_button_pressed)
+	if _menu_panel != null:
+		_menu_panel.visible = false
+	# Buff icons (match online arena assets)
+	if _buff_icons_hbox:
+		_buff_icons_hbox.visible = false
+		_buff_icons_hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	# Set names
 	if _sidebar_opp_name:
@@ -175,6 +221,103 @@ func _ready() -> void:
 	
 	# Load tutorial guide first
 	_load_tutorial_guide()
+
+
+func _on_menu_button_pressed() -> void:
+	if _menu_panel == null:
+		return
+	_menu_panel.visible = not _menu_panel.visible
+	if _menu_panel.visible:
+		_menu_panel.move_to_front()
+
+
+func _status_active(status: Dictionary, key: String) -> bool:
+	if not status.has(key):
+		return false
+	var v: Variant = status.get(key)
+	if typeof(v) == TYPE_BOOL:
+		return bool(v)
+	if typeof(v) == TYPE_INT:
+		return int(v) > 0
+	if typeof(v) == TYPE_FLOAT:
+		return float(v) > 0.0
+	if typeof(v) == TYPE_DICTIONARY:
+		return int((v as Dictionary).get("turns", 1)) > 0
+	return true
+
+
+func _turns_left_from_status(status: Dictionary, key: String) -> int:
+	if not status.has(key):
+		return 0
+	var v: Variant = status.get(key)
+	if typeof(v) == TYPE_DICTIONARY:
+		return int((v as Dictionary).get("turns", 1))
+	if typeof(v) == TYPE_INT:
+		return int(v)
+	return 1
+
+
+func _make_buff_icon(tex: Texture2D, key: String, status: Dictionary) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.mouse_filter = Control.MOUSE_FILTER_STOP
+	icon.texture = tex
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_SCALE
+	icon.custom_minimum_size = _BUFF_ICON_SIZE
+
+	var meta: Dictionary = _BUFF_TOOLTIP.get(key, {})
+	var title: String = str(meta.get("title", key.to_upper()))
+	var desc: String = str(meta.get("desc", ""))
+	var turns_left: int = _turns_left_from_status(status, key)
+	if desc != "":
+		icon.tooltip_text = "%s\n%s\nTurns left: %d" % [title, desc, turns_left]
+	else:
+		icon.tooltip_text = "%s\nTurns left: %d" % [title, turns_left]
+	return icon
+
+
+func _render_player_buff_icons() -> void:
+	if _buff_icons_hbox == null or not is_instance_valid(_buff_icons_hbox):
+		return
+	var show_mfa := _status_active(_player_status, "mfa")
+	var show_ids := _status_active(_player_status, "ids")
+	var show_enc := _status_active(_player_status, "encrypted")
+
+	for c in _buff_icons_hbox.get_children():
+		c.queue_free()
+
+	if show_mfa:
+		_buff_icons_hbox.add_child(_make_buff_icon(_ICON_MFA, "mfa", _player_status))
+	if show_ids:
+		_buff_icons_hbox.add_child(_make_buff_icon(_ICON_IDS, "ids", _player_status))
+	if show_enc:
+		_buff_icons_hbox.add_child(_make_buff_icon(_ICON_ENCRYPTED, "encrypted", _player_status))
+
+	_buff_icons_hbox.visible = show_mfa or show_ids or show_enc
+
+
+func _set_status_turns(status: Dictionary, key: String, turns: int) -> void:
+	status[key] = {"turns": maxi(0, turns)}
+
+
+func _tick_status_turns(status: Dictionary) -> void:
+	var keys := status.keys()
+	for k in keys:
+		var v: Variant = status.get(k)
+		if typeof(v) == TYPE_DICTIONARY:
+			var d := v as Dictionary
+			var t := int(d.get("turns", 1)) - 1
+			if t <= 0:
+				status.erase(k)
+			else:
+				d["turns"] = t
+				status[k] = d
+		elif typeof(v) == TYPE_INT:
+			var ti := int(v) - 1
+			if ti <= 0:
+				status.erase(k)
+			else:
+				status[k] = ti
 
 func _setup_dropped_slots() -> void:
 	for slot in _you_dropped_cards:
@@ -330,6 +473,7 @@ func _set_timer_display(total_seconds: int) -> void:
 
 func _show_round_banner() -> void:
 	if _round_label:
+		_round_label.move_to_front()
 		_round_label.visible = true
 		_round_label.text = "ROUND %d" % current_round
 		_round_label.modulate = Color(1, 1, 1, 1)
@@ -411,10 +555,11 @@ func _setup_card_info_panel() -> void:
 	
 	_card_info_panel = Panel.new()
 	_card_info_panel.name = "CardInfoPanel"
-	_card_info_panel.custom_minimum_size = Vector2(200, 150)
+	_card_info_panel.custom_minimum_size = Vector2(240, 170)
 	_card_info_panel.visible = false
 	_card_info_panel.z_index = 100 # High z-index to show on top
 	_card_info_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_card_info_panel.clip_contents = true
 	
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0.05, 0.05, 0.1, 0.95)
@@ -431,9 +576,18 @@ func _setup_card_info_panel() -> void:
 	
 	add_child(_card_info_panel)
 	
-	var vbox = VBoxContainer.new()
-	_card_info_panel.add_child(vbox)
-	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 10)
+	var margin := MarginContainer.new()
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.offset_left = 10
+	margin.offset_top = 10
+	margin.offset_right = -10
+	margin.offset_bottom = -10
+	_card_info_panel.add_child(margin)
+	
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.add_theme_constant_override("separation", 6)
+	margin.add_child(vbox)
 	
 	# Header (Name + Cost)
 	var hbox = HBoxContainer.new()
@@ -441,17 +595,20 @@ func _setup_card_info_panel() -> void:
 	
 	_info_name_label = Label.new()
 	_info_name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_info_name_label.clip_text = true
 	_info_name_label.add_theme_font_size_override("font_size", 16)
 	_info_name_label.add_theme_color_override("font_color", Color(1, 0.8, 0.2)) # Gold
 	hbox.add_child(_info_name_label)
 	
 	_info_cost_label = Label.new()
+	_info_cost_label.clip_text = true
 	_info_cost_label.add_theme_font_size_override("font_size", 16)
 	_info_cost_label.add_theme_color_override("font_color", Color(0.2, 0.8, 1)) # Cyan
 	hbox.add_child(_info_cost_label)
 	
 	# Type
 	_info_type_label = Label.new()
+	_info_type_label.clip_text = true
 	_info_type_label.add_theme_font_size_override("font_size", 12)
 	_info_type_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 	vbox.add_child(_info_type_label)
@@ -461,6 +618,7 @@ func _setup_card_info_panel() -> void:
 	# Description
 	_info_desc_label = Label.new()
 	_info_desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_info_desc_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_info_desc_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_info_desc_label.add_theme_font_size_override("font_size", 14)
 	vbox.add_child(_info_desc_label)
@@ -480,10 +638,18 @@ func _show_card_info(card_data: Dictionary) -> void:
 	var mouse_pos = get_global_mouse_position()
 	_card_info_panel.global_position = mouse_pos + Vector2(20, -180)
 	
-	# Keep on screen
-	var viewport_size = get_viewport_rect().size
-	if _card_info_panel.global_position.x + _card_info_panel.size.x > viewport_size.x:
-		_card_info_panel.global_position.x = mouse_pos.x - _card_info_panel.size.x - 20
+	# Keep on screen (X + Y)
+	var viewport_rect := get_viewport().get_visible_rect()
+	var viewport_pos: Vector2 = viewport_rect.position
+	var viewport_size: Vector2 = viewport_rect.size
+	var p := _card_info_panel.global_position
+	var max_x := viewport_pos.x + viewport_size.x - _card_info_panel.size.x - 8.0
+	var max_y := viewport_pos.y + viewport_size.y - _card_info_panel.size.y - 8.0
+	var min_x := viewport_pos.x + 8.0
+	var min_y := viewport_pos.y + 8.0
+	p.x = clampf(p.x, min_x, max_x)
+	p.y = clampf(p.y, min_y, max_y)
+	_card_info_panel.global_position = p
 	
 	_card_info_panel.visible = true
 
@@ -809,6 +975,8 @@ func _resolve_all_cards() -> void:
 
 func _start_new_round() -> void:
 	current_round += 1
+	_tick_status_turns(_player_status)
+	_tick_status_turns(_ai_status)
 	
 	# BW gain per round (matching real arena)
 	var gain: int = 2
@@ -881,6 +1049,23 @@ func _apply_card_effect(card_id: String, is_player: bool) -> void:
 			_status.text = "AI used %s!" % card_info["name"]
 	
 	elif card_type == CardType.DEFENSE:
+		# Track simple buff statuses for icon display (matches online icon set).
+		if card_id == "mfa":
+			if is_player:
+				_set_status_turns(_player_status, "mfa", 1)
+			else:
+				_set_status_turns(_ai_status, "mfa", 1)
+		elif card_id == "ids":
+			if is_player:
+				_set_status_turns(_player_status, "ids", 1)
+			else:
+				_set_status_turns(_ai_status, "ids", 1)
+		elif card_id == "encryption":
+			if is_player:
+				_set_status_turns(_player_status, "encrypted", 2)
+			else:
+				_set_status_turns(_ai_status, "encrypted", 2)
+
 		if card_id == "firewall":
 			if is_player:
 				player_fw = mini(MAX_FW, player_fw + 3)
@@ -974,6 +1159,8 @@ func _on_ai_turn() -> void:
 
 func _end_ai_turn() -> void:
 	current_round += 1
+	_tick_status_turns(_player_status)
+	_tick_status_turns(_ai_status)
 	
 	# BW gain per round (matching real arena)
 	# Round 1-2: +2, 3-6: +3, 7-10: +4, 11+: +5. Cap at MAX_BW.
@@ -1028,6 +1215,7 @@ func _update_ui() -> void:
 		_opp_resource_label.text = "AI: %d cards" % ai_hand.size()
 	if _drop_timer_label:
 		_drop_timer_label.visible = false
+	_render_player_buff_icons()
 
 func _check_win_condition() -> void:
 	if ai_si <= 0:

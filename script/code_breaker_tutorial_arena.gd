@@ -48,6 +48,46 @@ const SELF_DAMAGE_PENALTY := 8
 const SNIPPET_TIME_LIMIT := 60.0 # ⚠️ TUTORIAL: Extended from 15s to 60s!
 const GAME_DURATION := 180.0 # 3 minutes
 
+# Pop/bubble animation presets for CodeDisplayPanel (ported from online arena)
+const POP_PRESETS := {
+	"subtle": {
+		"out_duration": 0.09,
+		"in_duration": 0.12,
+		"out_scale": 0.92,
+		"in_overscale": 1.08
+	},
+	"normal": {
+		"out_duration": 0.12,
+		"in_duration": 0.18,
+		"out_scale": 0.85,
+		"in_overscale": 1.15
+	},
+	"dramatic": {
+		"out_duration": 0.18,
+		"in_duration": 0.28,
+		"out_scale": 0.7,
+		"in_overscale": 1.35
+	}
+}
+
+var _active_pop_preset: String = "dramatic"
+
+# Position shuffle mechanic - code panel moves on snippet transition
+var _position_shuffle_enabled: bool = true
+var _original_panel_position: Vector2 = Vector2.ZERO
+var _panel_position_offsets: Array[Vector2] = [
+	Vector2(0, 0),
+	Vector2(-150, -60),
+	Vector2(150, -60),
+	Vector2(-150, 60),
+	Vector2(150, 60),
+	Vector2(0, -40),
+	Vector2(0, 40),
+	Vector2(-60, 0),
+	Vector2(60, 0)
+]
+var _last_position_index: int = 0
+
 # ===== POWER-UP SYSTEM (BUFFED FOR TUTORIAL) =====
 enum PowerUpType {NORMAL, HEAL, FREEZE_TIME, EXTEND_TIME, SHIELD}
 const HEAL_BONUS := 20 # ⚠️ TUTORIAL: +20 HP (doubled from 10)
@@ -114,6 +154,15 @@ func _ready() -> void:
 		_host_name_label.text = username.to_upper()
 	if _client_name_label:
 		_client_name_label.text = "CYBER BOT"
+	if _p1_title:
+		_p1_title.text = "YOU"
+	if _p2_title:
+		_p2_title.text = "CYBER BOT"
+	if _status_label:
+		_status_label.text = "TYPE THE SNIPPET AND PRESS ENTER"
+	if _code_panel:
+		_code_panel.scale = Vector2.ONE
+		_original_panel_position = _code_panel.position
 	
 	# Setup input
 	if _input_field:
@@ -232,25 +281,33 @@ func _start_match() -> void:
 	
 	# Start AI typing
 	_start_ai_typing()
-	
-	# Start battle music
-	if _battle_music:
-		_battle_music.volume_db = -10
-		_battle_music.play()
+	# Battle music is faded in during countdown.
 	
 	print("[CBTutorialArena] Match started!")
 
 func _show_countdown() -> void:
 	if _countdown_label:
 		_countdown_label.visible = true
+
+	# Fade in battle music during countdown (online arena feel)
+	if _battle_music:
+		if not _battle_music.playing:
+			_battle_music.volume_db = -80
+			_battle_music.play()
+		var music_tween = create_tween()
+		music_tween.tween_property(_battle_music, "volume_db", -10.0, 2.0)
+		
+		_countdown_label.text = "GET READY!"
+		_bounce_scale(_countdown_label, 1.3, 0.8)
+		await get_tree().create_timer(1.0).timeout
 		
 		for i in range(3, 0, -1):
 			_countdown_label.text = str(i)
-			_animate_countdown_number()
+			_bounce_scale(_countdown_label, 1.5, 0.8)
 			await get_tree().create_timer(1.0).timeout
 		
 		_countdown_label.text = "TYPE!"
-		_animate_countdown_number()
+		_bounce_scale(_countdown_label, 1.4, 0.4)
 		await get_tree().create_timer(0.5).timeout
 		
 		_countdown_label.visible = false
@@ -320,8 +377,7 @@ func _show_current_snippet() -> void:
 		_snippet_time_remaining += EXTEND_SNIPPET_TIME
 		print("[CBTutorialArena] 🟡 Extend bonus! +%.0fs to snippet" % EXTEND_SNIPPET_TIME)
 	
-	if _code_display:
-		_code_display.text = _code_snippet
+	_popin_code_display_with_text(_code_snippet)
 	
 	# ===== POWER-UP RANDOM SELECTION =====
 	var rand_value = randf()
@@ -350,9 +406,7 @@ func _show_current_snippet() -> void:
 	# Reset AI typing for new snippet
 	ai_current_char_index = 0
 	
-	# Play pop sound
-	if _pop_sound:
-		_pop_sound.play()
+	# Pop sound is played by _popin_code_display_with_text()
 
 func _set_powerup_panel(powerup_type: String) -> void:
 	# Hide all panels first
@@ -376,6 +430,7 @@ func _on_input_submitted(text: String) -> void:
 	
 	if text == _code_snippet:
 		# Correct!
+		_flash_success()
 		player_score += SCORE_CORRECT
 		ai_health = maxi(0, ai_health - DAMAGE_TO_ENEMY)
 		
@@ -433,6 +488,7 @@ func _on_input_submitted(text: String) -> void:
 		_start_ai_typing()
 	else:
 		# Wrong!
+		_flash_error()
 		var damage_taken := SELF_DAMAGE_PENALTY
 		
 		# 🛡️ SHIELD: Block damage if active!
@@ -442,6 +498,7 @@ func _on_input_submitted(text: String) -> void:
 		else:
 			player_health = maxi(0, player_health - damage_taken)
 			print("[CBTutorialArena] ❌ Wrong! HP: %d" % player_health)
+			_flash_damage_indicator()
 			
 			# SHAKE EFFECT: Health bar shake on damage
 			if _p1_health:
@@ -506,6 +563,7 @@ func _on_ai_completed_snippet() -> void:
 	# AI correctly submitted
 	ai_score += SCORE_CORRECT
 	player_health = maxi(0, player_health - DAMAGE_TO_ENEMY)
+	_flash_damage_indicator()
 	
 	print("[CBTutorialArena] 🤖 AI completed snippet! Score: %d, Player HP: %d" % [ai_score, player_health])
 	
@@ -533,7 +591,7 @@ func _on_game_timer_tick() -> void:
 		return
 	
 	# Update timer display
-	var mins = int(remaining) / 60
+	var mins = int(remaining / 60.0)
 	var secs = int(remaining) % 60
 	if _timer_label:
 		_timer_label.text = "%02d:%02d" % [mins, secs]
@@ -577,6 +635,8 @@ func _on_snippet_timer_tick() -> void:
 		if not _shield_active:
 			player_health = maxi(0, player_health - SELF_DAMAGE_PENALTY)
 			print("[CBTutorialArena] ⏰ Time up! Player HP: %d" % player_health)
+			_flash_error()
+			_flash_damage_indicator()
 		else:
 			print("[CBTutorialArena] ⏰ Time up but 🛡️ SHIELD blocked damage!")
 		
@@ -621,6 +681,7 @@ func _end_game_victory() -> void:
 	_snippet_timer.stop()
 	
 	_mark_tutorial_complete()
+	match_completed.emit(true)
 	
 	# Show post-game results panel
 	await _show_postgame_results(true)
@@ -637,6 +698,7 @@ func _end_game_defeat() -> void:
 	_snippet_timer.stop()
 	
 	_mark_tutorial_complete()
+	match_completed.emit(false)
 	
 	# Show post-game results panel
 	await _show_postgame_results(false)
@@ -655,6 +717,7 @@ func _end_game_time_up() -> void:
 	var player_won = player_health > ai_health
 	
 	_mark_tutorial_complete()
+	match_completed.emit(player_won)
 	
 	# Show post-game results panel
 	await _show_postgame_results(player_won)
@@ -706,26 +769,26 @@ func _show_postgame_results(player_won: bool) -> void:
 	# Result title
 	var title = Label.new()
 	title.text = "🏆 VICTORY!" if player_won else "💀 DEFEAT"
-	title.position = Vector2(0, 20)
-	title.size = Vector2(500, 50)
+	title.position = Vector2(0, 12)
+	title.size = Vector2(400, 40)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_color", Color(1, 0.84, 0, 1) if player_won else Color(1, 0.3, 0.3, 1))
-	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_font_size_override("font_size", 32)
 	panel.add_child(title)
 	
 	# Subtitle
 	var subtitle = Label.new()
 	subtitle.text = "Tutorial Complete!"
-	subtitle.position = Vector2(0, 70)
-	subtitle.size = Vector2(500, 30)
+	subtitle.position = Vector2(0, 52)
+	subtitle.size = Vector2(400, 24)
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_color_override("font_color", Color(0.7, 0.9, 1, 1))
-	subtitle.add_theme_font_size_override("font_size", 18)
+	subtitle.add_theme_font_size_override("font_size", 16)
 	panel.add_child(subtitle)
 	
 	# Stats container
-	var stats_y = 120
-	var line_height = 35
+	var stats_y = 90
+	var line_height = 28
 	
 	# Your Score
 	_add_stat_row(panel, "📊 YOUR SCORE:", "%d" % player_score, stats_y)
@@ -750,25 +813,25 @@ func _show_postgame_results(player_won: bool) -> void:
 	var divider = ColorRect.new()
 	divider.color = Color(0, 1, 1, 0.4)
 	divider.position = Vector2(40, stats_y)
-	divider.size = Vector2(420, 2)
+	divider.size = Vector2(320, 2)
 	panel.add_child(divider)
-	stats_y += 15
+	stats_y += 10
 	
 	# Hint text
 	var hint = Label.new()
 	hint.text = "Claim your reward on the next screen!"
 	hint.position = Vector2(0, stats_y)
-	hint.size = Vector2(500, 30)
+	hint.size = Vector2(400, 22)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_color_override("font_color", Color(0.5, 0.8, 1, 0.9))
-	hint.add_theme_font_size_override("font_size", 14)
+	hint.add_theme_font_size_override("font_size", 12)
 	panel.add_child(hint)
 	
 	# Continue button
 	var continue_btn = Button.new()
 	continue_btn.text = "CONTINUE →"
-	continue_btn.custom_minimum_size = Vector2(200, 50)
-	continue_btn.position = Vector2(150, 380)
+	continue_btn.custom_minimum_size = Vector2(200, 45)
+	continue_btn.position = Vector2(100, 295)
 	continue_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	
 	var btn_style = StyleBoxFlat.new()
@@ -822,8 +885,8 @@ func _add_stat_row(parent: Node, label_text: String, value_text: String, y_pos: 
 	"""Add a stat row to the postgame panel"""
 	var label = Label.new()
 	label.text = label_text
-	label.position = Vector2(50, y_pos)
-	label.size = Vector2(200, 30)
+	label.position = Vector2(45, y_pos)
+	label.size = Vector2(170, 24)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	label.add_theme_color_override("font_color", Color(0.7, 0.9, 1, 1))
 	label.add_theme_font_size_override("font_size", 16)
@@ -831,8 +894,8 @@ func _add_stat_row(parent: Node, label_text: String, value_text: String, y_pos: 
 	
 	var value = Label.new()
 	value.text = value_text
-	value.position = Vector2(280, y_pos)
-	value.size = Vector2(170, 30)
+	value.position = Vector2(220, y_pos)
+	value.size = Vector2(135, 24)
 	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	value.add_theme_color_override("font_color", value_color)
 	value.add_theme_font_size_override("font_size", 16)
@@ -927,6 +990,92 @@ func _return_to_landing() -> void:
 # =============================================================================
 # ANIMATION EFFECTS (SAME AS REAL ARENA)
 # =============================================================================
+
+func _bounce_scale(node: Node, scale_multiplier: float = 1.5, duration: float = 0.3) -> void:
+	"""Bounce scale effect - grows then returns (matches online countdown feel)."""
+	if not node or not node is Control:
+		return
+	
+	var original_scale = node.scale
+	var target_scale = original_scale * scale_multiplier
+	var halfway = duration / 2.0
+
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(node, "scale", target_scale, halfway).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.chain().tween_property(node, "scale", original_scale, halfway).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+
+func _flash_error() -> void:
+	"""Flash red indicator when player makes mistake (non-await; safe from any caller)."""
+	if not _status_label:
+		return
+	var tween = create_tween()
+	tween.tween_property(_status_label, "modulate", Color.RED, 0.0)
+	tween.tween_property(_status_label, "modulate", Color.WHITE, 0.15)
+
+func _flash_success() -> void:
+	"""Flash green indicator when player is correct (non-await; safe from any caller)."""
+	if not _status_label:
+		return
+	var tween = create_tween()
+	tween.tween_property(_status_label, "modulate", Color.GREEN, 0.0)
+	tween.tween_property(_status_label, "modulate", Color.WHITE, 0.05)
+
+func _flash_damage_indicator() -> void:
+	"""Flash a lightweight damage indicator (tutorial has no WSIndicator)."""
+	var target: CanvasItem = _timer_label if _timer_label else _status_label
+	if not target:
+		return
+	var tween = create_tween()
+	tween.tween_property(target, "modulate", Color.RED, 0.0)
+	tween.tween_property(target, "modulate", Color.WHITE, 0.2)
+
+func _popin_code_display_with_text(new_text: String) -> void:
+	"""Bubble-pop snippet transition + optional position shuffle (non-await version)."""
+	if not _code_display:
+		return
+
+	# 🔊 Play pop sound effect
+	if _pop_sound:
+		_pop_sound.pitch_scale = 1.0
+		_pop_sound.play()
+
+	var target_node: Node = _code_panel
+	if target_node == null:
+		target_node = _code_display
+
+	# Resolve active preset
+	var preset_name = _active_pop_preset if _active_pop_preset in POP_PRESETS else "normal"
+	var preset = POP_PRESETS.get(preset_name, POP_PRESETS["dramatic"])
+	var out_dur = float(preset["out_duration"])
+	var in_dur = float(preset["in_duration"])
+	var out_scale = float(preset["out_scale"])
+	var in_overscale = float(preset["in_overscale"])
+
+	# POP-OUT: shrink and fade
+	var pop_out = create_tween()
+	pop_out.tween_property(target_node, "scale", Vector2(out_scale, out_scale), out_dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	pop_out.tween_property(target_node, "modulate", Color(1, 1, 1, 0), out_dur)
+	pop_out.finished.connect(func():
+		# Swap text while invisible
+		_code_display.text = new_text
+
+		# 🆕 POSITION SHUFFLE
+		if _position_shuffle_enabled and _code_panel:
+			var new_position_index = _last_position_index
+			while new_position_index == _last_position_index and _panel_position_offsets.size() > 1:
+				new_position_index = randi() % _panel_position_offsets.size()
+			_last_position_index = new_position_index
+			_code_panel.position = _original_panel_position + _panel_position_offsets[new_position_index]
+
+		# Prepare pop-in
+		target_node.scale = Vector2(in_overscale, in_overscale)
+		target_node.modulate = Color(1, 1, 1, 0)
+
+		var pop_in = create_tween()
+		pop_in.tween_property(target_node, "scale", Vector2.ONE, in_dur).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		pop_in.tween_property(target_node, "modulate", Color(1, 1, 1, 1), in_dur)
+	)
 
 func _shake_node(node: Node, intensity: float = 10.0, duration: float = 0.3) -> void:
 	"""Shake a node horizontally"""

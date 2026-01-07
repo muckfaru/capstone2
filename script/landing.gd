@@ -3629,32 +3629,34 @@ func _show_tutorial_reward(tutorial_type: String) -> void:
 func _show_agent_dialog(dialog_text: String) -> void:
 	"""Show Agent01 Pokemon-style congratulations dialog"""
 	print("[Landing] Showing Agent01 dialog...")
+	var root := get_tree().root
+	var viewport_rect := get_viewport().get_visible_rect()
+	var vp_pos: Vector2 = viewport_rect.position
+	var vp_size: Vector2 = viewport_rect.size
 	
 	# Create overlay (but don't block mouse events on children)
 	var overlay = ColorRect.new()
 	overlay.name = "AgentDialogOverlay"
 	overlay.color = Color(0, 0, 0, 0.7)
+	overlay.top_level = true
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	overlay.z_index = 98
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE # ✅ Don't block clicks
-	add_child(overlay)
+	root.add_child(overlay)
 	
 	# Create dialog panel (Pokemon style - bottom of screen)
 	var dialog_panel = Panel.new()
 	dialog_panel.name = "AgentDialogPanel"
 	dialog_panel.z_index = 99
-	dialog_panel.custom_minimum_size = Vector2(0, 160)
-	dialog_panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	dialog_panel.top_level = true
 	# Responsive clamp (prevents overflow on small resolutions)
-	var vp_size: Vector2 = get_viewport_rect().size
 	var side_margin: float = clampf(vp_size.x * 0.04, 12.0, 50.0)
 	var bottom_margin: float = clampf(vp_size.y * 0.04, 12.0, 30.0)
 	var panel_height: float = clampf(vp_size.y * 0.22, 130.0, 180.0)
-	dialog_panel.custom_minimum_size = Vector2(0, panel_height)
-	dialog_panel.offset_left = side_margin
-	dialog_panel.offset_right = -side_margin
-	dialog_panel.offset_bottom = -bottom_margin
-	dialog_panel.offset_top = -(bottom_margin + panel_height)
+	var panel_width: float = max(240.0, vp_size.x - (side_margin * 2.0))
+	dialog_panel.custom_minimum_size = Vector2(panel_width, panel_height)
+	dialog_panel.size = Vector2(panel_width, panel_height)
+	dialog_panel.global_position = Vector2(vp_pos.x + side_margin, vp_pos.y + vp_size.y - bottom_margin - panel_height)
 	
 	# Style the panel
 	var panel_style = StyleBoxFlat.new()
@@ -3671,7 +3673,7 @@ func _show_agent_dialog(dialog_text: String) -> void:
 	panel_style.shadow_color = Color(0, 1, 1, 0.3)
 	panel_style.shadow_size = 15
 	dialog_panel.add_theme_stylebox_override("panel", panel_style)
-	add_child(dialog_panel)
+	root.add_child(dialog_panel)
 	
 	# Main VBox container
 	var vbox = VBoxContainer.new()

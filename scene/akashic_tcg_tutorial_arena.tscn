@@ -1,8 +1,9 @@
-[gd_scene load_steps=14 format=3 uid="uid://owldu3pgurub"]
+[gd_scene load_steps=15 format=3 uid="uid://owldu3pgurub"]
 
 [ext_resource type="Script" uid="uid://bjrayr1ciivx5" path="res://script/akashic_tcg_tutorial_arena.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2"]
 [ext_resource type="Script" uid="uid://bmjpps2v666l8" path="res://script/AkashicTCGPlayZone.gd" id="3"]
+[ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="4"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="5"]
 [ext_resource type="AudioStream" uid="uid://bomghqd2ev4cr" path="res://asset/background/akashic new bgm.mp3" id="6_j46th"]
 
@@ -89,6 +90,7 @@ grow_vertical = 2
 
 [node name="CountdownLabel" type="Label" parent="HUD"]
 visible = false
+z_index = 200
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -112,6 +114,7 @@ clip_text = true
 
 [node name="RoundLabel" type="Label" parent="HUD"]
 visible = false
+z_index = 200
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -271,6 +274,19 @@ text = "30s"
 horizontal_alignment = 2
 vertical_alignment = 1
 clip_text = true
+
+[node name="BuffIconsHBox" type="HBoxContainer" parent="HUD/PlayerBars/YouSIBar"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -76.0
+offset_top = -26.0
+offset_right = -36.0
+offset_bottom = -1.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_constants/separation = 4
 
 [node name="YouFWBar" type="ProgressBar" parent="HUD/PlayerBars"]
 custom_minimum_size = Vector2(0, 35)
@@ -505,7 +521,6 @@ theme_override_constants/separation = -60
 alignment = 1
 
 [node name="MenuButton" type="Button" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -517,6 +532,13 @@ offset_bottom = 50.0
 grow_horizontal = 0
 mouse_default_cursor_shape = 2
 text = "☰"
+
+[node name="MenuPanel" parent="." instance=ExtResource("4")]
+visible = false
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 2.0
+offset_bottom = 2.0
 
 [node name="BattleMusic" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_j46th")
