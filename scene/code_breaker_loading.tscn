@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://d0405qariamf0"]
+[gd_scene load_steps=16 format=3 uid="uid://d0405qariamf0"]
 
 [ext_resource type="Script" uid="uid://b1qqx7epir20j" path="res://script/code_breaker_loading.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2_t2ari"]
@@ -7,6 +7,104 @@
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6f2f8"]
 bg_color = Color(0, 0, 0, 0.619608)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r0dwr"]
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+shadow_size = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s05oh"]
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vxpl8"]
+bg_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fkxen"]
+bg_color = Color(0.490196, 0.654902, 1, 0.545098)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v3hda"]
+bg_color = Color(0.490196, 0.654902, 1, 0.545098)
+border_width_left = 2
+border_width_top = 2
+border_color = Color(0.490196, 0.654902, 1, 0.545098)
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7hl1v"]
+bg_color = Color(0.380392, 0.0784314, 0.109804, 1)
+border_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hy7ut"]
+bg_color = Color(0.380392, 0.0784314, 0.109804, 0.321569)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.380392, 0.0784314, 0.109804, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1btx4"]
+bg_color = Color(0.380392, 0.0784314, 0.109804, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.380392, 0.0784314, 0.109804, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_84w3l"]
+bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
+border_width_left = 2
+border_width_top = 2
+border_color = Color(0.380392, 0.0784314, 0.109804, 1)
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ebujj"]
+bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
+border_width_left = 2
+border_width_top = 2
+border_color = Color(0.380392, 0.0784314, 0.109804, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
 
 [node name="CodeBreakerLoading" type="Control"]
 layout_mode = 3
@@ -63,17 +161,19 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -100.0
-offset_top = 20.0
-offset_right = 100.0
-offset_bottom = 54.0
+offset_left = -133.0
+offset_top = -36.0
+offset_right = 133.0
+offset_bottom = -2.0
 grow_horizontal = 2
 theme_override_fonts/font = ExtResource("3_6f2f8")
 theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_r0dwr")
 text = "Player 1"
 horizontal_alignment = 1
 
 [node name="HostStatus" type="Label" parent="HostCard"]
+visible = false
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -98,17 +198,47 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = 45.0
-offset_right = 120.0
-offset_bottom = 60.0
+offset_left = -126.0
+offset_top = 6.0
+offset_right = 125.0
+offset_bottom = 21.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_s05oh")
+theme_override_styles/fill = SubResource("StyleBoxFlat_vxpl8")
 show_percentage = false
 
 [node name="Avatar1" type="Sprite2D" parent="HostCard"]
 position = Vector2(131, 82)
 texture = ExtResource("3_s05oh")
+
+[node name="VSeparator" type="VSeparator" parent="HostCard"]
+layout_mode = 0
+offset_left = -4.0
+offset_top = -3.0
+offset_bottom = 402.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_fkxen")
+
+[node name="HSeparator" type="HSeparator" parent="HostCard"]
+layout_mode = 0
+offset_left = -3.0
+offset_top = -4.0
+offset_right = 262.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_v3hda")
+
+[node name="HSeparator2" type="HSeparator" parent="HostCard"]
+offset_left = -4.0
+offset_top = 399.0
+offset_right = 261.0
+offset_bottom = 403.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_v3hda")
+
+[node name="VSeparator2" type="VSeparator" parent="HostCard"]
+offset_left = 260.0
+offset_top = -2.0
+offset_right = 264.0
+offset_bottom = 402.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_fkxen")
 
 [node name="VSLabel" type="Label" parent="."]
 layout_mode = 1
@@ -153,17 +283,18 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -107.0
-offset_top = 20.0
-offset_right = 93.0
-offset_bottom = 54.0
+offset_left = -132.0
+offset_top = -34.0
+offset_right = 132.0
 grow_horizontal = 2
 theme_override_fonts/font = ExtResource("3_6f2f8")
 theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_7hl1v")
 text = "Player 2"
 horizontal_alignment = 1
 
 [node name="ClientStatus" type="Label" parent="ClientCard"]
+visible = false
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -188,13 +319,44 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = 45.0
-offset_right = 120.0
-offset_bottom = 60.0
+offset_left = -118.0
+offset_top = 5.0
+offset_right = 122.0
+offset_bottom = 19.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_hy7ut")
+theme_override_styles/fill = SubResource("StyleBoxFlat_1btx4")
 show_percentage = false
+
+[node name="HSeparator" type="HSeparator" parent="ClientCard"]
+layout_mode = 0
+offset_top = -3.0
+offset_right = 262.0
+offset_bottom = 1.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_84w3l")
+
+[node name="HSeparator2" type="HSeparator" parent="ClientCard"]
+offset_left = -1.0
+offset_top = 399.0
+offset_right = 262.0
+offset_bottom = 403.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_84w3l")
+
+[node name="VSeparator" type="VSeparator" parent="ClientCard"]
+layout_mode = 0
+offset_left = -4.0
+offset_top = -2.0
+offset_right = 2.0
+offset_bottom = 401.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_ebujj")
+
+[node name="VSeparator2" type="VSeparator" parent="ClientCard"]
+offset_left = 258.0
+offset_top = -1.0
+offset_right = 264.0
+offset_bottom = 402.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_ebujj")
 
 [node name="StatusMessage" type="Label" parent="."]
 visible = false

@@ -1,15 +1,19 @@
-[gd_scene load_steps=23 format=3 uid="uid://b1ngbpq5ojqqk"]
+[gd_scene load_steps=33 format=3 uid="uid://b1ngbpq5ojqqk"]
 
 [ext_resource type="Script" uid="uid://dw7agivap55un" path="res://script/code_breaker_arena.gd" id="1_18ytm"]
-[ext_resource type="Texture2D" uid="uid://d4ddfveb65kqw" path="res://asset/background/Code Breaker Arena Background.png" id="2_e4tay"]
+[ext_resource type="Texture2D" uid="uid://wheq2l7h6eo" path="res://asset/background/code_breaker_background_scanlines 1.png" id="2_n0mag"]
 [ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="3_e4tay"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_n0mag"]
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="4_ikg4b"]
 [ext_resource type="AudioStream" uid="uid://chstil5w3lvp6" path="res://asset/audio/sound effects/Pop Sound Effects (mp3cut.net).mp3" id="4_pop"]
 [ext_resource type="Texture2D" uid="uid://kgkyttgrlp71" path="res://asset/code breaker/panels/heal panel().png" id="4_qu5hw"]
 [ext_resource type="Texture2D" uid="uid://dchp7lrupxdel" path="res://asset/code breaker/panels/freez time (ice blue) panel.png" id="5_357ew"]
+[ext_resource type="Shader" uid="uid://6kfs3rjve5v2" path="res://Shaders/panel_break.gdshader" id="5_ikg4b"]
 [ext_resource type="Texture2D" uid="uid://cs8t0so4cgohx" path="res://asset/code breaker/panels/normal panel.png" id="5_normal_panel"]
 [ext_resource type="Texture2D" uid="uid://dddfr5tjq8ay5" path="res://asset/code breaker/panels/extend time(yellow) panel.png" id="6_qnug1"]
 [ext_resource type="Texture2D" uid="uid://d0v2uekxdy55w" path="res://asset/code breaker/panels/Defensive panel (grey).png" id="7_n0mag"]
-[ext_resource type="AudioStream" uid="uid://cyvqhddv1l1h2" path="res://asset/background/code breaker new bgm.mp3" id="9_357ew"]
+[ext_resource type="AudioStream" uid="uid://cyvqhddv1l1h2" path="res://asset/audio/plasma-dr-gabba_cut.mp3" id="9_357ew"]
+[ext_resource type="FontFile" uid="uid://bkyjd2go1dord" path="res://asset/fonts/CONSOLA.TTF" id="11_2b3tv"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n4nb7"]
 bg_color = Color(0, 0, 0, 0.619608)
@@ -106,6 +110,68 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2b3tv"]
+shader = ExtResource("5_ikg4b")
+shader_parameter/break_progress = 0.0
+shader_parameter/crack_intensity = 1.0
+shader_parameter/impact_point = Vector2(0.5, 0.5)
+shader_parameter/piece_count = 8.0
+shader_parameter/explosion_strength = 0.8
+shader_parameter/edge_glow_color = Color(0, 0.8, 1, 1)
+shader_parameter/edge_glow_intensity = 0.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ikg4b"]
+shader = ExtResource("5_ikg4b")
+shader_parameter/break_progress = 0.0
+shader_parameter/crack_intensity = 1.0
+shader_parameter/impact_point = Vector2(0.5, 0.5)
+shader_parameter/piece_count = 8.0
+shader_parameter/explosion_strength = 0.8
+shader_parameter/edge_glow_color = Color(0, 0.8, 0, 1)
+shader_parameter/edge_glow_intensity = 0.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_r0xam"]
+shader = ExtResource("5_ikg4b")
+shader_parameter/break_progress = 0.0
+shader_parameter/crack_intensity = 1.0
+shader_parameter/impact_point = Vector2(0.5, 0.5)
+shader_parameter/piece_count = 8.0
+shader_parameter/explosion_strength = 0.8
+shader_parameter/edge_glow_color = Color(0, 0.8, 1, 1)
+shader_parameter/edge_glow_intensity = 0.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_71txx"]
+shader = ExtResource("5_ikg4b")
+shader_parameter/break_progress = 0.0
+shader_parameter/crack_intensity = 1.0
+shader_parameter/impact_point = Vector2(0.5, 0.5)
+shader_parameter/piece_count = 8.0
+shader_parameter/explosion_strength = 0.8
+shader_parameter/edge_glow_color = Color(0.766031, 0.75434, 3.85046e-07, 1)
+shader_parameter/edge_glow_intensity = 0.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_rm5vd"]
+shader = ExtResource("5_ikg4b")
+shader_parameter/break_progress = 0.0
+shader_parameter/crack_intensity = 1.0
+shader_parameter/impact_point = Vector2(0.5, 0.5)
+shader_parameter/piece_count = 8.0
+shader_parameter/explosion_strength = 0.8
+shader_parameter/edge_glow_color = Color(0.931145, 0.911657, 1, 1)
+shader_parameter/edge_glow_intensity = 0.8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n0mag"]
+bg_color = Color(0.0392157, 0.0784314, 0.121569, 0.65098)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.819608, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_180ra"]
 bg_color = Color(0, 0, 0, 1)
 border_color = Color(0.8, 0.8, 0.8, 0)
@@ -132,7 +198,7 @@ script = ExtResource("1_18ytm")
 layout_mode = 0
 offset_right = 1158.0
 offset_bottom = 655.0
-texture = ExtResource("2_e4tay")
+texture = ExtResource("2_n0mag")
 
 [node name="Panel" type="Panel" parent="NinePatchRect"]
 layout_mode = 0
@@ -168,6 +234,8 @@ anchor_bottom = 0.9
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+theme_override_fonts/font = ExtResource("3_n0mag")
+theme_override_font_sizes/font_size = 20
 text = "Player 1"
 vertical_alignment = 1
 
@@ -181,6 +249,7 @@ anchor_bottom = 0.9
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
+theme_override_fonts/font = ExtResource("3_n0mag")
 text = "03:00"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -195,6 +264,8 @@ anchor_bottom = 0.9
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.35, 0.43, 1)
+theme_override_fonts/font = ExtResource("3_n0mag")
+theme_override_font_sizes/font_size = 20
 text = "Player 2"
 horizontal_alignment = 2
 vertical_alignment = 1
@@ -220,11 +291,13 @@ anchors_preset = -1
 anchor_left = 0.05
 anchor_right = 0.95
 anchor_bottom = 0.08
-offset_left = -1.6
-offset_top = 30.0
-offset_right = -1.59998
-offset_bottom = 30.0
+offset_left = -13.6
+offset_top = 19.0
+offset_right = -13.6
+offset_bottom = 19.16
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+theme_override_fonts/font = ExtResource("4_ikg4b")
+theme_override_font_sizes/font_size = 40
 text = "CODE BREAKER"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -267,6 +340,8 @@ offset_bottom = 0.399998
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+theme_override_fonts/font = ExtResource("3_n0mag")
+theme_override_font_sizes/font_size = 20
 text = "PLAYER 1"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -317,6 +392,8 @@ offset_bottom = 0.399998
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 0.35, 0.43, 1)
+theme_override_fonts/font = ExtResource("3_n0mag")
+theme_override_font_sizes/font_size = 20
 text = "PLAYER 2"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -371,30 +448,37 @@ offset_bottom = -243.1
 theme_override_styles/panel = SubResource("code_panel_style")
 
 [node name="DefaultPanel" type="Sprite2D" parent="VBox/CodeDisplayPanel"]
+material = SubResource("ShaderMaterial_2b3tv")
 position = Vector2(203.75, 37.5)
 scale = Vector2(0.510254, 0.198242)
 texture = ExtResource("5_normal_panel")
 
+[node name="AnimationPlayer" type="AnimationPlayer" parent="VBox/CodeDisplayPanel/DefaultPanel"]
+
 [node name="HealPanel()" type="Sprite2D" parent="VBox/CodeDisplayPanel"]
 visible = false
+material = SubResource("ShaderMaterial_ikg4b")
 position = Vector2(201.5, 31)
 scale = Vector2(0.551758, 0.433594)
 texture = ExtResource("4_qu5hw")
 
 [node name="FreezTime(iceBlue)Panel" type="Sprite2D" parent="VBox/CodeDisplayPanel"]
 visible = false
+material = SubResource("ShaderMaterial_r0xam")
 position = Vector2(197, 32)
 scale = Vector2(0.511719, 0.243164)
 texture = ExtResource("5_357ew")
 
 [node name="ExtendTime(yellow)Panel" type="Sprite2D" parent="VBox/CodeDisplayPanel"]
 visible = false
+material = SubResource("ShaderMaterial_71txx")
 position = Vector2(203.5, 27)
 scale = Vector2(0.477539, 0.195312)
 texture = ExtResource("6_qnug1")
 
 [node name="DefensivePanel(grey)" type="Sprite2D" parent="VBox/CodeDisplayPanel"]
 visible = false
+material = SubResource("ShaderMaterial_rm5vd")
 position = Vector2(195, 29.5)
 scale = Vector2(0.484375, 0.202148)
 texture = ExtResource("7_n0mag")
@@ -415,6 +499,7 @@ grow_vertical = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("4_ikg4b")
 theme_override_font_sizes/font_size = 24
 text = "15.0s"
 horizontal_alignment = 1
@@ -433,6 +518,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/default_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_fonts/normal_font = ExtResource("11_2b3tv")
 theme_override_font_sizes/normal_font_size = 18
 bbcode_enabled = true
 text = "Waiting for code snippet..."
@@ -452,6 +538,7 @@ offset_right = -203.9
 offset_bottom = -146.5
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_n0mag")
 placeholder_text = "Type the code here..."
 alignment = 1
 
@@ -494,6 +581,7 @@ theme_override_constants/shadow_offset_x = 4
 theme_override_constants/shadow_offset_y = 4
 theme_override_constants/outline_size = 8
 theme_override_constants/shadow_outline_size = 2
+theme_override_fonts/font = ExtResource("4_ikg4b")
 theme_override_font_sizes/font_size = 120
 text = "3"
 horizontal_alignment = 1

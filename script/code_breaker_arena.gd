@@ -27,7 +27,7 @@ const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
 @onready var _countdown_label: Label = $CountdownLabel
 @onready var _battle_music: AudioStreamPlayer = $BattleMusic
 @onready var _pop_sound: AudioStreamPlayer = $PopSound
-
+@onready var _default_panel_animation: AnimationPlayer = $VBox/CodeDisplayPanel/DefaultPanel/AnimationPlayer
 # Typing UI
 @onready var _code_display: RichTextLabel = $VBox/CodeDisplayPanel/CodeDisplay
 @onready var _input_field: LineEdit = $VBox/InputField
@@ -270,6 +270,8 @@ func _ready() -> void:
 		_defensive_panel.visible = false
 	print("[Arena] 💊 Power-up panels initialized")
 	
+	setup_panel_break_animation()
+
 	# Set health bar colors: Cyan (#00d1ff) for self, Pink-Red (#ff596e) for opponent
 	# Create StyleBoxFlat for custom colors
 	var cyan_style = StyleBoxFlat.new()
@@ -956,12 +958,15 @@ func _on_input_submitted(submitted_text: String) -> void:
 	# EXACT MATCH REQUIRED (case-sensitive)
 	if submitted_text == _code_snippet:
 		# ✅ CORRECT SUBMISSION!
-		print("[Arena] ✅ VIRUS NEUTRALIZED! +3 defense score, attacking opponent system")
+		print("[Arena] ✅ VIRUS NEUTRALIZED! +%d defense score, attacking opponent system" % SCORE_CORRECT)
 		player_score += SCORE_CORRECT
 		
 		# Update MY score display immediately
 		_update_my_score_display()
 		_update_my_health_display()
+		
+		# 🎬 PLAY PANEL BREAK ANIMATION!
+		play_panel_break_animation()
 		
 		# Deal damage to opponent via relay
 		_send_damage_to_opponent(DAMAGE_TO_ENEMY)
@@ -984,54 +989,53 @@ func _on_input_submitted(submitted_text: String) -> void:
 			bonus_text = " | 💚 +10 HP HEAL!"
 			_powerups_used += 1
 			print("[Arena] 💚 HEAL BONUS! +%d HP" % HEAL_BONUS)
-			# Update display immediately
 			_update_my_health_display()
 		elif _current_powerup == PowerUpType.FREEZE_TIME:
-			# Activate time freeze for 15 seconds!
 			_time_frozen = true
 			_freeze_time_remaining = FREEZE_DURATION
 			bonus_text = " | 🧊 TIME FROZEN 15s!"
 			_powerups_used += 1
 			print("[Arena] 🧊 FREEZE TIME ACTIVATED! Timer paused for %.0fs" % FREEZE_DURATION)
 		elif _current_powerup == PowerUpType.EXTEND_TIME:
-			# Activate extend time buff for 20 seconds!
 			_extend_time_active = true
 			_extend_time_remaining = EXTEND_BUFF_DURATION
-			_snippet_time_remaining += EXTEND_SNIPPET_TIME  # Immediate +15s to current snippet
-			_game_start_time += EXTEND_MAIN_TIME  # One-time +8s to main timer
+			_snippet_time_remaining += EXTEND_SNIPPET_TIME
+			_game_start_time += EXTEND_MAIN_TIME
 			bonus_text = " | 🟡 TIME BUFF 20s! (+15s per snippet)"
 			_powerups_used += 1
-			print("[Arena] 🟡 EXTEND TIME BUFF ACTIVATED! 20s duration, +%.0fs per snippet, +%.0fs main" % [EXTEND_SNIPPET_TIME, EXTEND_MAIN_TIME])
+			print("[Arena] 🟡 EXTEND TIME BUFF ACTIVATED!")
 		elif _current_powerup == PowerUpType.SHIELD:
-			# Activate defensive shield for 15 seconds!
 			_shield_active = true
 			_shield_time_remaining = SHIELD_DURATION
 			bonus_text = " | 🛡️ SHIELD 15s! (0 damage)"
 			_powerups_used += 1
-			print("[Arena] 🛡️ DEFENSIVE SHIELD ACTIVATED! 15s invincibility")
+			print("[Arena] 🛡️ DEFENSIVE SHIELD ACTIVATED!")
 		
-		var progress_text = "✅ CORRECT! (%d/%d) | +100 Score | Enemy -10 HP%s" % [
+		var progress_text = "✅ CORRECT! (%d/%d) | +%d Score | Enemy -%d HP%s" % [
 			_my_snippet_index + 1,
 			_snippet_list.size(),
+			SCORE_CORRECT,
+			DAMAGE_TO_ENEMY,
 			bonus_text
 		]
 		_status_label.text = progress_text
 		
-		# ADVANCE to next snippet in sequential list
+		# Wait for break animation to finish before showing next snippet
+		await get_tree().create_timer(1.3).timeout
+		
+		# ADVANCE to next snippet
 		_advance_to_next_snippet()
 		if _code_display:
-			# Animate snippet change with pop effect
 			await _popin_code_display_with_text(_code_snippet)
 		
-		# Reset snippet timer for new snippet
+		# Reset snippet timer
 		_snippet_time_remaining = SNIPPET_TIME_LIMIT
 		
-		# 🟡 EXTEND TIME BUFF: Apply bonus if buff still active
 		if _extend_time_active:
 			_snippet_time_remaining += EXTEND_SNIPPET_TIME
 			print("[Arena] 🟡 Extend buff active! New snippet starts at %.1fs" % _snippet_time_remaining)
 		
-		# Clear input for next round
+		# Clear input
 		_input_field.text = ""
 	else:
 		# ❌ WRONG SUBMISSION!
@@ -2150,3 +2154,152 @@ func _from_firestore_value(v) -> Variant:
 				out_d[str(k)] = _from_firestore_value(f[k])
 		return out_d
 	return null
+
+func setup_panel_break_animation():
+	"""Creates the panel break animation programmatically for ALL panels"""
+	
+	# List of all panels with their animation players
+	var panels_to_setup = [
+		{"panel": _default_panel, "name": "DefaultPanel"},
+		{"panel": _heal_panel, "name": "HealPanel"},
+		{"panel": _freeze_panel, "name": "FreezePanel"},
+		{"panel": _extend_panel, "name": "ExtendPanel"},
+		{"panel": _defensive_panel, "name": "DefensivePanel"}
+	]
+	
+	for panel_data in panels_to_setup:
+		var panel = panel_data["panel"]
+		var panel_name = panel_data["name"]
+		
+		if not panel:
+			push_error("[Arena] Missing %s for break animation!" % panel_name)
+			continue
+		
+		# Get or create AnimationPlayer as child of the panel
+		var anim_player: AnimationPlayer = null
+		
+		# Check if panel already has an AnimationPlayer child
+		for child in panel.get_children():
+			if child is AnimationPlayer:
+				anim_player = child
+				break
+		
+		# If no AnimationPlayer exists, create one
+		if anim_player == null:
+			anim_player = AnimationPlayer.new()
+			anim_player.name = "AnimationPlayer"
+			panel.add_child(anim_player)
+			anim_player.owner = get_tree().edited_scene_root if Engine.is_editor_hint() else self
+			print("[Arena] Created new AnimationPlayer for %s" % panel_name)
+		
+		# Get or create animation library
+		var anim_library: AnimationLibrary = null
+		
+		# Try to get existing library (use has_animation_library to check first)
+		if anim_player.has_animation_library(""):
+			anim_library = anim_player.get_animation_library("")
+		
+		# If no library exists, create one
+		if anim_library == null:
+			anim_library = AnimationLibrary.new()
+			anim_player.add_animation_library("", anim_library)
+			print("[Arena] Created new AnimationLibrary for %s" % panel_name)
+		
+		var anim_name = "panel_break"
+		
+		# Remove old animation if it exists
+		if anim_library.has_animation(anim_name):
+			anim_library.remove_animation(anim_name)
+		
+		# Create new animation
+		var animation = Animation.new()
+		animation.length = 1.2
+		animation.loop_mode = Animation.LOOP_NONE
+		
+		# Track 0: Animate break_progress from 0.0 to 1.0
+		var track_idx = animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(track_idx, ".:material:shader_parameter/break_progress")
+		animation.track_insert_key(track_idx, 0.0, 0.0)
+		animation.track_insert_key(track_idx, 1.0, 1.0)
+		animation.track_set_interpolation_type(track_idx, Animation.INTERPOLATION_CUBIC)
+		
+		# Track 1: Play pop sound at the start
+		var sound_track_idx = animation.add_track(Animation.TYPE_METHOD)
+		animation.track_set_path(sound_track_idx, "../../../PopSound")
+		animation.track_insert_key(sound_track_idx, 0.0, {
+			"method": "play",
+			"args": []
+		})
+		
+		# Track 2: Reset the panel at the end
+		var reset_track_idx = animation.add_track(Animation.TYPE_METHOD)
+		animation.track_set_path(reset_track_idx, "../../../")
+		animation.track_insert_key(reset_track_idx, 1.2, {
+			"method": "_on_panel_break_finished",
+			"args": []
+		})
+		
+		# Add animation to library
+		anim_library.add_animation(anim_name, animation)
+		
+		print("[Arena] ✅ Panel break animation created for %s!" % panel_name)
+
+
+func play_panel_break_animation():
+	"""Call this function when a player types the snippet correctly"""
+	
+	# Determine which panel is currently active based on power-up type
+	var active_panel = null
+	var panel_name = ""
+	
+	match _current_powerup:
+		PowerUpType.NORMAL:
+			active_panel = _default_panel
+			panel_name = "Default"
+		PowerUpType.HEAL:
+			active_panel = _heal_panel
+			panel_name = "Heal"
+		PowerUpType.FREEZE_TIME:
+			active_panel = _freeze_panel
+			panel_name = "Freeze"
+		PowerUpType.EXTEND_TIME:
+			active_panel = _extend_panel
+			panel_name = "Extend"
+		PowerUpType.SHIELD:
+			active_panel = _defensive_panel
+			panel_name = "Shield"
+	
+	if not active_panel or not active_panel.material:
+		push_error("[Arena] Cannot play break animation - no active panel or material!")
+		return
+	
+	# Make sure the material is reset before playing
+	active_panel.material.set_shader_parameter("break_progress", 0.0)
+	
+	# Get the AnimationPlayer from the active panel
+	var anim_player: AnimationPlayer = null
+	for child in active_panel.get_children():
+		if child is AnimationPlayer:
+			anim_player = child
+			break
+	
+	if not anim_player:
+		push_error("[Arena] No AnimationPlayer found for %s panel!" % panel_name)
+		return
+	
+	# Play the animation
+	anim_player.play("panel_break")
+	print("[Arena] 🎬 Playing panel break animation for %s panel!" % panel_name)
+
+
+func _on_panel_break_finished():
+	"""Called when the break animation completes - reset for next use"""
+	
+	# Reset ALL panel materials to be safe
+	var all_panels = [_default_panel, _heal_panel, _freeze_panel, _extend_panel, _defensive_panel]
+	
+	for panel in all_panels:
+		if panel and panel.material:
+			panel.material.set_shader_parameter("break_progress", 0.0)
+	
+	print("[Arena] ✅ Panel break animation finished - ready for next snippet")

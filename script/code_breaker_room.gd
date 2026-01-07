@@ -121,7 +121,7 @@ func _ready() -> void:
 	leave_normal.border_width_right = 2
 	leave_normal.border_width_bottom = 2
 	leave_normal.border_color = Color(0.490196, 0.654902, 1, 0.545098)  # #7da7ff8b
-	leave_normal.set_corner_radius_all(8)
+	leave_normal.corner_radius_top_right = 8
 	leave_normal.shadow_color = Color(1, 0.313726, 0.247059, 0.611765)  # #ff503f9c
 	leave_normal.shadow_size = 10
 	_leave_btn.add_theme_stylebox_override("normal", leave_normal)
