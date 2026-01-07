@@ -393,7 +393,103 @@ func _create_hand_card_ui(card_data: Dictionary) -> void:
 	# Connect signals
 	card_view.card_clicked.connect(_on_hand_card_clicked)
 	
+	# Connect hover signals for description
+	card_view.mouse_entered.connect(func(): _show_card_info(card_data))
+	card_view.mouse_exited.connect(_hide_card_info)
+	
 	_hand_hbox.add_child(card_view)
+
+# Card Info Panel
+var _card_info_panel: Panel = null
+var _info_name_label: Label = null
+var _info_cost_label: Label = null
+var _info_type_label: Label = null
+var _info_desc_label: Label = null
+
+func _setup_card_info_panel() -> void:
+	if _card_info_panel: return
+	
+	_card_info_panel = Panel.new()
+	_card_info_panel.name = "CardInfoPanel"
+	_card_info_panel.custom_minimum_size = Vector2(200, 150)
+	_card_info_panel.visible = false
+	_card_info_panel.z_index = 100 # High z-index to show on top
+	_card_info_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.05, 0.1, 0.95)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(0, 0.8, 1, 0.8)
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_right = 8
+	style.corner_radius_bottom_left = 8
+	_card_info_panel.add_theme_stylebox_override("panel", style)
+	
+	add_child(_card_info_panel)
+	
+	var vbox = VBoxContainer.new()
+	_card_info_panel.add_child(vbox)
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 10)
+	
+	# Header (Name + Cost)
+	var hbox = HBoxContainer.new()
+	vbox.add_child(hbox)
+	
+	_info_name_label = Label.new()
+	_info_name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_info_name_label.add_theme_font_size_override("font_size", 16)
+	_info_name_label.add_theme_color_override("font_color", Color(1, 0.8, 0.2)) # Gold
+	hbox.add_child(_info_name_label)
+	
+	_info_cost_label = Label.new()
+	_info_cost_label.add_theme_font_size_override("font_size", 16)
+	_info_cost_label.add_theme_color_override("font_color", Color(0.2, 0.8, 1)) # Cyan
+	hbox.add_child(_info_cost_label)
+	
+	# Type
+	_info_type_label = Label.new()
+	_info_type_label.add_theme_font_size_override("font_size", 12)
+	_info_type_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	vbox.add_child(_info_type_label)
+	
+	vbox.add_child(HSeparator.new())
+	
+	# Description
+	_info_desc_label = Label.new()
+	_info_desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_info_desc_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_info_desc_label.add_theme_font_size_override("font_size", 14)
+	vbox.add_child(_info_desc_label)
+
+func _show_card_info(card_data: Dictionary) -> void:
+	if not _card_info_panel: _setup_card_info_panel()
+	
+	var card_id = card_data["card_id"]
+	var info = _CARD_DB[card_id]
+	
+	_info_name_label.text = info["name"]
+	_info_cost_label.text = "Cost: %d" % info["cost"]
+	_info_type_label.text = "Type: %s" % ("ATTACK" if info["type"] == CardType.ATTACK else "DEFENSE")
+	_info_desc_label.text = info["desc"]
+	
+	# Position near mouse but offset
+	var mouse_pos = get_global_mouse_position()
+	_card_info_panel.global_position = mouse_pos + Vector2(20, -180)
+	
+	# Keep on screen
+	var viewport_size = get_viewport_rect().size
+	if _card_info_panel.global_position.x + _card_info_panel.size.x > viewport_size.x:
+		_card_info_panel.global_position.x = mouse_pos.x - _card_info_panel.size.x - 20
+	
+	_card_info_panel.visible = true
+
+func _hide_card_info() -> void:
+	if _card_info_panel:
+		_card_info_panel.visible = false
 
 func _render_ai_hand() -> void:
 	# Clear existing AI hand display

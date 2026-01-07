@@ -226,9 +226,16 @@ Triggered when clicking **AkashicTCG** in the Game Panel (Landing).
    - **No:** Mark complete in Firestore -> Go to Lobby.
 3. **Tutorial Arena:**
    - **Opponent:** AI Bot (simplified logic, plays 1-2 cards/turn).
+   - **AI Nerf (Easier Win):** AI starts with only 15 SI (vs player's 20), 2 FW (vs player's 12). Player attack damage doubled, AI attack damage halved.
    - **Guide:** Agent01 (Pokemon-style portrait/dialogue, 110x110 size) explains UI steps before match.
    - **Mechanics:** Exact clone of real Arena (same cards, SFX, BGM, visual style).
-   - **Completion:** Saves `akashic_tcg_tutorial_completed = true` in Firestore -> Returns to Landing.
+   - **Card Hover Descriptions:** Hovering cards in hand shows info panel with Name (gold), Cost (cyan), Type (Attack/Defense), and Description.
+   - **Post-Game Results Panel:** 400x320 panel shows VICTORY/DEFEAT, stats (SI, FW, Round), and "CONTINUE" button before returning to Landing.
+   - **Completion:** Saves `akashic_tcg_tutorial_completed = true` in Firestore -> Returns to Landing with rewards.
+4. **Tutorial Rewards Flow (on Landing):**
+   - **Agent01 Dialog First:** Pokemon-style dialog at bottom of screen with Agent01 portrait and congratulations message. "Continue ▶" button.
+   - **Mystery Reward Popup After:** Centered popup (420x500) shows "🎁 MYSTERY REWARD 🎁", card image (The Magician 2), card name, +100 XP, and "CLAIM REWARD" button.
+   - **XP Integration:** TutorialManager.add_xp(100, "AkashicTCG Tutorial") called on claim.
 
 ### Code Breaker Onboarding Flow (Pokemon Style)
 Triggered when clicking **Code Breaker** in the Game Panel (Landing).
@@ -238,10 +245,16 @@ Triggered when clicking **Code Breaker** in the Game Panel (Landing).
    - **Yes:** Go to `scene/code_breaker_tutorial_arena.tscn`.
    - **No:** Mark complete in Firestore -> Go to Lobby.
 3. **Tutorial Arena:**
-   - **Opponent:** AI Bot (types 150-350ms per char with 8% typo chance).
+   - **Opponent:** AI Bot (HEAVILY NERFED: 5.0-10.0s per char delay, 50% typo chance - player will easily win).
+   - **Player Buffs:** All power-ups doubled (Heal +20 HP, Freeze/Shield 30s duration), snippet timer extended to 60s.
    - **Guide:** Agent01 (9-step Pokemon-style dialogue) explains health bars, input, scoring, timer, power-ups.
    - **Mechanics:** Same snippets, same scoring (+100 correct, -8 wrong, -10 opponent damage).
-   - **Completion:** Saves `code_breaker_tutorial_completed = true` in Firestore -> Returns to Landing.
+   - **Post-Game Results Panel:** 400x350 panel shows VICTORY/DEFEAT, stats (Score, Health, Power-Ups Used), and "CONTINUE" button before returning to Landing.
+   - **Completion:** Saves `code_breaker_tutorial_completed = true` in Firestore -> Returns to Landing with rewards.
+4. **Tutorial Rewards Flow (on Landing):**
+   - **Agent01 Dialog First:** Pokemon-style dialog at bottom of screen with Agent01 portrait and congratulations message. "Continue ▶" button.
+   - **Mystery Reward Popup After:** Centered popup (420x500) shows "🎁 MYSTERY REWARD 🎁", card image (The Magician 1), card name, +100 XP, and "CLAIM REWARD" button.
+   - **XP Integration:** TutorialManager.add_xp(100, "Code Breaker Tutorial") called on claim.
 
 
 ## 🏗️ Architecture: WebSocket Relay
