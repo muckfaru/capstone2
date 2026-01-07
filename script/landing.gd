@@ -3645,10 +3645,16 @@ func _show_agent_dialog(dialog_text: String) -> void:
 	dialog_panel.z_index = 99
 	dialog_panel.custom_minimum_size = Vector2(0, 160)
 	dialog_panel.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	dialog_panel.offset_top = -180
-	dialog_panel.offset_left = 50
-	dialog_panel.offset_right = -50
-	dialog_panel.offset_bottom = -30
+	# Responsive clamp (prevents overflow on small resolutions)
+	var vp_size: Vector2 = get_viewport_rect().size
+	var side_margin: float = clampf(vp_size.x * 0.04, 12.0, 50.0)
+	var bottom_margin: float = clampf(vp_size.y * 0.04, 12.0, 30.0)
+	var panel_height: float = clampf(vp_size.y * 0.22, 130.0, 180.0)
+	dialog_panel.custom_minimum_size = Vector2(0, panel_height)
+	dialog_panel.offset_left = side_margin
+	dialog_panel.offset_right = -side_margin
+	dialog_panel.offset_bottom = -bottom_margin
+	dialog_panel.offset_top = -(bottom_margin + panel_height)
 	
 	# Style the panel
 	var panel_style = StyleBoxFlat.new()

@@ -871,7 +871,7 @@ func _apply_card_effect(card_id: String, is_player: bool) -> void:
 			_status.text = "%s dealt %d damage!" % [card_info["name"], card_info["base_damage"] * 2]
 		else:
 			# AI attacks player - REDUCED DAMAGE for tutorial!
-			damage = maxi(1, damage / 2) # Halve AI damage (minimum 1)
+			damage = maxi(1, int(float(damage) / 2.0)) # Halve AI damage (minimum 1)
 			if player_fw > 0:
 				var fw_dmg = mini(damage, player_fw)
 				player_fw -= fw_dmg
@@ -1108,26 +1108,26 @@ func _show_postgame_results(player_won: bool) -> void:
 	# Result title
 	var title = Label.new()
 	title.text = "🏆 VICTORY!" if player_won else "💀 DEFEAT"
-	title.position = Vector2(0, 20)
-	title.size = Vector2(500, 50)
+	title.position = Vector2(0, 12)
+	title.size = Vector2(400, 40)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_color", Color(1, 0.84, 0, 1) if player_won else Color(1, 0.3, 0.3, 1))
-	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_font_size_override("font_size", 32)
 	panel.add_child(title)
 	
 	# Subtitle
 	var subtitle = Label.new()
 	subtitle.text = "Akashic TCG Tutorial Complete!"
-	subtitle.position = Vector2(0, 70)
-	subtitle.size = Vector2(500, 30)
+	subtitle.position = Vector2(0, 52)
+	subtitle.size = Vector2(400, 24)
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_color_override("font_color", Color(0.7, 0.9, 1, 1))
-	subtitle.add_theme_font_size_override("font_size", 18)
+	subtitle.add_theme_font_size_override("font_size", 16)
 	panel.add_child(subtitle)
 	
 	# Stats container
-	var stats_y = 115
-	var line_height = 32
+	var stats_y = 85
+	var line_height = 26
 	
 	# Your SI
 	var si_color = Color(0.3, 1, 0.3, 1) if player_si > 10 else Color(1, 0.5, 0, 1)
@@ -1144,31 +1144,31 @@ func _show_postgame_results(player_won: bool) -> void:
 	
 	# Round number
 	_add_tcg_stat_row(panel, "📊 ROUND:", "%d" % current_round, stats_y)
-	stats_y += line_height + 15
+	stats_y += line_height + 10
 	
 	# Divider
 	var divider = ColorRect.new()
 	divider.color = Color(0, 1, 1, 0.4)
 	divider.position = Vector2(40, stats_y)
-	divider.size = Vector2(420, 2)
+	divider.size = Vector2(320, 2)
 	panel.add_child(divider)
-	stats_y += 15
+	stats_y += 10
 	
 	# Hint text
 	var hint = Label.new()
 	hint.text = "Claim your reward on the next screen!"
 	hint.position = Vector2(0, stats_y)
-	hint.size = Vector2(500, 30)
+	hint.size = Vector2(400, 22)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_color_override("font_color", Color(0.5, 0.8, 1, 0.9))
-	hint.add_theme_font_size_override("font_size", 14)
+	hint.add_theme_font_size_override("font_size", 12)
 	panel.add_child(hint)
 	
 	# Continue button
 	var continue_btn = Button.new()
 	continue_btn.text = "CONTINUE →"
-	continue_btn.custom_minimum_size = Vector2(200, 50)
-	continue_btn.position = Vector2(150, 330)
+	continue_btn.custom_minimum_size = Vector2(200, 45)
+	continue_btn.position = Vector2(100, 265)
 	continue_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	
 	var btn_style = StyleBoxFlat.new()
@@ -1222,8 +1222,8 @@ func _add_tcg_stat_row(parent: Node, label_text: String, value_text: String, y_p
 	"""Add a stat row to the postgame panel"""
 	var label = Label.new()
 	label.text = label_text
-	label.position = Vector2(60, y_pos)
-	label.size = Vector2(180, 28)
+	label.position = Vector2(45, y_pos)
+	label.size = Vector2(170, 24)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	label.add_theme_color_override("font_color", Color(0.7, 0.9, 1, 1))
 	label.add_theme_font_size_override("font_size", 16)
@@ -1231,8 +1231,8 @@ func _add_tcg_stat_row(parent: Node, label_text: String, value_text: String, y_p
 	
 	var value = Label.new()
 	value.text = value_text
-	value.position = Vector2(280, y_pos)
-	value.size = Vector2(160, 28)
+	value.position = Vector2(220, y_pos)
+	value.size = Vector2(135, 24)
 	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	value.add_theme_color_override("font_color", value_color)
 	value.add_theme_font_size_override("font_size", 16)
