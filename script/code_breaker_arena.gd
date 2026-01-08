@@ -41,6 +41,25 @@ const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
 @onready var _extend_panel: Sprite2D = $"VBox/CodeDisplayPanel/ExtendTime(yellow)Panel"
 @onready var _defensive_panel: Sprite2D = $"VBox/CodeDisplayPanel/DefensivePanel(grey)"
 
+
+# Player analytics tracking
+var _total_snippets_attempted: int = 0
+var _correct_submissions: int = 0
+var _wrong_submissions: int = 0
+var _total_characters_typed: int = 0
+var _typing_start_time: float = 0.0
+var _typing_end_time: float = 0.0
+var _fastest_snippet_time: float = 999.0
+var _snippet_times: Array[float] = []
+var _damage_dealt: int = 0
+var _damage_taken: int = 0
+var _heal_powerups_used: int = 0
+var _shield_powerups_used: int = 0
+var _freeze_powerups_used: int = 0
+var _extend_powerups_used: int = 0
+var _lowest_health_reached: int = STARTING_HEALTH
+
+
 const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 const ROOMS_PATH := "/codebreaker_rooms"
 const GAME_DURATION := 240.0  # 4 minute match (or until someone dies)
@@ -601,8 +620,16 @@ func _receive_damage(damage: int) -> void:
 			_ws_indicator.color = original_color
 		return  # No damage taken!
 	
+	_damage_taken += damage  # TRACK DAMAGE TAKEN
 	player_health -= damage
+	
+	# Track lowest health
+	if player_health < _lowest_health_reached:
+		_lowest_health_reached = player_health
+	
 	print("[Arena] 💥 Took %d damage! Health: %d" % [damage, player_health])
+	
+	# ... rest of damage logic ...
 	
 	_update_my_health_display()
 	
@@ -953,11 +980,25 @@ func _on_input_submitted(submitted_text: String) -> void:
 	if not _game_active:
 		return
 	
+	_total_snippets_attempted += 1
+	_total_characters_typed += submitted_text.length()
+	
+	# Track snippet completion time
+	var snippet_completion_time = _snippet_time_remaining
+	var time_taken = SNIPPET_TIME_LIMIT - snippet_completion_time
+	_snippet_times.append(time_taken)
+	
 	print("[Arena] 📝 Checking submission: '%s'" % submitted_text.substr(0, 50))
 	
 	# EXACT MATCH REQUIRED (case-sensitive)
 	if submitted_text == _code_snippet:
 		# ✅ CORRECT SUBMISSION!
+		_correct_submissions += 1
+		
+		# Track fastest snippet
+		if time_taken < _fastest_snippet_time:
+			_fastest_snippet_time = time_taken
+		
 		print("[Arena] ✅ VIRUS NEUTRALIZED! +%d defense score, attacking opponent system" % SCORE_CORRECT)
 		player_score += SCORE_CORRECT
 		
@@ -970,6 +1011,7 @@ func _on_input_submitted(submitted_text: String) -> void:
 		
 		# Deal damage to opponent via relay
 		_send_damage_to_opponent(DAMAGE_TO_ENEMY)
+		_damage_dealt += DAMAGE_TO_ENEMY  # TRACK DAMAGE DEALT
 		
 		# Send stats update
 		_send_stats_update()
@@ -987,14 +1029,14 @@ func _on_input_submitted(submitted_text: String) -> void:
 		if _current_powerup == PowerUpType.HEAL:
 			player_health += HEAL_BONUS
 			bonus_text = " | 💚 +10 HP HEAL!"
-			_powerups_used += 1
+			_heal_powerups_used += 1  # TRACK HEAL
 			print("[Arena] 💚 HEAL BONUS! +%d HP" % HEAL_BONUS)
 			_update_my_health_display()
 		elif _current_powerup == PowerUpType.FREEZE_TIME:
 			_time_frozen = true
 			_freeze_time_remaining = FREEZE_DURATION
 			bonus_text = " | 🧊 TIME FROZEN 15s!"
-			_powerups_used += 1
+			_freeze_powerups_used += 1  # TRACK FREEZE
 			print("[Arena] 🧊 FREEZE TIME ACTIVATED! Timer paused for %.0fs" % FREEZE_DURATION)
 		elif _current_powerup == PowerUpType.EXTEND_TIME:
 			_extend_time_active = true
@@ -1002,13 +1044,13 @@ func _on_input_submitted(submitted_text: String) -> void:
 			_snippet_time_remaining += EXTEND_SNIPPET_TIME
 			_game_start_time += EXTEND_MAIN_TIME
 			bonus_text = " | 🟡 TIME BUFF 20s! (+15s per snippet)"
-			_powerups_used += 1
+			_extend_powerups_used += 1  # TRACK EXTEND
 			print("[Arena] 🟡 EXTEND TIME BUFF ACTIVATED!")
 		elif _current_powerup == PowerUpType.SHIELD:
 			_shield_active = true
 			_shield_time_remaining = SHIELD_DURATION
 			bonus_text = " | 🛡️ SHIELD 15s! (0 damage)"
-			_powerups_used += 1
+			_shield_powerups_used += 1  # TRACK SHIELD
 			print("[Arena] 🛡️ DEFENSIVE SHIELD ACTIVATED!")
 		
 		var progress_text = "✅ CORRECT! (%d/%d) | +%d Score | Enemy -%d HP%s" % [
@@ -1039,6 +1081,8 @@ func _on_input_submitted(submitted_text: String) -> void:
 		_input_field.text = ""
 	else:
 		# ❌ WRONG SUBMISSION!
+		_wrong_submissions += 1  # TRACK WRONG SUBMISSIONS
+		
 		print("[Arena] ❌ INCORRECT COMMAND! System compromised, taking damage")
 		
 		# 🛡️ SHIELD: Block self-damage penalty if shield is active!
@@ -1047,7 +1091,13 @@ func _on_input_submitted(submitted_text: String) -> void:
 			# No HP loss, but still advance to next snippet
 		else:
 			player_health -= SELF_DAMAGE_PENALTY
+			_damage_taken += SELF_DAMAGE_PENALTY  # TRACK DAMAGE TAKEN
 		
+		# Track lowest health
+		if player_health < _lowest_health_reached:
+			_lowest_health_reached = player_health
+		
+		# ... rest of wrong submission logic ...
 		# Update MY health display immediately
 		_update_my_health_display()
 		_update_my_score_display()
@@ -1421,6 +1471,46 @@ func _end_game_timeout() -> void:
 
 func _leave_arena() -> void:
 	"""Clean up and transition to PostGame screen"""
+	var total_typing_time = Time.get_ticks_msec() / 1000.0 - _game_start_time
+	var words_typed = _total_characters_typed / 5.0  # Standard: 5 chars = 1 word
+	var wpm = (words_typed / total_typing_time) * 60.0 if total_typing_time > 0 else 0.0
+	
+	var accuracy = (float(_correct_submissions) / float(_total_snippets_attempted)) * 100.0 if _total_snippets_attempted > 0 else 0.0
+	
+	var avg_snippet_time = 0.0
+	if _snippet_times.size() > 0:
+		for time in _snippet_times:
+			avg_snippet_time += time
+		avg_snippet_time /= _snippet_times.size()
+	
+	# Determine if we won FIRST (before using it)
+	var we_won = false
+	var _is_draw = false
+	
+	if player_health > _opponent_health:
+		we_won = true
+	elif player_health == _opponent_health:
+		if player_score > _opponent_score:
+			we_won = true
+		elif player_score == _opponent_score:
+			_is_draw = true
+	
+	# Determine if comeback (won despite health dropping below 30%)
+	var comeback_victory = false
+	if we_won and _lowest_health_reached < 30:
+		comeback_victory = true
+	
+	print("[Arena] 📊 ANALYTICS:")
+	print("  WPM: %.1f" % wpm)
+	print("  Accuracy: %.1f%%" % accuracy)
+	print("  Wrong Submissions: %d" % _wrong_submissions)
+	print("  Avg Snippet Time: %.2fs" % avg_snippet_time)
+	print("  Fastest Snippet: %.2fs" % _fastest_snippet_time)
+	print("  Damage Dealt: %d | Taken: %d" % [_damage_dealt, _damage_taken])
+	print("  Power-ups: Heal=%d Shield=%d Freeze=%d Extend=%d" % [
+		_heal_powerups_used, _shield_powerups_used, _freeze_powerups_used, _extend_powerups_used
+	])
+	
 	# Update lobby room status so relogin/reconnect does not loop forever.
 	_set_lobby_room_status("finished")
 	
@@ -1433,18 +1523,6 @@ func _leave_arena() -> void:
 		multiplayer.multiplayer_peer.close()
 		multiplayer.multiplayer_peer = null
 	
-	# Determine if we won
-	var we_won = false
-	var _is_draw = false
-	
-	if player_health > _opponent_health:
-		we_won = true
-	elif player_health == _opponent_health:
-		if player_score > _opponent_score:
-			we_won = true
-		elif player_score == _opponent_score:
-			_is_draw = true
-	
 	# Calculate XP earned
 	var xp_earned = 500 if we_won else 0
 	
@@ -1456,17 +1534,18 @@ func _leave_arena() -> void:
 	var duration_seconds: int = int(Time.get_ticks_msec() / 1000.0 - _game_start_time)
 	var game_duration_str = _format_game_duration(float(duration_seconds))
 	
-	# Save XP to Firestore
+	# Save match data to Firestore
 	if Auth.current_id_token:
 		# XP awarding is handled in PostGame to avoid race conditions / double-awards.
-		# Also save match history
 		var host_id = str(_host_data.get("player_id", ""))
 		var client_id = str(_client_data.get("player_id", ""))
 		var winner_id = host_id if winner_name == _host_username else client_id
 		var loser_id = client_id if winner_id == host_id else host_id
+		
+		# Save to match_history collection (now with proper permissions)
 		_save_match_history(winner_name, loser_name, winner_id, loser_id, host_id, client_id, player_score, _opponent_score, duration_seconds, game_duration_str, _powerups_used)
 
-		# Permissions-safe fallback: store under users/<uid> so profile can load even if match_history collection is locked by rules.
+		# Also save to users/<uid>/recent_matches as backup/cache
 		var result_text := "DRAW" if _is_draw else ("WIN" if we_won else "LOSE")
 		var opponent_name := _client_username if _is_host else _host_username
 		_append_recent_match_to_user_doc({
@@ -1535,7 +1614,33 @@ func _leave_arena() -> void:
 		"game_duration": Time.get_ticks_msec() / 1000.0 - _game_start_time,
 		"host_powerups_used": _powerups_used if _is_host else 0,
 		"client_powerups_used": 0 if _is_host else _powerups_used,
-		"xp_earned": xp_earned
+		"xp_earned": xp_earned,
+		
+		# NEW ANALYTICS
+		"host_wpm": wpm if _is_host else 0.0,
+		"client_wpm": 0.0 if _is_host else wpm,
+		"host_accuracy": accuracy if _is_host else 0.0,
+		"client_accuracy": 0.0 if _is_host else accuracy,
+		"host_wrong_submissions": _wrong_submissions if _is_host else 0,
+		"client_wrong_submissions": 0 if _is_host else _wrong_submissions,
+		"host_avg_snippet_time": avg_snippet_time if _is_host else 0.0,
+		"client_avg_snippet_time": 0.0 if _is_host else avg_snippet_time,
+		"host_fastest_snippet": _fastest_snippet_time if _is_host else 0.0,
+		"client_fastest_snippet": 0.0 if _is_host else _fastest_snippet_time,
+		"host_damage_dealt": _damage_dealt if _is_host else 0,
+		"client_damage_dealt": 0 if _is_host else _damage_dealt,
+		"host_damage_taken": _damage_taken if _is_host else 0,
+		"client_damage_taken": 0 if _is_host else _damage_taken,
+		"host_comeback": comeback_victory if _is_host else false,
+		"client_comeback": false if _is_host else comeback_victory,
+		"host_heal_used": _heal_powerups_used if _is_host else 0,
+		"client_heal_used": 0 if _is_host else _heal_powerups_used,
+		"host_shield_used": _shield_powerups_used if _is_host else 0,
+		"client_shield_used": 0 if _is_host else _shield_powerups_used,
+		"host_freeze_used": _freeze_powerups_used if _is_host else 0,
+		"client_freeze_used": 0 if _is_host else _freeze_powerups_used,
+		"host_extend_used": _extend_powerups_used if _is_host else 0,
+		"client_extend_used": 0 if _is_host else _extend_powerups_used
 	}
 	
 	print("[Arena] 💾 PostGame Init:")
@@ -1558,7 +1663,6 @@ func _leave_arena() -> void:
 			var room_scene := load("res://scene/code_breaker_room.tscn")
 			if room_scene:
 				get_tree().change_scene_to_packed(room_scene)
-
 
 func _set_lobby_room_status(new_status: String) -> void:
 	if _lobby_server_url.strip_edges() == "" or _room_id.strip_edges() == "":
@@ -1772,12 +1876,16 @@ func _popin_code_display_with_text(new_text: String) -> void:
 	if _code_display:
 		_code_display.text = new_text
 	
-	# 💊 POWER-UP SYSTEM: Randomly select power-up type and show corresponding panel
+
+# 💊 POWER-UP SYSTEM: Randomly select power-up type and show corresponding panel
 	var rand_value = randf()
 	if rand_value < SHIELD_CHANCE:
 		# SHIELD power-up! (10% chance - RARE!)
 		_current_powerup = PowerUpType.SHIELD
 		if _defensive_panel:
+			# CRITICAL: Reset shader before showing!
+			if _defensive_panel.material:
+				_defensive_panel.material.set_shader_parameter("break_progress", 0.0)
 			_defensive_panel.visible = true
 		if _freeze_panel:
 			_freeze_panel.visible = false
@@ -1788,10 +1896,14 @@ func _popin_code_display_with_text(new_text: String) -> void:
 		if _default_panel:
 			_default_panel.visible = false
 		print("[Arena] 🛡️ DEFENSIVE SHIELD POWER-UP! (15s invincibility on correct)")
+
 	elif rand_value < (SHIELD_CHANCE + FREEZE_CHANCE):
 		# FREEZE TIME power-up! (10% chance - RARE!)
 		_current_powerup = PowerUpType.FREEZE_TIME
 		if _freeze_panel:
+			# CRITICAL: Reset shader before showing!
+			if _freeze_panel.material:
+				_freeze_panel.material.set_shader_parameter("break_progress", 0.0)
 			_freeze_panel.visible = true
 		if _defensive_panel:
 			_defensive_panel.visible = false
@@ -1802,10 +1914,14 @@ func _popin_code_display_with_text(new_text: String) -> void:
 		if _default_panel:
 			_default_panel.visible = false
 		print("[Arena] 🧊 FREEZE TIME POWER-UP! (15s timer freeze on correct)")
+
 	elif rand_value < (SHIELD_CHANCE + FREEZE_CHANCE + EXTEND_CHANCE):
 		# EXTEND TIME power-up! (25% chance)
 		_current_powerup = PowerUpType.EXTEND_TIME
 		if _extend_panel:
+			# CRITICAL: Reset shader before showing!
+			if _extend_panel.material:
+				_extend_panel.material.set_shader_parameter("break_progress", 0.0)
 			_extend_panel.visible = true
 		if _defensive_panel:
 			_defensive_panel.visible = false
@@ -1816,10 +1932,14 @@ func _popin_code_display_with_text(new_text: String) -> void:
 		if _default_panel:
 			_default_panel.visible = false
 		print("[Arena] 🟡 EXTEND TIME POWER-UP! (+15s snippet, +8s main timer on correct)")
+
 	elif rand_value < (SHIELD_CHANCE + FREEZE_CHANCE + EXTEND_CHANCE + HEAL_CHANCE):
 		# HEAL power-up! (30% chance)
 		_current_powerup = PowerUpType.HEAL
 		if _heal_panel:
+			# CRITICAL: Reset shader before showing!
+			if _heal_panel.material:
+				_heal_panel.material.set_shader_parameter("break_progress", 0.0)
 			_heal_panel.visible = true
 		if _defensive_panel:
 			_defensive_panel.visible = false
@@ -1830,10 +1950,14 @@ func _popin_code_display_with_text(new_text: String) -> void:
 		if _default_panel:
 			_default_panel.visible = false
 		print("[Arena] 💚 HEAL POWER-UP! (+10 HP on correct)")
+
 	else:
 		# Normal snippet (25% chance)
 		_current_powerup = PowerUpType.NORMAL
 		if _default_panel:
+			# CRITICAL: Reset shader before showing!
+			if _default_panel.material:
+				_default_panel.material.set_shader_parameter("break_progress", 0.0)
 			_default_panel.visible = true
 		if _heal_panel:
 			_heal_panel.visible = false

@@ -227,6 +227,7 @@ offset_right = 262.0
 theme_override_styles/separator = SubResource("StyleBoxFlat_v3hda")
 
 [node name="HSeparator2" type="HSeparator" parent="HostCard"]
+layout_mode = 0
 offset_left = -4.0
 offset_top = 399.0
 offset_right = 261.0
@@ -234,6 +235,7 @@ offset_bottom = 403.0
 theme_override_styles/separator = SubResource("StyleBoxFlat_v3hda")
 
 [node name="VSeparator2" type="VSeparator" parent="HostCard"]
+layout_mode = 0
 offset_left = 260.0
 offset_top = -2.0
 offset_right = 264.0
@@ -337,6 +339,7 @@ offset_bottom = 1.0
 theme_override_styles/separator = SubResource("StyleBoxFlat_84w3l")
 
 [node name="HSeparator2" type="HSeparator" parent="ClientCard"]
+layout_mode = 0
 offset_left = -1.0
 offset_top = 399.0
 offset_right = 262.0
@@ -352,6 +355,7 @@ offset_bottom = 401.0
 theme_override_styles/separator = SubResource("StyleBoxFlat_ebujj")
 
 [node name="VSeparator2" type="VSeparator" parent="ClientCard"]
+layout_mode = 0
 offset_left = 258.0
 offset_top = -1.0
 offset_right = 264.0

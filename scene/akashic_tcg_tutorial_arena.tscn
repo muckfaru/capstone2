@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://owldu3pgurub"]
+[gd_scene load_steps=15 format=3 uid="uid://bmnmun3tvk3bj"]
 
 [ext_resource type="Script" uid="uid://bjrayr1ciivx5" path="res://script/akashic_tcg_tutorial_arena.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2"]

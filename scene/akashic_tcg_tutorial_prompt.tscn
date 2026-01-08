@@ -1,19 +1,19 @@
-[gd_scene load_steps=2 format=3 uid="uid://tutorial_prompt_popup"]
+[gd_scene load_steps=2 format=3 uid="uid://c5p3vk76d7rov"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog"]
 bg_color = Color(0.08, 0.12, 0.2, 0.95)
-border_color = Color(0, 0.9, 1, 1)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
+border_color = Color(0, 0.9, 1, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 
 [node name="TutorialPromptPopup" type="Window"]
-title = ""
+transparent_bg = true
 initial_position = 2
 size = Vector2i(500, 280)
 unresizable = true

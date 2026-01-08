@@ -10,6 +10,13 @@ const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
 @onready var _host_time: Label = $HostCard/HostTime
 @onready var _host_powerups: Label = $HostCard/HostPowerups
 @onready var _host_winner_badge: Label = $HostCard/WinnerBadge
+@onready var _host_wpm_label: Label = $HostCard/HostWPM
+@onready var _host_accuracy_label: Label = $HostCard/HostAccuracy
+@onready var _host_wrong_submissions_label: Label = $HostCard/HostWrongSubmissions
+@onready var _host_avg_time_label: Label = $HostCard/HostAvgTime
+@onready var _host_fastest_time_label: Label = $HostCard/HostFastestTime
+@onready var _host_damage_stats_label: Label = $HostCard/HostDamageStats
+@onready var _host_comeback_badge: Label = $HostCard/HostComebackBadge
 
 @onready var _client_username: Label = $ClientCard/ClientUsername
 @onready var _client_status: Label = $ClientCard/ClientStatus
@@ -17,6 +24,13 @@ const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
 @onready var _client_time: Label = $ClientCard/ClientTime
 @onready var _client_powerups: Label = $ClientCard/ClientPowerups
 @onready var _client_winner_badge: Label = $ClientCard/WinnerBadge
+@onready var _client_wpm_label: Label = $ClientCard/ClientWPM
+@onready var _client_accuracy_label: Label = $ClientCard/ClientAccuracy
+@onready var _client_wrong_submissions_label: Label = $ClientCard/ClientWrongSubmissions
+@onready var _client_avg_time_label: Label = $ClientCard/ClientAvgTime
+@onready var _client_fastest_time_label: Label = $ClientCard/ClientFastestTime
+@onready var _client_damage_stats_label: Label = $ClientCard/ClientDamageStats
+@onready var _client_comeback_badge: Label = $ClientCard/ClientComebackBadge
 
 @onready var _host_card_node: NinePatchRect = $HostCard
 @onready var _client_card_node: NinePatchRect = $ClientCard
@@ -51,6 +65,23 @@ const COLOR_XP_LOSE := Color(0.8, 0.8, 0.8, 1)  # Grey
 
 const XP_WINNER := 200
 const XP_LOSER := 0
+
+var _host_wpm: float = 0.0
+var _client_wpm: float = 0.0
+var _host_accuracy: float = 0.0
+var _client_accuracy: float = 0.0
+var _host_wrong_submissions: int = 0
+var _client_wrong_submissions: int = 0
+var _host_avg_snippet_time: float = 0.0
+var _client_avg_snippet_time: float = 0.0
+var _host_fastest_snippet: float = 0.0
+var _client_fastest_snippet: float = 0.0
+var _host_damage_dealt: int = 0
+var _client_damage_dealt: int = 0
+var _host_damage_taken: int = 0
+var _client_damage_taken: int = 0
+var _host_comeback: bool = false
+var _client_comeback: bool = false
 
 func _ready() -> void:
 	print("[PostGame] Scene initialized")
@@ -91,6 +122,28 @@ func _ready() -> void:
 		add_child(_relay_client)
 		print("[PostGame] ✅ Adopted relay client from root")
 	
+	# Load analytics data BEFORE setup UI
+	_host_wpm = float(init.get("host_wpm", 0.0))
+	_client_wpm = float(init.get("client_wpm", 0.0))
+	_host_accuracy = float(init.get("host_accuracy", 0.0))
+	_client_accuracy = float(init.get("client_accuracy", 0.0))
+	_host_wrong_submissions = int(init.get("host_wrong_submissions", 0))
+	_client_wrong_submissions = int(init.get("client_wrong_submissions", 0))
+	_host_avg_snippet_time = float(init.get("host_avg_snippet_time", 0.0))
+	_client_avg_snippet_time = float(init.get("client_avg_snippet_time", 0.0))
+	_host_fastest_snippet = float(init.get("host_fastest_snippet", 0.0))
+	_client_fastest_snippet = float(init.get("client_fastest_snippet", 0.0))
+	_host_damage_dealt = int(init.get("host_damage_dealt", 0))
+	_client_damage_dealt = int(init.get("client_damage_dealt", 0))
+	_host_damage_taken = int(init.get("host_damage_taken", 0))
+	_client_damage_taken = int(init.get("client_damage_taken", 0))
+	_host_comeback = bool(init.get("host_comeback", false))
+	_client_comeback = bool(init.get("client_comeback", false))
+	
+	print("[PostGame] 📊 Analytics loaded:")
+	print("  Host WPM: %.1f | Client WPM: %.1f" % [_host_wpm, _client_wpm])
+	print("  Host Accuracy: %.1f%% | Client Accuracy: %.1f%%" % [_host_accuracy, _client_accuracy])
+	
 	# Setup UI with results
 	_setup_ui()
 	# Persist match history (permissions-safe user doc field)
@@ -103,7 +156,6 @@ func _ready() -> void:
 	
 	# Animate in
 	_animate_in()
-
 
 func _award_total_xp_best_effort() -> void:
 	if Auth.current_local_id == "" or Auth.current_id_token == "":
@@ -430,7 +482,7 @@ func _setup_ui() -> void:
 	
 	# Host Card
 	_host_username.text = str(_host_data.get("username", "Host"))
-	_host_status.text = "❌ DEFEATED" if not host_won else "✅ VICTORY"
+	_host_status.text = "❌ DEFEATED" if not host_won else "VICTORY"
 	_host_status.add_theme_color_override("font_color", COLOR_WINNER if host_won else COLOR_LOSER)
 	
 	var host_xp = XP_WINNER if host_won else XP_LOSER
@@ -439,6 +491,29 @@ func _setup_ui() -> void:
 	
 	_host_time.text = "Time: %s" % _format_time(_game_duration)
 	_host_powerups.text = "Power-ups: %d" % _host_powerups_used
+	
+	# Host Analytics
+	if _host_wpm_label:
+		_host_wpm_label.text = "WPM: %.1f" % _host_wpm
+		_host_wpm_label.visible = true
+	if _host_accuracy_label:
+		_host_accuracy_label.text = "Accuracy: %.1f%%" % _host_accuracy
+		_host_accuracy_label.visible = true
+	if _host_wrong_submissions_label:
+		_host_wrong_submissions_label.text = "Wrong: %d" % _host_wrong_submissions
+		_host_wrong_submissions_label.visible = true
+	if _host_avg_time_label:
+		_host_avg_time_label.text = "Avg Time: %.2fs" % _host_avg_snippet_time
+		_host_avg_time_label.visible = true
+	if _host_fastest_time_label:
+		_host_fastest_time_label.text = "Fastest: %.2fs" % _host_fastest_snippet
+		_host_fastest_time_label.visible = true
+	if _host_damage_stats_label:
+		_host_damage_stats_label.text = "Dmg: %d/%d" % [_host_damage_dealt, _host_damage_taken]
+		_host_damage_stats_label.visible = true
+	if _host_comeback_badge and _host_comeback:
+		_host_comeback_badge.text = "🔥 COMEBACK"
+		_host_comeback_badge.visible = true
 	
 	if host_won:
 		_host_winner_badge.visible = true
@@ -454,6 +529,29 @@ func _setup_ui() -> void:
 	
 	_client_time.text = "Time: %s" % _format_time(_game_duration)
 	_client_powerups.text = "Power-ups: %d" % _client_powerups_used
+	
+	# Client Analytics
+	if _client_wpm_label:
+		_client_wpm_label.text = "WPM: %.1f" % _client_wpm
+		_client_wpm_label.visible = true
+	if _client_accuracy_label:
+		_client_accuracy_label.text = "Accuracy: %.1f%%" % _client_accuracy
+		_client_accuracy_label.visible = true
+	if _client_wrong_submissions_label:
+		_client_wrong_submissions_label.text = "Wrong: %d" % _client_wrong_submissions
+		_client_wrong_submissions_label.visible = true
+	if _client_avg_time_label:
+		_client_avg_time_label.text = "Avg Time: %.2fs" % _client_avg_snippet_time
+		_client_avg_time_label.visible = true
+	if _client_fastest_time_label:
+		_client_fastest_time_label.text = "Fastest: %.2fs" % _client_fastest_snippet
+		_client_fastest_time_label.visible = true
+	if _client_damage_stats_label:
+		_client_damage_stats_label.text = "Dmg: %d/%d" % [_client_damage_dealt, _client_damage_taken]
+		_client_damage_stats_label.visible = true
+	if _client_comeback_badge and _client_comeback:
+		_client_comeback_badge.text = "🔥 COMEBACK"
+		_client_comeback_badge.visible = true
 	
 	if client_won:
 		_client_winner_badge.visible = true
