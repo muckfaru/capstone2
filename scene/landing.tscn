@@ -5,7 +5,6 @@
 [ext_resource type="PackedScene" uid="uid://bohnaxmk78jfw" path="res://scene/friend_list.tscn" id="3_hlv06"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_nicomoji"]
 [ext_resource type="Texture2D" uid="uid://bvhe8ouk5yxa5" path="res://asset/icons/Nav logo.png" id="3_q33pn"]
-[ext_resource type="Texture2D" uid="uid://ca874tphfshxx" path="res://asset/avatars/default.png" id="3_qdyf0"]
 [ext_resource type="Texture2D" uid="uid://dp4co62dijgua" path="res://asset/icons/akashic tgc 1.png" id="4_hlv06"]
 [ext_resource type="Texture2D" uid="uid://cckv7p82fksqa" path="res://asset/icons/Defuse the trojan 1.png" id="5_1dlu4"]
 [ext_resource type="PackedScene" uid="uid://d0infgusfi845" path="res://scene/chat.tscn" id="9_1dlu4"]
@@ -52,6 +51,9 @@ corner_radius_top_left = 20
 corner_radius_bottom_left = 20
 shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 shadow_size = 10
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_86hhj"]
+load_path = "res://.godot/imported/default.png-0bc182092b56554499f8e8fd7e3dd7db.ctex"
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_08qf3"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -466,7 +468,7 @@ offset_right = 110.0
 offset_bottom = 105.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
-texture = ExtResource("3_qdyf0")
+texture = SubResource("CompressedTexture2D_86hhj")
 expand_mode = 3
 stretch_mode = 5
 
@@ -495,11 +497,17 @@ text = "Select image"
 
 [node name="AvatarPicker" type="PopupPanel" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 
-[node name="GridContainer" type="GridContainer" parent="VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker"]
+[node name="AvatarScroll" type="ScrollContainer" parent="VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker"]
+custom_minimum_size = Vector2(432, 432)
 offset_left = 4.0
 offset_top = 4.0
-offset_right = 96.0
-offset_bottom = 96.0
+offset_right = 436.0
+offset_bottom = 436.0
+horizontal_scroll_mode = 0
+
+[node name="GridContainer" type="GridContainer" parent="VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/AvatarScroll"]
+layout_mode = 2
+columns = 5
 
 [node name="MatchPlayedInput" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 layout_mode = 0

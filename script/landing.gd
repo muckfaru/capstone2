@@ -19,7 +19,7 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 @onready var change_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/ChangeAvatarButton
 @onready var save_btn: Button = $VideoStreamPlayer/ProfilePanel/UserPanel/SaveProfile
 @onready var avatar_picker: PopupPanel = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker
-@onready var avatar_grid: GridContainer = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/GridContainer
+@onready var avatar_grid: GridContainer = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/AvatarScroll/GridContainer
 @onready var menu_panel: Control = $MenuPanel
 
 # Match history (Profile)
@@ -2783,8 +2783,10 @@ func _load_avatars() -> void:
 				avatars[file_name] = tex
 				var btn := TextureButton.new()
 				btn.texture_normal = tex
+				# Force thumbnails to 80x80 regardless of source texture size.
+				btn.ignore_texture_size = true
 				btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-				btn.custom_minimum_size = Vector2(64, 64)
+				btn.custom_minimum_size = Vector2(80, 80)
 				var captured_name: String = file_name
 				btn.pressed.connect(func(): _on_avatar_selected(captured_name))
 				avatar_grid.add_child(btn)
@@ -3440,10 +3442,17 @@ func _setup_inventory_system() -> void:
 		
 		if inventory_panel.has_signal("inventory_closed"):
 			inventory_panel.inventory_closed.connect(_on_inventory_closed)
+		if inventory_panel.has_signal("avatar_selected") and not inventory_panel.avatar_selected.is_connected(_on_inventory_avatar_selected):
+			inventory_panel.avatar_selected.connect(_on_inventory_avatar_selected)
 		
 		print("[Landing] ✅ Inventory system initialized")
 	else:
 		push_error("[Landing] ❌ Failed to load inventory_panel.tscn")
+
+
+func _on_inventory_avatar_selected(file_name: String) -> void:
+	# Reuse the existing preset-avatar selection behavior.
+	_on_avatar_selected(file_name)
 
 func _on_inventory_closed() -> void:
 	"""Called when inventory panel is closed"""

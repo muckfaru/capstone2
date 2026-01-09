@@ -2,6 +2,8 @@
 # inventory_panel.gd
 extends Panel
 
+const AvatarCatalog = preload("res://script/AvatarCatalog.gd")
+
 # UI References
 @onready var close_button: Button = $CloseButton
 @onready var category_container: HBoxContainer = $CategoryContainer
@@ -24,6 +26,7 @@ var player_items: Array = []
 var _detail_item: Dictionary = {}
 
 signal inventory_closed
+signal avatar_selected(avatar_file: String)
 
 # ✅ FIX 1: Add loading state
 var is_loading: bool = false
@@ -198,7 +201,12 @@ func _ensure_detail_panel_layout() -> Dictionary:
 func _on_detail_equip_pressed() -> void:
 	if _detail_item.is_empty():
 		return
-	_equip_card_background(_detail_item)
+	if str(_detail_item.get("subtype", "")) == "card_background":
+		_equip_card_background(_detail_item)
+		return
+	if str(_detail_item.get("type", "")) == "avatar":
+		_equip_avatar(_detail_item)
+		return
 
 
 func show_inventory() -> void:
@@ -448,8 +456,12 @@ func _create_item_card(item: Dictionary) -> void:
 	
 	# Item icon
 	var icon = TextureRect.new()
-	icon.position = Vector2(25, 15)
-	icon.size = Vector2(100, 100)
+	if str(item.get("type", "")) == "avatar":
+		icon.position = Vector2(35, 15)
+		icon.size = Vector2(80, 80)
+	else:
+		icon.position = Vector2(25, 15)
+		icon.size = Vector2(100, 100)
 	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
@@ -497,7 +509,10 @@ func _create_item_card(item: Dictionary) -> void:
 	
 	# Item name
 	var name_label = Label.new()
-	name_label.text = item.get("name", "Unknown")
+	var display_name: String = str(item.get("name", "Unknown"))
+	if str(item.get("subtype", "")) == "card_background":
+		display_name = _normalize_card_bg_name(display_name)
+	name_label.text = display_name
 	name_label.position = Vector2(10, 120)
 	name_label.size = Vector2(130, 25)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -550,7 +565,10 @@ func _show_item_details(item: Dictionary) -> void:
 
 	# Update header/title
 	var title: Label = ui["title"]
-	title.text = item.get("name", "Unknown")
+	var display_title: String = str(item.get("name", "Unknown"))
+	if str(item.get("subtype", "")) == "card_background":
+		display_title = _normalize_card_bg_name(display_title)
+	title.text = display_title
 	title.add_theme_color_override("font_color", _get_rarity_color(item.get("rarity", "common")))
 
 	# Update description
@@ -593,9 +611,26 @@ func _show_item_details(item: Dictionary) -> void:
 		equip_btn.visible = true
 		equip_btn.text = "EQUIP BACKGROUND" if not equipped_now else "EQUIPPED"
 		equip_btn.disabled = equipped_now
+	elif str(item.get("type", "")) == "avatar":
+		equip_btn.visible = true
+		equip_btn.text = "SET AVATAR"
+		equip_btn.disabled = false
 	else:
 		equip_btn.visible = false
 		equip_btn.disabled = true
+
+
+func _equip_avatar(item: Dictionary) -> void:
+	var file_name: String = str(item.get("avatar_file", ""))
+	if file_name.strip_edges() == "":
+		var icon_path: String = str(item.get("icon_path", ""))
+		if icon_path.begins_with("res://asset/avatars/"):
+			file_name = icon_path.get_file()
+	if file_name.strip_edges() == "":
+		_show_error_message("Invalid avatar")
+		return
+	avatar_selected.emit(file_name)
+	item_detail_panel.visible = false
 
 func _format_date(timestamp: int) -> String:
 	"""Format Unix timestamp to readable date"""
@@ -603,6 +638,27 @@ func _format_date(timestamp: int) -> String:
 		return "Unknown"
 	var datetime = Time.get_datetime_dict_from_unix_time(timestamp)
 	return "%02d/%02d/%d" % [datetime.month, datetime.day, datetime.year]
+
+
+func _normalize_card_bg_name(raw_name: String) -> String:
+	var s := raw_name.strip_edges()
+	if s == "":
+		return "Unknown"
+
+	# Strip any legacy prefix coming from older Firestore docs.
+	var lower := s.to_lower()
+	var idx := lower.find("reward background")
+	if idx == 0:
+		# Remove "Reward Background" and optional ':' after it.
+		s = s.substr("Reward Background".length()).strip_edges()
+		if s.begins_with(":"):
+			s = s.substr(1).strip_edges()
+
+	# Clamp to 2 words.
+	var parts := s.split(" ", false)
+	if parts.size() <= 2:
+		return s
+	return "%s %s" % [parts[0], parts[1]]
 
 # ✅ FIX 8: Better error handling for Firestore loading
 func _load_player_items() -> void:
@@ -683,6 +739,7 @@ func _parse_inventory_data(body: PackedByteArray) -> void:
 	
 	if not data or not data.has("documents"):
 		player_items = []
+		_append_builtin_avatars()
 		_refresh_display()
 		return
 	
@@ -706,9 +763,50 @@ func _parse_inventory_data(body: PackedByteArray) -> void:
 			"date_acquired": int(fields.get("date_acquired", {}).get("integerValue", 0))
 		}
 		player_items.append(item)
+
+	_append_builtin_avatars()
 	
 	print("[Inventory] Loaded %d items" % player_items.size())
 	_refresh_display()
+
+
+func _append_builtin_avatars() -> void:
+	# Always expose preset avatars in the Bag so players can pick them.
+	var dir := DirAccess.open("res://asset/avatars")
+	if dir == null:
+		return
+
+	var existing_files := {}
+	for it in player_items:
+		var f := str(it.get("avatar_file", ""))
+		if f != "":
+			existing_files[f] = true
+		var icon_path := str(it.get("icon_path", ""))
+		if icon_path.begins_with("res://asset/avatars/"):
+			existing_files[icon_path.get_file()] = true
+
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.get_extension().to_lower() in ["png", "jpg", "jpeg", "webp"]:
+			if not existing_files.has(file_name):
+				var base := file_name.get_basename()
+				var pretty := AvatarCatalog.get_display_name(file_name)
+				player_items.append({
+					"id": "builtin_avatar_%s" % base,
+					"name": pretty,
+					"type": "avatar",
+					"subtype": "preset",
+					"rarity": "common",
+					"description": "Preset avatar",
+					"icon_path": "res://asset/avatars/%s" % file_name,
+					"avatar_file": file_name,
+					"amount": 1,
+					"is_equipped": false,
+					"date_acquired": 0,
+				})
+		file_name = dir.get_next()
+	dir.list_dir_end()
 
 
 func _equip_card_background(item: Dictionary) -> void:
