@@ -1,9 +1,11 @@
-[gd_scene load_steps=16 format=3 uid="uid://d0405qariamf0"]
+[gd_scene load_steps=18 format=3 uid="uid://d0405qariamf0"]
 
 [ext_resource type="Script" uid="uid://b1qqx7epir20j" path="res://script/code_breaker_loading.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2_t2ari"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_6f2f8"]
-[ext_resource type="Texture2D" uid="uid://c45je8vas4pv8" path="res://asset/avatars/avatar1.png" id="3_s05oh"]
+[ext_resource type="Texture2D" uid="uid://bygqhgnnbr22t" path="res://asset/avatars/avatar1.png" id="3_s05oh"]
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_vxpl8"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="4_fkxen"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6f2f8"]
 bg_color = Color(0, 0, 0, 0.619608)
@@ -140,7 +142,7 @@ offset_right = 200.0
 offset_bottom = 100.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
-theme_override_fonts/font = ExtResource("3_6f2f8")
+theme_override_fonts/font = ExtResource("3_vxpl8")
 theme_override_font_sizes/font_size = 32
 text = "CODE BREAKER"
 horizontal_alignment = 1
@@ -166,11 +168,12 @@ offset_top = -36.0
 offset_right = 133.0
 offset_bottom = -2.0
 grow_horizontal = 2
-theme_override_fonts/font = ExtResource("3_6f2f8")
+theme_override_fonts/font = ExtResource("4_fkxen")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxFlat_r0dwr")
 text = "Player 1"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="HostStatus" type="Label" parent="HostCard"]
 visible = false
@@ -209,6 +212,7 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_vxpl8")
 show_percentage = false
 
 [node name="Avatar1" type="Sprite2D" parent="HostCard"]
+visible = false
 position = Vector2(131, 82)
 texture = ExtResource("3_s05oh")
 
@@ -277,6 +281,7 @@ grow_horizontal = 0
 grow_vertical = 2
 
 [node name="Avatar1" type="Sprite2D" parent="ClientCard"]
+visible = false
 position = Vector2(128, 82)
 texture = ExtResource("3_s05oh")
 
@@ -289,11 +294,12 @@ offset_left = -132.0
 offset_top = -34.0
 offset_right = 132.0
 grow_horizontal = 2
-theme_override_fonts/font = ExtResource("3_6f2f8")
+theme_override_fonts/font = ExtResource("4_fkxen")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxFlat_7hl1v")
 text = "Player 2"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ClientStatus" type="Label" parent="ClientCard"]
 visible = false

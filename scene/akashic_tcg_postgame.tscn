@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://haydyaqqv4bd" path="res://script/akashic_tcg_postgame.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2"]
-[ext_resource type="Texture2D" uid="uid://c45je8vas4pv8" path="res://asset/avatars/avatar1.png" id="3"]
+[ext_resource type="Texture2D" uid="uid://bygqhgnnbr22t" path="res://asset/avatars/avatar1.png" id="3"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_overlay"]
 bg_color = Color(0, 0, 0, 0.619608)

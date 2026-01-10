@@ -37,6 +37,24 @@ const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
 
 @onready var _back_button: Button = $BackToLandingButton
 
+var _victory_sound: AudioStreamPlayer
+var _defeat_sound: AudioStreamPlayer
+var _card_whoosh_sound: AudioStreamPlayer
+var _stat_beep_sound: AudioStreamPlayer
+var _badge_appear_sound: AudioStreamPlayer
+var _comeback_sound: AudioStreamPlayer
+var _button_hover_sound: AudioStreamPlayer
+var _button_click_sound: AudioStreamPlayer
+var _xp_count_sound: AudioStreamPlayer
+
+# Add these shader references
+var _glow_border_shader: Shader
+var _scanline_shader: Shader
+var _holographic_shader: Shader
+var _energy_wave_shader: Shader
+var _neon_glow_shader: Shader
+
+
 # Game data
 var _room_id: String = ""
 var _relay_client: Node = null
@@ -85,7 +103,10 @@ var _client_comeback: bool = false
 
 func _ready() -> void:
 	print("[PostGame] Scene initialized")
-	
+
+	_load_shaders()
+	_setup_audio_nodes()
+
 	# Get init data from arena
 	var init: Dictionary = {}
 	if get_tree().has_meta("code_breaker_postgame_init"):
@@ -109,6 +130,7 @@ func _ready() -> void:
 	_host_powerups_used = int(init.get("host_powerups_used", 0))
 	_client_powerups_used = int(init.get("client_powerups_used", 0))
 	_result_unknown = bool(init.get("result_unknown", false))
+	
 	
 	print("[PostGame] 🎮 Init data:")
 	print("  Winner: %s" % _winner_id)
@@ -146,6 +168,18 @@ func _ready() -> void:
 	
 	# Setup UI with results
 	_setup_ui()
+
+	# Debug: Print panel info before applying shaders
+	_debug_print_panel_info()
+
+	# Wait multiple frames for UI to fully settle and render
+	await get_tree().process_frame
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	# Apply shaders AFTER UI is fully ready
+	_apply_shaders()
+
 	# Persist match history (permissions-safe user doc field)
 	_save_recent_match_best_effort()
 	# Award XP to Firestore total_xp
@@ -153,9 +187,183 @@ func _ready() -> void:
 	
 	# Connect button
 	_back_button.pressed.connect(_on_back_to_landing_pressed)
+	_back_button.mouse_entered.connect(_on_button_hover)
 	
 	# Animate in
 	_animate_in()
+
+
+func _load_shaders() -> void:
+	"""Load all shader resources"""
+	# Try multiple possible shader directory paths
+	var possible_paths = [
+		"res://shader/",
+		"res://shaders/",
+		"res://fx_shaders/",
+		"res://game_shaders/"
+	]
+	
+	var shader_path = ""
+	for path in possible_paths:
+		if DirAccess.dir_exists_absolute(path):
+			shader_path = path
+			print("[PostGame] 📁 Found shader directory at: " + shader_path)
+			break
+	
+	if shader_path == "":
+		print("[PostGame] ⚠️ No shader directory found! Tried: " + str(possible_paths))
+		print("[PostGame] ℹ️ Shaders will not be applied, but the scene will still work")
+		return
+	
+	# Check if shaders exist before loading
+	# Use the simpler border glow shader (better for thin strips)
+	if ResourceLoader.exists(shader_path + "border_glow_simple.gdshader"):
+		_glow_border_shader = load(shader_path + "border_glow_simple.gdshader")
+		print("[PostGame] ✅ Loaded border_glow_simple shader")
+	elif ResourceLoader.exists(shader_path + "glow_border.gdshader"):
+		_glow_border_shader = load(shader_path + "glow_border.gdshader")
+		print("[PostGame] ✅ Loaded glow_border shader (fallback)")
+	else:
+		print("[PostGame] ⚠️ No glow border shader found at: " + shader_path)
+	
+	if ResourceLoader.exists(shader_path + "scanline.gdshader"):
+		_scanline_shader = load(shader_path + "scanline.gdshader")
+		print("[PostGame] ✅ Loaded scanline shader")
+	else:
+		print("[PostGame] ⚠️ scanline.gdshader not found at: " + shader_path)
+	
+	if ResourceLoader.exists(shader_path + "holographic_glitch.gdshader"):
+		_holographic_shader = load(shader_path + "holographic_glitch.gdshader")
+		print("[PostGame] ✅ Loaded holographic shader")
+	else:
+		print("[PostGame] ⚠️ holographic_glitch.gdshader not found at: " + shader_path)
+	
+	if ResourceLoader.exists(shader_path + "energy_wave.gdshader"):
+		_energy_wave_shader = load(shader_path + "energy_wave.gdshader")
+		print("[PostGame] ✅ Loaded energy_wave shader")
+	else:
+		print("[PostGame] ⚠️ energy_wave.gdshader not found at: " + shader_path)
+	
+	if ResourceLoader.exists(shader_path + "neon_glow.gdshader"):
+		_neon_glow_shader = load(shader_path + "neon_glow.gdshader")
+		print("[PostGame] ✅ Loaded neon_glow shader")
+	else:
+		print("[PostGame] ⚠️ neon_glow.gdshader not found at: " + shader_path)
+	
+	print("[PostGame] 📦 Shader loading complete")
+
+
+func _setup_audio_nodes() -> void:
+	"""Setup audio nodes programmatically if not in scene"""
+	if not has_node("VictorySound"):
+		_victory_sound = AudioStreamPlayer.new()
+		_victory_sound.name = "VictorySound"
+		_victory_sound.bus = "SFX"
+		_victory_sound.volume_db = 0.0  # 100% volume
+		add_child(_victory_sound)
+	
+	if not has_node("DefeatSound"):
+		_defeat_sound = AudioStreamPlayer.new()
+		_defeat_sound.name = "DefeatSound"
+		_defeat_sound.bus = "SFX"
+		_defeat_sound.volume_db = 0.0  # 100% volume
+		add_child(_defeat_sound)
+	
+	if not has_node("CardWhooshSound"):
+		_card_whoosh_sound = AudioStreamPlayer.new()
+		_card_whoosh_sound.name = "CardWhooshSound"
+		_card_whoosh_sound.bus = "SFX"
+		_card_whoosh_sound.volume_db = -3.0  # ~70% volume
+		add_child(_card_whoosh_sound)
+	
+	if not has_node("StatBeepSound"):
+		_stat_beep_sound = AudioStreamPlayer.new()
+		_stat_beep_sound.name = "StatBeepSound"
+		_stat_beep_sound.bus = "SFX"
+		_stat_beep_sound.volume_db = -6.0  # ~50% volume
+		add_child(_stat_beep_sound)
+	
+	if not has_node("BadgeAppearSound"):
+		_badge_appear_sound = AudioStreamPlayer.new()
+		_badge_appear_sound.name = "BadgeAppearSound"
+		_badge_appear_sound.bus = "SFX"
+		_badge_appear_sound.volume_db = -2.0  # ~80% volume
+		add_child(_badge_appear_sound)
+	
+	if not has_node("ComebackSound"):
+		_comeback_sound = AudioStreamPlayer.new()
+		_comeback_sound.name = "ComebackSound"
+		_comeback_sound.bus = "SFX"
+		_comeback_sound.volume_db = -1.0  # ~90% volume
+		add_child(_comeback_sound)
+	
+	if not has_node("ButtonHoverSound"):
+		_button_hover_sound = AudioStreamPlayer.new()
+		_button_hover_sound.name = "ButtonHoverSound"
+		_button_hover_sound.bus = "SFX"
+		_button_hover_sound.volume_db = -8.0  # ~40% volume
+		add_child(_button_hover_sound)
+	
+	if not has_node("ButtonClickSound"):
+		_button_click_sound = AudioStreamPlayer.new()
+		_button_click_sound.name = "ButtonClickSound"
+		_button_click_sound.bus = "SFX"
+		_button_click_sound.volume_db = -4.0  # ~60% volume
+		add_child(_button_click_sound)
+	
+	if not has_node("XPCountSound"):
+		_xp_count_sound = AudioStreamPlayer.new()
+		_xp_count_sound.name = "XPCountSound"
+		_xp_count_sound.bus = "SFX"
+		_xp_count_sound.volume_db = -6.0  # ~50% volume
+		add_child(_xp_count_sound)
+	
+	_load_audio_files()
+
+func _load_audio_files() -> void:
+	"""Load audio files into AudioStreamPlayers"""
+	# Define audio file paths
+	var audio_files = {
+		"victory": "res://asset/audio/victory.mp3",
+		"defeat": "res://asset/audio/defeat.mp3",
+		"whoosh": "res://asset/audio/whoosh.mp3",
+		"beep": "res://asset/audio/beep.mp3",
+		"badge_appear": "res://asset/audio/badge_appear.mp3",
+		"fire_ignite": "res://asset/audio/fire_ignite.mp3",
+		"ui_hover": "res://asset/audio/ui_hover.mp3",
+		"ui_click": "res://asset/audio/ui_click.mp3",
+		"xp_count": "res://asset/audio/xp_count.mp3"
+	}
+	
+	# Try to load each file, skip if not found
+	if ResourceLoader.exists(audio_files["victory"]):
+		_victory_sound.stream = load(audio_files["victory"])
+	
+	if ResourceLoader.exists(audio_files["defeat"]):
+		_defeat_sound.stream = load(audio_files["defeat"])
+	
+	if ResourceLoader.exists(audio_files["whoosh"]):
+		_card_whoosh_sound.stream = load(audio_files["whoosh"])
+	
+	if ResourceLoader.exists(audio_files["beep"]):
+		_stat_beep_sound.stream = load(audio_files["beep"])
+	
+	if ResourceLoader.exists(audio_files["badge_appear"]):
+		_badge_appear_sound.stream = load(audio_files["badge_appear"])
+	
+	if ResourceLoader.exists(audio_files["fire_ignite"]):
+		_comeback_sound.stream = load(audio_files["fire_ignite"])
+	
+	if ResourceLoader.exists(audio_files["ui_hover"]):
+		_button_hover_sound.stream = load(audio_files["ui_hover"])
+	
+	if ResourceLoader.exists(audio_files["ui_click"]):
+		_button_click_sound.stream = load(audio_files["ui_click"])
+	
+	if ResourceLoader.exists(audio_files["xp_count"]):
+		_xp_count_sound.stream = load(audio_files["xp_count"])
+	
+	print("[PostGame] ✅ Audio files loaded (available files only)")
 
 func _award_total_xp_best_effort() -> void:
 	if Auth.current_local_id == "" or Auth.current_id_token == "":
@@ -426,22 +634,9 @@ func _from_firestore_value(v) -> Variant:
 
 func _setup_ui() -> void:
 	"""Setup UI with game results"""
-	var host_bg := str(_host_data.get("card_bg", ""))
-	var client_bg := str(_client_data.get("card_bg", ""))
-	# If we learned cosmetics via relay, use them as a fallback for either player.
-	if Auth:
-		if host_bg.strip_edges() == "":
-			host_bg = Auth.get_remote_card_bg(str(_host_data.get("player_id", "")))
-		if client_bg.strip_edges() == "":
-			client_bg = Auth.get_remote_card_bg(str(_client_data.get("player_id", "")))
-	if Auth and Auth.current_card_bg_path.strip_edges() != "":
-		if host_bg.strip_edges() == "" and str(_host_data.get("player_id", "")) == Auth.current_local_id:
-			host_bg = Auth.current_card_bg_path
-		if client_bg.strip_edges() == "" and str(_client_data.get("player_id", "")) == Auth.current_local_id:
-			client_bg = Auth.current_card_bg_path
-	CardCosmetics.apply_card_background(_host_card_node, host_bg)
-	CardCosmetics.apply_card_background(_client_card_node, client_bg)
-
+	# REMOVED: Custom background card logic (CardCosmetics.apply_card_background)
+	# The cards will now use the default style from the scene file
+	
 	# Determine winners and losers based on winner_id
 	var host_player_id: String = str(_host_data.get("player_id", ""))
 	var client_player_id: String = str(_client_data.get("player_id", ""))
@@ -482,7 +677,7 @@ func _setup_ui() -> void:
 	
 	# Host Card
 	_host_username.text = str(_host_data.get("username", "Host"))
-	_host_status.text = "❌ DEFEATED" if not host_won else "VICTORY"
+	_host_status.text = "☠️ DEFEATED" if not host_won else "👑 VICTORY"
 	_host_status.add_theme_color_override("font_color", COLOR_WINNER if host_won else COLOR_LOSER)
 	
 	var host_xp = XP_WINNER if host_won else XP_LOSER
@@ -520,7 +715,7 @@ func _setup_ui() -> void:
 	
 	# Client Card
 	_client_username.text = str(_client_data.get("username", "Client"))
-	_client_status.text = "❌ DEFEATED" if not client_won else "✅ VICTORY"
+	_client_status.text = "☠️ DEFEATED" if not client_won else "👑 VICTORY"
 	_client_status.add_theme_color_override("font_color", COLOR_WINNER if client_won else COLOR_LOSER)
 	
 	var client_xp = XP_WINNER if client_won else XP_LOSER
@@ -557,30 +752,176 @@ func _setup_ui() -> void:
 		_client_winner_badge.visible = true
 
 func _animate_in() -> void:
-	"""Animate cards and results in"""
-	# Fade in both cards with a slight bounce
-	var tween = create_tween()
-	tween.set_parallel(true)
+	"""Cyberpunk-themed animation with enhanced effects"""
+	# Play victory/defeat sound based on result
+	_play_result_sound()
+	
+	# Get card references
+	var host_card = $HostCard
+	var client_card = $ClientCard
+	
+	# Store original positions
+	var host_original_x = host_card.position.x
+	var client_original_x = client_card.position.x
+	
+	# Setup initial states for both cards
+	host_card.modulate.a = 0.0
+	host_card.position.x = host_original_x - 400
+	host_card.scale = Vector2(0.85, 0.85)
+	
+	client_card.modulate.a = 0.0
+	client_card.position.x = client_original_x + 400
+	client_card.scale = Vector2(0.85, 0.85)
+	
+	# Ensure both cards are visible
+	host_card.visible = true
+	client_card.visible = true
 	
 	# Host card animation
-	var host_card = $HostCard
-	host_card.modulate.a = 0.0
-	tween.tween_property(host_card, "modulate:a", 1.0, 0.5)
-	tween.tween_property(host_card, "scale", Vector2(1.0, 1.0), 0.5).from(Vector2(0.8, 0.8))
+	var host_tween = create_tween()
+	host_tween.set_parallel(true)
+	host_tween.set_ease(Tween.EASE_OUT)
+	host_tween.set_trans(Tween.TRANS_BACK)
 	
-	# Client card animation
-	var client_card = $ClientCard
-	client_card.modulate.a = 0.0
-	tween.tween_property(client_card, "modulate:a", 1.0, 0.5)
-	tween.tween_property(client_card, "scale", Vector2(1.0, 1.0), 0.5).from(Vector2(0.8, 0.8))
+	if _card_whoosh_sound.stream:
+		_card_whoosh_sound.play()
 	
-	# Button animation
+	host_tween.tween_property(host_card, "modulate:a", 1.0, 0.6)
+	host_tween.tween_property(host_card, "position:x", host_original_x, 0.7)
+	host_tween.tween_property(host_card, "scale", Vector2(1.0, 1.0), 0.6)
+	
+	# Client card animation - slight delay
+	await get_tree().create_timer(0.15).timeout
+	
+	var client_tween = create_tween()
+	client_tween.set_parallel(true)
+	client_tween.set_ease(Tween.EASE_OUT)
+	client_tween.set_trans(Tween.TRANS_BACK)
+	
+	if _card_whoosh_sound.stream:
+		_card_whoosh_sound.play()
+	
+	client_tween.tween_property(client_card, "modulate:a", 1.0, 0.6)
+	client_tween.tween_property(client_card, "position:x", client_original_x, 0.7)
+	client_tween.tween_property(client_card, "scale", Vector2(1.0, 1.0), 0.6)
+	
+	# Wait for both animations to complete
+	await client_tween.finished
+	
+	# Animate stats with staggered reveal
+	_animate_stats_reveal()
+	
+	# Winner badge animation - slight delay after first stats appear
+	await get_tree().create_timer(0.3).timeout
+	
+	if _host_winner_badge.visible:
+		if _badge_appear_sound.stream:
+			_badge_appear_sound.play()
+		_animate_winner_badge(_host_winner_badge)
+	if _client_winner_badge.visible:
+		if _badge_appear_sound.stream:
+			_badge_appear_sound.play()
+		_animate_winner_badge(_client_winner_badge)
+	
+	# Comeback badge animation - dramatic pause before fire
+	if _host_comeback_badge and _host_comeback_badge.visible:
+		await get_tree().create_timer(0.2).timeout
+		if _comeback_sound.stream:
+			_comeback_sound.play()
+		_animate_comeback_badge(_host_comeback_badge)
+	if _client_comeback_badge and _client_comeback_badge.visible:
+		await get_tree().create_timer(0.2).timeout
+		if _comeback_sound.stream:
+			_comeback_sound.play()
+		_animate_comeback_badge(_client_comeback_badge)
+	
+	# Button fade in with glow
 	var button = _back_button
 	button.modulate.a = 0.0
-	await tween.finished
+	button.scale = Vector2(0.8, 0.8)
+	var button_tween = create_tween()
+	button_tween.set_ease(Tween.EASE_OUT)
+	button_tween.set_trans(Tween.TRANS_ELASTIC)
+	button_tween.tween_property(button, "modulate:a", 1.0, 0.4)
+	button_tween.tween_property(button, "scale", Vector2(1.0, 1.0), 0.5)
+
+func _animate_stats_reveal() -> void:
+	"""Staggered animation for stat labels"""
+	var stat_labels = [
+		_host_wpm_label, _host_accuracy_label, _host_wrong_submissions_label,
+		_host_avg_time_label, _host_fastest_time_label, _host_damage_stats_label,
+		_client_wpm_label, _client_accuracy_label, _client_wrong_submissions_label,
+		_client_avg_time_label, _client_fastest_time_label, _client_damage_stats_label
+	]
 	
-	tween = create_tween()
-	tween.tween_property(button, "modulate:a", 1.0, 0.3)
+	var delay = 0.0
+	for label in stat_labels:
+		if label and label.visible:
+			label.modulate.a = 0.0
+			label.scale = Vector2(0.8, 0.8)
+			
+			await get_tree().create_timer(delay).timeout
+			
+			# Play beep sound with slight pitch variation
+			if _stat_beep_sound.stream:
+				_stat_beep_sound.pitch_scale = randf_range(0.95, 1.05)
+				_stat_beep_sound.play()
+			
+			var tween = create_tween()
+			tween.set_ease(Tween.EASE_OUT)
+			tween.set_trans(Tween.TRANS_BACK)
+			tween.tween_property(label, "modulate:a", 1.0, 0.2)
+			tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.2)
+			
+			delay += 0.04  # Faster stagger for snappier reveal
+
+func _animate_winner_badge(badge: Label) -> void:
+	"""Pulsing glow animation for winner badge"""
+	# Initial pop-in
+	badge.scale = Vector2(0.0, 0.0)
+	badge.rotation_degrees = -15
+	
+	var pop_tween = create_tween()
+	pop_tween.set_ease(Tween.EASE_OUT)
+	pop_tween.set_trans(Tween.TRANS_ELASTIC)
+	pop_tween.tween_property(badge, "scale", Vector2(1.2, 1.2), 0.6)
+	pop_tween.tween_property(badge, "rotation_degrees", 0.0, 0.6)
+	await pop_tween.finished
+	
+	# Continuous pulse
+	var pulse_tween = create_tween()
+	pulse_tween.set_loops()
+	pulse_tween.set_ease(Tween.EASE_IN_OUT)
+	pulse_tween.set_trans(Tween.TRANS_SINE)
+	pulse_tween.tween_property(badge, "scale", Vector2(1.3, 1.3), 0.8)
+	pulse_tween.tween_property(badge, "scale", Vector2(1.2, 1.2), 0.8)
+	
+	# Subtle rotation wiggle
+	var wiggle_tween = create_tween()
+	wiggle_tween.set_loops()
+	wiggle_tween.tween_property(badge, "rotation_degrees", 5, 0.4)
+	wiggle_tween.tween_property(badge, "rotation_degrees", -5, 0.4)
+
+func _animate_comeback_badge(badge: Label) -> void:
+	"""Fiery intense animation for comeback badge"""
+	badge.modulate = Color(1, 0.5, 0, 0)
+	badge.scale = Vector2(0.5, 0.5)
+	
+	var appear_tween = create_tween()
+	appear_tween.set_parallel(true)
+	appear_tween.set_ease(Tween.EASE_OUT)
+	appear_tween.set_trans(Tween.TRANS_EXPO)
+	appear_tween.tween_property(badge, "modulate:a", 1.0, 0.4)
+	appear_tween.tween_property(badge, "scale", Vector2(1.0, 1.0), 0.5)
+	
+	await appear_tween.finished
+	
+	# Continuous intense pulse
+	var pulse_tween = create_tween()
+	pulse_tween.set_loops()
+	pulse_tween.set_ease(Tween.EASE_IN_OUT)
+	pulse_tween.tween_property(badge, "scale", Vector2(1.1, 1.1), 0.3)
+	pulse_tween.tween_property(badge, "scale", Vector2(0.95, 0.95), 0.3)
 
 func _format_time(seconds: float) -> String:
 	"""Format seconds to M:SS format"""
@@ -591,7 +932,12 @@ func _format_time(seconds: float) -> String:
 func _on_back_to_landing_pressed() -> void:
 	"""Handle back to landing button press"""
 	print("[PostGame] 🔙 Back to Landing pressed")
-	# Postgame means the session is over; don't attempt to auto-resume.
+	
+	# Play click sound
+	if _button_click_sound.stream:
+		_button_click_sound.play()
+		await get_tree().create_timer(0.1).timeout  # Wait for sound
+	
 	_SessionStore.clear_session()
 	
 	# Clean up relay connection
@@ -611,7 +957,540 @@ func _on_back_to_landing_pressed() -> void:
 	else:
 		push_error("[PostGame] Failed to load landing scene!")
 
+
 func _on_relay_message(data: Dictionary) -> void:
 	"""Handle any relay messages (for future use like friend notifications)"""
 	var msg_type = data.get("type", "")
 	print("[PostGame] 📨 Received relay message: %s" % msg_type)
+
+func _apply_shaders() -> void:
+	"""Apply shaders to UI elements based on game state"""
+	var host_player_id: String = str(_host_data.get("player_id", ""))
+	var client_player_id: String = str(_client_data.get("player_id", ""))
+	var host_won: bool = _winner_id == host_player_id
+	var client_won: bool = _winner_id == client_player_id
+	
+	print("[PostGame] 🎨 Starting shader application...")
+	print("[PostGame] Host won: %s | Client won: %s" % [host_won, client_won])
+	
+	# CRITICAL: Make the white areas transparent/dark first
+	_fix_white_backgrounds()
+	
+	# Apply effects to Panel2 for host (the BORDER panel)
+	var host_border = _host_card_node.get_node_or_null("Panel2")
+	if host_border:
+		host_border.visible = true
+		
+		if host_won and _glow_border_shader:
+			# Create ColorRect overlay for shader (Panels don't render shaders properly)
+			_create_shader_overlay(host_border, _glow_border_shader, {
+				"glow_color": Color(0.0, 0.82, 1.0),  # Cyan/blue to match host theme
+				"pulse_speed": 3.0,
+				"glow_intensity": 3.0,
+				"rainbow_mode": false,
+				"particle_speed": 2.5
+			}, "WINNER")
+			print("[PostGame] ✅ Applied WINNER glow border to host Panel2 (RAINBOW MODE)")
+		elif _scanline_shader:
+			_create_shader_overlay(host_border, _scanline_shader, {
+				"scanline_count": 150.0,
+				"scanline_intensity": 0.3,
+				"scan_speed": 2.0
+			}, "LOSER")
+			print("[PostGame] ✅ Applied scanline to host Panel2")
+	else:
+		print("[PostGame] ⚠️ WARNING: Host Panel2 not found!")
+	
+	# Apply effects to inner panel (Panel33) for host
+	var host_inner = _host_card_node.get_node_or_null("Panel33")
+	if host_inner:
+		host_inner.visible = true
+		
+		if host_won and _glow_border_shader:
+			# Winner gets glow border on inner panel too
+			_create_shader_overlay(host_inner, _glow_border_shader, {
+				"glow_color": Color(0.0, 0.82, 1.0),  # Cyan/blue to match host theme
+				"pulse_speed": 2.5,
+				"glow_intensity": 2.0,
+				"rainbow_mode": false,
+				"particle_speed": 2.0
+			}, "WINNER INNER")
+			print("[PostGame] ✅ Applied WINNER glow border to host Panel33 (inner)")
+		elif _scanline_shader:
+			# Loser gets scanline
+			_create_shader_overlay(host_inner, _scanline_shader, {
+				"scanline_count": 150.0,
+				"scanline_intensity": 0.3,
+				"scan_speed": 2.0
+			}, "LOSER INNER")
+			print("[PostGame] ✅ Applied scanline to host Panel33 (inner)")
+	
+	# Apply effects to Panel22 for client (the BORDER panel)
+	var client_border = _client_card_node.get_node_or_null("Panel22")
+	if client_border:
+		client_border.visible = true
+		
+		if client_won and _glow_border_shader:
+			# Create ColorRect overlay for shader
+			_create_shader_overlay(client_border, _glow_border_shader, {
+				"glow_color": Color(1.0, 0.0, 0.3),  # Red/pink to match client theme
+				"pulse_speed": 3.0,
+				"glow_intensity": 3.0,
+				"rainbow_mode": false,
+				"particle_speed": 2.5
+			}, "WINNER")
+			print("[PostGame] ✅ Applied WINNER glow border to client Panel22 (RAINBOW MODE)")
+		elif _scanline_shader:
+			_create_shader_overlay(client_border, _scanline_shader, {
+				"scanline_count": 150.0,
+				"scanline_intensity": 0.3,
+				"scan_speed": 2.0
+			}, "LOSER")
+			print("[PostGame] ✅ Applied scanline to client Panel22")
+	else:
+		print("[PostGame] ⚠️ WARNING: Client Panel22 not found!")
+	
+	# Apply effects to inner panel (Panel3) for client
+	var client_inner = _client_card_node.get_node_or_null("Panel3")
+	if client_inner:
+		client_inner.visible = true
+		
+		if client_won and _glow_border_shader:
+			# Winner gets glow border on inner panel too
+			_create_shader_overlay(client_inner, _glow_border_shader, {
+				"glow_color": Color(1.0, 0.0, 0.3),  # Red/pink to match client theme
+				"pulse_speed": 2.5,
+				"glow_intensity": 2.0,
+				"rainbow_mode": false,
+				"particle_speed": 2.0
+			}, "WINNER INNER")
+			print("[PostGame] ✅ Applied WINNER glow border to client Panel3 (inner)")
+		elif _scanline_shader:
+			# Loser gets scanline
+			_create_shader_overlay(client_inner, _scanline_shader, {
+				"scanline_count": 150.0,
+				"scanline_intensity": 0.3,
+				"scan_speed": 2.0
+			}, "LOSER INNER")
+			print("[PostGame] ✅ Applied scanline to client Panel3 (inner)")
+	
+	# Apply color-based effects to labels (instead of shaders)
+	_apply_label_effects(host_won, client_won)
+	
+	print("[PostGame] ✅ All visual effects applied")
+	print("[PostGame] 💡 TIP: Winner panels should have RAINBOW GLOW effect!")
+
+func _apply_holographic_to_stats() -> void:
+	"""Apply holographic glitch effect to stat labels"""
+	var stat_labels = [
+		_host_wpm_label, _host_accuracy_label, _host_damage_stats_label,
+		_client_wpm_label, _client_accuracy_label, _client_damage_stats_label
+	]
+	
+	for label in stat_labels:
+		if label and label.visible:
+			var shader_material = ShaderMaterial.new()
+			shader_material.shader = _holographic_shader
+			shader_material.set_shader_parameter("glitch_intensity", 0.3)
+			shader_material.set_shader_parameter("glitch_color", Color(0.0, 1.0, 1.0))
+			shader_material.set_shader_parameter("glitch_speed", 8.0)
+			label.material = shader_material
+
+func _apply_energy_wave(node: Label, energy_color: Color) -> void:
+	"""Apply energy wave shader to a label"""
+	var shader_material = ShaderMaterial.new()
+	shader_material.shader = _energy_wave_shader
+	shader_material.set_shader_parameter("energy_color", energy_color)
+	shader_material.set_shader_parameter("wave_speed", 5.0)
+	shader_material.set_shader_parameter("wave_width", 0.3)
+	shader_material.set_shader_parameter("wave_intensity", 0.6)
+	node.material = shader_material
+
+func _apply_neon_glow(node: Label, neon_color: Color) -> void:
+	"""Apply neon glow shader to a label"""
+	var shader_material = ShaderMaterial.new()
+	shader_material.shader = _neon_glow_shader
+	shader_material.set_shader_parameter("neon_color", neon_color)
+	shader_material.set_shader_parameter("glow_size", 0.02)
+	shader_material.set_shader_parameter("glow_strength", 2.0)
+	shader_material.set_shader_parameter("pulse_speed", 4.0)
+	node.material = shader_material
+
+func _play_result_sound() -> void:
+	"""Play appropriate sound based on match result"""
+	var my_uid := Auth.current_local_id
+	var host_player_id: String = str(_host_data.get("player_id", ""))
+	var i_am_host := false
+	if _player_id != "":
+		i_am_host = _player_id == host_player_id
+	elif my_uid != "":
+		i_am_host = my_uid == host_player_id
+	
+	var i_won := false
+	if i_am_host and _winner_id == host_player_id:
+		i_won = true
+	elif not i_am_host and _winner_id != host_player_id:
+		i_won = true
+	
+	if i_won and _victory_sound.stream:
+		_victory_sound.play()
+	elif not i_won and _defeat_sound.stream:
+		_defeat_sound.play()
+
+func _on_button_hover() -> void:
+	"""Play sound when button is hovered"""
+	if _button_hover_sound.stream:
+		_button_hover_sound.play()
+
+func _add_label_glow_effect(label: Label, glow_color: Color) -> void:
+	"""Add a ColorRect behind label for shader effects"""
+	if not label or not _neon_glow_shader:
+		return
+	
+	# Create ColorRect as sibling (same parent)
+	var glow_rect = ColorRect.new()
+	glow_rect.name = label.name + "_Glow"
+	glow_rect.color = glow_color
+	glow_rect.z_index = label.z_index - 1
+	
+	# Match label size and position
+	glow_rect.position = label.position - Vector2(10, 10)
+	glow_rect.size = label.size + Vector2(20, 20)
+	
+	# Apply shader
+	var shader_material = ShaderMaterial.new()
+	shader_material.shader = _neon_glow_shader
+	shader_material.set_shader_parameter("neon_color", glow_color)
+	shader_material.set_shader_parameter("glow_size", 0.02)
+	shader_material.set_shader_parameter("glow_strength", 2.0)
+	shader_material.set_shader_parameter("pulse_speed", 4.0)
+	glow_rect.material = shader_material
+	
+	label.get_parent().add_child(glow_rect)
+	glow_rect.move_to_front()
+	label.move_to_front()
+
+func _animate_label_glow(label: Label, glow_color: Color) -> void:
+	"""Animate label color for glow effect"""
+	var pulse_tween = create_tween()
+	pulse_tween.set_loops()
+	pulse_tween.set_ease(Tween.EASE_IN_OUT)
+	pulse_tween.set_trans(Tween.TRANS_SINE)
+	
+	var bright_color = glow_color
+	var dim_color = glow_color * 0.7
+	
+	pulse_tween.tween_property(label, "modulate", bright_color, 0.8)
+	pulse_tween.tween_property(label, "modulate", dim_color, 0.8)
+
+
+func _apply_label_effects(host_won: bool, client_won: bool) -> void:
+	"""Apply color pulsing effects to labels since shaders don't work on Labels"""
+	
+	# Animate winner badges with color pulsing
+	if _host_winner_badge.visible:
+		_animate_label_pulse(_host_winner_badge, Color(1.0, 0.84, 0.0), 0.8)
+	if _client_winner_badge.visible:
+		_animate_label_pulse(_client_winner_badge, Color(1.0, 0.84, 0.0), 0.8)
+	
+	# Animate comeback badges with orange fire glow
+	if _host_comeback_badge and _host_comeback_badge.visible:
+		_animate_label_pulse(_host_comeback_badge, Color(1.0, 0.5, 0.0), 0.6)
+	if _client_comeback_badge and _client_comeback_badge.visible:
+		_animate_label_pulse(_client_comeback_badge, Color(1.0, 0.5, 0.0), 0.6)
+	
+	# Animate status labels with subtle glow
+	if host_won:
+		_animate_label_pulse(_host_status, Color(1.2, 1.0, 0.3), 1.2)
+	if client_won:
+		_animate_label_pulse(_client_status, Color(1.2, 1.0, 0.3), 1.2)
+	
+	# Add subtle cyan glow to stat labels
+	_animate_stat_labels_subtle()
+
+func _animate_label_pulse(label: Label, glow_color: Color, duration: float) -> void:
+	"""Animate label with pulsing glow effect"""
+	if not label:
+		return
+	
+	var pulse_tween = create_tween()
+	pulse_tween.set_loops()
+	pulse_tween.set_ease(Tween.EASE_IN_OUT)
+	pulse_tween.set_trans(Tween.TRANS_SINE)
+	
+	var bright_color = glow_color
+	var dim_color = glow_color * 0.6
+	
+	pulse_tween.tween_property(label, "modulate", bright_color, duration)
+	pulse_tween.tween_property(label, "modulate", dim_color, duration)
+
+func _animate_stat_labels_subtle() -> void:
+	"""Add subtle pulsing to stat labels"""
+	var stat_labels = [
+		_host_wpm_label, _host_accuracy_label, _host_damage_stats_label,
+		_client_wpm_label, _client_accuracy_label, _client_damage_stats_label
+	]
+	
+	for label in stat_labels:
+		if label and label.visible:
+			var pulse_tween = create_tween()
+			pulse_tween.set_loops()
+			pulse_tween.set_ease(Tween.EASE_IN_OUT)
+			pulse_tween.set_trans(Tween.TRANS_SINE)
+			
+			# Very subtle cyan shimmer
+			var bright = Color(1.1, 1.1, 1.2)
+			var dim = Color(0.95, 0.95, 1.0)
+			
+			pulse_tween.tween_property(label, "modulate", bright, 1.5)
+			pulse_tween.tween_property(label, "modulate", dim, 1.5)
+
+func _apply_glow_border(node: Node, glow_color: Color, enable_rainbow: bool = false) -> void:
+	"""Apply glowing border shader to a node"""
+	if not _glow_border_shader:
+		print("[PostGame] ⚠️ Cannot apply glow border - shader not loaded")
+		return
+	
+	if not node is Control and not node is Node2D:
+		print("[PostGame] ⚠️ Cannot apply shader to node type: " + node.get_class())
+		return
+	
+	# CRITICAL: Ensure the node can render shaders properly
+	if node is Control:
+		node.clip_contents = false  # Allow shader effects to show outside bounds
+	
+	var shader_material = ShaderMaterial.new()
+	shader_material.shader = _glow_border_shader
+	
+	# MAXIMUM VISIBILITY SETTINGS - You can't miss this!
+	shader_material.set_shader_parameter("base_glow_color", glow_color)
+	shader_material.set_shader_parameter("pulse_speed", 4.0)  # Faster pulse
+	shader_material.set_shader_parameter("glow_width", 0.12)  # VERY WIDE glow
+	shader_material.set_shader_parameter("glow_intensity", 5.0)  # MAXIMUM intensity
+	shader_material.set_shader_parameter("rainbow_mode", enable_rainbow)
+	shader_material.set_shader_parameter("particle_speed", 3.0)  # Faster particles
+	shader_material.set_shader_parameter("particle_count", 30)  # MORE particles
+	
+	node.material = shader_material
+	
+	# Force node to render with shader
+	if node is Control:
+		node.queue_redraw()
+		# Force size update to trigger shader
+		node.size = node.size
+		# Ensure node is in front
+		node.z_as_relative = false
+	
+	var mode_text = " (RAINBOW MODE 🌈)" if enable_rainbow else ""
+	print("[PostGame] 🌟 Glow border applied to %s with color %s%s" % [node.name, glow_color, mode_text])
+	print("[PostGame]    ├─ ⚡ ULTRA SETTINGS: Width=0.12, Intensity=5.0, Particles=30")
+	print("[PostGame]    ├─ 📍 Z-Index: %d, Visible: %s" % [node.z_index, node.visible])
+	print("[PostGame]    └─ 📦 Material applied: %s" % ("YES" if node.material != null else "NO"))
+
+
+func _apply_scanline(node: Node) -> void:
+	"""Apply scanline shader to a node"""
+	if not _scanline_shader:
+		print("[PostGame] ⚠️ Cannot apply scanline - shader not loaded")
+		return
+	
+	if not node is Control and not node is Node2D:
+		print("[PostGame] ⚠️ Cannot apply shader to node type: " + node.get_class())
+		return
+	
+	# CRITICAL: Ensure the node can render shaders properly
+	if node is Control:
+		node.clip_contents = false
+	
+	var shader_material = ShaderMaterial.new()
+	shader_material.shader = _scanline_shader
+	shader_material.set_shader_parameter("scanline_count", 150.0)  # Reduced for clearer lines
+	shader_material.set_shader_parameter("scanline_intensity", 0.4)  # Increased visibility
+	shader_material.set_shader_parameter("scan_speed", 2.5)
+	shader_material.set_shader_parameter("distortion_amount", 0.015)  # Fixed parameter name
+	shader_material.set_shader_parameter("chromatic_aberration", 0.005)  # Increased for effect
+	shader_material.set_shader_parameter("vignette_strength", 0.4)
+	shader_material.set_shader_parameter("flicker_intensity", 0.08)  # Increased flicker
+	node.material = shader_material
+	
+	# Force node to render with shader
+	if node is Control:
+		node.queue_redraw()
+		# Force size update to trigger shader
+		node.size = node.size
+		# Ensure node is in front
+		node.z_as_relative = false
+	
+	print("[PostGame] 📺 Scanline applied to %s (intensity: 0.4, count: 150)" % node.name)
+	print("[PostGame]    ├─ 📍 Z-Index: %d, Visible: %s" % [node.z_index, node.visible])
+	print("[PostGame]    └─ 📦 Material applied: %s" % ("YES" if node.material != null else "NO"))
+
+func _create_label_shader_background(label: Label, shader: Shader, params: Dictionary) -> void:
+	"""Create a ColorRect behind a label to apply shaders"""
+	if not label or not shader:
+		return
+	
+	# Create ColorRect
+	var bg_rect = ColorRect.new()
+	bg_rect.name = label.name + "_ShaderBG"
+	bg_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg_rect.z_index = -1
+	
+	# Match label size and position
+	bg_rect.position = label.position - Vector2(5, 5)
+	bg_rect.size = label.size + Vector2(10, 10)
+	bg_rect.color = Color(1, 1, 1, 0.3)
+	
+	# Apply shader
+	var shader_material = ShaderMaterial.new()
+	shader_material.shader = shader
+	for param_name in params.keys():
+		shader_material.set_shader_parameter(param_name, params[param_name])
+	bg_rect.material = shader_material
+	
+	# Add to same parent
+	label.get_parent().add_child(bg_rect)
+	bg_rect.move_to_front()
+	label.move_to_front()
+
+# Then use it in _apply_shaders():
+func _apply_label_shader_backgrounds() -> void:
+	"""Add shader backgrounds to important labels"""
+	if _host_winner_badge.visible and _neon_glow_shader:
+		_create_label_shader_background(_host_winner_badge, _neon_glow_shader, {
+			"neon_color": Color(1.0, 0.84, 0.0),
+			"glow_size": 0.02,
+			"glow_strength": 2.0,
+			"pulse_speed": 4.0
+		})
+	
+	if _client_winner_badge.visible and _neon_glow_shader:
+		_create_label_shader_background(_client_winner_badge, _neon_glow_shader, {
+			"neon_color": Color(1.0, 0.84, 0.0),
+			"glow_size": 0.02,
+			"glow_strength": 2.0,
+			"pulse_speed": 4.0
+		})
+func _debug_print_panel_info() -> void:
+	"""Debug function to print panel information"""
+	print("[PostGame] 🔍 DEBUG: Checking panel nodes...")
+	print("[PostGame] ═══════════════════════════════════════")
+	
+	# Check host card panels
+	print("[PostGame] 📘 Host Card children:")
+	for child in _host_card_node.get_children():
+		var type_info = child.get_class()
+		var visible_info = "✅ VISIBLE" if child.visible else "❌ HIDDEN"
+		var shader_compatible = "🎨 SHADER OK" if (child is Panel or child is NinePatchRect or child is ColorRect) else "❌ NO SHADER"
+		print("  ├─ %s" % child.name)
+		print("  │  ├─ Type: %s" % type_info)
+		print("  │  ├─ %s" % visible_info)
+		print("  │  └─ %s" % shader_compatible)
+	
+	# Check client card panels
+	print("[PostGame] 📕 Client Card children:")
+	for child in _client_card_node.get_children():
+		var type_info = child.get_class()
+		var visible_info = "✅ VISIBLE" if child.visible else "❌ HIDDEN"
+		var shader_compatible = "🎨 SHADER OK" if (child is Panel or child is NinePatchRect or child is ColorRect) else "❌ NO SHADER"
+		print("  ├─ %s" % child.name)
+		print("  │  ├─ Type: %s" % type_info)
+		print("  │  ├─ %s" % visible_info)
+		print("  │  └─ %s" % shader_compatible)
+	
+	# Check specific panels
+	var host_panel33 = _host_card_node.get_node_or_null("Panel33")
+	var client_panel3 = _client_card_node.get_node_or_null("Panel3")
+	var host_panel2 = _host_card_node.get_node_or_null("Panel2")
+	var client_panel22 = _client_card_node.get_node_or_null("Panel22")
+	
+	print("[PostGame] 🎯 Target panels status:")
+	print("  ├─ Host Panel33: %s" % ("✅ FOUND" if host_panel33 else "❌ NOT FOUND"))
+	print("  ├─ Host Panel2: %s" % ("✅ FOUND" if host_panel2 else "❌ NOT FOUND"))
+	print("  ├─ Client Panel3: %s" % ("✅ FOUND" if client_panel3 else "❌ NOT FOUND"))
+	print("  └─ Client Panel22: %s" % ("✅ FOUND" if client_panel22 else "❌ NOT FOUND"))
+	print("[PostGame] ═══════════════════════════════════════")
+	
+func _create_shader_overlay(panel: Panel, shader: Shader, params: Dictionary, effect_name: String) -> void:
+	"""Create border-only shader overlays (4 thin rectangles for each edge)"""
+	if not panel or not shader:
+		return
+	
+	# Clean up existing overlays
+	for child in panel.get_children():
+		if child.name.begins_with("ShaderOverlay"):
+			child.queue_free()
+	
+	var border_width = 5  # Width of the border edge rectangles
+	var panel_size = panel.size
+	
+	# Create 4 edge overlays (Top, Right, Bottom, Left)
+	var edges = [
+		{"name": "ShaderOverlayTop", "pos": Vector2(0, 0), "size": Vector2(panel_size.x, border_width)},
+		{"name": "ShaderOverlayRight", "pos": Vector2(panel_size.x - border_width, 0), "size": Vector2(border_width, panel_size.y)},
+		{"name": "ShaderOverlayBottom", "pos": Vector2(0, panel_size.y - border_width), "size": Vector2(panel_size.x, border_width)},
+		{"name": "ShaderOverlayLeft", "pos": Vector2(0, 0), "size": Vector2(border_width, panel_size.y)}
+	]
+	
+	for edge_data in edges:
+		var overlay = ColorRect.new()
+		overlay.name = edge_data["name"]
+		overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		overlay.z_index = 50  # Above panel content but not blocking everything
+		
+		overlay.position = edge_data["pos"]
+		overlay.size = edge_data["size"]
+		
+		# Use a semi-transparent color for shader to work with
+		overlay.color = Color(1.0, 1.0, 1.0, 0.8)  # White with good opacity for visibility
+		
+		# Create and apply shader material
+		var shader_material = ShaderMaterial.new()
+		shader_material.shader = shader
+		
+		# Apply all parameters
+		for param_name in params.keys():
+			shader_material.set_shader_parameter(param_name, params[param_name])
+		
+		overlay.material = shader_material
+		
+		# Add to panel
+		panel.add_child(overlay)
+		overlay.queue_redraw()
+	
+	print("[PostGame] 🎨 Created %s shader overlays (4 borders) on %s" % [effect_name, panel.name])
+
+func _fix_white_backgrounds() -> void:
+	"""Fix the large white areas in the card backgrounds"""
+	print("[PostGame] 🎨 Fixing white background areas...")
+	
+	# Create dark overlay for host card
+	var host_overlay = ColorRect.new()
+	host_overlay.name = "DarkOverlay"
+	host_overlay.color = Color(0.03, 0.03, 0.08, 0.95)  # Very dark blue-ish
+	host_overlay.z_index = -100  # FAR behind everything to not interfere with shaders
+	host_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# Make it cover the entire card area (the white section)
+	host_overlay.position = Vector2(0, 50)  # Start below username
+	host_overlay.size = Vector2(400, 350)  # Cover the white area
+	
+	_host_card_node.add_child(host_overlay)
+	_host_card_node.move_child(host_overlay, 0)  # Move to very back
+	
+	print("[PostGame] ✅ Added dark overlay to host card (z-index: -100)")
+	
+	# Create dark overlay for client card  
+	var client_overlay = ColorRect.new()
+	client_overlay.name = "DarkOverlay"
+	client_overlay.color = Color(0.08, 0.02, 0.03, 0.95)  # Very dark red-ish
+	client_overlay.z_index = -100  # FAR behind everything
+	client_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	client_overlay.position = Vector2(0, 50)
+	client_overlay.size = Vector2(400, 350)
+	
+	_client_card_node.add_child(client_overlay)
+	_client_card_node.move_child(client_overlay, 0)  # Move to very back
+	
+	print("[PostGame] ✅ Added dark overlay to client card (z-index: -100)")

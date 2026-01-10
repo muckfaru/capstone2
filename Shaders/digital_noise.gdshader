@@ -1,0 +1,21 @@
+shader_type canvas_item;
+
+uniform float noise_intensity : hint_range(0.0, 1.0) = 0.1;
+uniform float noise_speed : hint_range(0.0, 10.0) = 5.0;
+
+float random(vec2 st) {
+    return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+void fragment() {
+    vec2 uv = UV;
+    vec4 tex = texture(TEXTURE, uv);
+    
+    // Time-based random noise
+    float noise = random(uv + TIME * noise_speed);
+    
+    // Add noise to color
+    vec3 noisy_color = tex.rgb + vec3(noise) * noise_intensity;
+    
+    COLOR = vec4(noisy_color, tex.a);
+}

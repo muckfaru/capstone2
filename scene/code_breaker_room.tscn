@@ -1,15 +1,20 @@
-[gd_scene load_steps=29 format=3 uid="uid://cvvag1ig1w2l2"]
+[gd_scene load_steps=32 format=3 uid="uid://cvvag1ig1w2l2"]
 
 [ext_resource type="Script" uid="uid://bfl7x4bgwwx3k" path="res://script/code_breaker_room.gd" id="1_w0by1"]
 [ext_resource type="PackedScene" uid="uid://caeteha34m08t" path="res://scene/room_chat.tscn" id="2_room_chat"]
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_b3n7n"]
 [ext_resource type="Texture2D" uid="uid://ct0fcceas6r5c" path="res://asset/background/room backround.png" id="3_fpe01"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_wxc2o"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="5_b3n7n"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e7bgt"]
+bg_color = Color(0.2, 0.2, 0.25098, 0.247059)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fpe01"]
 bg_color = Color(0.2, 0.2, 0.25098, 1)
-border_width_left = 5
-border_width_top = 5
-border_width_right = 5
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
 border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 corner_radius_top_left = 8
 
@@ -51,9 +56,9 @@ _data = {
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wxc2o"]
 bg_color = Color(0.2, 0.2, 0.25098, 1)
-border_width_left = 5
-border_width_right = 5
-border_width_bottom = 5
+border_width_left = 2
+border_width_right = 2
+border_width_bottom = 2
 border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 corner_radius_bottom_right = 8
 
@@ -132,9 +137,9 @@ _data = {
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b3n7n"]
 bg_color = Color(1, 0.427451, 0.356863, 0.768627)
-border_width_left = 5
-border_width_top = 5
-border_width_right = 5
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
 border_color = Color(0.827396, 0.01185, 3.56168e-06, 0.784314)
 border_blend = true
 corner_radius_top_right = 8
@@ -177,9 +182,9 @@ _data = {
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n8nu1"]
 bg_color = Color(1, 0.427451, 0.356863, 0.768627)
-border_width_left = 5
-border_width_right = 5
-border_width_bottom = 5
+border_width_left = 2
+border_width_right = 2
+border_width_bottom = 2
 border_color = Color(0.827451, 0.0117647, 0, 0.784314)
 border_blend = true
 corner_radius_bottom_left = 8
@@ -264,7 +269,10 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.490196, 0.65098, 1, 0.501961)
-corner_radius_top_right = 8
+corner_radius_top_left = 10
+corner_radius_top_right = 40
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 40
 shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 shadow_size = 3
 
@@ -321,7 +329,7 @@ alignment = 1
 
 [node name="RoomIDLabel" type="Label" parent="RoomHeader"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_fonts/font = ExtResource("3_b3n7n")
 theme_override_font_sizes/font_size = 25
 text = "ROOM: #12345"
 horizontal_alignment = 1
@@ -333,6 +341,14 @@ theme_override_fonts/font = ExtResource("3_wxc2o")
 theme_override_font_sizes/font_size = 20
 text = "WAITING"
 horizontal_alignment = 1
+
+[node name="Panel" type="Panel" parent="."]
+visible = false
+layout_mode = 2
+offset_left = 3.0
+offset_right = 1152.0
+offset_bottom = 673.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_e7bgt")
 
 [node name="CardsContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -363,11 +379,12 @@ offset_left = -130.0
 offset_top = 131.2
 offset_right = 130.0
 offset_bottom = 162.2
-theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_fonts/font = ExtResource("5_b3n7n")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_fpe01")
 text = "..."
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CardsContainer/HostCard/Username"]
 libraries = {
@@ -390,6 +407,7 @@ offset_bottom = -36.8
 theme_override_fonts/font = ExtResource("3_wxc2o")
 text = "Level: 1"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="StatusLabel" type="Label" parent="CardsContainer/HostCard"]
 layout_mode = 1
@@ -401,8 +419,8 @@ anchor_bottom = 0.85
 offset_left = -130.0
 offset_top = -138.0
 offset_right = 130.0
-offset_bottom = -112.0
-theme_override_fonts/font = ExtResource("3_wxc2o")
+offset_bottom = -107.0
+theme_override_fonts/font = ExtResource("5_b3n7n")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_wxc2o")
 text = "READY"
@@ -424,7 +442,7 @@ libraries = {
 custom_minimum_size = Vector2(100, 400)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_wxc2o")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 25
 text = "VS"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -445,11 +463,12 @@ offset_left = -134.0
 offset_top = 131.2
 offset_right = 130.0
 offset_bottom = 162.2
-theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_fonts/font = ExtResource("5_b3n7n")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_b3n7n")
 text = "."
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CardsContainer/ClientCard/Username"]
 libraries = {
@@ -471,6 +490,7 @@ offset_bottom = -39.8
 theme_override_fonts/font = ExtResource("3_wxc2o")
 text = "."
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="StatusLabel" type="Label" parent="CardsContainer/ClientCard"]
 layout_mode = 1
@@ -482,8 +502,8 @@ anchor_bottom = 0.85
 offset_left = -134.0
 offset_top = -138.0
 offset_right = 130.0
-offset_bottom = -112.0
-theme_override_fonts/font = ExtResource("3_wxc2o")
+offset_bottom = -107.0
+theme_override_fonts/font = ExtResource("5_b3n7n")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_n8nu1")
 text = " Searching.."
@@ -501,14 +521,16 @@ libraries = {
 }
 
 [node name="ButtonPanel" type="HBoxContainer" parent="."]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.85
 anchor_right = 0.5
 anchor_bottom = 0.85
 offset_left = -260.0
+offset_top = 24.2
 offset_right = 260.0
-offset_bottom = 50.0
+offset_bottom = 72.2
 theme_override_constants/separation = 25
 alignment = 1
 
@@ -547,10 +569,11 @@ anchor_top = 0.93
 anchor_right = 0.5
 anchor_bottom = 0.93
 offset_left = -199.0
-offset_top = 20.36
+offset_top = 29.36
 offset_right = 201.0
-offset_bottom = 60.36
+offset_bottom = 45.36
 theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_font_sizes/font_size = 15
 text = "Waiting for player to join..."
 horizontal_alignment = 1
 

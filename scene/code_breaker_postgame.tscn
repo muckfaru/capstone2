@@ -1,24 +1,26 @@
 [gd_scene load_steps=30 format=3 uid="uid://dd58djqli2krd"]
 
 [ext_resource type="Script" uid="uid://cc1dsxq63hv6s" path="res://script/code_breaker_postgame.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://b0hqp1oabg1l3" path="res://asset/background/background tv .png" id="2_tinjq"]
+[ext_resource type="Texture2D" uid="uid://d14wrnxo0lw85" path="res://asset/background/Gemini_Generated_Image_2an8k72an8k72an8.png" id="2_tinjq"]
 [ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_70ufc"]
-[ext_resource type="Texture2D" uid="uid://c45je8vas4pv8" path="res://asset/avatars/avatar1.png" id="3_s05oh"]
-[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_k1g1t"]
+[ext_resource type="Texture2D" uid="uid://bygqhgnnbr22t" path="res://asset/avatars/avatar1.png" id="3_s05oh"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="4_tinjq"]
 [ext_resource type="FontFile" uid="uid://gj4s1cvcj5il" path="res://asset/fonts/ChakraPetch-SemiBold.ttf" id="6_tinjq"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k1g1t"]
-bg_color = Color(0.883, 0.336, 0.867, 0)
-draw_center = false
-border_width_left = 5
+bg_color = Color(0, 0, 0.0823529, 0.686275)
 border_width_top = 5
-border_width_right = 5
 border_width_bottom = 5
-border_color = Color(0.819608, 0.0352941, 0.164706, 1)
-shadow_size = 10
+border_color = Color(0.164706, 0.792157, 0.898039, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.376471, 0.443137, 1, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6f2f8"]
-bg_color = Color(0, 0, 0, 0.619608)
+bg_color = Color(0.0941176, 0, 0, 0.521569)
+draw_center = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7kbm2"]
 draw_center = false
@@ -27,14 +29,20 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 shadow_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
-shadow_size = 5
+shadow_size = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8b7w5"]
 bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+border_width_top = 2
+border_width_bottom = 2
 border_color = Color(0.490196, 0.654902, 1, 0.545098)
-shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
-shadow_size = 3
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wowjr"]
 draw_center = false
@@ -42,7 +50,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
+border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_did4k"]
 draw_center = false
@@ -50,7 +58,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
+border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qdqar"]
 draw_center = false
@@ -58,7 +66,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
+border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7klhq"]
 draw_center = false
@@ -66,7 +74,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
+border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_smogp"]
 draw_center = false
@@ -74,7 +82,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
+border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
 corner_radius_top_left = 2
 corner_radius_bottom_left = 22
 
@@ -84,7 +92,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
+border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
 shadow_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tinjq"]
@@ -96,7 +104,8 @@ border_width_bottom = 4
 border_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_onq5l"]
-bg_color = Color(0.27451, 0.568627, 0.964706, 0.364706)
+bg_color = Color(0.05, 0.05, 0.1, 0.298)
+draw_center = false
 border_width_left = 4
 border_width_top = 4
 border_width_right = 4
@@ -110,8 +119,12 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.819608, 0.0352941, 0.164706, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
-shadow_size = 5
+shadow_size = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g7yna"]
 bg_color = Color(0.380392, 0.0784314, 0.109804, 1)
@@ -125,7 +138,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.819608, 0.0352941, 0.164706, 1)
+border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qh86s"]
 draw_center = false
@@ -133,7 +146,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.819608, 0.0352941, 0.164706, 1)
+border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ta8yn"]
 draw_center = false
@@ -141,7 +154,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.819608, 0.0352941, 0.164706, 1)
+border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gp03k"]
 draw_center = false
@@ -149,7 +162,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.819608, 0.0352941, 0.164706, 1)
+border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fsjf6"]
 draw_center = false
@@ -157,7 +170,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.819608, 0.0352941, 0.164706, 1)
+border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
 corner_radius_bottom_left = 22
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cm4s1"]
@@ -166,37 +179,34 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
-border_color = Color(0.819608, 0.0352941, 0.164706, 1)
+border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ap0hc"]
-bg_color = Color(0.819608, 0.0352941, 0.164706, 0.364706)
-border_color = Color(0.819608, 0.0352941, 0.164706, 1)
+bg_color = Color(0.15, 0.03, 0.05, 0.325)
+draw_center = false
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.819608, 0.0352941, 0.164706, 0.12549)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j8all"]
 bg_color = Color(0.188758, 0.388218, 0.996268, 0.980392)
-border_width_left = 3
-border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
 border_color = Color(0.164706, 0.792157, 0.898039, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+corner_radius_top_left = 20
+corner_radius_bottom_left = 20
 shadow_color = Color(0.164706, 0.792157, 0.898039, 1)
 shadow_size = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_47r3j"]
 bg_color = Color(0.0509804, 0.0509804, 0.121569, 0.980392)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
+draw_center = false
 border_width_bottom = 3
 border_color = Color(0.164706, 0.792157, 0.898039, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+corner_radius_top_left = 20
+corner_radius_bottom_right = 20
 shadow_color = Color(0.164706, 0.792157, 0.898039, 1)
 shadow_size = 5
 
@@ -213,7 +223,7 @@ script = ExtResource("1")
 layout_mode = 0
 offset_left = -17.0
 offset_top = -13.0
-offset_right = 1170.0
+offset_right = 1225.0
 offset_bottom = 668.0
 texture = ExtResource("2_tinjq")
 
@@ -237,12 +247,12 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -189.0
-offset_top = 30.0
-offset_right = 211.0
-offset_bottom = 80.0
+offset_left = -193.0
+offset_top = 19.0
+offset_right = 207.0
+offset_bottom = 69.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0, 0.82, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_70ufc")
 theme_override_font_sizes/font_size = 32
 text = "CODE BREAKER"
@@ -266,15 +276,14 @@ offset_bottom = 400.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_7kbm2")
 
 [node name="WinnerBadge" type="Label" parent="HostCard"]
-visible = false
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -90.0
-offset_top = -52.0
-offset_right = 70.0
-offset_bottom = -22.0
+offset_left = -95.0
+offset_top = -64.0
+offset_right = 65.0
+offset_bottom = -34.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.84, 0, 1)
 theme_override_fonts/font = ExtResource("3_70ufc")
@@ -288,16 +297,17 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -200.0
-offset_top = 2.0
+offset_top = 1.0
 offset_right = 200.0
-offset_bottom = 50.0
+offset_bottom = 53.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0, 0.541176, 0.898039, 1)
-theme_override_fonts/font = ExtResource("4_k1g1t")
+theme_override_colors/font_shadow_color = Color(0.0113408, 0.217345, 1, 1)
+theme_override_fonts/font = ExtResource("4_tinjq")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxFlat_8b7w5")
 text = "Player 1"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="HostAvatar" type="Sprite2D" parent="HostCard"]
 visible = false
@@ -310,7 +320,7 @@ offset_left = 49.0
 offset_top = 63.0
 offset_right = 349.0
 offset_bottom = 98.0
-theme_override_colors/font_color = Color(0, 0.541176, 0.898039, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 1, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Status"
@@ -322,7 +332,7 @@ offset_left = 51.0
 offset_top = 100.0
 offset_right = 351.0
 offset_bottom = 135.0
-theme_override_colors/font_color = Color(0, 0.541176, 0.898039, 1)
+theme_override_colors/font_shadow_color = Color(0.0117647, 0.215686, 1, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "XP: +500"
@@ -334,7 +344,7 @@ offset_left = 52.0
 offset_top = 133.0
 offset_right = 352.0
 offset_bottom = 168.0
-theme_override_colors/font_color = Color(0, 0.541176, 0.898039, 1)
+theme_override_colors/font_shadow_color = Color(0.0117647, 0.215686, 1, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Time: 2m 34s"
@@ -346,7 +356,7 @@ offset_left = 53.0
 offset_top = 169.0
 offset_right = 353.0
 offset_bottom = 204.0
-theme_override_colors/font_color = Color(0, 0.541176, 0.898039, 1)
+theme_override_colors/font_shadow_color = Color(0.0117647, 0.215686, 1, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Power-ups: 3"
@@ -358,7 +368,6 @@ offset_left = 20.0
 offset_top = 220.0
 offset_right = 190.0
 offset_bottom = 253.0
-theme_override_colors/font_color = Color(5.58317e-06, 0.541727, 0.898217, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_wowjr")
@@ -371,7 +380,6 @@ offset_left = 20.0
 offset_top = 253.0
 offset_right = 190.0
 offset_bottom = 286.0
-theme_override_colors/font_color = Color(0, 0.541176, 0.898039, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_did4k")
@@ -384,7 +392,6 @@ offset_left = 20.0
 offset_top = 286.0
 offset_right = 190.0
 offset_bottom = 319.0
-theme_override_colors/font_color = Color(0, 0.541176, 0.898039, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_qdqar")
@@ -397,7 +404,6 @@ offset_left = 20.0
 offset_top = 319.0
 offset_right = 190.0
 offset_bottom = 352.0
-theme_override_colors/font_color = Color(0, 0.541176, 0.898039, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_7klhq")
@@ -410,7 +416,6 @@ offset_left = 20.0
 offset_top = 351.0
 offset_right = 190.0
 offset_bottom = 385.0
-theme_override_colors/font_color = Color(0, 0.541176, 0.898039, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_smogp")
@@ -423,7 +428,6 @@ offset_left = 210.0
 offset_top = 220.0
 offset_right = 380.0
 offset_bottom = 253.0
-theme_override_colors/font_color = Color(0, 0.541176, 0.898039, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_6lf8l")
@@ -477,7 +481,7 @@ offset_bottom = 17.0
 grow_horizontal = 0
 grow_vertical = 2
 
-[node name="Panel2" type="Panel" parent="ClientCard"]
+[node name="Panel22" type="Panel" parent="ClientCard"]
 layout_mode = 0
 offset_right = 400.0
 offset_bottom = 400.0
@@ -515,12 +519,13 @@ offset_top = 2.0
 offset_right = 200.0
 offset_bottom = 50.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.819608, 0.0352941, 0.164706, 1)
-theme_override_fonts/font = ExtResource("4_k1g1t")
+theme_override_colors/font_shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
+theme_override_fonts/font = ExtResource("4_tinjq")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxFlat_g7yna")
 text = "Player 2"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ClientStatus" type="Label" parent="ClientCard"]
 layout_mode = 0
@@ -528,7 +533,7 @@ offset_left = 51.0
 offset_top = 61.0
 offset_right = 351.0
 offset_bottom = 96.0
-theme_override_colors/font_color = Color(0.819608, 0.0352941, 0.164706, 1)
+theme_override_colors/font_shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Status"
@@ -540,7 +545,7 @@ offset_left = 53.0
 offset_top = 100.0
 offset_right = 353.0
 offset_bottom = 135.0
-theme_override_colors/font_color = Color(0.819608, 0.0352941, 0.164706, 1)
+theme_override_colors/font_shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "XP: +0"
@@ -552,7 +557,7 @@ offset_left = 53.0
 offset_top = 134.0
 offset_right = 353.0
 offset_bottom = 169.0
-theme_override_colors/font_color = Color(0.819608, 0.0352941, 0.164706, 1)
+theme_override_colors/font_shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Time: 2m 45s"
@@ -564,7 +569,7 @@ offset_left = 54.0
 offset_top = 170.0
 offset_right = 354.0
 offset_bottom = 205.0
-theme_override_colors/font_color = Color(0.819608, 0.0352941, 0.164706, 1)
+theme_override_colors/font_shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Power-ups: 2"
@@ -576,7 +581,6 @@ offset_left = 20.0
 offset_top = 220.0
 offset_right = 190.0
 offset_bottom = 253.0
-theme_override_colors/font_color = Color(0.819608, 0.0352941, 0.164706, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_as3mc")
@@ -589,7 +593,6 @@ offset_left = 20.0
 offset_top = 253.0
 offset_right = 190.0
 offset_bottom = 286.0
-theme_override_colors/font_color = Color(0.819608, 0.0352941, 0.164706, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_qh86s")
@@ -601,8 +604,7 @@ layout_mode = 0
 offset_left = 20.0
 offset_top = 286.0
 offset_right = 190.0
-offset_bottom = 319.0
-theme_override_colors/font_color = Color(0.819608, 0.0352941, 0.164706, 1)
+offset_bottom = 320.0
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_ta8yn")
@@ -615,7 +617,6 @@ offset_left = 20.0
 offset_top = 319.0
 offset_right = 190.0
 offset_bottom = 352.0
-theme_override_colors/font_color = Color(0.819608, 0.0352941, 0.164706, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_gp03k")
@@ -628,7 +629,6 @@ offset_left = 20.0
 offset_top = 352.0
 offset_right = 190.0
 offset_bottom = 385.0
-theme_override_colors/font_color = Color(0.819608, 0.0352941, 0.164706, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_fsjf6")
@@ -641,7 +641,6 @@ offset_left = 210.0
 offset_top = 220.0
 offset_right = 380.0
 offset_bottom = 253.0
-theme_override_colors/font_color = Color(0.819608, 0.0352941, 0.164706, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_cm4s1")
@@ -688,10 +687,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -87.0
-offset_top = -79.0
-offset_right = 113.0
-offset_bottom = -39.0
+offset_left = -109.0
+offset_top = -102.0
+offset_right = 91.0
+offset_bottom = -68.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_font_sizes/font_size = 18
