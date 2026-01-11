@@ -1,0 +1,41 @@
+[gd_scene load_steps=4 format=3]
+
+
+[ext_resource type="Script" path="res://script/defuse_trojan_enemy.gd" id="1_enemy"]
+[ext_resource type="Texture2D" path="res://asset/defuse_trojan/enemy_virus.png" id="2_sprite"]
+[ext_resource type="FontFile" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_font"]
+
+[node name="DefuseTrojanEnemy" type="Node2D"]
+script = ExtResource("1_enemy")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.15, 0.15)
+texture = ExtResource("2_sprite")
+
+[node name="WordLabel" type="Label" parent="."]
+offset_left = -100.0
+offset_top = 50.0
+offset_right = 100.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(1, 0.4, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "COMMAND"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TypedLabel" type="Label" parent="."]
+visible = false
+offset_left = -100.0
+offset_top = 75.0
+offset_right = 100.0
+offset_bottom = 100.0
+theme_override_colors/font_color = Color(0, 1, 0.5, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+vertical_alignment = 1

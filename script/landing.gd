@@ -133,6 +133,12 @@ func _ready() -> void:
 	# Check if returning from tutorial with rewards to show
 	call_deferred("_check_tutorial_rewards")
 	
+	# === DEFUSE THE TROJAN GAME CARD CLICK HANDLER ===
+	var defuse_trojan_card = get_node_or_null("VideoStreamPlayer/GameSelectPanel/allgame/DefuseTheTrojan")
+	if defuse_trojan_card:
+		defuse_trojan_card.gui_input.connect(_on_defuse_trojan_card_input)
+		print("[Landing] ✅ DefuseTheTrojan card click handler connected")
+
 
 # Replace these functions in your landing.gd script
 
@@ -3853,3 +3859,10 @@ func _show_mystery_reward_popup(tutorial_type: String, card_path: String, card_n
 	# Clean up
 	popup.queue_free()
 	print("[Landing] Mystery Reward claimed!")
+
+# === DEFUSE THE TROJAN GAME ===
+func _on_defuse_trojan_card_input(event: InputEvent) -> void:
+	"""Handle click on DefuseTheTrojan game card to launch the typing game"""
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		print("[Landing] 🎮 DefuseTheTrojan card clicked - launching game!")
+		get_tree().change_scene_to_file("res://scene/defuse_trojan_arena.tscn")
