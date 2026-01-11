@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://iskq8vfxcwm1"]
+[gd_scene load_steps=17 format=3 uid="uid://iskq8vfxcwm1"]
 
 [ext_resource type="Script" uid="uid://dpn2fg7mjjx55" path="res://script/mode_selection.gd" id="1_mode"]
 [ext_resource type="Texture2D" uid="uid://dri7g0isxowjd" path="res://asset/background/arena toturial.jpg" id="2_bg"]
@@ -7,6 +7,13 @@
 [ext_resource type="Texture2D" uid="uid://dg2mhp8h0wmco" path="res://asset/icons/xp icon.png" id="4_xp_icon"]
 [ext_resource type="AudioStream" uid="uid://dwpnu2nrh8q7q" path="res://asset/audio/modeselectiongbm.mp3" id="5_bgm"]
 [ext_resource type="AudioStream" uid="uid://crc05j5mnymh4" path="res://asset/audio/buttonhoverf.mp3" id="6_hover_sfx"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="8_4hln6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ka30l"]
+draw_center = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4hln6"]
+draw_center = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_beginner"]
 bg_color = Color(0, 0, 0, 0.4)
@@ -17,8 +24,6 @@ border_width_bottom = 4
 border_color = Color(0, 0.9, 1, 1)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
 shadow_color = Color(1, 0.2, 0.8, 0.6)
 shadow_size = 8
 
@@ -43,10 +48,6 @@ border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
 border_color = Color(0, 0.9, 1, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
 shadow_color = Color(1, 0.2, 0.8, 0.6)
 shadow_size = 8
 
@@ -71,8 +72,6 @@ border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
 border_color = Color(0, 0.9, 1, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 shadow_color = Color(1, 0.2, 0.8, 0.6)
@@ -141,6 +140,7 @@ offset_bottom = 63.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_ka30l")
 text = "← Back"
 
 [node name="MenuButton" type="Button" parent="CanvasLayer"]
@@ -155,6 +155,7 @@ grow_horizontal = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_4hln6")
 text = "≡"
 
 [node name="XPIcon" type="TextureRect" parent="CanvasLayer"]
@@ -191,10 +192,10 @@ vertical_alignment = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 150.0
-offset_top = -45.0
-offset_right = 180.0
-offset_bottom = -15.0
+offset_left = 169.0
+offset_top = -43.0
+offset_right = 199.0
+offset_bottom = -13.0
 grow_vertical = 0
 expand_mode = 1
 stretch_mode = 5
@@ -203,9 +204,9 @@ stretch_mode = 5
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 190.0
+offset_left = 214.0
 offset_top = -43.0
-offset_right = 360.0
+offset_right = 384.0
 offset_bottom = -13.0
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.984475, 0.991507, 0.908535, 1)
@@ -228,10 +229,11 @@ grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
-theme_override_fonts/font = ExtResource("3_font")
+theme_override_fonts/font = ExtResource("8_4hln6")
 theme_override_font_sizes/font_size = 20
-text = "Tell us about your knowledge in cyber security"
+text = "Begin Your Journey Here In Cybersecurity"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ButtonContainer" type="VBoxContainer" parent="CanvasLayer"]
 anchors_preset = 8
@@ -239,10 +241,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -190.0
-offset_top = -135.0
-offset_right = 310.0
-offset_bottom = 135.0
+offset_left = -217.0
+offset_top = -152.0
+offset_right = 283.0
+offset_bottom = 148.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 30

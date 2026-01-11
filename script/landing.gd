@@ -3017,6 +3017,44 @@ func _setup_navigation() -> void:
 	_show_panel(panel_paths, "home")
 
 
+func _on_module_button_pressed() -> void:
+	# Check if user has seen cybersecurity intro
+	_check_intro_completion()
+
+func _check_intro_completion() -> void:
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		push_error("[Landing] Auth not ready!")
+		return
+	
+	var url = firestore_base_url + "/%s" % Auth.current_local_id
+	var headers = ["Authorization: Bearer " + Auth.current_id_token]
+	
+	var http = HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		if code == 200:
+			var json = JSON.parse_string(body.get_string_from_utf8())
+			if json and json.has("fields"):
+				var fields = json["fields"]
+				var intro_completed = fields.get("cybersecurity_intro_completed", {}).get("booleanValue", false)
+				
+				if intro_completed:
+					# Go directly to mode selection
+					get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+				else:
+					# Show intro first
+					get_tree().change_scene_to_file("res://scene/intro_cybersecurity.tscn")
+			else:
+				# First time, show intro
+				get_tree().change_scene_to_file("res://scene/intro_cybersecurity.tscn")
+		else:
+			# On error, show intro anyway
+			get_tree().change_scene_to_file("res://scene/intro_cybersecurity.tscn")
+	)
+	
+	http.request(url, headers, HTTPClient.METHOD_GET)
+
 func _on_menu_button_pressed() -> void:
 	if menu_panel:
 		menu_panel.visible = true
@@ -3025,8 +3063,8 @@ func _on_menu_button_pressed() -> void:
 
 # ✅ Module navigation function
 func _on_module_navigate_pressed() -> void:
-	print("[Landing] Navigating to Mode Selection...")
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	print("[Landing] Checking intro completion before navigating to tutorials...")
+	_check_intro_completion()
 
 
 func _on_reset_stats_pressed() -> void:

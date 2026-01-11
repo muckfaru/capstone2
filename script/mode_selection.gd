@@ -19,6 +19,26 @@ var fade_overlay: ColorRect = null  # ADD THIS LINE
 const PROJECT_ID := "capstone-823dc"
 const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents" % PROJECT_ID
 
+# Icon resources (24x24 or 32x32 recommended)
+# TODO: Replace placeholder icons with custom designed ones
+const ICON_TIME := preload("res://asset/icons/time_icon1.png")  # Clock/timer icon
+const ICON_XP := preload("res://asset/icons/xp icon.png")
+const ICON_STAR_FILLED := preload("res://asset/icons/star_filled2.png")  # Filled star
+const ICON_STAR_EMPTY := preload("res://asset/icons/star_empty.png")  # Empty star outline
+const ICON_DIFFICULTY := preload("res://asset/icons/difficulty.png")  # Bar chart icon
+
+# Tutorial category icons (48x48 or 64x64 recommended)
+const ICON_FUNDAMENTALS := preload("res://asset/icons/cyfunda.png")
+const ICON_NETWORK := preload("res://asset/icons/NBfun.png")
+const ICON_PASSWORD := preload("res://asset/icons/passwordfticon.png")
+const ICON_MALWARE := preload("res://asset/icons/malwaretpicon.png")
+const ICON_PHISHING := preload("res://asset/icons/phishinglbicon.png")
+const ICON_TROJAN := preload("res://asset/icons/Defuse the trojan 1.png")
+const ICON_DEFENSE := preload("res://asset/icons/firewall shield icon.png")
+const ICON_LAB := preload("res://asset/icons/code breaker.png")
+const ICON_ENCRYPTION := preload("res://asset/icons/encryicon.png")
+const ICON_ADVANCED := preload("res://asset/icons/hacker.png")
+
 # Tutorial metadata with time estimates and XP ranges
 const TUTORIAL_METADATA := {
 	"beginner_fundamentals": {"time": "10-15 min", "xp_range": "100-200 XP", "difficulty": 2},
@@ -404,23 +424,23 @@ func _show_tutorial_menu(level: String) -> void:
 		"beginner":
 			level_int = 1
 			tutorials = [
-				{"name": "🎓 Cybersecurity Fundamentals (Start Here!)", "scene": "res://scene/tutorial_cyber_fundamentals.tscn", "id": "beginner_fundamentals"},
-				{"name": "🌐 Network Basics", "scene": "res://scene/tutorial_network_basics.tscn", "id": "beginner_network"},
-				{"name": "🔐 Password Fortress Defender", "scene": "res://scene/tutorial_password_basics.tscn", "id": "beginner_password"},
-				{"name": "🦠 Malware Types Overview", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware"}
+				{"name": "Cybersecurity Fundamentals (Start Here!)", "scene": "res://scene/tutorial_cyber_fundamentals.tscn", "id": "beginner_fundamentals"},
+				{"name": "Network Basics", "scene": "res://scene/tutorial_network_basics.tscn", "id": "beginner_network"},
+				{"name": "Password Fortress Defender", "scene": "res://scene/tutorial_password_basics.tscn", "id": "beginner_password"},
+				{"name": "Malware Types Overview", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware"}
 			]
 		"intermediate":
 			level_int = 2
 			tutorials = [
-				{"name": "🎣 Phishing Detection Lab", "scene": "res://scene/phishing_intro.tscn", "id": "intermediate_phishing"},
-				{"name": "🔐 Encryption", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "advanced_encryption"},
-				{"name": "🔬  Malware Lab", "scene": "res://scene/malware_tutorial_menu.tscn", "id": "intermediate_lab"}
+				{"name": "Phishing Detection Lab", "scene": "res://scene/phishing_intro.tscn", "id": "intermediate_phishing"},
+				{"name": "Encryption", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "advanced_encryption"},
+				{"name": "Malware Lab", "scene": "res://scene/malware_tutorial_menu.tscn", "id": "intermediate_lab"}
 			]
 		"advanced":
 			level_int = 3
 			tutorials = [
-				{"name": "⚔️ Advanced Threat Scenarios", "scene": "res://scene/tutorial_advance.tscn", "id": "advanced_scenarios"},
-				{"name": "🛡️ Interactive Defense Training", "scene": "res://scene/tutorial_advance_interactive.tscn", "id": "intermediate_defense"},
+				{"name": "Advanced Threat Scenarios", "scene": "res://scene/tutorial_advance.tscn", "id": "advanced_scenarios"},
+				{"name": "Interactive Defense Training", "scene": "res://scene/tutorial_advance_interactive.tscn", "id": "intermediate_defense"},
 				
 			]
 	
@@ -772,9 +792,38 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	card_margin.add_theme_constant_override("margin_bottom", 10)
 	card.add_child(card_margin)
 	
+	# Main horizontal layout (icon + content)
+	var main_hbox = HBoxContainer.new()
+	main_hbox.add_theme_constant_override("separation", 15)
+	card_margin.add_child(main_hbox)
+	
+	# Tutorial category icon (left side)
+	var category_icon = TextureRect.new()
+	category_icon.custom_minimum_size = Vector2(48, 48)
+	category_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	category_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	
+	# Map tutorial ID to appropriate icon
+	var icon_map = {
+		"beginner_fundamentals": ICON_FUNDAMENTALS,
+		"beginner_network": ICON_NETWORK,
+		"beginner_password": ICON_PASSWORD,
+		"beginner_malware": ICON_MALWARE,
+		"intermediate_phishing": ICON_PHISHING,
+		"intermediate_trojan": ICON_TROJAN,
+		"intermediate_defense": ICON_DEFENSE,
+		"intermediate_lab": ICON_LAB,
+		"advanced_scenarios": ICON_ADVANCED,
+		"advanced_encryption": ICON_ENCRYPTION,
+		"advanced_lab": ICON_LAB
+	}
+	category_icon.texture = icon_map.get(tutorial_id, ICON_FUNDAMENTALS)
+	main_hbox.add_child(category_icon)
+	
 	var card_vbox = VBoxContainer.new()
 	card_vbox.add_theme_constant_override("separation", 8)
-	card_margin.add_child(card_vbox)
+	card_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_hbox.add_child(card_vbox)
 	
 	# Title
 	var title_label = Label.new()
@@ -783,32 +832,67 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	title_label.add_theme_color_override("font_color", Color.WHITE)
 	card_vbox.add_child(title_label)
 	
-	# Info row
+	# Info row with icons
 	var info_hbox = HBoxContainer.new()
-	info_hbox.add_theme_constant_override("separation", 25)
+	info_hbox.add_theme_constant_override("separation", 20)
 	
+	# Time info with icon
+	var time_container = HBoxContainer.new()
+	time_container.add_theme_constant_override("separation", 5)
+	var time_icon = TextureRect.new()
+	time_icon.texture = ICON_TIME
+	time_icon.custom_minimum_size = Vector2(20, 20)
+	time_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	time_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	time_container.add_child(time_icon)
 	var time_label = Label.new()
-	time_label.text = "⏱️ " + metadata["time"]
+	time_label.text = metadata["time"]
 	time_label.add_theme_font_size_override("font_size", 13)
 	time_label.add_theme_color_override("font_color", Color(0.7, 0.85, 1))
-	info_hbox.add_child(time_label)
+	time_container.add_child(time_label)
+	info_hbox.add_child(time_container)
 	
+	# XP info with icon
+	var xp_container = HBoxContainer.new()
+	xp_container.add_theme_constant_override("separation", 5)
+	var xp_icon = TextureRect.new()
+	xp_icon.texture = ICON_XP
+	xp_icon.custom_minimum_size = Vector2(20, 20)
+	xp_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	xp_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	xp_container.add_child(xp_icon)
 	var xp_label = Label.new()
-	xp_label.text = "💎 " + metadata["xp_range"]
+	xp_label.text = metadata["xp_range"]
 	xp_label.add_theme_font_size_override("font_size", 13)
 	xp_label.add_theme_color_override("font_color", Color(1, 0.843, 0))
-	info_hbox.add_child(xp_label)
+	xp_container.add_child(xp_label)
+	info_hbox.add_child(xp_container)
 	
-	var difficulty_label = Label.new()
-	var stars = ""
-	for i in metadata["difficulty"]:
-		stars += "★"
-	for i in (5 - metadata["difficulty"]):
-		stars += "☆"
-	difficulty_label.text = "📊 " + stars
-	difficulty_label.add_theme_font_size_override("font_size", 13)
-	difficulty_label.add_theme_color_override("font_color", Color(1, 0.5, 0.5))
-	info_hbox.add_child(difficulty_label)
+	# Difficulty with REAL star rating
+	var difficulty_container = HBoxContainer.new()
+	difficulty_container.add_theme_constant_override("separation", 3)
+	var difficulty_icon = TextureRect.new()
+	difficulty_icon.texture = ICON_DIFFICULTY
+	difficulty_icon.custom_minimum_size = Vector2(18, 18)
+	difficulty_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	difficulty_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	difficulty_container.add_child(difficulty_icon)
+	
+	# Add actual star textures
+	for i in 5:
+		var star = TextureRect.new()
+		if i < metadata["difficulty"]:
+			star.texture = ICON_STAR_FILLED
+			star.modulate = Color(1, 0.8, 0.2)  # Gold color for filled stars
+		else:
+			star.texture = ICON_STAR_EMPTY
+			star.modulate = Color(0.4, 0.4, 0.4)  # Gray for empty stars
+		star.custom_minimum_size = Vector2(16, 16)
+		star.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		star.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		difficulty_container.add_child(star)
+	
+	info_hbox.add_child(difficulty_container)
 	
 	card_vbox.add_child(info_hbox)
 	

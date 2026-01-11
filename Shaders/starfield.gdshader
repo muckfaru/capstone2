@@ -1,0 +1,49 @@
+shader_type canvas_item;
+
+uniform vec4 space_color : source_color = vec4(0.05, 0.0, 0.15, 1.0);
+uniform float star_density = 0.3;
+uniform float star_speed = 0.1;
+
+// Random function
+float random(vec2 st) {
+    return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+// Generate star field
+float stars(vec2 uv, float time) {
+    vec2 grid = floor(uv * 100.0);
+    float star = random(grid);
+    
+    // Make some stars twinkle
+    float twinkle = sin(time * 2.0 + random(grid) * 6.28) * 0.5 + 0.5;
+    
+    // Only show stars above threshold
+    if (star > (1.0 - star_density)) {
+        float brightness = smoothstep(0.95, 1.0, star) * twinkle;
+        return brightness;
+    }
+    
+    return 0.0;
+}
+
+void fragment() {
+    vec2 uv = UV;
+    
+    // Scroll stars slowly
+    uv.x += TIME * star_speed * 0.1;
+    
+    // Create multiple layers of stars for depth
+    float star_layer1 = stars(uv * 1.0, TIME);
+    float star_layer2 = stars(uv * 1.5 + vec2(0.5), TIME * 1.3) * 0.7;
+    float star_layer3 = stars(uv * 2.0 + vec2(0.25), TIME * 0.7) * 0.5;
+    
+    float all_stars = star_layer1 + star_layer2 + star_layer3;
+    
+    // Star color (white to slight blue)
+    vec3 star_color = mix(vec3(1.0), vec3(0.8, 0.9, 1.0), 0.3);
+    
+    // Combine space background with stars
+    vec3 final_color = space_color.rgb + star_color * all_stars;
+    
+    COLOR = vec4(final_color, 1.0);
+}
