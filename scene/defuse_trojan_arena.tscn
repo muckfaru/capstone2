@@ -1,0 +1,305 @@
+[gd_scene load_steps=9 format=3 uid="uid://c7dp51haxdi18"]
+
+[ext_resource type="Script" uid="uid://cf1nxm68yi4di" path="res://script/defuse_trojan_arena.gd" id="1_arena"]
+[ext_resource type="Texture2D" uid="uid://dyiqm25x23tfs" path="res://asset/defuse_trojan/background.jpg" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://b1ly6r83cvekj" path="res://asset/defuse_trojan/player_computer.jpg" id="3_player"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_font"]
+[ext_resource type="Shader" uid="uid://0std1laue6d6" path="res://shader/remove_white_bg.gdshader" id="5_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_player"]
+shader = ExtResource("5_shader")
+shader_parameter/white_threshold = 0.75
+shader_parameter/black_threshold = 0.15
+shader_parameter/smoothness = 0.1
+
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_defense"]
+size = Vector2(1400, 50)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_bg"]
+bg_color = Color(0.15, 0.15, 0.2, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.8, 1, 0.8)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="DefuseTrojanArena" type="Node2D"]
+script = ExtResource("1_arena")
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.5, 0.5)
+motion_mirroring = Vector2(0, 720)
+
+[node name="Background" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
+position = Vector2(596, 360)
+scale = Vector2(1.20313, 1)
+texture = ExtResource("2_bg")
+
+[node name="GameLayer" type="Node2D" parent="."]
+
+[node name="SpawnPoints" type="Node2D" parent="GameLayer"]
+
+[node name="SpawnLeft" type="Marker2D" parent="GameLayer/SpawnPoints"]
+position = Vector2(150, -80)
+
+[node name="SpawnCenterLeft" type="Marker2D" parent="GameLayer/SpawnPoints"]
+position = Vector2(400, -80)
+
+[node name="SpawnCenter" type="Marker2D" parent="GameLayer/SpawnPoints"]
+position = Vector2(640, -80)
+
+[node name="SpawnCenterRight" type="Marker2D" parent="GameLayer/SpawnPoints"]
+position = Vector2(880, -80)
+
+[node name="SpawnRight" type="Marker2D" parent="GameLayer/SpawnPoints"]
+position = Vector2(1130, -80)
+
+[node name="EnemyContainer" type="Node2D" parent="GameLayer"]
+
+[node name="TargetingBeam" type="Line2D" parent="GameLayer"]
+visible = false
+width = 3.0
+default_color = Color(0, 1, 0.8, 0.6)
+begin_cap_mode = 2
+end_cap_mode = 2
+
+[node name="Player" type="Sprite2D" parent="GameLayer"]
+material = SubResource("ShaderMaterial_player")
+position = Vector2(640, 650)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("3_player")
+
+[node name="PlayerDefenseZone" type="Area2D" parent="GameLayer" groups=["player_defense"]]
+position = Vector2(640, 750)
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GameLayer/PlayerDefenseZone"]
+shape = SubResource("RectangleShape2D_defense")
+
+[node name="EffectsLayer" type="Node2D" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="UI" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="HBoxContainer" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 15.0
+offset_right = 320.0
+offset_bottom = 55.0
+theme_override_constants/separation = 10
+
+[node name="BackButton" type="Button" parent="CanvasLayer/UI/TopBar"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 18
+text = "← BACK"
+
+[node name="HealthContainer" type="HBoxContainer" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 60.0
+offset_right = 280.0
+offset_bottom = 95.0
+theme_override_constants/separation = 8
+
+[node name="HealthIcon" type="Label" parent="CanvasLayer/UI/HealthContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 24
+text = "❤"
+
+[node name="HealthBar" type="ProgressBar" parent="CanvasLayer/UI/HealthContainer"]
+custom_minimum_size = Vector2(200, 30)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_health_bg")
+value = 100.0
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 100.0
+offset_right = 280.0
+offset_bottom = 125.0
+theme_override_colors/font_color = Color(0, 1, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 14
+text = "HP: 100/100"
+
+[node name="ScoreContainer" type="VBoxContainer" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 1000.0
+offset_top = 15.0
+offset_right = 1260.0
+offset_bottom = 100.0
+theme_override_constants/separation = 5
+
+[node name="ScoreLabel" type="Label" parent="CanvasLayer/UI/ScoreContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 28
+text = "SCORE: 0"
+horizontal_alignment = 2
+
+[node name="WaveLabel" type="Label" parent="CanvasLayer/UI/ScoreContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 18
+text = "WAVE: 1"
+horizontal_alignment = 2
+
+[node name="ComboLabel" type="Label" parent="CanvasLayer/UI/ScoreContainer"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.5, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 16
+text = "COMBO x5"
+horizontal_alignment = 2
+
+[node name="TypingContainer" type="VBoxContainer" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 600.0
+offset_right = 940.0
+offset_bottom = 700.0
+theme_override_constants/separation = 5
+
+[node name="TargetWord" type="Label" parent="CanvasLayer/UI/TypingContainer"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.5, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 20
+text = "TARGET: TASKKILL"
+horizontal_alignment = 1
+
+[node name="TypedDisplay" type="RichTextLabel" parent="CanvasLayer/UI/TypingContainer"]
+custom_minimum_size = Vector2(600, 50)
+layout_mode = 2
+theme_override_colors/default_color = Color(0, 1, 0.8, 1)
+theme_override_fonts/normal_font = ExtResource("4_font")
+theme_override_font_sizes/normal_font_size = 36
+bbcode_enabled = true
+text = "[center]_[/center]"
+fit_content = true
+scroll_active = false
+
+[node name="GameOverPanel" type="Panel" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -180.0
+offset_right = 250.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/GameOverPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="GameOverTitle" type="Label" parent="CanvasLayer/GameOverPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 40
+text = "GAME OVER"
+horizontal_alignment = 1
+
+[node name="FinalScoreLabel" type="Label" parent="CanvasLayer/GameOverPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 24
+text = "FINAL SCORE: 0"
+horizontal_alignment = 1
+
+[node name="StatsLabel" type="Label" parent="CanvasLayer/GameOverPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 16
+text = "Waves: 0 | Destroyed: 0"
+horizontal_alignment = 1
+
+[node name="ButtonContainer" type="HBoxContainer" parent="CanvasLayer/GameOverPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="RetryButton" type="Button" parent="CanvasLayer/GameOverPanel/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 0.8, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 20
+text = "RETRY"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/GameOverPanel/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 20
+text = "QUIT"
+
+[node name="AudioPlayers" type="Node" parent="."]
+
+[node name="TypeSFX" type="AudioStreamPlayer" parent="AudioPlayers"]
+volume_db = -5.0
+
+[node name="DestroySFX" type="AudioStreamPlayer" parent="AudioPlayers"]
+volume_db = -3.0
+
+[connection signal="pressed" from="CanvasLayer/UI/TopBar/BackButton" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CanvasLayer/GameOverPanel/VBoxContainer/ButtonContainer/RetryButton" to="." method="_on_retry_pressed"]
+[connection signal="pressed" from="CanvasLayer/GameOverPanel/VBoxContainer/ButtonContainer/QuitButton" to="." method="_on_back_pressed"]
