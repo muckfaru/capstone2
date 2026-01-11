@@ -2,12 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cpvndy5mcj3yp"
-valid=false
+uid="uid://do2ybt5chjn7t"
+path="res://.godot/imported/background.jpg-f6a855988cdacc1a2ec791997d5455bc.ctex"
+metadata={
+"vram_texture": false
+}
 
 [deps]
 
-source_file="res://asset/defuse_trojan/enemy_virus.png"
+source_file="res://asset/defuse_trojan/background.jpg"
+dest_files=["res://.godot/imported/background.jpg-f6a855988cdacc1a2ec791997d5455bc.ctex"]
 
 [params]
 
