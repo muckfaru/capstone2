@@ -1,8 +1,8 @@
 [gd_scene load_steps=9 format=3 uid="uid://c7dp51haxdi18"]
 
 [ext_resource type="Script" uid="uid://cf1nxm68yi4di" path="res://script/defuse_trojan_arena.gd" id="1_arena"]
-[ext_resource type="Texture2D" uid="uid://dyiqm25x23tfs" path="res://asset/defuse_trojan/background.jpg" id="2_bg"]
-[ext_resource type="Texture2D" uid="uid://b1ly6r83cvekj" path="res://asset/defuse_trojan/player_computer.jpg" id="3_player"]
+[ext_resource type="Texture2D" uid="uid://88l8vo83x8qo" path="res://asset/defuse_trojan/space_background.jpg" id="2_rrukm"]
+[ext_resource type="Texture2D" uid="uid://k5cwsjew8xgt" path="res://asset/defuse_trojan/player_computer.jpg" id="3_player"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_font"]
 [ext_resource type="Shader" uid="uid://0std1laue6d6" path="res://shader/remove_white_bg.gdshader" id="5_shader"]
 
@@ -11,7 +11,6 @@ shader = ExtResource("5_shader")
 shader_parameter/white_threshold = 0.75
 shader_parameter/black_threshold = 0.15
 shader_parameter/smoothness = 0.1
-
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_defense"]
 size = Vector2(1400, 50)
@@ -38,9 +37,9 @@ motion_scale = Vector2(0.5, 0.5)
 motion_mirroring = Vector2(0, 720)
 
 [node name="Background" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
-position = Vector2(596, 360)
-scale = Vector2(1.20313, 1)
-texture = ExtResource("2_bg")
+position = Vector2(586.5, 417)
+scale = Vector2(1.12207, 0.888672)
+texture = ExtResource("2_rrukm")
 
 [node name="GameLayer" type="Node2D" parent="."]
 
@@ -50,16 +49,16 @@ texture = ExtResource("2_bg")
 position = Vector2(150, -80)
 
 [node name="SpawnCenterLeft" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(400, -80)
+position = Vector2(384, -80)
 
 [node name="SpawnCenter" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(640, -80)
+position = Vector2(615, -80)
 
 [node name="SpawnCenterRight" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(880, -80)
+position = Vector2(841, -80)
 
 [node name="SpawnRight" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(1130, -80)
+position = Vector2(1076, -80)
 
 [node name="EnemyContainer" type="Node2D" parent="GameLayer"]
 
@@ -72,8 +71,8 @@ end_cap_mode = 2
 
 [node name="Player" type="Sprite2D" parent="GameLayer"]
 material = SubResource("ShaderMaterial_player")
-position = Vector2(640, 650)
-scale = Vector2(0.2, 0.2)
+position = Vector2(585.89, 567.8)
+scale = Vector2(0.0998237, 0.0980469)
 texture = ExtResource("3_player")
 
 [node name="PlayerDefenseZone" type="Area2D" parent="GameLayer" groups=["player_defense"]]
@@ -93,8 +92,12 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 21.0
+offset_right = -2.0
+offset_bottom = 21.0
 grow_horizontal = 2
 grow_vertical = 2
+scale = Vector2(1, 0.968688)
 
 [node name="TopBar" type="HBoxContainer" parent="CanvasLayer/UI"]
 layout_mode = 0
@@ -153,6 +156,7 @@ offset_left = 1000.0
 offset_top = 15.0
 offset_right = 1260.0
 offset_bottom = 100.0
+scale = Vector2(0.598498, 1.26852)
 theme_override_constants/separation = 5
 
 [node name="ScoreLabel" type="Label" parent="CanvasLayer/UI/ScoreContainer"]
@@ -187,11 +191,12 @@ text = "COMBO x5"
 horizontal_alignment = 2
 
 [node name="TypingContainer" type="VBoxContainer" parent="CanvasLayer/UI"]
+visible = false
 layout_mode = 0
 offset_left = 340.0
-offset_top = 600.0
+offset_top = 601.0
 offset_right = 940.0
-offset_bottom = 700.0
+offset_bottom = 701.0
 theme_override_constants/separation = 5
 
 [node name="TargetWord" type="Label" parent="CanvasLayer/UI/TypingContainer"]
@@ -295,10 +300,10 @@ text = "QUIT"
 [node name="AudioPlayers" type="Node" parent="."]
 
 [node name="TypeSFX" type="AudioStreamPlayer" parent="AudioPlayers"]
-volume_db = -5.0
+volume_db = 2.364
 
 [node name="DestroySFX" type="AudioStreamPlayer" parent="AudioPlayers"]
-volume_db = -3.0
+volume_db = 4.091
 
 [connection signal="pressed" from="CanvasLayer/UI/TopBar/BackButton" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="CanvasLayer/GameOverPanel/VBoxContainer/ButtonContainer/RetryButton" to="." method="_on_retry_pressed"]

@@ -1,113 +1,18 @@
-[gd_scene load_steps=8 format=3 uid="uid://c8pq67wm4dn3x"]
+[gd_scene load_steps=7 format=3 uid="uid://c8pq67wm4dn3x"]
 
-[ext_resource type="Script" path="res://script/defuse_trojan_enemy.gd" id="1_enemy"]
-[ext_resource type="Texture2D" uid="uid://cxpjw6s8f1q5l" path="res://asset/defuse_trojan/enemy_virus.jpg" id="2_sprite"]
+[ext_resource type="Script" uid="uid://cv54cushd0sfb" path="res://script/defuse_trojan_enemy.gd" id="1_enemy"]
+[ext_resource type="Texture2D" uid="uid://hdl6xlunrb1l" path="res://asset/defuse_trojan/frames/virus_1.jpg" id="2_default"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_font"]
 [ext_resource type="Shader" uid="uid://0std1laue6d6" path="res://shader/remove_white_bg.gdshader" id="4_shader"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hitbox"]
+radius = 35.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sprite"]
 shader = ExtResource("4_shader")
 shader_parameter/white_threshold = 0.75
 shader_parameter/black_threshold = 0.15
 shader_parameter/smoothness = 0.1
-
-
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_hitbox"]
-radius = 35.0
-
-[sub_resource type="Animation" id="Animation_idle"]
-resource_name = "idle"
-length = 1.0
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:scale")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.5, 1),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Vector2(0.12, 0.12), Vector2(0.13, 0.11), Vector2(0.12, 0.12)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("Sprite2D:rotation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.25, 0.5, 0.75, 1),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
-"update": 0,
-"values": [0.0, 0.05, 0.0, -0.05, 0.0]
-}
-
-[sub_resource type="Animation" id="Animation_targeted"]
-resource_name = "targeted"
-length = 0.5
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.25, 0.5),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 1), Color(1.2, 1.2, 1.2, 1), Color(1, 1, 1, 1)]
-}
-
-[sub_resource type="Animation" id="Animation_destroy"]
-resource_name = "destroy"
-length = 0.3
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:scale")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.15, 0.3),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Vector2(1, 1), Vector2(1.3, 1.3), Vector2(1.5, 1.5)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:modulate")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath(".:rotation")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.3),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [0.0, 0.5]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_main"]
-_data = {
-&"destroy": SubResource("Animation_destroy"),
-&"idle": SubResource("Animation_idle"),
-&"targeted": SubResource("Animation_targeted")
-}
 
 [node name="DefuseTrojanEnemy" type="Node2D"]
 script = ExtResource("1_enemy")
@@ -121,8 +26,8 @@ shape = SubResource("CircleShape2D_hitbox")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 material = SubResource("ShaderMaterial_sprite")
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("2_sprite")
+scale = Vector2(0.08, 0.08)
+texture = ExtResource("2_default")
 
 [node name="WordLabel" type="Label" parent="."]
 offset_left = -100.0
@@ -155,9 +60,3 @@ scroll_active = false
 visible = false
 color = Color(0, 1, 0.8, 0.3)
 polygon = PackedVector2Array(-8, -60, 8, -60, 0, -45)
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_main")
-}
-autoplay = "idle"

@@ -2,6 +2,7 @@ extends Node2D
 
 # === Game Constants ===
 const ENEMY_SCENE = preload("res://scene/defuse_trojan_enemy.tscn")
+const PROJECTILE_SCENE = preload("res://scene/projectile.tscn")
 
 # CMD commands for virus removal - educational content
 const COMMANDS: Array = [
@@ -144,6 +145,10 @@ func _process_typing() -> void:
 			enemy.set_targeted(true)
 			enemy.update_typed_progress(typed_text)
 		
+		# Spawn projectile on each correct keystroke
+		if enemy.word.begins_with(typed_text):
+			_spawn_projectile(enemy)
+		
 		# Check for complete match
 		if typed_text == enemy.word:
 			combo_count += 1
@@ -166,6 +171,18 @@ func _process_typing() -> void:
 	
 	_update_typed_display()
 	_update_combo_display()
+
+func _spawn_projectile(target: Node2D) -> void:
+	"""Spawn a projectile from player to target enemy"""
+	if not target or not is_instance_valid(target):
+		return
+	
+	var projectile = PROJECTILE_SCENE.instantiate()
+	projectile.target = target
+	projectile.global_position = player_sprite.global_position
+	
+	# Add to effects layer
+	effects_layer.add_child(projectile)
 
 func _find_matching_enemy(text: String) -> Node2D:
 	if text.length() == 0:

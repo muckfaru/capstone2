@@ -1,0 +1,89 @@
+[gd_resource type="SpriteFrames" load_steps=17 format=3 uid="uid://cwcvupnb1frg6"]
+
+[ext_resource type="Texture2D" uid="uid://dkhdk7nbi8kwy" path="res://asset/defuse_trojan/frames/ransomware_1.jpg" id="r1"]
+[ext_resource type="Texture2D" uid="uid://cuskt8q77jk0y" path="res://asset/defuse_trojan/frames/ransomware_2.jpg" id="r2"]
+[ext_resource type="Texture2D" uid="uid://cdstnporyeulb" path="res://asset/defuse_trojan/frames/ransomware_3.jpg" id="r3"]
+[ext_resource type="Texture2D" uid="uid://cuasmu1ji88d6" path="res://asset/defuse_trojan/frames/ransomware_4.jpg" id="r4"]
+[ext_resource type="Texture2D" uid="uid://dptssg8g3uvtx" path="res://asset/defuse_trojan/frames/trojan_1.jpg" id="t1"]
+[ext_resource type="Texture2D" uid="uid://1wrnb001kw67" path="res://asset/defuse_trojan/frames/trojan_2.jpg" id="t2"]
+[ext_resource type="Texture2D" uid="uid://px4tasqhnuwu" path="res://asset/defuse_trojan/frames/trojan_3.jpg" id="t3"]
+[ext_resource type="Texture2D" uid="uid://bivsdv1epv1a" path="res://asset/defuse_trojan/frames/trojan_4.jpg" id="t4"]
+[ext_resource type="Texture2D" uid="uid://hdl6xlunrb1l" path="res://asset/defuse_trojan/frames/virus_1.jpg" id="v1"]
+[ext_resource type="Texture2D" uid="uid://b3m6j2t32co4y" path="res://asset/defuse_trojan/frames/virus_2.jpg" id="v2"]
+[ext_resource type="Texture2D" uid="uid://ys5ksm74hr5o" path="res://asset/defuse_trojan/frames/virus_3.jpg" id="v3"]
+[ext_resource type="Texture2D" uid="uid://dvqvh5f5lv4rf" path="res://asset/defuse_trojan/frames/virus_4.jpg" id="v4"]
+[ext_resource type="Texture2D" uid="uid://7eb2aybc7vgm" path="res://asset/defuse_trojan/frames/worm_1.jpg" id="w1"]
+[ext_resource type="Texture2D" uid="uid://c614uqgoopnr0" path="res://asset/defuse_trojan/frames/worm_2.jpg" id="w2"]
+[ext_resource type="Texture2D" uid="uid://npjuvjopuwfx" path="res://asset/defuse_trojan/frames/worm_3.jpg" id="w3"]
+[ext_resource type="Texture2D" uid="uid://c0dap2qct52lq" path="res://asset/defuse_trojan/frames/worm_4.jpg" id="w4"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("r1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("r2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("r3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("r4")
+}],
+"loop": true,
+"name": &"ransomware",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("t1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("t4")
+}],
+"loop": true,
+"name": &"trojan",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("v1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("v2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("v3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("v4")
+}],
+"loop": true,
+"name": &"virus",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("w1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("w2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("w3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("w4")
+}],
+"loop": true,
+"name": &"worm",
+"speed": 6.0
+}]
