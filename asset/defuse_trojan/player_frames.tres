@@ -1,0 +1,74 @@
+[gd_resource type="SpriteFrames" load_steps=11 format=3 uid="uid://b4vx2qy6hm7k2"]
+
+[ext_resource type="Texture2D" uid="uid://euh1m1qdtuiw" path="res://asset/defuse_trojan/player_idle_spritesheet.jpg" id="1_sprite"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r34t8"]
+atlas = ExtResource("1_sprite")
+region = Rect2(768, 512, 256, 512)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7fpea"]
+atlas = ExtResource("1_sprite")
+region = Rect2(25, 30, 229, 470)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6b4j3"]
+atlas = ExtResource("1_sprite")
+region = Rect2(274, 30, 229, 470)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bwajb"]
+atlas = ExtResource("1_sprite")
+region = Rect2(523, 30, 229, 470)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q04k0"]
+atlas = ExtResource("1_sprite")
+region = Rect2(772, 30, 229, 470)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tdesl"]
+atlas = ExtResource("1_sprite")
+region = Rect2(25, 520, 229, 470)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rbajw"]
+atlas = ExtResource("1_sprite")
+region = Rect2(274, 520, 229, 470)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aegc7"]
+atlas = ExtResource("1_sprite")
+region = Rect2(523, 520, 229, 470)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gwr8v"]
+atlas = ExtResource("1_sprite")
+region = Rect2(772, 520, 229, 470)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r34t8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7fpea")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6b4j3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bwajb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q04k0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tdesl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rbajw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_aegc7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gwr8v")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 8.0
+}]

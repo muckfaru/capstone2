@@ -3,9 +3,8 @@ extends Node2D
 # Projectile properties
 var target: Node2D = null
 var speed: float = 1200.0
-var damage_effect: bool = true
 
-@onready var sprite: Polygon2D = $Sprite
+@onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var trail: Line2D = $Trail
 
 signal hit_target(target: Node2D)
@@ -14,6 +13,8 @@ func _ready() -> void:
 	# Start moving towards target
 	if target and is_instance_valid(target):
 		look_at(target.global_position)
+	
+	# Animation auto-plays via scene setting
 	
 	# Trail effect setup
 	trail.clear_points()
@@ -74,10 +75,10 @@ func _create_impact_effect() -> void:
 		
 		# Random direction
 		var angle = randf() * TAU
-		var direction = Vector2(cos(angle), sin(angle)) * 50.0
+		var dir = Vector2(cos(angle), sin(angle)) * 50.0
 		
 		var tween = particle.create_tween()
 		tween.set_parallel(true)
-		tween.tween_property(particle, "global_position", particle.global_position + direction, 0.2)
+		tween.tween_property(particle, "global_position", particle.global_position + dir, 0.2)
 		tween.tween_property(particle, "modulate:a", 0.0, 0.2)
 		tween.tween_callback(particle.queue_free).set_delay(0.2)

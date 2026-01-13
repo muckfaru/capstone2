@@ -11,23 +11,21 @@ var is_initialized: bool = false
 # Animation
 var idle_tween: Tween
 
-# Node References
-@onready var sprite: Sprite2D = $Sprite2D
-@onready var word_label: Label = $WordLabel
-@onready var typed_progress: RichTextLabel = $TypedProgress
-@onready var target_indicator: Polygon2D = $TargetIndicator
-@onready var area_2d: Area2D = $Area2D
-@onready var collision_shape: CollisionShape2D = $Area2D/CollisionShape2D
+# Node References - will be found dynamically
+var animated_sprite: AnimatedSprite2D
+var word_label: Label
+var typed_progress: RichTextLabel
+var target_indicator: Polygon2D
 
 signal reached_bottom(enemy: DefuseTrojanEnemy)
 signal destroyed(enemy: DefuseTrojanEnemy, points: int)
 
-# Enemy type configurations with textures
+# Enemy type configurations
 const ENEMY_CONFIGS = {
-	"trojan": {"speed_mult": 0.8, "points": 150, "color": Color(0.8, 0.2, 0.4), "texture": "trojan_1"},
-	"worm": {"speed_mult": 1.2, "points": 100, "color": Color(0.2, 1.0, 0.4), "texture": "worm_1"},
-	"virus": {"speed_mult": 1.0, "points": 120, "color": Color(1.0, 0.4, 0.2), "texture": "virus_1"},
-	"ransomware": {"speed_mult": 0.6, "points": 200, "color": Color(1.0, 0.85, 0.0), "texture": "ransomware_1"}
+	"trojan": {"speed_mult": 0.8, "points": 150, "color": Color(0.8, 0.2, 0.4)},
+	"worm": {"speed_mult": 1.2, "points": 100, "color": Color(0.2, 1.0, 0.4)},
+	"virus": {"speed_mult": 1.0, "points": 120, "color": Color(1.0, 0.4, 0.2)},
+	"ransomware": {"speed_mult": 0.6, "points": 200, "color": Color(1.0, 0.85, 0.0)}
 }
 
 func _ready() -> void:
@@ -40,8 +38,11 @@ func _initialize() -> void:
 		return
 	is_initialized = true
 	
-	# Load texture for this enemy type
-	_load_enemy_texture()
+	# Find AnimatedSprite2D in children
+	animated_sprite = get_node_or_null("AnimatedSprite2D")
+	
+	# Create UI elements dynamically
+	_create_ui_elements()
 	
 	# Apply enemy type config
 	if ENEMY_CONFIGS.has(enemy_type):
@@ -59,24 +60,39 @@ func _initialize() -> void:
 	
 	# Start smooth idle animation
 	_start_idle_animation()
-	
-	# Connect Area2D signals
-	if area_2d:
-		area_2d.area_entered.connect(_on_area_entered)
 
-func _load_enemy_texture() -> void:
-	"""Load the texture for this enemy type"""
-	if not sprite:
-		return
+func _create_ui_elements() -> void:
+	# Create word label
+	word_label = Label.new()
+	word_label.name = "WordLabel"
+	word_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	word_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	word_label.position = Vector2(-100, 45)
+	word_label.size = Vector2(200, 30)
+	word_label.add_theme_font_size_override("font_size", 18)
+	word_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	word_label.add_theme_constant_override("outline_size", 4)
+	add_child(word_label)
 	
-	var texture_name = "virus_1"
-	if ENEMY_CONFIGS.has(enemy_type):
-		texture_name = ENEMY_CONFIGS[enemy_type].texture
+	# Create typed progress
+	typed_progress = RichTextLabel.new()
+	typed_progress.name = "TypedProgress"
+	typed_progress.bbcode_enabled = true
+	typed_progress.fit_content = true
+	typed_progress.scroll_active = false
+	typed_progress.position = Vector2(-100, 65)
+	typed_progress.size = Vector2(200, 30)
+	typed_progress.add_theme_font_size_override("normal_font_size", 16)
+	typed_progress.visible = false
+	add_child(typed_progress)
 	
-	var texture_path = "res://asset/defuse_trojan/frames/%s.jpg" % texture_name
-	var texture = load(texture_path)
-	if texture:
-		sprite.texture = texture
+	# Create target indicator
+	target_indicator = Polygon2D.new()
+	target_indicator.name = "TargetIndicator"
+	target_indicator.polygon = PackedVector2Array([Vector2(-8, -60), Vector2(8, -60), Vector2(0, -45)])
+	target_indicator.color = Color(0, 1, 0.8, 0.3)
+	target_indicator.visible = false
+	add_child(target_indicator)
 
 func _start_idle_animation() -> void:
 	"""Start smooth floating/pulsing idle animation using Tween"""
@@ -113,10 +129,6 @@ func _process(delta: float) -> void:
 		var pulse = (sin(Time.get_ticks_msec() * 0.01) + 1.0) / 2.0
 		target_indicator.color = Color(0, 1, 0.8, 0.2 + pulse * 0.3)
 
-func _on_area_entered(other_area: Area2D) -> void:
-	if other_area.is_in_group("player_defense"):
-		reached_bottom.emit(self)
-
 func set_word(new_word: String) -> void:
 	word = new_word.to_upper()
 	if word_label and is_initialized:
@@ -132,15 +144,15 @@ func set_targeted(targeted: bool) -> void:
 			target_indicator.visible = true
 		if typed_progress:
 			typed_progress.visible = true
-		if sprite:
-			sprite.modulate = Color(1.2, 1.2, 1.2, 1.0)
+		if animated_sprite:
+			animated_sprite.modulate = Color(1.2, 1.2, 1.2, 1.0)
 	else:
 		if target_indicator:
 			target_indicator.visible = false
 		if typed_progress:
 			typed_progress.visible = false
-		if sprite:
-			sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		if animated_sprite:
+			animated_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func update_typed_progress(typed: String) -> void:
 	if not typed_progress:
@@ -164,10 +176,6 @@ func destroy() -> void:
 	# Stop idle animations
 	if idle_tween:
 		idle_tween.kill()
-	
-	# Disable collision
-	if collision_shape:
-		collision_shape.set_deferred("disabled", true)
 	
 	# Destruction animation
 	var tween = create_tween()
@@ -197,11 +205,11 @@ func _spawn_explosion_particles() -> void:
 		
 		var angle = randf() * TAU
 		var speed_p = randf_range(100, 200)
-		var direction = Vector2(cos(angle), sin(angle)) * speed_p
+		var dir = Vector2(cos(angle), sin(angle)) * speed_p
 		
 		var tween = particle.create_tween()
 		tween.set_parallel(true)
-		tween.tween_property(particle, "position", particle.position + direction * 0.5, 0.4)
+		tween.tween_property(particle, "position", particle.position + dir * 0.5, 0.4)
 		tween.tween_property(particle, "modulate:a", 0.0, 0.4)
 		tween.tween_property(particle, "size", Vector2(1, 1), 0.4)
 		tween.tween_callback(particle.queue_free).set_delay(0.4)

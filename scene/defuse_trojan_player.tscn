@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://hf15tfqwkh2e"]
+
+[ext_resource type="SpriteFrames" uid="uid://b4vx2qy6hm7k2" path="res://asset/defuse_trojan/player_frames.tres" id="1_frames"]
+[ext_resource type="Shader" uid="uid://0std1laue6d6" path="res://shader/remove_white_bg.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_player"]
+shader = ExtResource("2_shader")
+shader_parameter/white_threshold = 0.75
+shader_parameter/black_threshold = 0.15
+shader_parameter/smoothness = 0.1
+
+[node name="Player" type="Node2D"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+material = SubResource("ShaderMaterial_player")
+position = Vector2(1, -13)
+scale = Vector2(0.328125, 0.289063)
+sprite_frames = ExtResource("1_frames")
+animation = &"idle"
+autoplay = "idle"
+frame_progress = 0.613425

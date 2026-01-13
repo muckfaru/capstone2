@@ -1,7 +1,13 @@
 extends Node2D
 
 # === Game Constants ===
-const ENEMY_SCENE = preload("res://scene/defuse_trojan_enemy.tscn")
+const ENEMY_SCENES = {
+	"virus": preload("res://scene/enemy_virus.tscn"),
+	"worm": preload("res://scene/enemy_worm.tscn"),
+	"trojan": preload("res://scene/enemy_trojan.tscn"),
+	"ransomware": preload("res://scene/enemy_ransomware.tscn")
+}
+const ENEMY_SCRIPT = preload("res://script/defuse_trojan_enemy.gd")
 const PROJECTILE_SCENE = preload("res://scene/projectile.tscn")
 
 # CMD commands for virus removal - educational content
@@ -48,7 +54,7 @@ var scroll_speed: float = 50.0
 @onready var spawn_points: Node2D = $GameLayer/SpawnPoints
 @onready var enemy_container: Node2D = $GameLayer/EnemyContainer
 @onready var targeting_beam: Line2D = $GameLayer/TargetingBeam
-@onready var player_sprite: Sprite2D = $GameLayer/Player
+@onready var player_sprite: Node2D = $GameLayer/Player
 @onready var effects_layer: Node2D = $EffectsLayer
 
 # UI References
@@ -141,36 +147,54 @@ func _process_typing() -> void:
 	
 	if current_target and is_instance_valid(current_target):
 		var enemy = current_target as Node2D
-		if enemy.has_method("set_targeted"):
-			enemy.set_targeted(true)
-			enemy.update_typed_progress(typed_text)
 		
-		# Spawn projectile on each correct keystroke
+		# Check if current typed text matches target word
 		if enemy.word.begins_with(typed_text):
-			_spawn_projectile(enemy)
-		
-		# Check for complete match
-		if typed_text == enemy.word:
-			combo_count += 1
-			_destroy_enemy(enemy)
-		elif not enemy.word.begins_with(typed_text):
-			# Wrong key, find new target or clear
-			enemy.set_targeted(false)
-			combo_count = 0 # Reset combo on mistake
-			current_target = _find_matching_enemy(typed_text)
-			if current_target == null:
+			# Correct keystroke!
+			if enemy.has_method("set_targeted"):
+				enemy.set_targeted(true)
+				enemy.update_typed_progress(typed_text)
+			
+			# Check for complete match
+			if typed_text == enemy.word:
+				combo_count += 1
+				# Spawn final projectile that will destroy enemy on hit
+				_spawn_final_projectile(enemy)
 				_clear_typing()
+			else:
+				# Spawn regular projectile on correct keystroke
+				_spawn_projectile(enemy)
+		else:
+			# Wrong keystroke - remove the last typed letter and try to find new target
+			typed_text = typed_text.substr(0, typed_text.length() - 1)
+			
+			# Try to find enemy matching current text
+			var new_target = _find_matching_enemy(typed_text + OS.get_keycode_string(0))
+			if new_target == null:
+				# No match at all - flash error
+				typed_display.modulate = Color(1, 0.3, 0.3)
+				var tween = create_tween()
+				tween.tween_property(typed_display, "modulate", Color(1, 1, 1), 0.2)
+				combo_count = 0
 	else:
-		# No valid target found
+		# No current target - try to find one matching typed text
 		current_target = _find_matching_enemy(typed_text)
-		if current_target == null and typed_text.length() > 0:
-			# Flash error in typing display
+		
+		if current_target and is_instance_valid(current_target):
+			# Found a new target
+			current_target.set_targeted(true)
+			current_target.update_typed_progress(typed_text)
+			_spawn_projectile(current_target)
+		elif typed_text.length() > 0:
+			# No matching enemy - remove last letter and flash error
+			typed_text = typed_text.substr(0, typed_text.length() - 1)
 			typed_display.modulate = Color(1, 0.3, 0.3)
 			var tween = create_tween()
 			tween.tween_property(typed_display, "modulate", Color(1, 1, 1), 0.2)
 	
 	_update_typed_display()
 	_update_combo_display()
+
 
 func _spawn_projectile(target: Node2D) -> void:
 	"""Spawn a projectile from player to target enemy"""
@@ -183,6 +207,26 @@ func _spawn_projectile(target: Node2D) -> void:
 	
 	# Add to effects layer
 	effects_layer.add_child(projectile)
+
+func _spawn_final_projectile(target: Node2D) -> void:
+	"""Spawn a projectile that will destroy enemy when it hits"""
+	if not target or not is_instance_valid(target):
+		return
+	
+	var projectile = PROJECTILE_SCENE.instantiate()
+	projectile.target = target
+	projectile.global_position = player_sprite.global_position
+	
+	# Connect to destroy enemy when hit
+	projectile.hit_target.connect(_on_projectile_hit_enemy)
+	
+	# Add to effects layer
+	effects_layer.add_child(projectile)
+
+func _on_projectile_hit_enemy(enemy: Node2D) -> void:
+	"""Called when final projectile hits enemy - destroy it"""
+	if enemy and is_instance_valid(enemy) and enemy.has_method("destroy"):
+		enemy.destroy()
 
 func _find_matching_enemy(text: String) -> Node2D:
 	if text.length() == 0:
@@ -223,18 +267,8 @@ func _update_typed_display() -> void:
 		target_word.visible = false
 
 func _update_targeting_beam() -> void:
-	"""Draw Line2D from player to current target"""
-	if current_target and is_instance_valid(current_target):
-		targeting_beam.visible = true
-		targeting_beam.clear_points()
-		targeting_beam.add_point(player_sprite.position)
-		targeting_beam.add_point(current_target.position)
-		
-		# Pulsing effect
-		var pulse = (sin(Time.get_ticks_msec() * 0.01) + 1.0) / 2.0
-		targeting_beam.default_color = Color(0, 1, 0.8, 0.4 + pulse * 0.4)
-	else:
-		targeting_beam.visible = false
+	"""Targeting beam disabled - projectiles show direction instead"""
+	targeting_beam.visible = false
 
 func _update_combo_display() -> void:
 	if combo_count >= 3:
@@ -259,7 +293,13 @@ func _spawn_enemy() -> void:
 		_show_wave_notification()
 		return
 	
-	var enemy = ENEMY_SCENE.instantiate()
+	# Pick random type first, then get correct scene
+	var enemy_type = ENEMY_TYPES[randi() % ENEMY_TYPES.size()]
+	var enemy_scene = ENEMY_SCENES.get(enemy_type, ENEMY_SCENES["virus"])
+	var enemy = enemy_scene.instantiate()
+	
+	# Attach enemy script for behavior
+	enemy.set_script(ENEMY_SCRIPT)
 	
 	# Use Marker2D spawn points
 	var spawn_markers = spawn_points.get_children()
@@ -268,7 +308,6 @@ func _spawn_enemy() -> void:
 	
 	# Set random word and type
 	var word = COMMANDS[randi() % COMMANDS.size()]
-	var enemy_type = ENEMY_TYPES[randi() % ENEMY_TYPES.size()]
 	
 	enemy.set_word(word)
 	enemy.set_enemy_type(enemy_type)

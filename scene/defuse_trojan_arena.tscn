@@ -1,16 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://c7dp51haxdi18"]
+[gd_scene load_steps=7 format=3 uid="uid://c7dp51haxdi18"]
 
 [ext_resource type="Script" uid="uid://cf1nxm68yi4di" path="res://script/defuse_trojan_arena.gd" id="1_arena"]
 [ext_resource type="Texture2D" uid="uid://88l8vo83x8qo" path="res://asset/defuse_trojan/space_background.jpg" id="2_rrukm"]
-[ext_resource type="Texture2D" uid="uid://k5cwsjew8xgt" path="res://asset/defuse_trojan/player_computer.jpg" id="3_player"]
+[ext_resource type="PackedScene" uid="uid://hf15tfqwkh2e" path="res://scene/defuse_trojan_player.tscn" id="3_player_scene"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_font"]
-[ext_resource type="Shader" uid="uid://0std1laue6d6" path="res://shader/remove_white_bg.gdshader" id="5_shader"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_player"]
-shader = ExtResource("5_shader")
-shader_parameter/white_threshold = 0.75
-shader_parameter/black_threshold = 0.15
-shader_parameter/smoothness = 0.1
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_defense"]
 size = Vector2(1400, 50)
@@ -69,11 +62,8 @@ default_color = Color(0, 1, 0.8, 0.6)
 begin_cap_mode = 2
 end_cap_mode = 2
 
-[node name="Player" type="Sprite2D" parent="GameLayer"]
-material = SubResource("ShaderMaterial_player")
-position = Vector2(585.89, 567.8)
-scale = Vector2(0.0998237, 0.0980469)
-texture = ExtResource("3_player")
+[node name="Player" parent="GameLayer" instance=ExtResource("3_player_scene")]
+position = Vector2(686, 585)
 
 [node name="PlayerDefenseZone" type="Area2D" parent="GameLayer" groups=["player_defense"]]
 position = Vector2(640, 750)
@@ -92,9 +82,10 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 21.0
-offset_right = -2.0
-offset_bottom = 21.0
+offset_left = 4.0
+offset_top = 68.0
+offset_right = 2.0
+offset_bottom = -420.0
 grow_horizontal = 2
 grow_vertical = 2
 scale = Vector2(1, 0.968688)

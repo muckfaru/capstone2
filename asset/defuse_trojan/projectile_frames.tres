@@ -1,0 +1,39 @@
+[gd_resource type="SpriteFrames" load_steps=6 format=3 uid="uid://ii3y8fova7pk"]
+
+[ext_resource type="Texture2D" uid="uid://dhm5kqrbo46dr" path="res://asset/defuse_trojan/projectile_spritesheet.jpg" id="1_sprite"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oktl4"]
+atlas = ExtResource("1_sprite")
+region = Rect2(0, 341, 256, 341)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0apup"]
+atlas = ExtResource("1_sprite")
+region = Rect2(768, 341, 256, 341)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pvxi0"]
+atlas = ExtResource("1_sprite")
+region = Rect2(256, 341, 256, 341)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8ilxe"]
+atlas = ExtResource("1_sprite")
+region = Rect2(512, 341, 256, 341)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_oktl4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0apup")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pvxi0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8ilxe")
+}],
+"loop": true,
+"name": &"fly",
+"speed": 12.0
+}]
