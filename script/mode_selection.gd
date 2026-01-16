@@ -32,6 +32,7 @@ const ICON_FUNDAMENTALS := preload("res://asset/icons/cyfunda.png")
 const ICON_NETWORK := preload("res://asset/icons/NBfun.png")
 const ICON_PASSWORD := preload("res://asset/icons/passwordfticon.png")
 const ICON_MALWARE := preload("res://asset/icons/malwaretpicon.png")
+const ICON_CIA_TRIAD := preload("res://asset/icons/cyfunda.png")  # Shield icon for CIA Triad
 const ICON_PHISHING := preload("res://asset/icons/phishinglbicon.png")
 const ICON_TROJAN := preload("res://asset/icons/Defuse the trojan 1.png")
 const ICON_DEFENSE := preload("res://asset/icons/firewall shield icon.png")
@@ -42,6 +43,7 @@ const ICON_ADVANCED := preload("res://asset/icons/hacker.png")
 # Tutorial metadata with time estimates and XP ranges
 const TUTORIAL_METADATA := {
 	"beginner_fundamentals": {"time": "10-15 min", "xp_range": "100-200 XP", "difficulty": 2},
+	"beginner_cia_triad": {"time": "5-8 min", "xp_range": "100-200 XP", "difficulty": 1},
 	"beginner_network": {"time": "12-18 min", "xp_range": "100-200 XP", "difficulty": 3},
 	"beginner_password": {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3},
 	"beginner_malware": {"time": "10-15 min", "xp_range": "100-200 XP", "difficulty": 2},
@@ -425,6 +427,7 @@ func _show_tutorial_menu(level: String) -> void:
 			level_int = 1
 			tutorials = [
 				{"name": "Cybersecurity Fundamentals (Start Here!)", "scene": "res://scene/tutorial_cyber_fundamentals.tscn", "id": "beginner_fundamentals"},
+				{"name": "CIA Triad Defender", "scene": "res://scene/tutorial_cia_triad.tscn", "id": "beginner_cia_triad"},
 				{"name": "Network Basics", "scene": "res://scene/tutorial_network_basics.tscn", "id": "beginner_network"},
 				{"name": "Password Fortress Defender", "scene": "res://scene/tutorial_password_basics.tscn", "id": "beginner_password"},
 				{"name": "Malware Types Overview", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware"}
@@ -806,6 +809,7 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	# Map tutorial ID to appropriate icon
 	var icon_map = {
 		"beginner_fundamentals": ICON_FUNDAMENTALS,
+		"beginner_cia_triad": ICON_CIA_TRIAD,
 		"beginner_network": ICON_NETWORK,
 		"beginner_password": ICON_PASSWORD,
 		"beginner_malware": ICON_MALWARE,
