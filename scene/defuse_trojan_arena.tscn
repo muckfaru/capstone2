@@ -6,7 +6,7 @@
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_font"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_defense"]
-size = Vector2(1400, 50)
+size = Vector2(1192, 50)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_bg"]
 bg_color = Color(0.15, 0.15, 0.2, 0.9)
@@ -30,8 +30,8 @@ motion_scale = Vector2(0.5, 0.5)
 motion_mirroring = Vector2(0, 720)
 
 [node name="Background" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
-position = Vector2(586.5, 417)
-scale = Vector2(1.12207, 0.888672)
+position = Vector2(551, 354.5)
+scale = Vector2(1.05273, 0.706055)
 texture = ExtResource("2_rrukm")
 
 [node name="GameLayer" type="Node2D" parent="."]
@@ -42,16 +42,16 @@ texture = ExtResource("2_rrukm")
 position = Vector2(150, -80)
 
 [node name="SpawnCenterLeft" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(384, -80)
+position = Vector2(308, -86)
 
 [node name="SpawnCenter" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(615, -80)
+position = Vector2(500, -86)
 
 [node name="SpawnCenterRight" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(841, -80)
+position = Vector2(710, -84)
 
 [node name="SpawnRight" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(1076, -80)
+position = Vector2(945, -88)
 
 [node name="EnemyContainer" type="Node2D" parent="GameLayer"]
 
@@ -63,7 +63,7 @@ begin_cap_mode = 2
 end_cap_mode = 2
 
 [node name="Player" parent="GameLayer" instance=ExtResource("3_player_scene")]
-position = Vector2(686, 585)
+position = Vector2(600, 591)
 
 [node name="PlayerDefenseZone" type="Area2D" parent="GameLayer" groups=["player_defense"]]
 position = Vector2(640, 750)
@@ -71,6 +71,8 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GameLayer/PlayerDefenseZone"]
+visible = false
+position = Vector2(-104, 0)
 shape = SubResource("RectangleShape2D_defense")
 
 [node name="EffectsLayer" type="Node2D" parent="."]
@@ -82,13 +84,12 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 4.0
-offset_top = 68.0
-offset_right = 2.0
-offset_bottom = -420.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = 3.0
+offset_bottom = -6.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(1, 0.968688)
 
 [node name="TopBar" type="HBoxContainer" parent="CanvasLayer/UI"]
 layout_mode = 0
@@ -142,12 +143,15 @@ theme_override_font_sizes/font_size = 14
 text = "HP: 100/100"
 
 [node name="ScoreContainer" type="VBoxContainer" parent="CanvasLayer/UI"]
-layout_mode = 0
-offset_left = 1000.0
-offset_top = 15.0
-offset_right = 1260.0
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_top = 10.0
+offset_right = -10.0
 offset_bottom = 100.0
-scale = Vector2(0.598498, 1.26852)
+grow_horizontal = 0
 theme_override_constants/separation = 5
 
 [node name="ScoreLabel" type="Label" parent="CanvasLayer/UI/ScoreContainer"]

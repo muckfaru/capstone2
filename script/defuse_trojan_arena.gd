@@ -45,6 +45,7 @@ var base_spawn_interval: float = 2.5
 var min_spawn_interval: float = 0.8
 var enemies_per_wave: int = 5
 var enemies_spawned_this_wave: int = 0
+var wave_spawning_complete: bool = false # True when all enemies for wave have been spawned
 
 # Parallax scrolling
 var scroll_speed: float = 50.0
@@ -89,6 +90,7 @@ func _start_game() -> void:
 	wave = 1
 	enemies_destroyed = 0
 	enemies_spawned_this_wave = 0
+	wave_spawning_complete = false
 	combo_count = 0
 	game_over = false
 	typed_text = ""
@@ -104,13 +106,18 @@ func _process(delta: float) -> void:
 	# Parallax scrolling effect
 	parallax_bg.scroll_offset.y += scroll_speed * delta
 	
-	# Spawn enemies
-	spawn_timer += delta
-	var spawn_interval = max(base_spawn_interval - (wave * 0.15), min_spawn_interval)
-	
-	if spawn_timer >= spawn_interval:
-		spawn_timer = 0.0
-		_spawn_enemy()
+	# Spawn enemies only if wave spawning not complete
+	if not wave_spawning_complete:
+		spawn_timer += delta
+		var spawn_interval = max(base_spawn_interval - (wave * 0.15), min_spawn_interval)
+		
+		if spawn_timer >= spawn_interval:
+			spawn_timer = 0.0
+			_spawn_enemy()
+	else:
+		# Check if all enemies are cleared - advance to next wave
+		if enemy_container.get_child_count() == 0:
+			_advance_to_next_wave()
 	
 	# Update targeting beam
 	_update_targeting_beam()
@@ -127,7 +134,13 @@ func _input(event: InputEvent) -> void:
 		if key_event.keycode == KEY_BACKSPACE:
 			if typed_text.length() > 0:
 				typed_text = typed_text.substr(0, typed_text.length() - 1)
-				_update_typed_display()
+				# If text is now empty, clear target completely
+				if typed_text.length() == 0:
+					_clear_typing()
+				else:
+					# Re-evaluate target based on new shorter text
+					_reevaluate_target()
+					_update_typed_display()
 			return
 		
 		# Handle escape to clear
@@ -141,65 +154,147 @@ func _input(event: InputEvent) -> void:
 			_process_typing()
 
 func _process_typing() -> void:
-	# If no target, find one that starts with typed text
-	if current_target == null or not is_instance_valid(current_target):
-		current_target = _find_matching_enemy(typed_text)
+	var last_letter = typed_text.substr(typed_text.length() - 1, 1) if typed_text.length() > 0 else ""
 	
-	if current_target and is_instance_valid(current_target):
-		var enemy = current_target as Node2D
+	# CASE 1: Check if typed_text matches any enemy's word prefix
+	var word_match = _find_matching_enemy(typed_text)
+	if word_match:
+		_handle_match(word_match, typed_text)
+		return
+	
+	# CASE 2: Check if typed_text continues any enemy's stored progress
+	# e.g., enemy has stored "REGE", typed_text is "REGED" -> continue
+	for enemy in enemy_container.get_children():
+		if enemy.has_method("get_typed_progress"):
+			var stored = enemy.get_typed_progress()
+			if stored.length() > 0 and typed_text == stored + last_letter:
+				# This typed_text continues the stored progress
+				if enemy.word.begins_with(typed_text):
+					_handle_match(enemy, typed_text)
+					return
+	
+	# CASE 3: Check if last letter can start/continue a DIFFERENT enemy
+	if last_letter.length() > 0:
+		# Check enemies with stored progress that can be continued with this letter
+		for enemy in enemy_container.get_children():
+			if enemy == current_target:
+				continue
+			if enemy.has_method("get_typed_progress"):
+				var stored = enemy.get_typed_progress()
+				if stored.length() > 0:
+					var continued = stored + last_letter
+					if enemy.word.begins_with(continued):
+						# Can continue this enemy's stored progress
+						_switch_to_enemy(enemy, continued)
+						return
 		
-		# Check if current typed text matches target word
-		if enemy.word.begins_with(typed_text):
-			# Correct keystroke!
-			if enemy.has_method("set_targeted"):
-				enemy.set_targeted(true)
-				enemy.update_typed_progress(typed_text)
-			
-			# Check for complete match
-			if typed_text == enemy.word:
-				combo_count += 1
-				# Spawn final projectile that will destroy enemy on hit
-				_spawn_final_projectile(enemy)
-				_clear_typing()
-			else:
-				# Spawn regular projectile on correct keystroke
-				_spawn_projectile(enemy)
-		else:
-			# Wrong keystroke - remove the last typed letter and try to find new target
-			typed_text = typed_text.substr(0, typed_text.length() - 1)
-			
-			# Try to find enemy matching current text
-			var new_target = _find_matching_enemy(typed_text + OS.get_keycode_string(0))
-			if new_target == null:
-				# No match at all - flash error
-				typed_display.modulate = Color(1, 0.3, 0.3)
-				var tween = create_tween()
-				tween.tween_property(typed_display, "modulate", Color(1, 1, 1), 0.2)
-				combo_count = 0
-	else:
-		# No current target - try to find one matching typed text
-		current_target = _find_matching_enemy(typed_text)
-		
-		if current_target and is_instance_valid(current_target):
-			# Found a new target
-			current_target.set_targeted(true)
-			current_target.update_typed_progress(typed_text)
-			_spawn_projectile(current_target)
-		elif typed_text.length() > 0:
-			# No matching enemy - remove last letter and flash error
-			typed_text = typed_text.substr(0, typed_text.length() - 1)
-			typed_display.modulate = Color(1, 0.3, 0.3)
-			var tween = create_tween()
-			tween.tween_property(typed_display, "modulate", Color(1, 1, 1), 0.2)
+		# Check if last letter starts any enemy word
+		var fresh_match = _find_matching_enemy(last_letter)
+		if fresh_match and fresh_match != current_target:
+			_switch_to_enemy(fresh_match, last_letter)
+			return
+	
+	# CASE 4: No match at all - remove last letter and flash error
+	typed_text = typed_text.substr(0, typed_text.length() - 1)
+	typed_display.modulate = Color(1, 0.3, 0.3)
+	var tween = create_tween()
+	tween.tween_property(typed_display, "modulate", Color(1, 1, 1), 0.2)
+	combo_count = 0
 	
 	_update_typed_display()
 	_update_combo_display()
+
+func _handle_match(enemy: Node2D, text: String) -> void:
+	"""Handle a successful match - update target and fire projectile"""
+	var is_new_target = (current_target == null) or not is_instance_valid(current_target)
+	var is_switching = not is_new_target and (enemy != current_target)
+	
+	if is_switching:
+		if current_target.has_method("set_targeted"):
+			current_target.set_targeted(false)
+		current_target = enemy
+		if current_target.has_method("set_targeted"):
+			current_target.set_targeted(true)
+			current_target.update_typed_progress(text)
+		# Don't fire projectile when switching
+	elif is_new_target:
+		current_target = enemy
+		if current_target.has_method("set_targeted"):
+			current_target.set_targeted(true)
+			current_target.update_typed_progress(text)
+		_spawn_projectile(current_target)
+	else:
+		# Continuing same target
+		if current_target.has_method("set_targeted"):
+			current_target.update_typed_progress(text)
+		
+		if text == current_target.word:
+			combo_count += 1
+			_spawn_final_projectile(current_target)
+			_clear_typing()
+		else:
+			_spawn_projectile(current_target)
+	
+	_update_typed_display()
+	_update_combo_display()
+
+func _switch_to_enemy(enemy: Node2D, new_typed_text: String) -> void:
+	"""Switch to a different enemy with specified typed text"""
+	if current_target and is_instance_valid(current_target) and current_target.has_method("set_targeted"):
+		current_target.set_targeted(false)
+	
+	current_target = enemy
+	typed_text = new_typed_text
+	
+	if current_target.has_method("set_targeted"):
+		current_target.set_targeted(true)
+		current_target.update_typed_progress(typed_text)
+	
+	_spawn_projectile(current_target)
+	_update_typed_display()
+	_update_combo_display()
+
+func _find_enemy_with_stored_progress(text: String) -> Node2D:
+	"""Find an enemy that has stored progress matching the typed text, 
+	OR where the text continues from their stored progress.
+	Returns the closest matching enemy (nearest to player/bottom)."""
+	if text.length() == 0:
+		return null
+	
+	var closest_enemy: Node2D = null
+	var closest_distance: float = INF
+	
+	for enemy in enemy_container.get_children():
+		if enemy.has_method("get_typed_progress"):
+			var stored = enemy.get_typed_progress()
+			if stored.length() > 0:
+				var matches = false
+				# Check if stored progress begins with text (returning to previous)
+				if stored.begins_with(text):
+					matches = true
+				# Check if typed text would CONTINUE the stored progress
+				# e.g., stored="TASK", text="K", word="TASKKILL" -> "TASK"+"K"="TASKK" matches word
+				var continued = stored + text
+				if enemy.word.begins_with(continued):
+					matches = true
+				
+				if matches:
+					# Get distance to bottom (closer = more urgent = higher priority)
+					var distance_to_bottom = get_viewport_rect().size.y - enemy.position.y
+					if distance_to_bottom < closest_distance:
+						closest_distance = distance_to_bottom
+						closest_enemy = enemy
+	
+	return closest_enemy
 
 
 func _spawn_projectile(target: Node2D) -> void:
 	"""Spawn a projectile from player to target enemy"""
 	if not target or not is_instance_valid(target):
 		return
+	
+	# Rotate player to face target
+	_rotate_player_to_target(target)
 	
 	var projectile = PROJECTILE_SCENE.instantiate()
 	projectile.target = target
@@ -213,6 +308,9 @@ func _spawn_final_projectile(target: Node2D) -> void:
 	if not target or not is_instance_valid(target):
 		return
 	
+	# Rotate player to face target
+	_rotate_player_to_target(target)
+	
 	var projectile = PROJECTILE_SCENE.instantiate()
 	projectile.target = target
 	projectile.global_position = player_sprite.global_position
@@ -222,6 +320,18 @@ func _spawn_final_projectile(target: Node2D) -> void:
 	
 	# Add to effects layer
 	effects_layer.add_child(projectile)
+
+func _rotate_player_to_target(target: Node2D) -> void:
+	"""Smoothly rotate player to face the target"""
+	if not target or not is_instance_valid(target):
+		return
+	
+	var direction = target.global_position - player_sprite.global_position
+	var target_angle = direction.angle() + PI / 2 # Add PI/2 because sprite faces up by default
+	
+	# Smooth rotation using tween
+	var tween = create_tween()
+	tween.tween_property(player_sprite, "rotation", target_angle, 0.1).set_ease(Tween.EASE_OUT)
 
 func _on_projectile_hit_enemy(enemy: Node2D) -> void:
 	"""Called when final projectile hits enemy - destroy it"""
@@ -252,6 +362,34 @@ func _clear_typing() -> void:
 	current_target = null
 	targeting_beam.visible = false
 	_update_typed_display()
+
+func _reevaluate_target() -> void:
+	"""Re-evaluate which enemy should be targeted based on current typed_text"""
+	if typed_text.length() == 0:
+		_clear_typing()
+		return
+	
+	var best_match = _find_matching_enemy(typed_text)
+	
+	if best_match:
+		# If current target doesn't match anymore, switch
+		if current_target and is_instance_valid(current_target):
+			if not current_target.word.begins_with(typed_text):
+				# Current target no longer matches, switch to best_match
+				current_target.set_targeted(false)
+				current_target = best_match
+				current_target.set_targeted(true)
+				current_target.update_typed_progress(typed_text)
+		else:
+			# No current target, set the best match
+			current_target = best_match
+			current_target.set_targeted(true)
+			current_target.update_typed_progress(typed_text)
+	else:
+		# No enemy matches anymore, clear target
+		if current_target and is_instance_valid(current_target):
+			current_target.set_targeted(false)
+		current_target = null
 
 func _update_typed_display() -> void:
 	# Use RichTextLabel for colored typing
@@ -286,11 +424,11 @@ func _update_combo_display() -> void:
 
 # === Enemy Management ===
 func _spawn_enemy() -> void:
-	if enemies_spawned_this_wave >= enemies_per_wave + wave:
-		# Wave complete, advance
-		wave += 1
-		enemies_spawned_this_wave = 0
-		_show_wave_notification()
+	var enemies_this_wave = enemies_per_wave + wave
+	
+	if enemies_spawned_this_wave >= enemies_this_wave:
+		# All enemies for this wave have been spawned
+		wave_spawning_complete = true
 		return
 	
 	# Pick random type first, then get correct scene
@@ -321,6 +459,14 @@ func _spawn_enemy() -> void:
 	
 	enemy_container.add_child(enemy)
 	enemies_spawned_this_wave += 1
+
+func _advance_to_next_wave() -> void:
+	"""Called when all enemies in current wave are destroyed"""
+	wave += 1
+	enemies_spawned_this_wave = 0
+	wave_spawning_complete = false
+	spawn_timer = 0.0
+	_show_wave_notification()
 
 func _destroy_enemy(enemy: Node2D) -> void:
 	if enemy and is_instance_valid(enemy):

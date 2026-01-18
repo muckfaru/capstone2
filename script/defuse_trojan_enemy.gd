@@ -3,10 +3,11 @@ class_name DefuseTrojanEnemy
 
 # Enemy properties
 var word: String = ""
-var speed: float = 80.0
+var speed: float = 10.0
 var enemy_type: String = "virus"
 var is_targeted: bool = false
 var is_initialized: bool = false
+var current_typed_text: String = "" # Stores player's typing progress on this enemy
 
 # Animation
 var idle_tween: Tween
@@ -149,12 +150,19 @@ func set_targeted(targeted: bool) -> void:
 	else:
 		if target_indicator:
 			target_indicator.visible = false
+		# Keep showing progress if there IS stored progress (so player can see incomplete words)
 		if typed_progress:
-			typed_progress.visible = false
+			if current_typed_text.length() > 0:
+				typed_progress.visible = true # Keep visible with progress
+			else:
+				typed_progress.visible = false
 		if animated_sprite:
 			animated_sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 func update_typed_progress(typed: String) -> void:
+	# Store the progress
+	current_typed_text = typed
+	
 	if not typed_progress:
 		return
 	
@@ -166,6 +174,10 @@ func update_typed_progress(typed: String) -> void:
 	
 	if word_label:
 		word_label.visible = false
+
+func get_typed_progress() -> String:
+	"""Returns the stored typed progress for this enemy"""
+	return current_typed_text
 
 func get_points() -> int:
 	if ENEMY_CONFIGS.has(enemy_type):
