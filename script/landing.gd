@@ -3035,10 +3035,10 @@ func _check_intro_completion() -> void:
 	var url = firestore_base_url + "/%s" % Auth.current_local_id
 	var headers = ["Authorization: Bearer " + Auth.current_id_token]
 	
-	var http = HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(func(_r, code, _h, body):
-		http.queue_free()
+	var intro_http = HTTPRequest.new()
+	add_child(intro_http)
+	intro_http.request_completed.connect(func(_r, code, _h, body):
+		intro_http.queue_free()
 		if code == 200:
 			var json = JSON.parse_string(body.get_string_from_utf8())
 			if json and json.has("fields"):
@@ -3435,6 +3435,27 @@ func _go_to_code_breaker_lobby() -> void:
 	var code_breaker_lobby = $VideoStreamPlayer/CodeBreakerLobby
 	if code_breaker_lobby:
 		code_breaker_lobby.visible = true
+
+
+func _go_to_defuse_trojan_lobby() -> void:
+	"""Show Defuse The Trojan lobby panel (single/multiplayer selection)"""
+	var game_select_panel = $VideoStreamPlayer/GameSelectPanel
+	if game_select_panel:
+		game_select_panel.visible = false
+
+	var code_breaker_lobby = $VideoStreamPlayer.get_node_or_null("CodeBreakerLobby")
+	if code_breaker_lobby:
+		code_breaker_lobby.visible = false
+
+	var akashic_lobby = $VideoStreamPlayer.get_node_or_null("AkashicLobby")
+	if akashic_lobby:
+		akashic_lobby.visible = false
+
+	var defuse_lobby = $VideoStreamPlayer.get_node_or_null("DefuseTrojanLobby")
+	if defuse_lobby:
+		defuse_lobby.visible = true
+	else:
+		push_error("[Landing] DefuseTrojanLobby not found")
 
 
 func _show_locked_game_dialog(game_name: String, required_xp: int) -> void:
@@ -3902,5 +3923,5 @@ func _show_mystery_reward_popup(tutorial_type: String, card_path: String, card_n
 func _on_defuse_trojan_card_input(event: InputEvent) -> void:
 	"""Handle click on DefuseTheTrojan game card to launch the typing game"""
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		print("[Landing] 🎮 DefuseTheTrojan card clicked - launching game!")
-		get_tree().change_scene_to_file("res://scene/defuse_trojan_arena.tscn")
+		print("[Landing] 🎮 DefuseTheTrojan card clicked - opening lobby!")
+		_go_to_defuse_trojan_lobby()

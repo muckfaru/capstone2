@@ -243,6 +243,7 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 		_client_status.add_theme_color_override("font_color", (COLOR_ACCENT if client_ready else COLOR_DANGER))
 		if not _last_client_present:
 			_message_label.text = "Player joined!"
+			_play_client_join_animations()
 		CardCosmetics.apply_card_background(_client_card_node, str(client_val.get("card_bg", "")))
 	else:
 		_client_username.text = "."
@@ -251,6 +252,7 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 		_client_status.add_theme_color_override("font_color", COLOR_MUTED)
 		if _last_client_present:
 			_message_label.text = "Player left."
+			_play_client_leave_animations()
 		CardCosmetics.apply_card_background(_client_card_node, "")
 
 	_last_client_present = client_present
@@ -269,6 +271,35 @@ func _apply_lobby_room_snapshot(room_data: Dictionary) -> void:
 		# Keep toggle label consistent for client
 		if _start_btn.toggle_mode:
 			_start_btn.text = ("NOT READY" if _start_btn.button_pressed else "READY")
+
+
+func _play_client_join_animations() -> void:
+	# Keep parity with Code Breaker room UI: slide in client banners and fade card in.
+	var username_anim: AnimationPlayer = get_node_or_null("CardsContainer/ClientCard/Username/AnimationPlayer")
+	if username_anim and username_anim.has_animation("usrreadyani"):
+		username_anim.play("usrreadyani")
+
+	var status_anim: AnimationPlayer = get_node_or_null("CardsContainer/ClientCard/StatusLabel/AnimationPlayer")
+	if status_anim and status_anim.has_animation("usersearchingani"):
+		status_anim.play("usersearchingani")
+
+	var card_anim: AnimationPlayer = get_node_or_null("CardsContainer/ClientCard/AnimationPlayer")
+	if card_anim and card_anim.has_animation("usercardani"):
+		card_anim.play("usercardani")
+
+
+func _play_client_leave_animations() -> void:
+	var username_anim: AnimationPlayer = get_node_or_null("CardsContainer/ClientCard/Username/AnimationPlayer")
+	if username_anim and username_anim.has_animation("usrreadyani"):
+		username_anim.play_backwards("usrreadyani")
+
+	var status_anim: AnimationPlayer = get_node_or_null("CardsContainer/ClientCard/StatusLabel/AnimationPlayer")
+	if status_anim and status_anim.has_animation("usersearchingani"):
+		status_anim.play_backwards("usersearchingani")
+
+	var card_anim: AnimationPlayer = get_node_or_null("CardsContainer/ClientCard/AnimationPlayer")
+	if card_anim and card_anim.has_animation("usercardani"):
+		card_anim.play_backwards("usercardani")
 
 
 func _sync_my_card_bg_to_lobby(bg_path: String) -> void:

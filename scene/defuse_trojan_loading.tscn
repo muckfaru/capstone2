@@ -1,16 +1,15 @@
-[gd_scene load_steps=18 format=3 uid="uid://d0qf24p3a6y2u"]
+[gd_scene load_steps=20 format=3 uid="uid://defuse_trojan_loading_3cards"]
 
-[ext_resource type="Script" uid="uid://cdppdccc6tg5v" path="res://script/akashic_tcg_loading.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2_t2ari"]
-[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_6f2f8"]
-[ext_resource type="Texture2D" uid="uid://bygqhgnnbr22t" path="res://asset/avatars/avatar1.png" id="3_s05oh"]
-[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_vxpl8"]
-[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="4_fkxen"]
+[ext_resource type="Script" path="res://script/defuse_trojan_loading.gd" id="1"]
+[ext_resource type="Texture2D" path="res://asset/background/Akashic room background.png" id="2"]
+[ext_resource type="FontFile" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3"]
+[ext_resource type="FontFile" path="res://asset/fonts/Audiowide-Regular.ttf" id="4"]
+[ext_resource type="FontFile" path="res://asset/fonts/BraahOne-Regular.ttf" id="5"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6f2f8"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0, 0, 0, 0.619608)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r0dwr"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_host_name"]
 bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
 border_color = Color(0.490196, 0.654902, 1, 0.545098)
 corner_radius_top_left = 15
@@ -18,7 +17,7 @@ corner_radius_top_right = 15
 shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 shadow_size = 3
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s05oh"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_host_bg"]
 bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
 border_width_left = 2
 border_width_top = 2
@@ -30,7 +29,7 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vxpl8"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_host_fill"]
 bg_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 border_width_left = 2
 border_width_top = 2
@@ -42,7 +41,7 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fkxen"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_border"]
 bg_color = Color(0.490196, 0.654902, 1, 0.545098)
 border_width_left = 2
 border_width_top = 2
@@ -54,7 +53,7 @@ corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v3hda"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_border_bottom"]
 bg_color = Color(0.490196, 0.654902, 1, 0.545098)
 border_width_left = 2
 border_width_top = 2
@@ -62,13 +61,13 @@ border_color = Color(0.490196, 0.654902, 1, 0.545098)
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7hl1v"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_name"]
 bg_color = Color(0.380392, 0.0784314, 0.109804, 1)
 border_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hy7ut"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_bg"]
 bg_color = Color(0.380392, 0.0784314, 0.109804, 0.321569)
 border_width_left = 2
 border_width_top = 2
@@ -80,7 +79,7 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1btx4"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_fill"]
 bg_color = Color(0.380392, 0.0784314, 0.109804, 1)
 border_width_left = 2
 border_width_top = 2
@@ -92,7 +91,7 @@ corner_radius_top_right = 2
 corner_radius_bottom_right = 2
 corner_radius_bottom_left = 2
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_84w3l"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_sep"]
 bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
 border_width_left = 2
 border_width_top = 2
@@ -100,7 +99,7 @@ border_color = Color(0.380392, 0.0784314, 0.109804, 1)
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ebujj"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_vsep"]
 bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
 border_width_left = 2
 border_width_top = 2
@@ -108,7 +107,7 @@ border_color = Color(0.380392, 0.0784314, 0.109804, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 
-[node name="AkashicTCGLoading" type="Control"]
+[node name="DefuseTrojanLoading" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -123,28 +122,28 @@ offset_left = -17.0
 offset_top = -13.0
 offset_right = 1170.0
 offset_bottom = 668.0
-texture = ExtResource("2_t2ari")
+texture = ExtResource("2")
 
 [node name="Panel" type="Panel" parent="NinePatchRect"]
 layout_mode = 0
 offset_right = 1178.0
 offset_bottom = 675.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_6f2f8")
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="TitleLabel" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -200.0
+offset_left = -240.0
 offset_top = 50.0
-offset_right = 200.0
+offset_right = 240.0
 offset_bottom = 100.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
-theme_override_fonts/font = ExtResource("3_vxpl8")
+theme_override_fonts/font = ExtResource("4")
 theme_override_font_sizes/font_size = 32
-text = "AKASHIC TCG"
+text = "DEFUSE THE TROJAN"
 horizontal_alignment = 1
 
 [node name="HostCard" type="NinePatchRect" parent="."]
@@ -168,9 +167,9 @@ offset_top = -36.0
 offset_right = 133.0
 offset_bottom = -2.0
 grow_horizontal = 2
-theme_override_fonts/font = ExtResource("4_fkxen")
+theme_override_fonts/font = ExtResource("5")
 theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_r0dwr")
+theme_override_styles/normal = SubResource("StyleBoxFlat_host_name")
 text = "Player 1"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -207,28 +206,23 @@ offset_right = 125.0
 offset_bottom = 21.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_styles/background = SubResource("StyleBoxFlat_s05oh")
-theme_override_styles/fill = SubResource("StyleBoxFlat_vxpl8")
+theme_override_styles/background = SubResource("StyleBoxFlat_host_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_host_fill")
 show_percentage = false
-
-[node name="Avatar1" type="Sprite2D" parent="HostCard"]
-visible = false
-position = Vector2(131, 82)
-texture = ExtResource("3_s05oh")
 
 [node name="VSeparator" type="VSeparator" parent="HostCard"]
 layout_mode = 0
 offset_left = -4.0
 offset_top = -3.0
 offset_bottom = 402.0
-theme_override_styles/separator = SubResource("StyleBoxFlat_fkxen")
+theme_override_styles/separator = SubResource("StyleBoxFlat_border")
 
 [node name="HSeparator" type="HSeparator" parent="HostCard"]
 layout_mode = 0
 offset_left = -3.0
 offset_top = -4.0
 offset_right = 262.0
-theme_override_styles/separator = SubResource("StyleBoxFlat_v3hda")
+theme_override_styles/separator = SubResource("StyleBoxFlat_border_bottom")
 
 [node name="HSeparator2" type="HSeparator" parent="HostCard"]
 layout_mode = 0
@@ -236,7 +230,7 @@ offset_left = -4.0
 offset_top = 399.0
 offset_right = 261.0
 offset_bottom = 403.0
-theme_override_styles/separator = SubResource("StyleBoxFlat_v3hda")
+theme_override_styles/separator = SubResource("StyleBoxFlat_border_bottom")
 
 [node name="VSeparator2" type="VSeparator" parent="HostCard"]
 layout_mode = 0
@@ -244,46 +238,21 @@ offset_left = 260.0
 offset_top = -2.0
 offset_right = 264.0
 offset_bottom = 402.0
-theme_override_styles/separator = SubResource("StyleBoxFlat_fkxen")
+theme_override_styles/separator = SubResource("StyleBoxFlat_border")
 
-[node name="VSLabel" type="Label" parent="."]
+[node name="ClientCard" type="NinePatchRect" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -50.0
-offset_top = -30.0
-offset_right = 50.0
-offset_bottom = 30.0
+offset_left = -130.0
+offset_top = -150.0
+offset_right = 130.0
+offset_bottom = 250.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(1, 0.36, 0.43, 1)
-theme_override_fonts/font = ExtResource("3_6f2f8")
-theme_override_font_sizes/font_size = 48
-text = "VS"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="ClientCard" type="NinePatchRect" parent="."]
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -360.0
-offset_top = -150.0
-offset_right = -100.0
-offset_bottom = 250.0
-grow_horizontal = 0
-grow_vertical = 2
-
-[node name="Avatar1" type="Sprite2D" parent="ClientCard"]
-visible = false
-position = Vector2(128, 82)
-texture = ExtResource("3_s05oh")
 
 [node name="ClientUsername" type="Label" parent="ClientCard"]
 layout_mode = 1
@@ -294,9 +263,9 @@ offset_left = -132.0
 offset_top = -34.0
 offset_right = 132.0
 grow_horizontal = 2
-theme_override_fonts/font = ExtResource("4_fkxen")
+theme_override_fonts/font = ExtResource("5")
 theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_7hl1v")
+theme_override_styles/normal = SubResource("StyleBoxFlat_client_name")
 text = "Player 2"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -333,8 +302,8 @@ offset_right = 122.0
 offset_bottom = 19.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_styles/background = SubResource("StyleBoxFlat_hy7ut")
-theme_override_styles/fill = SubResource("StyleBoxFlat_1btx4")
+theme_override_styles/background = SubResource("StyleBoxFlat_client_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_client_fill")
 show_percentage = false
 
 [node name="HSeparator" type="HSeparator" parent="ClientCard"]
@@ -342,7 +311,7 @@ layout_mode = 0
 offset_top = -3.0
 offset_right = 262.0
 offset_bottom = 1.0
-theme_override_styles/separator = SubResource("StyleBoxFlat_84w3l")
+theme_override_styles/separator = SubResource("StyleBoxFlat_client_sep")
 
 [node name="HSeparator2" type="HSeparator" parent="ClientCard"]
 layout_mode = 0
@@ -350,7 +319,7 @@ offset_left = -1.0
 offset_top = 399.0
 offset_right = 262.0
 offset_bottom = 403.0
-theme_override_styles/separator = SubResource("StyleBoxFlat_84w3l")
+theme_override_styles/separator = SubResource("StyleBoxFlat_client_sep")
 
 [node name="VSeparator" type="VSeparator" parent="ClientCard"]
 layout_mode = 0
@@ -358,7 +327,7 @@ offset_left = -4.0
 offset_top = -2.0
 offset_right = 2.0
 offset_bottom = 401.0
-theme_override_styles/separator = SubResource("StyleBoxFlat_ebujj")
+theme_override_styles/separator = SubResource("StyleBoxFlat_client_vsep")
 
 [node name="VSeparator2" type="VSeparator" parent="ClientCard"]
 layout_mode = 0
@@ -366,10 +335,107 @@ offset_left = 258.0
 offset_top = -1.0
 offset_right = 264.0
 offset_bottom = 402.0
-theme_override_styles/separator = SubResource("StyleBoxFlat_ebujj")
+theme_override_styles/separator = SubResource("StyleBoxFlat_client_vsep")
+
+[node name="Client2Card" type="NinePatchRect" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -150.0
+offset_right = -100.0
+offset_bottom = 250.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="Client2Username" type="Label" parent="Client2Card"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -132.0
+offset_top = -34.0
+offset_right = 132.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_client_name")
+text = "Player 3"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Client2Status" type="Label" parent="Client2Card"]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.36, 0.43, 1)
+theme_override_font_sizes/font_size = 18
+text = "⏳ Loading..."
+horizontal_alignment = 1
+
+[node name="Client2ProgressBar" type="ProgressBar" parent="Client2Card"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -118.0
+offset_top = 5.0
+offset_right = 122.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_client_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_client_fill")
+show_percentage = false
+
+[node name="HSeparator" type="HSeparator" parent="Client2Card"]
+layout_mode = 0
+offset_top = -3.0
+offset_right = 262.0
+offset_bottom = 1.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_client_sep")
+
+[node name="HSeparator2" type="HSeparator" parent="Client2Card"]
+layout_mode = 0
+offset_left = -1.0
+offset_top = 399.0
+offset_right = 262.0
+offset_bottom = 403.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_client_sep")
+
+[node name="VSeparator" type="VSeparator" parent="Client2Card"]
+layout_mode = 0
+offset_left = -4.0
+offset_top = -2.0
+offset_right = 2.0
+offset_bottom = 401.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_client_vsep")
+
+[node name="VSeparator2" type="VSeparator" parent="Client2Card"]
+layout_mode = 0
+offset_left = 258.0
+offset_top = -1.0
+offset_right = 264.0
+offset_bottom = 402.0
+theme_override_styles/separator = SubResource("StyleBoxFlat_client_vsep")
 
 [node name="StatusMessage" type="Label" parent="."]
-visible = false
+visible = true
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -384,5 +450,5 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0.82, 1, 1)
 theme_override_font_sizes/font_size = 20
-text = "Waiting "
+text = "Syncing players..."
 horizontal_alignment = 1

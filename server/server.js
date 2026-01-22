@@ -71,6 +71,7 @@ app.post('/api/rooms/create', (req, res) => {
     room_name,
     game_type,
     host_card_bg,
+    max_players,
     public_ip,
     port,
     is_lan
@@ -90,8 +91,13 @@ app.post('/api/rooms/create', (req, res) => {
 
   // Normalize/validate game_type so lobbies can filter reliably.
   const normalizedGameType = typeof game_type === 'string' ? game_type.trim().toLowerCase() : '';
-  const allowedGameTypes = new Set(['code_breaker', 'akashic_tcg']);
+  const allowedGameTypes = new Set(['code_breaker', 'akashic_tcg', 'defuse_trojan']);
   const finalGameType = allowedGameTypes.has(normalizedGameType) ? normalizedGameType : 'code_breaker';
+
+  // Allow room size override for specific game types; clamp to [2..3] for now.
+  const requestedMax = Number.isFinite(Number(max_players)) ? Number(max_players) : null;
+  let finalMaxPlayers = requestedMax != null ? requestedMax : (finalGameType === 'defuse_trojan' ? 3 : 2);
+  finalMaxPlayers = Math.max(2, Math.min(3, finalMaxPlayers));
 
   // Create room data (Option B: public_ip/port optional)
   const room_data = {
@@ -108,9 +114,11 @@ app.post('/api/rooms/create', (req, res) => {
       port: port || null,                 // Optional for relay
       is_lan: is_lan || false
     },
-    client: null,              // No client yet
+    client: null,              // 2nd player slot (legacy)
+    client2: null,             // 3rd player slot (used by defuse_trojan)
     status: 'waiting',         // waiting | in_game | finished
-    max_players: 2,
+    game_start_time_ms: 0,     // scheduled start timestamp (server time, ms since epoch)
+    max_players: finalMaxPlayers,
     current_players: 1,
     created_at: now,
     last_heartbeat: now
@@ -214,7 +222,9 @@ app.get('/api/rooms/:room_id', (req, res) => {
     game_type: room.game_type,
     host: room.host,
     client: room.client,
+    client2: room.client2,
     status: room.status,
+    game_start_time_ms: room.game_start_time_ms || 0,
     current_players: room.current_players,
     max_players: room.max_players,
     created_at: room.created_at,
@@ -262,7 +272,9 @@ app.post('/api/rooms/:room_id/join', (req, res) => {
   }
 
   // Check if room is full
-  if (room.client) {
+  const maxPlayers = typeof room.max_players === 'number' ? room.max_players : 2;
+  const currentPlayers = Number(room.current_players || 1);
+  if (currentPlayers >= maxPlayers) {
     return res.status(400).json({
       error: 'Room is full'
     });
@@ -276,15 +288,26 @@ app.post('/api/rooms/:room_id/join', (req, res) => {
     });
   }
 
-  // Add client to room
-  room.client = {
+  // Add client to room (supports up to 3 players with client2)
+  const joiningPlayer = {
     player_id: client_id,
     username: client_username,
     avatar: client_avatar || 'default.png',
     level: client_level || 1,
     card_bg: typeof client_card_bg === 'string' ? client_card_bg : ''
   };
-  room.current_players = 2;
+
+  if (!room.client) {
+    room.client = joiningPlayer;
+  } else if (maxPlayers >= 3 && !room.client2) {
+    room.client2 = joiningPlayer;
+  } else {
+    return res.status(400).json({
+      error: 'Room is full'
+    });
+  }
+
+  room.current_players = Math.min(maxPlayers, currentPlayers + 1);
   room.last_heartbeat = Date.now();
 
   console.log(`[Lobby] ${client_username} joined room ${room_id}`);
@@ -327,7 +350,7 @@ app.post('/api/rooms/:room_id/heartbeat', (req, res) => {
  */
 app.post('/api/rooms/:room_id/status', (req, res) => {
   const { room_id } = req.params;
-  const { status } = req.body;
+  const { status, game_start_time_ms, game_start_in_ms } = req.body;
 
   const room = rooms.get(room_id);
   if (!room) {
@@ -344,11 +367,19 @@ app.post('/api/rooms/:room_id/status', (req, res) => {
   }
 
   room.status = status;
+  // Optional: schedule a synchronized game start time.
+  // Prefer server-authored timestamps via game_start_in_ms.
+  if (typeof game_start_in_ms === 'number' && Number.isFinite(game_start_in_ms)) {
+    const clamped = Math.max(0, Math.min(60000, Math.floor(game_start_in_ms)));
+    room.game_start_time_ms = Date.now() + clamped;
+  } else if (typeof game_start_time_ms === 'number' && Number.isFinite(game_start_time_ms)) {
+    room.game_start_time_ms = Math.floor(game_start_time_ms);
+  }
   room.last_heartbeat = Date.now();
 
   console.log(`[Lobby] Room ${room_id} status: ${status}`);
 
-  res.json({ ok: true });
+  res.json({ ok: true, game_start_time_ms: room.game_start_time_ms || 0 });
 });
 
 /**
@@ -389,6 +420,12 @@ app.post('/api/rooms/:room_id/cosmetics', (req, res) => {
     return res.json({ ok: true, updated: 'client', room_id });
   }
 
+  if (room.client2 && room.client2.player_id === player_id) {
+    room.client2.card_bg = newBg;
+    room.last_heartbeat = Date.now();
+    return res.json({ ok: true, updated: 'client2', room_id });
+  }
+
   return res.status(400).json({
     error: 'Player not in room',
     room_id,
@@ -419,6 +456,9 @@ app.post('/api/rooms/:room_id/ready', (req, res) => {
   } else if (room.client && room.client.player_id === player_id) {
     room.client.ready = ready;
     console.log(`[Lobby] Client ${room.client.username} ready: ${ready}`);
+  } else if (room.client2 && room.client2.player_id === player_id) {
+    room.client2.ready = ready;
+    console.log(`[Lobby] Client2 ${room.client2.username} ready: ${ready}`);
   } else {
     return res.status(404).json({
       error: 'Player not found in room'
@@ -453,17 +493,32 @@ app.post('/api/rooms/:room_id/leave', (req, res) => {
 
   const is_host = room.host && room.host.player_id === player_id;
   const is_client = room.client && room.client.player_id === player_id;
+  const is_client2 = room.client2 && room.client2.player_id === player_id;
 
   if (is_host) {
     console.log(`[Lobby] Host ${room.host.username} leaving room ${room_id}`);
-    
-    if (room.client) {
-      // SCENARIO 1: Promote client to host
-      console.log(`[Lobby] Promoting ${room.client.username} to host`);
-      const new_host = room.client;
+
+    if (room.client || room.client2) {
+      // Promote next available client to host
+      const new_host = room.client || room.client2;
+      console.log(`[Lobby] Promoting ${new_host.username} to host`);
+
+      // Remove promoted player from their slot, then shift remaining player into client slot.
+      if (room.client && room.client.player_id === new_host.player_id) {
+        room.client = null;
+      } else if (room.client2 && room.client2.player_id === new_host.player_id) {
+        room.client2 = null;
+      }
+
+      // Shift remaining client2 into client if needed.
+      if (!room.client && room.client2) {
+        room.client = room.client2;
+        room.client2 = null;
+      }
+
       room.host = new_host;
-      room.client = null;
-      room.current_players = 1;
+      const remaining = (room.client ? 1 : 0) + (room.client2 ? 1 : 0);
+      room.current_players = 1 + remaining;
       room.last_heartbeat = Date.now();
       
       // Send relay notification to new host about promotion
@@ -497,7 +552,15 @@ app.post('/api/rooms/:room_id/leave', (req, res) => {
     console.log(`[Lobby] Client ${room.client.username} left room ${room_id}`);
     const client_username = room.client.username;
     room.client = null;
-    room.current_players = 1;
+
+    // Shift client2 into client slot if present
+    if (room.client2) {
+      room.client = room.client2;
+      room.client2 = null;
+    }
+
+    const remaining = (room.client ? 1 : 0) + (room.client2 ? 1 : 0);
+    room.current_players = 1 + remaining;
     room.last_heartbeat = Date.now();
     
     // Notify host via relay
@@ -509,6 +572,25 @@ app.post('/api/rooms/:room_id/leave', (req, res) => {
     });
     
     res.json({ 
+      ok: true,
+      message: 'Left room successfully'
+    });
+  } else if (is_client2) {
+    console.log(`[Lobby] Client2 ${room.client2.username} left room ${room_id}`);
+    const client2_username = room.client2.username;
+    room.client2 = null;
+    const remaining = (room.client ? 1 : 0) + (room.client2 ? 1 : 0);
+    room.current_players = 1 + remaining;
+    room.last_heartbeat = Date.now();
+
+    broadcastToRoom(room_id, {
+      type: 'player_left',
+      player_id: player_id,
+      username: client2_username,
+      message: 'Player has left the room'
+    });
+
+    res.json({
       ok: true,
       message: 'Left room successfully'
     });
@@ -605,6 +687,7 @@ app.get('/stats', (req, res) => {
       roomId,
       hasHost: !!room.host,
       hasClient: !!room.client,
+      hasClient2: !!room.client2,
       createdAt: room.createdAt
     })),
     totalPlayers: players.size,
@@ -665,9 +748,11 @@ app.ws('/ws/relay/:room_id', (ws, req) => {
     }
     roomConnections.delete(replacedConnection);
   }
-  
-  // Check if room is full (max 2 players)
-  if (roomConnections.size >= 2) {
+
+  // Check if room is full (default 2; defuse_trojan uses 3)
+  const lobbyRoom = rooms.get(room_id);
+  const maxPlayers = lobbyRoom && typeof lobbyRoom.max_players === 'number' ? lobbyRoom.max_players : 2;
+  if (roomConnections.size >= maxPlayers) {
     console.log(`[WebSocket] Room ${room_id} is full, rejecting connection`);
     ws.send(JSON.stringify({
       type: 'error',
@@ -680,15 +765,16 @@ app.ws('/ws/relay/:room_id', (ws, req) => {
   // Add connection to room
   const connection = { ws, player_id, username };
   roomConnections.add(connection);
-  
-  console.log(`[WebSocket] ${username} joined room ${room_id}. Players in room: ${roomConnections.size}/2`);
+
+  console.log(`[WebSocket] ${username} joined room ${room_id}. Players in room: ${roomConnections.size}/${maxPlayers}`);
   
   // Notify all players in room about connection
   broadcastToRoom(room_id, {
     type: 'player_connected',
     player_id: player_id,
     username: username,
-    players_count: roomConnections.size
+    players_count: roomConnections.size,
+    max_players: maxPlayers
   }, connection);
   
   // Handle incoming messages
@@ -717,7 +803,8 @@ app.ws('/ws/relay/:room_id', (ws, req) => {
         type: 'player_disconnected',
         player_id: player_id,
         username: username,
-        players_count: roomConnections.size
+        players_count: roomConnections.size,
+        max_players: maxPlayers
       });
     }
     
@@ -733,7 +820,8 @@ app.ws('/ws/relay/:room_id', (ws, req) => {
     type: 'connected',
     room_id: room_id,
     player_id: player_id,
-    players_count: roomConnections.size
+    players_count: roomConnections.size,
+    max_players: maxPlayers
   }));
 });
 

@@ -223,8 +223,8 @@ script = ExtResource("1")
 layout_mode = 0
 offset_left = -17.0
 offset_top = -13.0
-offset_right = 1225.0
-offset_bottom = 668.0
+offset_right = 1153.0
+offset_bottom = 752.0
 texture = ExtResource("2_tinjq")
 
 [node name="pstpnl" type="Panel" parent="NinePatchRect"]

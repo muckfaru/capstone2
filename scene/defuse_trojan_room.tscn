@@ -1,16 +1,12 @@
-[gd_scene load_steps=32 format=3 uid="uid://ciyy0xxjwf4tv"]
+[gd_scene load_steps=8 format=3 uid="uid://ddefuse_trojan_room"]
 
-[ext_resource type="Script" uid="uid://c8n2h01dc8bvy" path="res://script/akashic_tcg_room.gd" id="1_tgc_room"]
+[ext_resource type="Script" path="res://script/defuse_trojan_room.gd" id="1_room"]
 [ext_resource type="PackedScene" uid="uid://caeteha34m08t" path="res://scene/room_chat.tscn" id="2_room_chat"]
-[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_b3n7n"]
-[ext_resource type="Texture2D" uid="uid://ct0fcceas6r5c" path="res://asset/background/room backround.png" id="3_fpe01"]
-[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_wxc2o"]
-[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="5_b3n7n"]
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_audiowide"]
+[ext_resource type="Texture2D" uid="uid://ct0fcceas6r5c" path="res://asset/background/room backround.png" id="4_room_bg"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="5_nico"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e7bgt"]
-bg_color = Color(0.2, 0.2, 0.25098, 0.247059)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fpe01"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_host_top"]
 bg_color = Color(0.2, 0.2, 0.25098, 1)
 border_width_left = 2
 border_width_top = 2
@@ -18,7 +14,33 @@ border_width_right = 2
 border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 corner_radius_top_left = 8
 
-[sub_resource type="Animation" id="Animation_wxc2o"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_host_bottom"]
+bg_color = Color(0.2, 0.2, 0.25098, 1)
+border_width_left = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_top"]
+bg_color = Color(1, 0.427451, 0.356863, 0.768627)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_color = Color(0.827396, 0.01185, 0, 0.784314)
+border_blend = true
+corner_radius_top_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_bottom"]
+bg_color = Color(1, 0.427451, 0.356863, 0.768627)
+border_width_left = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.827451, 0.0117647, 0, 0.784314)
+border_blend = true
+corner_radius_bottom_left = 8
+
+[sub_resource type="Animation" id="Animation_hostname_reset"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -33,7 +55,7 @@ tracks/0/keys = {
 "values": [Vector2(0, 171.2)]
 }
 
-[sub_resource type="Animation" id="Animation_fpe01"]
+[sub_resource type="Animation" id="Animation_hostnameani"]
 resource_name = "hostnameani"
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -48,21 +70,13 @@ tracks/0/keys = {
 "values": [Vector2(0, 171.2), Vector2(0, -29.8)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_b3n7n"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_hostname"]
 _data = {
-&"RESET": SubResource("Animation_wxc2o"),
-&"hostnameani": SubResource("Animation_fpe01")
+&"RESET": SubResource("Animation_hostname_reset"),
+&"hostnameani": SubResource("Animation_hostnameani")
 }
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wxc2o"]
-bg_color = Color(0.2, 0.2, 0.25098, 1)
-border_width_left = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
-corner_radius_bottom_right = 8
-
-[sub_resource type="Animation" id="Animation_n8nu1"]
+[sub_resource type="Animation" id="Animation_readyhost_reset"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -77,7 +91,7 @@ tracks/0/keys = {
 "values": [Vector2(0, 202)]
 }
 
-[sub_resource type="Animation" id="Animation_b3n7n"]
+[sub_resource type="Animation" id="Animation_readyhostani"]
 resource_name = "readyhostani"
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -92,59 +106,13 @@ tracks/0/keys = {
 "values": [Vector2(0, 202), Vector2(0, 391.2)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_e7bgt"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_readyhost"]
 _data = {
-&"RESET": SubResource("Animation_n8nu1"),
-&"readyhostani": SubResource("Animation_b3n7n")
+&"RESET": SubResource("Animation_readyhost_reset"),
+&"readyhostani": SubResource("Animation_readyhostani")
 }
 
-[sub_resource type="Animation" id="Animation_otuqm"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:self_modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(0.615686, 0.615686, 0.615686, 1)]
-}
-
-[sub_resource type="Animation" id="Animation_e7bgt"]
-resource_name = "new_animation"
-length = 3.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:self_modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0.0333333, 2.5),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Color(0.615686, 0.615686, 0.615686, 0), Color(0.615686, 0.615686, 0.615686, 1)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_3n4ps"]
-_data = {
-&"RESET": SubResource("Animation_otuqm"),
-&"new_animation": SubResource("Animation_e7bgt")
-}
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b3n7n"]
-bg_color = Color(1, 0.427451, 0.356863, 0.768627)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_color = Color(0.827396, 0.01185, 3.56168e-06, 0.784314)
-border_blend = true
-corner_radius_top_right = 8
-
-[sub_resource type="Animation" id="Animation_qbngv"]
+[sub_resource type="Animation" id="Animation_usrready_reset"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -159,7 +127,7 @@ tracks/0/keys = {
 "values": [Vector2(-4, 171.2)]
 }
 
-[sub_resource type="Animation" id="Animation_3n4ps"]
+[sub_resource type="Animation" id="Animation_usrreadyani"]
 resource_name = "usrreadyani"
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -174,22 +142,13 @@ tracks/0/keys = {
 "values": [Vector2(-4, 171.2), Vector2(0, -29.8)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_q15t4"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_usrready"]
 _data = {
-&"RESET": SubResource("Animation_qbngv"),
-&"usrreadyani": SubResource("Animation_3n4ps")
+&"RESET": SubResource("Animation_usrready_reset"),
+&"usrreadyani": SubResource("Animation_usrreadyani")
 }
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n8nu1"]
-bg_color = Color(1, 0.427451, 0.356863, 0.768627)
-border_width_left = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.827451, 0.0117647, 0, 0.784314)
-border_blend = true
-corner_radius_bottom_left = 8
-
-[sub_resource type="Animation" id="Animation_33bhg"]
+[sub_resource type="Animation" id="Animation_usersearch_reset"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -204,7 +163,7 @@ tracks/0/keys = {
 "values": [Vector2(-4, 202)]
 }
 
-[sub_resource type="Animation" id="Animation_q15t4"]
+[sub_resource type="Animation" id="Animation_usersearchingani"]
 resource_name = "usersearchingani"
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -219,13 +178,13 @@ tracks/0/keys = {
 "values": [Vector2(-4, 202), Vector2(-4, 391.2)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_exlih"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_usersearch"]
 _data = {
-&"RESET": SubResource("Animation_33bhg"),
-&"usersearchingani": SubResource("Animation_q15t4")
+&"RESET": SubResource("Animation_usersearch_reset"),
+&"usersearchingani": SubResource("Animation_usersearchingani")
 }
 
-[sub_resource type="Animation" id="Animation_4eksq"]
+[sub_resource type="Animation" id="Animation_usercard_reset"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -240,7 +199,7 @@ tracks/0/keys = {
 "values": [Color(0.617455, 0.617455, 0.617455, 1)]
 }
 
-[sub_resource type="Animation" id="Animation_exlih"]
+[sub_resource type="Animation" id="Animation_usercardani"]
 resource_name = "usercardani"
 length = 3.0
 tracks/0/type = "value"
@@ -256,66 +215,29 @@ tracks/0/keys = {
 "values": [Color(0.568627, 0, 0.0941176, 1), Color(0.615686, 0.615686, 0.615686, 1)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_sqk46"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_usercard"]
 _data = {
-&"RESET": SubResource("Animation_4eksq"),
-&"usercardani": SubResource("Animation_exlih")
+&"RESET": SubResource("Animation_usercard_reset"),
+&"usercardani": SubResource("Animation_usercardani")
 }
 
-[sub_resource type="StyleBoxFlat" id="1_btn_normal"]
-bg_color = Color(0.2, 0.2, 0.25098, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.490196, 0.65098, 1, 0.501961)
-corner_radius_top_left = 10
-corner_radius_top_right = 40
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 40
-shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
-shadow_size = 3
-
-[sub_resource type="StyleBoxFlat" id="2_btn_hover"]
-bg_color = Color(1, 0.313726, 0.247059, 0.611765)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.490196, 0.65098, 1, 0.501961)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0.490196, 0.65098, 1, 0.501961)
-shadow_size = 10
-
-[node name="room2" type="Control"]
-layout_mode = 3
+[node name="DefuseTrojanRoom" type="Control"]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-script = ExtResource("1_tgc_room")
+script = ExtResource("1_room")
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -59.0
-offset_top = -2.0
-offset_right = 117.0
-offset_bottom = 57.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("3_fpe01")
+texture = ExtResource("4_room_bg")
 expand_mode = 1
+stretch_mode = 5
 
-[node name="RoomHeader" type="HBoxContainer" parent="."]
+[node name="RoomHeader" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -329,26 +251,18 @@ alignment = 1
 
 [node name="RoomIDLabel" type="Label" parent="RoomHeader"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("3_b3n7n")
+theme_override_fonts/font = ExtResource("3_audiowide")
 theme_override_font_sizes/font_size = 25
-text = "ROOM: #12345"
+text = "ROOM"
 horizontal_alignment = 1
 
 [node name="RoomStateLabel" type="Label" parent="RoomHeader"]
 visible = false
 layout_mode = 2
-theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 20
 text = "WAITING"
 horizontal_alignment = 1
-
-[node name="Panel" type="Panel" parent="."]
-visible = false
-layout_mode = 2
-offset_left = 3.0
-offset_right = 1152.0
-offset_bottom = 673.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_e7bgt")
 
 [node name="CardsContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -357,14 +271,14 @@ anchor_left = 0.5
 anchor_top = 0.35
 anchor_right = 0.5
 anchor_bottom = 0.35
-offset_left = -500.0
+offset_left = -650.0
 offset_top = -100.0
-offset_right = 500.0
+offset_right = 650.0
 offset_bottom = 200.0
 alignment = 1
+theme_override_constants/separation = 30
 
 [node name="HostCard" type="NinePatchRect" parent="CardsContainer"]
-self_modulate = Color(0.615686, 0.615686, 0.615686, 1)
 custom_minimum_size = Vector2(260, 400)
 layout_mode = 2
 
@@ -379,16 +293,16 @@ offset_left = -130.0
 offset_top = 131.2
 offset_right = 130.0
 offset_bottom = 162.2
-theme_override_fonts/font = ExtResource("5_b3n7n")
+theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_fpe01")
+theme_override_styles/normal = SubResource("StyleBoxFlat_host_top")
 text = "..."
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CardsContainer/HostCard/Username"]
 libraries = {
-&"": SubResource("AnimationLibrary_b3n7n")
+&"": SubResource("AnimationLibrary_hostname")
 }
 autoplay = "hostnameani"
 speed_scale = 3.0
@@ -400,11 +314,12 @@ anchor_left = 0.5
 anchor_top = 0.18
 anchor_right = 0.5
 anchor_bottom = 0.18
-offset_left = -48.0
-offset_top = -66.8
-offset_right = 52.0
-offset_bottom = -36.8
-theme_override_fonts/font = ExtResource("3_wxc2o")
+offset_left = -80.0
+offset_top = 40.0
+offset_right = 80.0
+offset_bottom = 68.0
+theme_override_fonts/font = ExtResource("5_nico")
+theme_override_font_sizes/font_size = 16
 text = "Level: 1"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -420,37 +335,23 @@ offset_left = -130.0
 offset_top = -138.0
 offset_right = 130.0
 offset_bottom = -107.0
-theme_override_fonts/font = ExtResource("5_b3n7n")
+theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_wxc2o")
-text = "READY"
+theme_override_styles/normal = SubResource("StyleBoxFlat_host_bottom")
+text = "HOST"
 horizontal_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CardsContainer/HostCard/StatusLabel"]
 libraries = {
-&"": SubResource("AnimationLibrary_e7bgt")
+&"": SubResource("AnimationLibrary_readyhost")
 }
 autoplay = "readyhostani"
 speed_scale = 3.0
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="CardsContainer/HostCard"]
-libraries = {
-&"": SubResource("AnimationLibrary_3n4ps")
-}
-
-[node name="VSLabel" type="Label" parent="CardsContainer"]
-custom_minimum_size = Vector2(100, 400)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_wxc2o")
-theme_override_font_sizes/font_size = 25
-text = "VS"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="ClientCard" type="NinePatchRect" parent="CardsContainer"]
-self_modulate = Color(0.617455, 0.617455, 0.617455, 1)
 custom_minimum_size = Vector2(260, 400)
 layout_mode = 2
+self_modulate = Color(1, 1, 1, 1)
 
 [node name="Username" type="Label" parent="CardsContainer/ClientCard"]
 layout_mode = 1
@@ -463,16 +364,16 @@ offset_left = -134.0
 offset_top = 131.2
 offset_right = 130.0
 offset_bottom = 162.2
-theme_override_fonts/font = ExtResource("5_b3n7n")
+theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_b3n7n")
+theme_override_styles/normal = SubResource("StyleBoxFlat_client_top")
 text = "."
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CardsContainer/ClientCard/Username"]
 libraries = {
-&"": SubResource("AnimationLibrary_q15t4")
+&"": SubResource("AnimationLibrary_usrready")
 }
 speed_scale = 3.0
 
@@ -483,11 +384,12 @@ anchor_left = 0.5
 anchor_top = 0.18
 anchor_right = 0.5
 anchor_bottom = 0.18
-offset_left = -51.0
-offset_top = -69.8
-offset_right = 49.0
-offset_bottom = -39.8
-theme_override_fonts/font = ExtResource("3_wxc2o")
+offset_left = -80.0
+offset_top = 40.0
+offset_right = 80.0
+offset_bottom = 68.0
+theme_override_fonts/font = ExtResource("5_nico")
+theme_override_font_sizes/font_size = 16
 text = "."
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -503,21 +405,95 @@ offset_left = -134.0
 offset_top = -138.0
 offset_right = 130.0
 offset_bottom = -107.0
-theme_override_fonts/font = ExtResource("5_b3n7n")
+theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_n8nu1")
-text = " Searching.."
+theme_override_styles/normal = SubResource("StyleBoxFlat_client_bottom")
+text = "Searching.."
 horizontal_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CardsContainer/ClientCard/StatusLabel"]
 libraries = {
-&"": SubResource("AnimationLibrary_exlih")
+&"": SubResource("AnimationLibrary_usersearch")
 }
 speed_scale = 3.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="CardsContainer/ClientCard"]
 libraries = {
-&"": SubResource("AnimationLibrary_sqk46")
+&"": SubResource("AnimationLibrary_usercard")
+}
+
+[node name="Client2Card" type="NinePatchRect" parent="CardsContainer"]
+custom_minimum_size = Vector2(260, 400)
+layout_mode = 2
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="Username" type="Label" parent="CardsContainer/Client2Card"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.1
+anchor_right = 0.5
+anchor_bottom = 0.1
+offset_left = -134.0
+offset_top = 131.2
+offset_right = 130.0
+offset_bottom = 162.2
+theme_override_fonts/font = ExtResource("5_nico")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_client_top")
+text = "."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="CardsContainer/Client2Card/Username"]
+libraries = {
+&"": SubResource("AnimationLibrary_usrready")
+}
+speed_scale = 3.0
+
+[node name="Level" type="Label" parent="CardsContainer/Client2Card"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.18
+anchor_right = 0.5
+anchor_bottom = 0.18
+offset_left = -80.0
+offset_top = 40.0
+offset_right = 80.0
+offset_bottom = 68.0
+theme_override_fonts/font = ExtResource("5_nico")
+theme_override_font_sizes/font_size = 16
+text = "."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="CardsContainer/Client2Card"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.85
+anchor_right = 0.5
+anchor_bottom = 0.85
+offset_left = -134.0
+offset_top = -138.0
+offset_right = 130.0
+offset_bottom = -107.0
+theme_override_fonts/font = ExtResource("5_nico")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_client_bottom")
+text = "Searching.."
+horizontal_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="CardsContainer/Client2Card/StatusLabel"]
+libraries = {
+&"": SubResource("AnimationLibrary_usersearch")
+}
+speed_scale = 3.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="CardsContainer/Client2Card"]
+libraries = {
+&"": SubResource("AnimationLibrary_usercard")
 }
 
 [node name="ButtonPanel" type="HBoxContainer" parent="."]
@@ -539,13 +515,8 @@ custom_minimum_size = Vector2(220, 48)
 layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_type_variation = &"PrimaryButton"
-theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
-theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 17
-theme_override_styles/normal = SubResource("1_btn_normal")
 text = "START MATCH"
 
 [node name="LeaveButton" type="Button" parent="ButtonPanel"]
@@ -553,12 +524,8 @@ custom_minimum_size = Vector2(220, 48)
 layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_type_variation = &"DangerButton"
-theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
-theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
-theme_override_styles/hover = SubResource("2_btn_hover")
-theme_override_styles/normal = SubResource("1_btn_normal")
+theme_override_fonts/font = ExtResource("5_nico")
+theme_override_font_sizes/font_size = 17
 text = "LEAVE ROOM"
 
 [node name="MessageLabel" type="Label" parent="."]
@@ -568,13 +535,13 @@ anchor_left = 0.5
 anchor_top = 0.93
 anchor_right = 0.5
 anchor_bottom = 0.93
-offset_left = -199.0
+offset_left = -260.0
 offset_top = 29.36
-offset_right = 201.0
+offset_right = 260.0
 offset_bottom = 45.36
-theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 15
-text = "Waiting for player to join..."
+text = "Waiting for players..."
 horizontal_alignment = 1
 
 [node name="RoomChat" parent="." instance=ExtResource("2_room_chat")]
