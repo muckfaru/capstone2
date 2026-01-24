@@ -29,9 +29,8 @@ SettingsManager="*res://script/SettingsManager.gd"
 
 [display]
 
-window/size/viewport_width=1080
-window/size/viewport_height=720
-window/stretch/mode="canvas_items"
+window/size/width=1280
+window/size/height=720
 
 [dotnet]
 

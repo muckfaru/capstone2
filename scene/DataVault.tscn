@@ -1,0 +1,505 @@
+[gd_scene load_steps=5 format=3 uid="uid://b8ndeqmnea6ay"]
+
+[ext_resource type="Script" uid="uid://5g5lpf0x10r7" path="res://script/DataVault.gd" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.121569, 0.145098, 0.192157, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25098, 0.501961, 0.752941, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+bg_color = Color(0.15, 0.15, 0.15, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.6, 0.2, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3"]
+bg_color = Color(0.15, 0.08, 0.08, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.2, 0.2, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="DataVaultGame" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0588235, 0.0705882, 0.0941176, 1)
+
+[node name="StoryPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -250.0
+offset_right = 400.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="StoryTitle" type="Label" parent="StoryPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.25098, 0.752941, 0.501961, 1)
+theme_override_font_sizes/font_size = 32
+text = "OPERATION CIPHER SHIELD"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StoryText" type="RichTextLabel" parent="StoryPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -150.0
+offset_right = 360.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = true
+text = "[center]Welcome to SecureComm Industries.
+
+A cyberattack has incapacitated your mentor.
+You're now the last line of defense.
+
+Attackers are monitoring ALL network traffic.
+Your mission: Encrypt every transmission using
+symmetric encryption before sending.
+
+[color=yellow]Remember: The same key encrypts AND decrypts.[/color]
+[color=red]If the key is exposed, everything is compromised.[/color]
+
+Good luck, analyst.[/center]"
+fit_content = true
+
+[node name="ContinueButton" type="Button" parent="StoryPanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -60.0
+offset_right = 100.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 20
+text = "BEGIN MISSION"
+
+[node name="GameUI" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="Panel" parent="GameUI"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 80.0
+grow_horizontal = 2
+
+[node name="LevelLabel" type="Label" parent="GameUI/TopBar"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 20.0
+offset_top = -20.0
+offset_right = 300.0
+offset_bottom = 20.0
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "LEVEL 1: BASIC ENCRYPTION"
+
+[node name="ScoreLabel" type="Label" parent="GameUI/TopBar"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -20.0
+offset_right = -20.0
+offset_bottom = 20.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.25098, 0.752941, 0.501961, 1)
+theme_override_font_sizes/font_size = 24
+text = "SCORE: 0"
+horizontal_alignment = 2
+
+[node name="TimerLabel" type="Label" parent="GameUI/TopBar"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -20.0
+offset_right = 100.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.752941, 0.752941, 0.25098, 1)
+theme_override_font_sizes/font_size = 24
+text = "TIME: --"
+horizontal_alignment = 1
+
+[node name="PlaintextPanel" type="Panel" parent="GameUI"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.15
+anchor_right = 0.45
+anchor_bottom = 0.55
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="Title" type="Label" parent="GameUI/PlaintextPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 40.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.25098, 0.501961, 0.752941, 1)
+theme_override_font_sizes/font_size = 20
+text = "YOUR WORKSTATION - PLAINTEXT"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MessageLabel" type="Label" parent="GameUI/PlaintextPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -60.0
+offset_right = 180.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.5, 0.7, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "TRANSFER $500000 TO ACCOUNT 4729"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="KeyLabel" type="Label" parent="GameUI/PlaintextPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = 20.0
+offset_right = 180.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 16
+text = "ENCRYPTION KEY:"
+horizontal_alignment = 1
+
+[node name="KeyInput" type="LineEdit" parent="GameUI/PlaintextPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = 60.0
+offset_right = 150.0
+offset_bottom = 95.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 18
+placeholder_text = "Enter key here..."
+alignment = 1
+max_length = 20
+
+[node name="EncryptedPanel" type="Panel" parent="GameUI"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.55
+anchor_top = 0.15
+anchor_right = 0.95
+anchor_bottom = 0.55
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_2")
+
+[node name="Title" type="Label" parent="GameUI/EncryptedPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 40.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.8, 0.6, 0.2, 1)
+theme_override_font_sizes/font_size = 20
+text = "ENCRYPTED DATA"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CipherLabel" type="Label" parent="GameUI/EncryptedPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -40.0
+offset_right = 180.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
+theme_override_font_sizes/font_size = 24
+text = "[AWAITING ENCRYPTION]"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="LockIcon" type="Label" parent="GameUI/EncryptedPanel"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.0
+offset_top = -90.0
+offset_right = 30.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.25098, 0.752941, 0.501961, 1)
+theme_override_font_sizes/font_size = 32
+text = "🔒"
+horizontal_alignment = 1
+
+[node name="AttackerPanel" type="Panel" parent="GameUI"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.6
+anchor_right = 0.95
+anchor_bottom = 0.85
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_3")
+
+[node name="Title" type="Label" parent="GameUI/AttackerPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 35.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.8, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 20
+text = "⚠ ATTACKER INTERCEPTION VIEW ⚠"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InterceptLabel" type="Label" parent="GameUI/AttackerPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -40.0
+offset_right = 400.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 18
+text = "[Monitoring network traffic...]"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="AttackerFace" type="Label" parent="GameUI/AttackerPanel"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -80.0
+offset_top = -30.0
+offset_right = -20.0
+offset_bottom = 30.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_font_sizes/font_size = 48
+text = "👤"
+horizontal_alignment = 1
+
+[node name="ControlButtons" type="HBoxContainer" parent="GameUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = 230.0
+offset_right = 300.0
+offset_bottom = 290.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="EncryptButton" type="Button" parent="GameUI/ControlButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "🔒 ENCRYPT"
+
+[node name="TransmitButton" type="Button" parent="GameUI/ControlButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+disabled = true
+text = "📡 TRANSMIT"
+
+[node name="DecryptButton" type="Button" parent="GameUI/ControlButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+disabled = true
+text = "🔓 DECRYPT"
+
+[node name="FeedbackLabel" type="Label" parent="GameUI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = 310.0
+offset_right = 400.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.25098, 0.752941, 0.501961, 1)
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SecurityMeter" type="ProgressBar" parent="GameUI"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -50.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+max_value = 1000.0
+show_percentage = false
+
+[node name="SecurityLabel" type="Label" parent="GameUI/SecurityMeter"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -12.0
+offset_right = 100.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 16
+text = "SECURITY: 0%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TransmissionTimer" type="Timer" parent="GameUI"]
+
+[node name="LevelTimer" type="Timer" parent="GameUI"]
+wait_time = 60.0
+one_shot = true
+
+[node name="FlashOverlay" type="ColorRect" parent="GameUI"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0, 0, 0.3)
+
+[connection signal="pressed" from="StoryPanel/ContinueButton" to="." method="_on_continue_button_pressed"]
+[connection signal="pressed" from="GameUI/ControlButtons/EncryptButton" to="." method="_on_encrypt_button_pressed"]
+[connection signal="pressed" from="GameUI/ControlButtons/TransmitButton" to="." method="_on_transmit_button_pressed"]
+[connection signal="pressed" from="GameUI/ControlButtons/DecryptButton" to="." method="_on_decrypt_button_pressed"]
+[connection signal="timeout" from="GameUI/TransmissionTimer" to="." method="_on_transmission_timer_timeout"]
+[connection signal="timeout" from="GameUI/LevelTimer" to="." method="_on_level_timer_timeout"]

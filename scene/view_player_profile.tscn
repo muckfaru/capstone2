@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://bsi01dt2s0qq7"]
 
 [ext_resource type="Script" uid="uid://l36u0y20vxqf" path="res://script/view_player_profile.gd" id="1_abc12"]
-[ext_resource type="Texture2D" uid="uid://ca874tphfshxx" path="res://asset/avatars/default.png" id="2_abc12"]
+[ext_resource type="Texture2D" uid="uid://4uqfnk83e15q" path="res://asset/avatars/default.png" id="2_abc12"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal_bg"]
 bg_color = Color(0.160784, 0.160784, 0.160784, 0)
@@ -149,6 +149,7 @@ offset_bottom = 119.0
 text = "..."
 
 [node name="ProfilePic" type="TextureRect" parent="ProfilePanel/UserPanel"]
+visible = false
 layout_mode = 0
 offset_left = 55.0
 offset_top = 38.0

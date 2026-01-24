@@ -1,7 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://cg0qoeigupgpd"]
+[gd_scene load_steps=4 format=3 uid="uid://cg0qoeigupgpd"]
 
-[ext_resource type="Script" uid="uid://bj1w0w0eker74" path="res://script/tutorial_encryption_basics.gd" id="1_encryption"]
-[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="2_font"]
+[ext_resource type="Script" uid="uid://bj1w0w0eker74" path="res://script/tutorial_encryption_basics.gd" id="1_cipher_wheel"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window_bg"]
 bg_color = Color(0.95, 0.97, 1, 1)
@@ -22,14 +21,14 @@ bg_color = Color(0.15, 0.4, 0.75, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 
-[node name="TutorialEncryptionBasics" type="Control"]
+[node name="TutorialCipherWheel" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_encryption")
+script = ExtResource("1_cipher_wheel")
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -58,26 +57,31 @@ layout_mode = 2
 theme_override_constants/separation = 0
 
 [node name="TitleBar" type="PanelContainer" parent="WindowDialog/VBox"]
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_title_bar")
 
 [node name="MarginContainer" type="MarginContainer" parent="WindowDialog/VBox/TitleBar"]
 layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
 
-[node name="SectionLabel" type="Label" parent="WindowDialog/VBox/TitleBar/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="WindowDialog/VBox/TitleBar/MarginContainer"]
+layout_mode = 2
+
+[node name="SectionLabel" type="Label" parent="WindowDialog/VBox/TitleBar/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.5)
-theme_override_constants/outline_size = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 22
 text = "ENCRYPTION BASICS"
-vertical_alignment = 1
+
+[node name="CipherTypeLabel" type="Label" parent="WindowDialog/VBox/TitleBar/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Cryptography Type: CAESAR CIPHER"
 
 [node name="ContentPanel" type="PanelContainer" parent="WindowDialog/VBox"]
 layout_mode = 2
@@ -95,6 +99,7 @@ layout_mode = 2
 theme_override_constants/separation = 15
 
 [node name="ContentScroll" type="ScrollContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 size_flags_vertical = 3
 
@@ -103,69 +108,63 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 14
 text = "Content text here..."
 autowrap_mode = 3
 
-[node name="DemoPanel" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+[node name="WheelPanel" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
 visible = false
 layout_mode = 2
 
-[node name="VBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel"]
+[node name="VBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="InputHBox" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="InputLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/InputHBox"]
-custom_minimum_size = Vector2(120, 0)
+[node name="ShiftLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
-text = "Plaintext:"
-
-[node name="PlaintextInput" type="LineEdit" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/InputHBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
-text = "HELLO WORLD"
-
-[node name="KeyHBox" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="KeyLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox"]
-custom_minimum_size = Vector2(120, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
-text = "Shift Key:"
-
-[node name="KeyInput" type="SpinBox" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox"]
-layout_mode = 2
-max_value = 25.0
-value = 3.0
-
-[node name="EncryptButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox"]
-custom_minimum_size = Vector2(120, 35)
-layout_mode = 2
-mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
-text = "ENCRYPT"
-
-[node name="ResultLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.6, 0, 1)
-theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
-text = "Encrypted: KHOOR ZRUOG"
+text = "🔑 Shift Key: 3 (A→D, B→E, C→F...)"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="AlphabetReference" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.1, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "Plaintext:  A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+Encrypted:  D E F G H I J K L M N O P Q R S T U V W X Y Z A B C"
+horizontal_alignment = 1
+
+[node name="PracticePanel" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
+visible = false
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="EncryptedLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.4, 0, 1)
+theme_override_font_sizes/font_size = 20
+text = "🔒 Encrypted: KHOOR"
+horizontal_alignment = 1
+
+[node name="SlotsContainer" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="HintLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.2, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+text = "💡 Click each letter to reveal its decrypted value"
+horizontal_alignment = 1
 
 [node name="ChallengePanel" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
 visible = false
@@ -173,22 +172,13 @@ layout_mode = 2
 
 [node name="VBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 15
 
-[node name="ChallengeLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox"]
+[node name="EncryptedLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.4, 0, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 16
-text = "🔐 Encrypted Message: WKLV LV VHFUHW"
-horizontal_alignment = 1
-
-[node name="HintLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 12
-text = "Hint: Key = 3"
+theme_override_font_sizes/font_size = 20
+text = "🔒 VDIH"
 horizontal_alignment = 1
 
 [node name="InputHBox" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox"]
@@ -197,44 +187,36 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="AnswerInput" type="LineEdit" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox"]
-custom_minimum_size = Vector2(300, 35)
+custom_minimum_size = Vector2(300, 40)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 16
 placeholder_text = "Type decrypted message..."
+alignment = 1
 
 [node name="SubmitButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox"]
-custom_minimum_size = Vector2(100, 35)
+custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
-mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 16
 text = "SUBMIT"
+
+[node name="FeedbackLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
 
 [node name="ButtonContainer" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 20
 alignment = 1
 
 [node name="BackButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer"]
-custom_minimum_size = Vector2(120, 35)
+custom_minimum_size = Vector2(140, 45)
 layout_mode = 2
-mouse_default_cursor_shape = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
-text = "BACK"
+text = "◀ BACK"
 
 [node name="NextButton" type="Button" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer"]
-custom_minimum_size = Vector2(120, 35)
+custom_minimum_size = Vector2(140, 45)
 layout_mode = 2
-mouse_default_cursor_shape = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
-text = "NEXT"
-
-[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox/EncryptButton" to="." method="_on_encrypt_pressed"]
-[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox/SubmitButton" to="." method="_on_submit_pressed"]
-[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton" to="." method="_on_back_pressed"]
-[connection signal="pressed" from="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton" to="." method="_on_next_pressed"]
+text = "NEXT ▶"

@@ -2,7 +2,6 @@ extends PanelContainer
 
 signal card_expired(card)
 
-# Export the attack_data property so it can be set externally
 var attack_data: Dictionary = {}
 var alert_number: int = 1
 var time_limit: float = 4.0
@@ -23,12 +22,11 @@ func _ready():
 	alert_label.text = "⚠️ ALERT #%d" % alert_number
 	description.text = attack_data.get("description", "Unknown attack")
 	
-	# Set icon (using emoji as placeholder)
 	if attack_data.has("icon"):
 		var label = Label.new()
 		label.text = attack_data.icon
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.add_theme_font_size_override("font_size", 48)
+		label.add_theme_font_size_override("font_size", 40)
 		icon.add_child(label)
 	
 	timer_bar.value = 1.0
@@ -38,7 +36,6 @@ func _process(delta):
 		time_remaining -= delta
 		timer_bar.value = time_remaining / time_limit
 		
-		# Color warning
 		if time_remaining < time_limit * 0.3:
 			timer_bar.modulate = Color(1, 0.3, 0.3)
 		elif time_remaining < time_limit * 0.6:
@@ -63,19 +60,38 @@ func _gui_input(event):
 				check_drop_zones()
 
 func check_drop_zones():
-	var space_state = get_world_2d().direct_space_state
-	var query = PhysicsPointQueryParameters2D.new()
-	query.position = global_position + size / 2
-	query.collide_with_areas = true
+	# Get the center point of the card
+	var card_center = global_position + size / 2
 	
-	var results = space_state.intersect_point(query, 1)
+	print("Card dropped - center point: %s" % card_center)
 	
-	if results.size() > 0:
-		var area = results[0].collider
-		if area.get_parent().has_method("handle_drop"):
-			area.get_parent().handle_drop(self)
+	# Get the game manager to access drop zones
+	var game_manager = get_tree().root.get_node("Main")
+	if not game_manager:
+		print("  - ERROR: Could not find game manager!")
+		return_to_original()
+		return
+	
+	var data_zone = game_manager.get_node_or_null("CanvasLayer/DropZones/DataZone")
+	var network_zone = game_manager.get_node_or_null("CanvasLayer/DropZones/NetworkZone")
+	
+	# Check data zone first
+	if data_zone and data_zone.has_method("is_point_inside"):
+		if data_zone.is_point_inside(card_center):
+			print("  - Dropped on DATA zone!")
+			data_zone.handle_drop(self)
 			return
 	
-	# Return to original position if not dropped on zone
+	# Check network zone
+	if network_zone and network_zone.has_method("is_point_inside"):
+		if network_zone.is_point_inside(card_center):
+			print("  - Dropped on NETWORK zone!")
+			network_zone.handle_drop(self)
+			return
+	
+	print("  - No valid drop zone found")
+	return_to_original()
+
+func return_to_original():
 	var tween = create_tween()
 	tween.tween_property(self, "position", original_position, 0.3).set_ease(Tween.EASE_OUT)

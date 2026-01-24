@@ -30,44 +30,45 @@ extends Control
 @onready var a_tooltip: Label = $CanvasLayer/CIAZones/AvailabilityZone/TooltipLabel
 
 # Scenario data
+# Scenario data
 const SCENARIOS = [
 	{
-		"text": "A hacker gained access to the hospital's patient records database through a weak password. Medical histories of 10,000 patients are now exposed online.",
+		"text": "Someone broke into the hospital's computer system using a weak password. Now personal medical records of 10,000 patients can be seen by anyone on the internet.",
 		"correct": "C",
 		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nConfidentiality means keeping sensitive data PRIVATE. Patient records were exposed to unauthorized people—this breaks confidentiality."
 	},
 	{
-		"text": "Ransomware encrypted all files on the company server. Employees can't access payroll, email, or project documents. Systems are down for 48 hours.",
+		"text": "A virus locked all the company's files and demands payment to unlock them. Workers can't open emails, check payroll, or access any documents. Everything has been blocked for 2 days.",
 		"correct": "A",
-		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nAvailability means keeping systems ACCESSIBLE when needed. The ransomware didn't steal or change data—it blocked access to it."
+		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nAvailability means keeping systems ACCESSIBLE when needed. The virus didn't steal or change data—it blocked access to it."
 	},
 	{
-		"text": "An attacker modified student grades in the school database. 20 students' GPAs were changed from C's to A's without authorization.",
+		"text": "Someone hacked the school's computer and changed 20 students' report card grades from C to A without permission.",
 		"correct": "I",
 		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nIntegrity means keeping data ACCURATE and UNCHANGED. The grades were modified incorrectly—this breaks integrity."
 	},
 	{
-		"text": "An employee's laptop was stolen from a coffee shop. The laptop contained unencrypted financial reports and customer credit card numbers.",
+		"text": "A laptop was stolen from a coffee shop. Inside the laptop were company financial reports and customer credit card information that weren't password-protected.",
 		"correct": "C",
 		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nThe sensitive financial data can now be SEEN by unauthorized people (the thief). Confidentiality breach!"
 	},
 	{
-		"text": "Hackers changed the homepage of the company website. The real content was replaced with graffiti and fake news about the CEO.",
+		"text": "Attackers broke into the company website and replaced the homepage with spray paint-style graffiti and posted fake news about the CEO.",
 		"correct": "I",
 		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nIntegrity means data stays CORRECT and TRUSTWORTHY. The website content was tampered with—breaking integrity."
 	},
 	{
-		"text": "A Distributed Denial of Service (DDoS) attack flooded the online store with fake traffic. Real customers can't load the website or place orders.",
+		"text": "Attackers flooded the online shopping website with millions of fake visitors at once. Real customers can't load the website or buy anything because it's too overloaded.",
 		"correct": "A",
 		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nThe website is BLOCKED from legitimate users. The data wasn't stolen or changed—just made inaccessible."
 	},
 	{
-		"text": "An employee found a USB drive in the parking lot labeled 'Executive Salaries 2025' and plugged it into their work computer. Malware infected the system and sent files to an external server.",
+		"text": "An employee found a USB flash drive in the parking lot labeled 'Employee Salaries 2025' and plugged it into their work computer. A hidden virus copied company files and sent them to criminals on the internet.",
 		"correct": "C",
-		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nThe malware STOLE and SENT files to attackers. Private data was exposed to unauthorized parties."
+		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nThe virus STOLE and SENT files to attackers. Private data was exposed to unauthorized parties."
 	},
 	{
-		"text": "The company's backup server crashed during a fire. When trying to restore data after the incident, they discovered no backups existed for 6 months of work.",
+		"text": "The company's backup storage system broke during a building fire. When they tried to recover their data afterwards, they realized nothing was saved for the past 6 months—all that work is now gone forever.",
 		"correct": "A",
 		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nThe data couldn't be ACCESSED when needed. Even though the original data wasn't stolen or changed, it became unavailable due to lack of proper backups."
 	}

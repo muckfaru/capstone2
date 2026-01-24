@@ -1,312 +1,465 @@
 extends Control
 
 # ============================================
-# ENCRYPTION BASICS - Caesar Cipher Lab
-# Teaches encryption concepts through hands-on practice
-# Explains how ransomware uses encryption
+# CIPHER WHEEL - Interactive Caesar Cipher Tutorial
+# Visual drag-and-drop learning for beginners
 # ============================================
 
 enum Phase {
 	INTRO,
-	ENCRYPT_DEMO,
-	DECRYPT_CHALLENGE,
+	LEARN_WHEEL,
+	PRACTICE_MODE,
+	CHALLENGE_MODE,
 	RANSOMWARE_EXPLANATION,
 	COMPLETE
 }
 
 var current_phase = Phase.INTRO
 var score := 0
-var attempts := 0
+var practice_completed := 0
+var challenge_attempts := 0
 
-# Challenge data
-var challenge_encrypted := "WKLV LV VHFUHW"
-var challenge_key := 3
+# Cipher wheel state
+var current_shift := 3
+var is_dragging := false
+var drag_start_angle := 0.0
+var wheel_rotation := 0.0
+
+# Practice messages
+var practice_messages := [
+	{"plain": "HELLO", "encrypted": "KHOOR", "key": 3},
+	{"plain": "WORLD", "encrypted": "ZRUOG", "key": 3},
+	{"plain": "CODE", "encrypted": "FRGH", "key": 3}
+]
+var current_practice_index := 0
+
+# Challenge messages
+var challenge_messages := [
+	{"plain": "SAFE", "encrypted": "VDIH", "key": 3},
+	{"plain": "SECRET", "encrypted": "VHFUHW", "key": 3},
+	{"plain": "LOCK", "encrypted": "ORFN", "key": 3}
+]
+var current_challenge_index := 0
+
+# Alphabet for reference
+const ALPHABET := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+# Node references
+@onready var section_label = $WindowDialog/VBox/TitleBar/MarginContainer/VBoxContainer/SectionLabel
+@onready var content_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll/ContentLabel
+@onready var cipher_type_label = $WindowDialog/VBox/TitleBar/MarginContainer/VBoxContainer/CipherTypeLabel
+@onready var next_button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton
+@onready var back_button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton
+
+# Interactive panels
+@onready var wheel_panel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel
+@onready var practice_panel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel
+@onready var challenge_panel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel
+
+# Wheel elements
+@onready var shift_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/ShiftLabel
+@onready var alphabet_reference = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/AlphabetReference
+
+# Practice elements
+@onready var practice_encrypted_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel/VBox/EncryptedLabel
+@onready var practice_slots_container = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel/VBox/SlotsContainer
+@onready var practice_hint_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel/VBox/HintLabel
+
+# Challenge elements
+@onready var challenge_encrypted_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/EncryptedLabel
+@onready var challenge_input = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox/AnswerInput
+@onready var challenge_submit = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox/SubmitButton
+@onready var challenge_feedback = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/FeedbackLabel
 
 
 func _ready() -> void:
-	print("🔐 Encryption Basics Tutorial Ready")
+	print("🔐 Cipher Wheel Tutorial Ready")
 	
-	# Hide panels initially
-	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel"):
-		$WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel.visible = false
-	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel"):
-		$WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel.visible = false
+	# Wait for nodes to be ready
+	await get_tree().process_frame
+	
+	# Hide all interactive panels initially
+	if wheel_panel:
+		wheel_panel.visible = false
+	if practice_panel:
+		practice_panel.visible = false
+	if challenge_panel:
+		challenge_panel.visible = false
 	
 	# Connect buttons
-	_connect_buttons()
+	if next_button:
+		next_button.pressed.connect(_on_next_pressed)
+	if back_button:
+		back_button.pressed.connect(_on_back_pressed)
+	if challenge_submit:
+		challenge_submit.pressed.connect(_on_challenge_submit)
 	
+	# Start tutorial
 	_start_phase(Phase.INTRO)
-
-
-func _connect_buttons() -> void:
-	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox/EncryptButton"):
-		var encrypt_btn = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel/VBox/KeyHBox/EncryptButton
-		if not encrypt_btn.pressed.is_connected(_on_encrypt_pressed):
-			encrypt_btn.pressed.connect(_on_encrypt_pressed)
-	
-	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox/SubmitButton"):
-		var submit_btn = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox/InputHBox/SubmitButton
-		if not submit_btn.pressed.is_connected(_on_submit_pressed):
-			submit_btn.pressed.connect(_on_submit_pressed)
-	
-	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton"):
-		var next_btn = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton
-		if not next_btn.pressed.is_connected(_on_next_pressed):
-			next_btn.pressed.connect(_on_next_pressed)
-	
-	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton"):
-		var back_btn = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton
-		if not back_btn.pressed.is_connected(_on_back_pressed):
-			back_btn.pressed.connect(_on_back_pressed)
 
 
 func _start_phase(phase: Phase) -> void:
 	current_phase = phase
 	
-	# Safely hide panels
-	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel"):
-		$WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel.visible = false
-	if has_node("WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel"):
-		$WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel.visible = false
+	# Hide all panels safely
+	if wheel_panel:
+		wheel_panel.visible = false
+	if practice_panel:
+		practice_panel.visible = false
+	if challenge_panel:
+		challenge_panel.visible = false
 	
-	var section_label = $WindowDialog/VBox/TitleBar/MarginContainer/SectionLabel
-	var content_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll/ContentLabel
-	var next_button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton
-	
-	next_button.disabled = false
+	if next_button:
+		next_button.disabled = false
 	
 	match phase:
 		Phase.INTRO:
-			section_label.text = "Introduction to Encryption"
-			content_label.text = """WHAT IS ENCRYPTION?
+			section_label.text = "🔐 Introduction to Caesar Cipher"
+			cipher_type_label.text = "Cryptography Type: SUBSTITUTION CIPHER"
+			content_label.text = """WELCOME TO CIPHER WHEEL!
 
-Encryption transforms readable text (plaintext) into unreadable code (ciphertext).
-Only someone with the KEY can decrypt it back to readable form.
+You'll learn about the CAESAR CIPHER - one of the oldest encryption methods.
 
-Example:
-• Original message: "HELLO"
-• Encrypted: "KHOOR"
-• Without the key, this looks like random letters!
+🎯 WHAT IS A CAESAR CIPHER?
+A substitution cipher that shifts each letter by a fixed number.
 
-This is how ransomware locks your files - it encrypts them and holds the key hostage.
+Example with SHIFT = 3:
+• A → D  (moved 3 letters forward)
+• B → E
+• C → F
+• ...
+• X → A  (wraps around)
+• Y → B
+• Z → C
 
-Click NEXT to see how it works →"""
-		
-		Phase.ENCRYPT_DEMO:
-			section_label.text = "Phase 1: Encryption Demo"
-			content_label.text = """CAESAR CIPHER DEMO
+🔑 THE KEY:
+The "shift number" is the SECRET KEY!
+Without knowing the key, encrypted messages look like gibberish.
 
-We'll use a simple cipher where each letter shifts by a number (the KEY).
+Click NEXT to explore the interactive cipher wheel →"""
 
-Try it below:
-1. Enter a message in the box
-2. Set the shift key (default 3)
-3. Click ENCRYPT to see it scrambled!
+		Phase.LEARN_WHEEL:
+			section_label.text = "Phase 1: Explore the Cipher Wheel"
+			cipher_type_label.text = "Caesar Cipher - Shift: " + str(current_shift)
+			content_label.text = """INTERACTIVE CIPHER WHEEL
 
-Without knowing the key, the encrypted message looks like gibberish."""
+See how letters shift when encrypted!
+
+📊 Current Settings:
+• Shift Key: 3 (Caesar's original shift)
+• Direction: Forward (A→D, B→E, C→F...)
+
+🎮 TRY IT:
+Look at the alphabet below:
+• TOP row = Original letters (plaintext)
+• BOTTOM row = Encrypted letters (ciphertext)
+
+Notice: A becomes D, B becomes E, C becomes F!
+
+🔍 FIND A LETTER:
+Where does "H" go when shifted by 3? 
+Answer: H → K
+
+Click NEXT when you understand how shifting works →"""
 			
-			var demo_panel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel
-			demo_panel.visible = true
+			wheel_panel.visible = true
+			_update_alphabet_display()
+
+		Phase.PRACTICE_MODE:
+			section_label.text = "Phase 2: Practice Decryption"
+			cipher_type_label.text = "Caesar Cipher - Decrypt Practice"
 			
-			var plaintext_input = demo_panel.get_node("VBox/InputHBox/PlaintextInput")
-			var key_input = demo_panel.get_node("VBox/KeyHBox/KeyInput")
-			var result_label = demo_panel.get_node("VBox/ResultLabel")
-			
-			plaintext_input.text = "HELLO WORLD"
-			key_input.value = 3
-			result_label.text = "Click ENCRYPT to see result"
-		
-		Phase.DECRYPT_CHALLENGE:
-			section_label.text = "Phase 2: Decryption Challenge"
-			content_label.text = """YOUR TURN! TRY DECRYPTING
+			if current_practice_index >= practice_messages.size():
+				# Practice complete
+				content_label.text = """✅ PRACTICE COMPLETE!
 
-I encrypted a message using Caesar Cipher with key = 3.
-
-Encrypted Message: WKLV LV VHFUHW
-
-To decrypt, shift each letter BACKWARDS by 3.
-Example: W → T, K → H, L → I
-Example: in Alpabet: A B C D E F G H I J K L M N O P Q R S T U V W X Y Z you need to count backwards 3 letters W->T
-
-Type the decrypted message below (use capital letters):"""
-			
-			var challenge_panel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel
-			challenge_panel.visible = true
-			
-			var answer_input = challenge_panel.get_node("VBox/InputHBox/AnswerInput")
-			var submit_button = challenge_panel.get_node("VBox/InputHBox/SubmitButton")
-			
-			answer_input.text = ""
-			answer_input.editable = true
-			submit_button.disabled = false
-			next_button.disabled = true
-		
-		Phase.RANSOMWARE_EXPLANATION:
-			section_label.text = "Phase 3: How Ransomware Uses Encryption"
-			content_label.text = """WHY RANSOMWARE IS SO DANGEROUS
-
-Caesar Cipher was EASY to crack - only 26 possible keys to try!
-
-But modern ransomware uses AES-256 encryption:
-• 2^256 possible keys (more than atoms in the universe!)
-• Would take billions of years to try all keys
-• Mathematically impossible to crack without the key
-
-When ransomware encrypts your files:
-1. Uses AES-256 (unbreakable encryption)
-2. Deletes the key from your computer
-3. Attacker keeps the only copy of the key
-4. Demands payment to give you the key back
-
-WHY BACKUPS ARE CRITICAL:
-You can't decrypt without the key, but you can restore from backup!
-Never pay the ransom - criminals may not give you the key anyway.
-
-Your Defense:
-• Daily backups = Your files safe
-• Air-gapped backups (offline)
-• Cloud + local copies"""
-		
-		Phase.COMPLETE:
-			section_label.text = "Encryption Mastered!"
-			content_label.text = """🎉 CONGRATULATIONS!
+You've successfully decrypted all practice messages!
 
 You now understand:
-✓ How encryption transforms data
-✓ Why keys are critical for decryption
-✓ How ransomware exploits encryption
-✓ Why AES-256 is unbreakable
-✓ Why backups are your best defense
+• How Caesar Cipher shifts letters
+• How to decrypt by shifting BACKWARDS
+• The importance of knowing the key
 
-Score: %d/200 points
+Ready for a challenge? Click NEXT →"""
+				next_button.disabled = false
+			else:
+				var msg = practice_messages[current_practice_index]
+				content_label.text = """DECRYPT THIS MESSAGE!
 
-Remember: Encryption is GOOD for security (protects your data),
-but BAD when attackers use it against you (ransomware).
+The message below was encrypted with Caesar Cipher (Key = 3).
 
-Always keep backups!""" % score
+📝 TASK:
+Decrypt by shifting each letter BACKWARDS by 3.
+
+Example: K → H, O → L
+
+💡 TIP: Use the alphabet reference to help you!"""
+				
+				practice_panel.visible = true
+				wheel_panel.visible = true
+				_update_alphabet_display()
+				_setup_practice_message(msg)
+				next_button.disabled = true
+
+		Phase.CHALLENGE_MODE:
+			section_label.text = "Phase 3: Decryption Challenge"
+			cipher_type_label.text = "Caesar Cipher - Timed Challenge"
+			
+			if current_challenge_index >= challenge_messages.size():
+				# Challenge complete
+				score += 100
+				content_label.text = """🎉 CHALLENGE COMPLETE!
+
+You've mastered Caesar Cipher decryption!
+
+Score: +100 points
+
+Click NEXT to learn about modern encryption →"""
+				next_button.disabled = false
+			else:
+				var msg = challenge_messages[current_challenge_index]
+				content_label.text = """⚡ SPEED CHALLENGE!
+
+Decrypt this message as fast as you can!
+
+🎯 Instructions:
+1. Look at the encrypted message
+2. Type the decrypted answer
+3. Click SUBMIT
+
+Hint: Key = 3 (shift backwards)"""
+				
+				challenge_panel.visible = true
+				wheel_panel.visible = true
+				_update_alphabet_display()
+				_setup_challenge_message(msg)
+				challenge_feedback.text = ""
+				next_button.disabled = true
+
+		Phase.RANSOMWARE_EXPLANATION:
+			section_label.text = "Phase 4: Real-World Application"
+			cipher_type_label.text = "Modern Encryption vs Caesar Cipher"
+			content_label.text = """🚨 HOW RANSOMWARE USES ENCRYPTION
+
+Caesar Cipher is EASY to break:
+• Only 26 possible keys (A-Z)
+• Can try all keys in seconds (Brute Force Attack)
+• Not secure for real data!
+
+🔒 MODERN RANSOMWARE USES AES-256:
+• 2^256 possible keys (340 undecillion combinations!)
+• Would take billions of years to brute force
+• Mathematically impossible to crack without the key
+
+⚠️ RANSOMWARE ATTACK PROCESS:
+1. Malware encrypts all your files with AES-256
+2. Deletes the key from your computer
+3. Attacker demands payment for the key
+4. Even if you pay, they might not give you the key!
+
+🛡️ YOUR BEST DEFENSE:
+✓ Regular backups (daily)
+✓ Offline backups (disconnected from network)
+✓ Cloud + local copies
+✓ Never pay the ransom!
+
+With backups, you can restore your files WITHOUT the key!
+
+Click NEXT to complete the tutorial →"""
+
+		Phase.COMPLETE:
+			section_label.text = "🎓 Tutorial Complete!"
+			cipher_type_label.text = "Caesar Cipher - Mastered!"
+			content_label.text = """🎉 CONGRATULATIONS!
+
+You've completed the Caesar Cipher tutorial!
+
+✅ What You Learned:
+• How substitution ciphers work
+• Caesar Cipher encryption/decryption
+• The importance of the encryption key
+• Why modern encryption is unbreakable
+• How ransomware exploits encryption
+• Why backups are critical
+
+📊 Final Score: %d points
+
+🔐 REMEMBER:
+• Encryption protects YOUR data (good!)
+• Ransomware uses encryption against you (bad!)
+• Always maintain backups!
+
+Click FINISH to return to menu →""" % score
+			
 			next_button.text = "FINISH"
-			next_button.disabled = false
-			print("[TUTORIAL] Section COMPLETE set - FINISH button enabled")
 
 
-func _on_encrypt_pressed() -> void:
-	var demo_panel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/DemoPanel
-	var plaintext_input = demo_panel.get_node("VBox/InputHBox/PlaintextInput")
-	var key_input = demo_panel.get_node("VBox/KeyHBox/KeyInput")
-	var result_label = demo_panel.get_node("VBox/ResultLabel")
+func _update_alphabet_display() -> void:
+	var plaintext_alphabet = ""
+	var cipher_alphabet = ""
 	
-	var plaintext = plaintext_input.text.to_upper()
-	var shift = int(key_input.value)
-	var encrypted = caesar_encrypt(plaintext, shift)
-	result_label.text = "Encrypted: " + encrypted
-	result_label.add_theme_color_override("font_color", Color(0, 0.6, 0))
-
-
-func _on_submit_pressed() -> void:
-	var challenge_panel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel
-	var answer_input = challenge_panel.get_node("VBox/InputHBox/AnswerInput")
-	var submit_button = challenge_panel.get_node("VBox/InputHBox/SubmitButton")
-	var content_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll/ContentLabel
-	
-	var user_answer = answer_input.text.strip_edges().to_upper()
-	attempts += 1
-	
-	# Decrypt the challenge
-	var correct_answer = caesar_decrypt(challenge_encrypted, challenge_key)
-	
-	if user_answer == correct_answer:
-		score += 100
-		content_label.text += "\n\n✅ CORRECT! You decrypted it!"
-		content_label.add_theme_color_override("font_color", Color(0, 0.8, 0))
-		answer_input.editable = false
-		submit_button.disabled = true
+	for i in range(26):
+		var plain_char = char(65 + i)  # A-Z
+		var cipher_char = _caesar_shift(plain_char, current_shift)
 		
-		print("[Encryption] ✅ Correct answer! Score: %d" % score)
+		plaintext_alphabet += plain_char + " "
+		cipher_alphabet += cipher_char + " "
+	
+	alphabet_reference.text = "Plaintext:  " + plaintext_alphabet + "\n"
+	alphabet_reference.text += "Encrypted:  " + cipher_alphabet
+	shift_label.text = "🔑 Shift Key: " + str(current_shift) + " (A→" + _caesar_shift("A", current_shift) + ", B→" + _caesar_shift("B", current_shift) + ", C→" + _caesar_shift("C", current_shift) + "...)"
+
+
+func _setup_practice_message(msg: Dictionary) -> void:
+	practice_encrypted_label.text = "🔒 Encrypted: " + msg["encrypted"]
+	practice_hint_label.text = "💡 Hint: Shift each letter BACKWARDS by " + str(msg["key"])
+	
+	# Clear previous slots
+	for child in practice_slots_container.get_children():
+		child.queue_free()
+	
+	# Create letter slots
+	var slot_container = HBoxContainer.new()
+	slot_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	practice_slots_container.add_child(slot_container)
+	
+	for i in range(msg["encrypted"].length()):
+		var encrypted_char = msg["encrypted"][i]
+		var decrypted_char = msg["plain"][i]
+		
+		var slot_button = Button.new()
+		slot_button.text = encrypted_char + " → ?"
+		slot_button.custom_minimum_size = Vector2(80, 60)
+		slot_button.pressed.connect(_on_practice_slot_pressed.bind(i, decrypted_char, slot_button))
+		slot_container.add_child(slot_button)
+
+
+func _on_practice_slot_pressed(index: int, correct_answer: String, button: Button) -> void:
+	# Show the answer when clicked
+	var msg = practice_messages[current_practice_index]
+	var encrypted_char = msg["encrypted"][index]
+	var decrypted_char = msg["plain"][index]
+	
+	button.text = encrypted_char + " → " + decrypted_char
+	button.modulate = Color(0.3, 1, 0.3)  # Green
+	button.disabled = true
+	
+	# Check if all slots are revealed
+	var all_revealed = true
+	for child in button.get_parent().get_children():
+		if not child.disabled:
+			all_revealed = false
+			break
+	
+	if all_revealed:
+		practice_hint_label.text = "✅ CORRECT! \"" + msg["plain"] + "\" decrypted!"
+		practice_hint_label.add_theme_color_override("font_color", Color(0, 0.8, 0))
+		score += 20
+		practice_completed += 1
 		
 		await get_tree().create_timer(2.0).timeout
-		content_label.add_theme_color_override("font_color", Color.BLACK)
-		_start_phase(Phase.RANSOMWARE_EXPLANATION)
+		
+		current_practice_index += 1
+		_start_phase(Phase.PRACTICE_MODE)
+
+
+func _setup_challenge_message(msg: Dictionary) -> void:
+	challenge_encrypted_label.text = "🔒 " + msg["encrypted"]
+	challenge_input.text = ""
+	challenge_input.editable = true
+	challenge_submit.disabled = false
+
+
+func _on_challenge_submit() -> void:
+	var msg = challenge_messages[current_challenge_index]
+	var user_answer = challenge_input.text.strip_edges().to_upper()
+	
+	if user_answer == msg["plain"]:
+		# Correct!
+		challenge_feedback.text = "✅ CORRECT!"
+		challenge_feedback.add_theme_color_override("font_color", Color(0, 0.8, 0))
+		challenge_input.editable = false
+		challenge_submit.disabled = true
+		score += 30
+		
+		await get_tree().create_timer(1.5).timeout
+		
+		current_challenge_index += 1
+		_start_phase(Phase.CHALLENGE_MODE)
 	else:
-		score -= 10
-		content_label.text += "\n\n❌ Wrong. Hint: Shift each letter BACKWARDS by 3. Try again!"
-		content_label.add_theme_color_override("font_color", Color(0.8, 0, 0))
+		# Wrong
+		challenge_feedback.text = "❌ Try again! Shift backwards by 3"
+		challenge_feedback.add_theme_color_override("font_color", Color(0.8, 0, 0))
+		challenge_attempts += 1
 		
-		print("[Encryption] ❌ Wrong answer. Score: %d | Attempts: %d" % [score, attempts])
-		
-		if attempts >= 3:
-			score = max(score, 50)  # Give minimum 50 points for trying
-			content_label.text += "\n\nAnswer: " + correct_answer + "\n(Shift backwards: W→T, K→H, etc.)"
-			print("[Encryption] Max attempts reached. Giving 50 points minimum. Score: %d" % score)
+		if challenge_attempts >= 3:
+			challenge_feedback.text = "💡 Answer: " + msg["plain"]
+			challenge_feedback.add_theme_color_override("font_color", Color(1, 0.6, 0))
+			score += 10  # Partial credit
+			
 			await get_tree().create_timer(3.0).timeout
-			content_label.add_theme_color_override("font_color", Color.BLACK)
-			_start_phase(Phase.RANSOMWARE_EXPLANATION)
+			
+			current_challenge_index += 1
+			challenge_attempts = 0
+			_start_phase(Phase.CHALLENGE_MODE)
 
 
-func caesar_encrypt(text: String, shift: int) -> String:
-	var result = ""
-	for c in text:
-		if c == " ":
-			result += " "
-		elif c.to_upper() >= "A" and c.to_upper() <= "Z":
-			var base = "A".unicode_at(0)
-			var shifted = (c.to_upper().unicode_at(0) - base + shift) % 26
-			result += char(base + shifted)
-		else:
-			result += c
-	return result
-
-
-func caesar_decrypt(text: String, shift: int) -> String:
-	return caesar_encrypt(text, 26 - shift)  # Decrypt = encrypt with reverse shift
+func _caesar_shift(char: String, shift: int) -> String:
+	if char.length() == 0:
+		return ""
+	
+	var c = char.to_upper()
+	if c < "A" or c > "Z":
+		return char
+	
+	var base = "A".unicode_at(0)
+	var shifted = (c.unicode_at(0) - base + shift) % 26
+	return char(base + shifted)
 
 
 func _on_next_pressed() -> void:
 	match current_phase:
 		Phase.INTRO:
-			_start_phase(Phase.ENCRYPT_DEMO)
-		Phase.ENCRYPT_DEMO:
-			_start_phase(Phase.DECRYPT_CHALLENGE)
+			_start_phase(Phase.LEARN_WHEEL)
+		Phase.LEARN_WHEEL:
+			current_practice_index = 0
+			_start_phase(Phase.PRACTICE_MODE)
+		Phase.PRACTICE_MODE:
+			current_challenge_index = 0
+			challenge_attempts = 0
+			_start_phase(Phase.CHALLENGE_MODE)
+		Phase.CHALLENGE_MODE:
+			_start_phase(Phase.RANSOMWARE_EXPLANATION)
 		Phase.RANSOMWARE_EXPLANATION:
 			_start_phase(Phase.COMPLETE)
 		Phase.COMPLETE:
-			print("[TUTORIAL] FINISH button pressed!")
-			print("[TUTORIAL] Final Score: %d / Max: 100" % score)
+			print("[TUTORIAL] Final Score: %d" % score)
 			
-			# Don't save if score is negative or zero
 			if score <= 0:
-				print("[TUTORIAL] ⚠️ Score too low (%d), not saving. Redirecting to landing..." % score)
+				print("[TUTORIAL] Score too low, redirecting...")
 				get_tree().change_scene_to_file("res://scene/landing.tscn")
 				return
 			
 			# Save tutorial result
 			var tutorial_mgr = get_node("/root/TutorialManager")
 			if tutorial_mgr:
-				print("[TUTORIAL] TutorialManager found, saving result...")
-				tutorial_mgr.save_tutorial_result("beginner_encryption", score, 100)
-				
-				# Wait for Firestore save to complete before navigating
-				print("[TUTORIAL] Waiting for Firestore save to complete...")
+				tutorial_mgr.save_tutorial_result("beginner_encryption", score, 200)
 				await tutorial_mgr.save_completed
-				print("[TUTORIAL] Save confirmed, navigating to landing...")
-			else:
-				push_error("[TUTORIAL] TutorialManager not found!")
 			
-			# Return to landing page
 			get_tree().change_scene_to_file("res://scene/landing.tscn")
 
 
 func _on_back_pressed() -> void:
 	match current_phase:
 		Phase.INTRO:
-			# First phase - exit to mode selection
 			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
-		Phase.ENCRYPT_DEMO:
+		Phase.LEARN_WHEEL:
 			_start_phase(Phase.INTRO)
-		Phase.DECRYPT_CHALLENGE:
-			_start_phase(Phase.ENCRYPT_DEMO)
+		Phase.PRACTICE_MODE:
+			_start_phase(Phase.LEARN_WHEEL)
+		Phase.CHALLENGE_MODE:
+			_start_phase(Phase.PRACTICE_MODE)
 		Phase.RANSOMWARE_EXPLANATION:
-			# Reset challenge and go back
-			attempts = 0
-			_start_phase(Phase.DECRYPT_CHALLENGE)
+			_start_phase(Phase.CHALLENGE_MODE)
 		Phase.COMPLETE:
 			_start_phase(Phase.RANSOMWARE_EXPLANATION)

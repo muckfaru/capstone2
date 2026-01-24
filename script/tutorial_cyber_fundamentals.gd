@@ -7,25 +7,19 @@ extends Control
 
 enum Section {
 	INTRO,
-	CIA_CONFIDENTIALITY,
-	CIA_INTEGRITY,
-	CIA_AVAILABILITY,
+	CIA_TRIAD,
 	THREAT_MODEL,
-	QUIZ,
 	COMPLETE
 }
 
 var current_section = Section.INTRO
-var score := 0
-var quiz_answers := {}
+var xp_earned := 100
 
 # Node references
 @onready var section_label: Label = $WindowDialog/VBox/TitleBar/MarginContainer/HBox/SectionLabel
 @onready var content_label: RichTextLabel = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll/ContentLabel
 @onready var interaction_panel: VBoxContainer = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/InteractionPanel
-@onready var quiz_panel: VBoxContainer = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/QuizPanel
-@onready var quiz_question: Label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/QuizPanel/QuestionLabel
-@onready var option_container: VBoxContainer = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/QuizPanel/OptionsContainer
+
 @onready var next_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton
 @onready var back_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton
 @onready var confirm_overlay: ColorRect = $ConfirmOverlay
@@ -37,61 +31,13 @@ var current_text := ""
 var target_text := ""
 var typing_tween: Tween = null
 
-# Quiz data
-var quiz_questions := [
-	{
-		"question": "What does CONFIDENTIALITY mean in cybersecurity?",
-		"options": [
-			"Keeping data SECRET from unauthorized people",
-			"Making sure data is not changed",
-			"Keeping services online and accessible"
-		],
-		"correct": 0,
-		"explanation": "Confidentiality = keeping secrets! Like encrypting passwords so hackers can't read them."
-	},
-	{
-		"question": "A hacker changes the price on your e-commerce website from $100 to $1. What is violated?",
-		"options": ["Confidentiality", "Integrity", "Availability"],
-		"correct": 1,
-		"explanation": "Integrity = data accuracy! The price was MODIFIED (tampered with), so integrity is broken."
-	},
-	{
-		"question": "Your school's website is down because of too much traffic. Which principle is violated?",
-		"options": ["Confidentiality", "Integrity", "Availability"],
-		"correct": 2,
-		"explanation": "Availability = service is accessible! When a website is DOWN or UNREACHABLE, availability is violated."
-	},
-	{
-		"question": "What is a VULNERABILITY in cybersecurity?",
-		"options": [
-			"A hacker or attacker",
-			"A weakness that can be exploited",
-			"A type of malware"
-		],
-		"correct": 1,
-		"explanation": "Vulnerability = a WEAKNESS! Like using 'password123' or not updating your software - these are exploitable weaknesses."
-	},
-	{
-		"question": "You have multiple backup servers. One crashes but your website still works. What protects AVAILABILITY?",
-		"options": [
-			"Encryption",
-			"Redundancy (backup systems)",
-			"Firewalls"
-		],
-		"correct": 1,
-		"explanation": "Redundancy = having backups! Multiple servers mean if one fails, others keep the service running. That's availability!"
-	}
-]
 
-var current_quiz_index := 0
 
 
 func _ready() -> void:
 	print("🛡️ Cybersecurity Fundamentals Ready")
 	
-	quiz_panel.visible = false
 	interaction_panel.visible = false
-	quiz_question.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
 	_setup_cmd_interface()
 	_start_section(Section.INTRO)
@@ -214,7 +160,6 @@ func _type_text(text: String) -> void:
 
 func _start_section(section: Section) -> void:
 	current_section = section
-	quiz_panel.visible = false
 	interaction_panel.visible = false
 	content_label.visible = true
 	
@@ -249,127 +194,46 @@ This is the framework ALL cybersecurity professionals use!
 
 [color=#ffff99]Press NEXT to learn the CIA Triad →[/color]"""
 		
-		Section.CIA_CONFIDENTIALITY:
-			section_label.text = "CIA Triad - Part 1: Confidentiality"
-			section_text = """[color=#5fd35f]C:\\SECURITY\\CIA>[/color] [color=#ffff99]learn_confidentiality.exe[/color]
+		Section.CIA_TRIAD:
+			section_label.text = "The CIA Triad"
+			section_text = """[color=#5fd35f]C:\\SECURITY\\CIA>[/color] [color=#ffff99]learn_cia_triad.exe[/color]
 
 [b][color=#5fd35f]═══════════════════════════════════════════[/color][/b]
-[b]CONFIDENTIALITY = KEEPING SECRETS[/b]
+[b]THE CIA TRIAD - 3 CORE SECURITY PRINCIPLES[/b]
 [b][color=#5fd35f]═══════════════════════════════════════════[/color][/b]
 
-[color=#ffffff]Confidentiality means only authorized people can access information.[/color]
+[color=#55ff55]🔒 CONFIDENTIALITY[/color]
+[color=#ffffff]Keeping data SECRET from unauthorized people.[/color]
 
-[color=#ffaa55]Real-World Examples:[/color]
-   ✓ Your password (only you should know it)
-   ✓ Medical records (only you and your doctor)
-   ✓ Credit card numbers (only you and the bank)
-   ✓ Company secrets (trade secrets, financial data)
+Examples:
+   • Passwords (only you should know them)
+   • Medical records (private information)
+   • Credit card numbers (financial data)
 
-[color=#ffaa55]How it's protected:[/color]
-   🔐 Encryption (scrambles data so hackers can't read it)
-   🔑 Access controls (passwords, permissions, badges)
-   👤 Authentication (proving who you are - fingerprint, face ID)
-
-[color=#ff5555]Confidentiality BREACH Example:[/color]
-   ❌ Hacker steals customer database with emails/passwords
-   ❌ Employee accidentally emails sensitive files to wrong person
-   ❌ Someone reads your private messages without permission
 
 [color=#5fd35f]──────────────────────────────────────────[/color]
-[b]SCENARIO: Email Encryption[/b]
 
-Imagine sending a secret message:
-[color=#888888]Without Encryption:[/color] "My password is hunter2" → [color=#ff5555]Anyone can read it![/color]
-[color=#55ff55]With Encryption:[/color] "X9#mK2$pL@4nR" → [color=#55ff55]Only recipient can decode it![/color]
+[color=#55ff55]✅ INTEGRITY[/color]
+[color=#ffffff]Keeping data ACCURATE and preventing tampering.[/color]
 
-This is how HTTPS protects your web browsing!
-[color=#5fd35f]──────────────────────────────────────────[/color]"""
-		
-		Section.CIA_INTEGRITY:
-			section_label.text = "CIA Triad - Part 2: Integrity"
-			section_text = """[color=#5fd35f]C:\\SECURITY\\CIA>[/color] [color=#ffff99]learn_integrity.exe[/color]
+Examples:
+   • Bank account balances (must be exact)
+   • Software downloads (no malware injected)
+   • Medical prescriptions (correct dosage)
 
-[b][color=#5fd35f]═══════════════════════════════════════════[/color][/b]
-[b]INTEGRITY = PREVENTING TAMPERING[/b]
-[b][color=#5fd35f]═══════════════════════════════════════════[/color][/b]
-
-[color=#ffffff]Integrity means data is accurate, authentic, and hasn't been modified by unauthorized people.[/color]
-
-[color=#ffaa55]Real-World Examples:[/color]
-   ✓ Bank account balance (must be exact, no unauthorized changes)
-   ✓ Software downloads (no hidden malware injected)
-   ✓ Medical prescriptions (correct dosage, not tampered)
-   ✓ Website content (not defaced by hackers)
-
-[color=#ffaa55]How it's protected:[/color]
-   📝 Digital signatures (proves who created/modified data)
-   🔍 Checksums/hashes (detects if file was changed)
-   📚 Version control (tracks all modifications)
-   🔒 Access controls (limits who can edit)
-
-[color=#ff5555]Integrity BREACH Example:[/color]
-   ❌ Hacker changes price from $100 to $1 on shopping site
-   ❌ Malware modifies your downloaded software
-   ❌ Attacker edits news article to spread fake information
 
 [color=#5fd35f]──────────────────────────────────────────[/color]
-[b]SCENARIO: File Hash Verification[/b]
 
-You download a file: [color=#55ff55]important_document.pdf[/color]
+[color=#55ff55]🌐 AVAILABILITY[/color]
+[color=#ffffff]Keeping systems ACCESSIBLE and running when needed.[/color]
 
-Original hash: [color=#ffff99]a3f9b2c1e5d8[/color]
-Your download hash: [color=#ffff99]a3f9b2c1e5d8[/color] ✅ [color=#55ff55]MATCH! File is authentic[/color]
+Examples:
+   • Websites online 24/7
+   • Email servers responding quickly
+   • Hospital systems during emergencies
 
-If a hacker modified it:
-Modified hash: [color=#ff5555]x7k9m2n4p6q8[/color] ❌ [color=#ff5555]MISMATCH! File tampered![/color]
 
-This is how antivirus software detects malware!
-[color=#5fd35f]──────────────────────────────────────────[/color]"""
-		
-		Section.CIA_AVAILABILITY:
-			section_label.text = "CIA Triad - Part 3: Availability"
-			section_text = """[color=#5fd35f]C:\\SECURITY\\CIA>[/color] [color=#ffff99]learn_availability.exe[/color]
-
-[b][color=#5fd35f]═══════════════════════════════════════════[/color][/b]
-[b]AVAILABILITY = KEEPING SERVICES RUNNING[/b]
-[b][color=#5fd35f]═══════════════════════════════════════════[/color][/b]
-
-[color=#ffffff]Availability means systems and data are accessible when needed.[/color]
-
-[color=#ffaa55]Real-World Examples:[/color]
-   ✓ Website is online 24/7 (not crashed)
-   ✓ Email server responds quickly (not slow)
-   ✓ Hospital systems work during emergencies
-   ✓ ATM machines dispense cash when you need it
-
-[color=#ffaa55]How it's protected:[/color]
-   🔄 Redundancy (backup servers - if one fails, others work)
-   ⚖️ Load balancing (distribute traffic across servers)
-   🛡️ DDoS protection (block massive attack traffic)
-   💾 Disaster recovery plans (backups and restore procedures)
-
-[color=#ff5555]Availability BREACH Example:[/color]
-   ❌ DDoS attack floods website with fake traffic → site crashes
-   ❌ Ransomware encrypts all files → can't access data
-   ❌ Server hardware failure → service goes offline
-
-[color=#5fd35f]──────────────────────────────────────────[/color]
-[b]SCENARIO: Server Redundancy[/b]
-
-Your website runs on 3 servers:
-
-[color=#55ff55]Server 1:[/color] ✅ Online - Handling 100 requests/sec
-[color=#55ff55]Server 2:[/color] ✅ Online - Handling 100 requests/sec
-[color=#55ff55]Server 3:[/color] ✅ Online - Handling 100 requests/sec
-
-[color=#ffaa55]⚠️ Server 2 crashes![/color]
-
-[color=#55ff55]Server 1:[/color] ✅ Online - Now handling 150 requests/sec
-[color=#ff5555]Server 2:[/color] ❌ OFFLINE - Restarting...
-[color=#55ff55]Server 3:[/color] ✅ Online - Now handling 150 requests/sec
-
-[color=#55ff55]✓ Website still works! Users don't even notice![/color]
-[color=#5fd35f]──────────────────────────────────────────[/color]"""
+[color=#ffff99]Press NEXT to learn about Threat Modeling →[/color]"""
 		
 		Section.THREAT_MODEL:
 			section_label.text = "Understanding Threats, Vulnerabilities, and Risks"
@@ -417,25 +281,18 @@ Your website runs on 3 servers:
 
 [color=#5fd35f]──────────────────────────────────────────[/color]"""
 		
-		Section.QUIZ:
-			section_label.text = "Knowledge Check - CIA Triad Quiz"
-			if typing_tween:
-				typing_tween.kill()
-				typing_tween = null
-			content_label.visible = false
-			quiz_panel.visible = true
-			back_button.disabled = true
-			_show_quiz_question()
-			return
-		
 		Section.COMPLETE:
 			content_label.visible = true
-			section_label.text = "Fundamentals Mastered!"
-			section_text = """[color=#5fd35f]C:\\CYBERSECURITY>[/color] [color=#ffff99]tutorial_complete.exe[/color]
+			section_label.text = "Fundamentals Complete!"
+			section_text = """[color=#5fd35f]C:\\CYBERSECURITY>[/color] [color=#ffff99]fundamentals_complete.exe[/color]
 
 [b][color=#55ff55]═══════════════════════════════════════════[/color][/b]
-[b]🎉 CONGRATULATIONS![/b]
+[b]🎉 FUNDAMENTALS COMPLETE![/b]
 [b][color=#55ff55]═══════════════════════════════════════════[/color][/b]
+
+[center][color=#ffff00]╔══════════════════════════╗[/color]
+[color=#ffff00]║[/color]  [color=#55ff55]⭐ XP EARNED: +%d XP[/color]  [color=#ffff00]║[/color]
+[color=#ffff00]╚══════════════════════════╝[/color][/center]
 
 You now understand cybersecurity fundamentals:
 
@@ -449,112 +306,49 @@ You now understand cybersecurity fundamentals:
    • [b]Vulnerabilities[/b] (weaknesses)
    • [b]Risks[/b] (likelihood × impact)
 
-[color=#ffff99]Quiz Score: %d/%d correct[/color]
-
 [color=#5fd35f]──────────────────────────────────────────[/color]
-These concepts apply to EVERYTHING in cybersecurity:
-   🔐 Password security → [b]Confidentiality[/b]
-   🔍 Malware detection → [b]Integrity[/b]
-   🛡️ DDoS defense → [b]Availability[/b]
 
-[b]You're now ready for technical tutorials![/b]
+[b]Next up: Practice applying the CIA Triad![/b]
 
-[color=#55ff55]Press FINISH to return to menu →[/color]""" % [score, quiz_questions.size()]
-			next_button.text = "FINISH"
+[color=#55ff55]Press NEXT to continue to interactive CIA training →[/color]""" % xp_earned
+			next_button.text = "CONTINUE"
 			next_button.disabled = false
 	
 	if not section_text.is_empty():
 		_type_text(section_text)
 
 
-func _show_quiz_question() -> void:
-	if current_quiz_index >= quiz_questions.size():
-		_start_section(Section.COMPLETE)
-		return
-	
-	quiz_panel.visible = true
-	var q = quiz_questions[current_quiz_index]
-	quiz_question.text = "Q%d: %s" % [current_quiz_index + 1, q["question"]]
-	quiz_question.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	
-	for child in option_container.get_children():
-		child.queue_free()
-	
-	for i in range(q["options"].size()):
-		var button = Button.new()
-		button.text = q["options"][i]
-		button.custom_minimum_size = Vector2(0, 40)
-		button.pressed.connect(_on_quiz_option_selected.bind(i))
-		option_container.add_child(button)
-	
-	next_button.disabled = true
-	back_button.disabled = true
-
-
-func _on_quiz_option_selected(option_index: int) -> void:
-	var q = quiz_questions[current_quiz_index]
-	var correct = (option_index == q["correct"])
-	
-	for button in option_container.get_children():
-		button.disabled = true
-	
-	if correct:
-		score += 1
-		quiz_question.text += "\n\n✅ CORRECT! " + q["explanation"]
-		quiz_question.add_theme_color_override("font_color", Color(0, 0.8, 0))
-	else:
-		quiz_question.text += "\n\n❌ WRONG! " + q["explanation"]
-		quiz_question.add_theme_color_override("font_color", Color(0.8, 0, 0))
-	
-	quiz_question.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	
-	await get_tree().create_timer(3.0).timeout
-	quiz_question.add_theme_color_override("font_color", Color.WHITE)
-	
-	current_quiz_index += 1
-	_show_quiz_question()
-
 
 func _on_next_pressed() -> void:
 	match current_section:
 		Section.INTRO:
-			_start_section(Section.CIA_CONFIDENTIALITY)
-		Section.CIA_CONFIDENTIALITY:
-			_start_section(Section.CIA_INTEGRITY)
-		Section.CIA_INTEGRITY:
-			_start_section(Section.CIA_AVAILABILITY)
-		Section.CIA_AVAILABILITY:
+			_start_section(Section.CIA_TRIAD)
+		Section.CIA_TRIAD:
 			_start_section(Section.THREAT_MODEL)
 		Section.THREAT_MODEL:
-			_start_section(Section.QUIZ)
+			_start_section(Section.COMPLETE)
 		Section.COMPLETE:
-			var tutorial_mgr = get_node("/root/TutorialManager")
+			# Save progress with XP
+			var tutorial_mgr = get_node_or_null("/root/TutorialManager")
 			if tutorial_mgr:
-				tutorial_mgr.save_tutorial_result("beginner_fundamentals", score * 50, quiz_questions.size() * 50)
-				await tutorial_mgr.save_completed
+				tutorial_mgr.save_tutorial_result("beginner_fundamentals", xp_earned, xp_earned)
+				if tutorial_mgr.has_signal("save_completed"):
+					await tutorial_mgr.save_completed
 				await get_tree().process_frame
-				await get_tree().process_frame
-			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+			# Transition to CIA Triad tutorial
+			get_tree().change_scene_to_file("res://scene/tutorial_cia_triad.tscn")
 
 
 func _on_back_pressed() -> void:
 	match current_section:
 		Section.INTRO:
 			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
-		Section.CIA_CONFIDENTIALITY:
+		Section.CIA_TRIAD:
 			_start_section(Section.INTRO)
-		Section.CIA_INTEGRITY:
-			_start_section(Section.CIA_CONFIDENTIALITY)
-		Section.CIA_AVAILABILITY:
-			_start_section(Section.CIA_INTEGRITY)
 		Section.THREAT_MODEL:
-			_start_section(Section.CIA_AVAILABILITY)
-		Section.QUIZ:
-			_start_section(Section.THREAT_MODEL)
+			_start_section(Section.CIA_TRIAD)
 		Section.COMPLETE:
-			current_quiz_index = 0
-			score = 0
-			_start_section(Section.QUIZ)
+			_start_section(Section.THREAT_MODEL)
 
 
 func _on_close_button_pressed() -> void:

@@ -13,12 +13,12 @@ float random(float t) {
 void fragment() {
     vec2 uv = UV;
     vec4 tex = texture(TEXTURE, uv);
-    
+
     // Multi-sample bloom
     vec4 bloom = vec4(0.0);
     int samples = 16;
     float sample_step = 6.28318 / float(samples);
-    
+
     for (int i = 0; i < samples; i++) {
         float angle = float(i) * sample_step;
         for (float dist = glow_size * 0.3; dist <= glow_size; dist += glow_size * 0.2) {
@@ -27,21 +27,21 @@ void fragment() {
         }
     }
     bloom /= float(samples * 4);
-    
+
     // Apply neon color to bloom
     bloom.rgb = neon_color.rgb * bloom.a * bloom_intensity;
-    
+
     // Flickering effect
     float flicker = 1.0 - random(floor(TIME * flicker_speed)) * flicker_amount;
-    
+
     // Pulse
     float pulse = sin(TIME * 3.0) * 0.1 + 0.9;
-    
+
     // Combine
     vec4 color = tex + bloom * flicker * pulse;
-    
+
     // Core glow
     color.rgb += neon_color.rgb * tex.a * 0.5;
-    
+
     COLOR = color;
 }

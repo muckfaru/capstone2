@@ -1,0 +1,433 @@
+[gd_scene load_steps=2 format=3 uid="uid://cd3lh16vutqw7"]
+
+[ext_resource type="Script" uid="uid://bqvmi7u1whi0u" path="res://script/CipherShield.gd" id="1"]
+
+[node name="CipherShield" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.15, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "🔐 CIPHER SHIELD"
+horizontal_alignment = 1
+
+[node name="LevelInfo" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 70.0
+offset_right = 150.0
+offset_bottom = 120.0
+grow_horizontal = 2
+
+[node name="LevelLabel" type="Label" parent="LevelInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 20
+text = "LEVEL 1"
+horizontal_alignment = 1
+
+[node name="ObjectiveLabel" type="Label" parent="LevelInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Protect 3 messages"
+horizontal_alignment = 1
+
+[node name="SenderPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 30.0
+offset_top = -100.0
+offset_right = 330.0
+offset_bottom = 100.0
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="SenderPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Header" type="Label" parent="SenderPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "📤 SENDER STATION"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="SenderPanel/VBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SenderPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Plaintext Message:"
+
+[node name="PlaintextLabel" type="RichTextLabel" parent="SenderPanel/VBox"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[color=white][b]WAITING FOR MESSAGE[/b][/color]"
+fit_content = true
+scroll_active = false
+
+[node name="TransmissionChannel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ChannelBG" type="ColorRect" parent="TransmissionChannel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.15, 0.15, 0.2, 1)
+
+[node name="Header" type="Label" parent="TransmissionChannel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 35.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 16
+text = "⚡ TRANSMISSION"
+horizontal_alignment = 1
+
+[node name="ChannelLine" type="ColorRect" parent="TransmissionChannel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -2.0
+offset_right = 180.0
+offset_bottom = 2.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0.3, 0.4, 1)
+
+[node name="DataPacket" type="ColorRect" parent="TransmissionChannel"]
+visible = false
+layout_mode = 1
+offset_left = 50.0
+offset_top = 60.0
+offset_right = 100.0
+offset_bottom = 100.0
+color = Color(0.3, 0.8, 1, 1)
+
+[node name="PacketLabel" type="Label" parent="TransmissionChannel/DataPacket"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "📦"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InterceptorAlert" type="ColorRect" parent="TransmissionChannel"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 0, 0, 0.3)
+
+[node name="AlertLabel" type="Label" parent="TransmissionChannel/InterceptorAlert"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -15.0
+offset_right = 100.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = "⚠ INTERCEPTED"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ReceiverPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -330.0
+offset_top = -100.0
+offset_right = -30.0
+offset_bottom = 100.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="ReceiverPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Header" type="Label" parent="ReceiverPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "📥 RECEIVER STATION"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="ReceiverPanel/VBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ReceiverPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Encrypted Data:"
+
+[node name="EncryptedLabel" type="RichTextLabel" parent="ReceiverPanel/VBox"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[color=gray][i]Waiting for transmission...[/i][/color]"
+fit_content = true
+scroll_active = false
+
+[node name="KeyControls" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -250.0
+offset_top = -220.0
+offset_right = 250.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="VBox" type="VBoxContainer" parent="KeyControls"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Header" type="Label" parent="KeyControls/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 16
+text = "🔑 ENCRYPTION KEY"
+horizontal_alignment = 1
+
+[node name="KeyInput" type="LineEdit" parent="KeyControls/VBox"]
+layout_mode = 2
+placeholder_text = "Enter encryption key..."
+alignment = 1
+
+[node name="KeyStrengthBar" type="ProgressBar" parent="KeyControls/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+show_percentage = false
+
+[node name="StrengthLabel" type="Label" parent="KeyControls/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Key Strength"
+horizontal_alignment = 1
+
+[node name="EncryptButton" type="Button" parent="KeyControls/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 16
+text = "🔒 ENCRYPT & SEND"
+
+[node name="DecryptButton" type="Button" parent="KeyControls/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 16
+disabled = true
+text = "🔓 DECRYPT MESSAGE"
+
+[node name="GenerateKeyButton" type="Button" parent="KeyControls/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "⚡ Generate Random Key"
+
+[node name="SecurityDashboard" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 130.0
+offset_bottom = 180.0
+grow_horizontal = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="SecurityDashboard"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.3, 1)
+theme_override_font_sizes/font_size = 18
+text = "SCORE: 0"
+
+[node name="VSeparator1" type="VSeparator" parent="SecurityDashboard"]
+layout_mode = 2
+
+[node name="IntegrityMeter" type="ProgressBar" parent="SecurityDashboard"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="IntegrityLabel" type="Label" parent="SecurityDashboard/IntegrityMeter"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 14
+text = "Security Integrity"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VSeparator2" type="VSeparator" parent="SecurityDashboard"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="SecurityDashboard"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Ready to encrypt"
+
+[node name="AttackerView" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -350.0
+offset_top = -250.0
+offset_right = -20.0
+offset_bottom = -240.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="BGColor" type="ColorRect" parent="AttackerView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.3, 0, 0, 0.9)
+
+[node name="VBox" type="VBoxContainer" parent="AttackerView"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Header" type="Label" parent="AttackerView/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 16
+text = "👁 ATTACKER VIEW"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="AttackerView/VBox"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="StolenDataLabel" type="RichTextLabel" parent="AttackerView/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[color=gray]Waiting to intercept...[/color]"
+fit_content = true
+scroll_active = false
+
+[node name="Instructions" type="RichTextLabel" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -80.0
+offset_right = 520.0
+offset_bottom = -10.0
+grow_vertical = 0
+bbcode_enabled = true
+text = "[color=gray][i]INSTRUCTIONS:
+1. Enter an encryption key
+2. Click 'ENCRYPT & SEND' to protect data
+3. Use the SAME key to decrypt at receiver
+4. Stronger keys = Better protection[/i][/color]"
+fit_content = true
+scroll_active = false

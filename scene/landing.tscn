@@ -11,7 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://b14mflwcapld1" path="res://scene/code_breaker_lobby.tscn" id="9_08qf3"]
 [ext_resource type="PackedScene" uid="uid://bsi01dt2s0qq7" path="res://scene/view_player_profile.tscn" id="10_xyz99"]
 [ext_resource type="PackedScene" uid="uid://clvghcukrtua8" path="res://scene/akashic_tcg_lobby.tscn" id="11_tgc"]
-[ext_resource type="PackedScene" uid="uid://ddefuse_trojan_lobby" path="res://scene/defuse_trojan_lobby.tscn" id="12_defuse"]
+[ext_resource type="PackedScene" path="res://scene/defuse_trojan_lobby.tscn" id="12_defuse"]
 [ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="13_aar1m"]
 [ext_resource type="Script" uid="uid://c8so1cdb5uoyy" path="res://scene/pokemon_style_welcome_ui.gd" id="14_irntn"]
 [ext_resource type="Texture2D" uid="uid://cd2ubh32mfexb" path="res://asset/icons/AGENT01.png" id="16_ie1g5"]

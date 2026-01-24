@@ -1,6 +1,5 @@
-[gd_scene load_steps=4 format=3 uid="uid://bblyflbhwl1yt"]
+[gd_scene load_steps=3 format=3 uid="uid://bblyflbhwl1yt"]
 
-[ext_resource type="Script" path="res://script/confidentiality_game.gd" id="1_game"]
 [ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_result_panel"]
@@ -26,7 +25,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_game")
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1

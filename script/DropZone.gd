@@ -2,21 +2,20 @@ extends PanelContainer
 
 signal zone_dropped(card, zone_type)
 
-@export var zone_type = "data"  # "data" or "network"
+@export var zone_type = "data"
 @export var zone_color = Color(0.2, 0.5, 0.8)
 
 @onready var icon_label = $VBox/Icon
 @onready var title_label = $VBox/Title
 @onready var subtitle_label = $VBox/Subtitle
 @onready var panel = $Panel
-@onready var area_2d = $Area2D
 
 var original_style: StyleBox
 
 func _ready():
 	setup_zone()
-	# Collision shape is now set up in the scene file
 	original_style = panel.get_theme_stylebox("panel").duplicate()
+	print("DropZone '%s' ready: global_pos=%s, size=%s" % [zone_type, global_position, size])
 
 func setup_zone():
 	if zone_type == "data":
@@ -32,7 +31,16 @@ func setup_zone():
 	if style is StyleBoxFlat:
 		style.border_color = zone_color
 
+func is_point_inside(point: Vector2) -> bool:
+	# Check if a global point is inside this zone
+	var rect = Rect2(global_position, size)
+	var inside = rect.has_point(point)
+	if inside:
+		print("DropZone '%s': Point %s IS inside rect %s" % [zone_type, point, rect])
+	return inside
+
 func handle_drop(card):
+	print("DropZone '%s' received card drop!" % zone_type)
 	zone_dropped.emit(card, zone_type)
 
 func show_success_effect():
@@ -44,11 +52,10 @@ func show_success_effect():
 		tween.tween_property(style, "border_color", zone_color, 0.3)
 		tween.tween_property(style, "bg_color", Color(0.2, 0.2, 0.25, 0.5), 0.3)
 	
-	# Shield effect
 	var shield = Label.new()
 	shield.text = "🛡️"
-	shield.add_theme_font_size_override("font_size", 72)
-	shield.position = size / 2 - Vector2(36, 36)
+	shield.add_theme_font_size_override("font_size", 60)
+	shield.position = size / 2 - Vector2(30, 30)
 	shield.modulate = Color(1, 1, 1, 0)
 	add_child(shield)
 	
@@ -68,7 +75,6 @@ func show_fail_effect():
 		tween.tween_property(style, "border_color", zone_color, 0.3)
 		tween.tween_property(style, "bg_color", Color(0.2, 0.2, 0.25, 0.5), 0.3)
 	
-	# Shake effect
 	var original_pos = position
 	var tween2 = create_tween()
 	for i in range(4):

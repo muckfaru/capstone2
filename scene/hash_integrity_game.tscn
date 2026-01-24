@@ -1,0 +1,528 @@
+[gd_scene load_steps=2 format=3 uid="uid://0toisq71ycqw"]
+
+[ext_resource type="Script" uid="uid://chr4fn0a3y585" path="res://script/hash_integrity_game.gd" id="1_hash_game"]
+
+[node name="HashIntegrityGame" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hash_game")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.15, 0.25, 1)
+
+[node name="IntroScreen" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="IntroScreen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="IntroScreen/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "🔐 HASHING & INTEGRITY"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="IntroScreen/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Tamper Detection Mission"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="IntroScreen/VBoxContainer"]
+layout_mode = 2
+
+[node name="Explanation" type="RichTextLabel" parent="IntroScreen/VBoxContainer"]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[center][b]Your Mission:[/b][/center]
+
+Protect your network by detecting tampered files using cryptographic hashing.
+
+[b]What is Hashing?[/b]
+Hashing converts data into a fixed-length value. The same input always produces the same hash, but even a tiny change produces a completely different hash.
+
+[b][color=yellow]Key Principle:[/color][/b]
+[i]\"If data changes, its hash changes — that's how we detect tampering.\"[/i]"
+fit_content = true
+
+[node name="StartButton" type="Button" parent="IntroScreen/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "START MISSION"
+
+[node name="GameScreen" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="Panel" parent="GameScreen"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 80.0
+grow_horizontal = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="GameScreen/TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LevelLabel" type="Label" parent="GameScreen/TopBar/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Level: 1"
+
+[node name="VSeparator" type="VSeparator" parent="GameScreen/TopBar/HBoxContainer"]
+layout_mode = 2
+
+[node name="ScoreLabel" type="Label" parent="GameScreen/TopBar/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Score: 0"
+
+[node name="VSeparator2" type="VSeparator" parent="GameScreen/TopBar/HBoxContainer"]
+layout_mode = 2
+
+[node name="LivesLabel" type="Label" parent="GameScreen/TopBar/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Lives: ❤️❤️❤️"
+
+[node name="VSeparator3" type="VSeparator" parent="GameScreen/TopBar/HBoxContainer"]
+layout_mode = 2
+
+[node name="TimerLabel" type="Label" parent="GameScreen/TopBar/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Time: 30s"
+
+[node name="Spacer" type="Control" parent="GameScreen/TopBar/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AlgoButtons" type="HBoxContainer" parent="GameScreen/TopBar/HBoxContainer"]
+layout_mode = 2
+
+[node name="MD5Button" type="Button" parent="GameScreen/TopBar/HBoxContainer/AlgoButtons"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "MD5
+[BROKEN]"
+
+[node name="SHA1Button" type="Button" parent="GameScreen/TopBar/HBoxContainer/AlgoButtons"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "SHA-1
+[WEAK]"
+
+[node name="SHA256Button" type="Button" parent="GameScreen/TopBar/HBoxContainer/AlgoButtons"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "SHA-256
+[STRONG]"
+
+[node name="GameZones" type="HBoxContainer" parent="GameScreen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 90.0
+offset_bottom = -150.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FileStorage" type="Panel" parent="GameScreen/GameZones"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameScreen/GameZones/FileStorage"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="GameScreen/GameZones/FileStorage/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "📁 FILE STORAGE"
+horizontal_alignment = 1
+
+[node name="FileIcon" type="Label" parent="GameScreen/GameZones/FileStorage/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "📄"
+horizontal_alignment = 1
+
+[node name="FileName" type="Label" parent="GameScreen/GameZones/FileStorage/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "config.txt"
+horizontal_alignment = 1
+
+[node name="FileContent" type="Label" parent="GameScreen/GameZones/FileStorage/VBoxContainer"]
+layout_mode = 2
+text = "server_ip=192.168.1.1"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="GameScreen/GameZones/FileStorage/VBoxContainer"]
+layout_mode = 2
+
+[node name="HashLabel" type="Label" parent="GameScreen/GameZones/FileStorage/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+text = "Original Hash:"
+
+[node name="OriginalHash" type="Label" parent="GameScreen/GameZones/FileStorage/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "a1b2c3d4e5f6..."
+autowrap_mode = 3
+
+[node name="HashGenerator" type="Panel" parent="GameScreen/GameZones"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameScreen/GameZones/HashGenerator"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="GameScreen/GameZones/HashGenerator/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "🔢 HASH GENERATOR"
+horizontal_alignment = 1
+
+[node name="AlgoLabel" type="Label" parent="GameScreen/GameZones/HashGenerator/VBoxContainer"]
+layout_mode = 2
+text = "Selected Algorithm:"
+horizontal_alignment = 1
+
+[node name="CurrentAlgo" type="Label" parent="GameScreen/GameZones/HashGenerator/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "SHA-256"
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="GameScreen/GameZones/HashGenerator/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 1, 1)
+text = "Ready"
+horizontal_alignment = 1
+
+[node name="Network" type="Panel" parent="GameScreen/GameZones"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameScreen/GameZones/Network"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="GameScreen/GameZones/Network/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "🌐 NETWORK"
+horizontal_alignment = 1
+
+[node name="TransferIcon" type="Label" parent="GameScreen/GameZones/Network/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 80
+text = "📡"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="GameScreen/GameZones/Network/VBoxContainer"]
+layout_mode = 2
+text = "Idle"
+horizontal_alignment = 1
+
+[node name="Attacker" type="Panel" parent="GameScreen/GameZones"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameScreen/GameZones/Attacker"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="GameScreen/GameZones/Attacker/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "👾 ATTACKER"
+horizontal_alignment = 1
+
+[node name="AttackerIcon" type="Label" parent="GameScreen/GameZones/Attacker/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 80
+text = "⚠️"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="GameScreen/GameZones/Attacker/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
+text = "Monitoring..."
+horizontal_alignment = 1
+
+[node name="VerificationPanel" type="Panel" parent="GameScreen"]
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -140.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameScreen/VerificationPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="GameScreen/VerificationPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "🔍 INTEGRITY VERIFICATION"
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="GameScreen/VerificationPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="OriginalHashPanel" type="VBoxContainer" parent="GameScreen/VerificationPanel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="GameScreen/VerificationPanel/VBoxContainer/HBoxContainer/OriginalHashPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+text = "Original Hash (Trusted):"
+
+[node name="Hash" type="Label" parent="GameScreen/VerificationPanel/VBoxContainer/HBoxContainer/OriginalHashPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "hash_value_here"
+autowrap_mode = 3
+
+[node name="ReceivedHashPanel" type="VBoxContainer" parent="GameScreen/VerificationPanel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="GameScreen/VerificationPanel/VBoxContainer/HBoxContainer/ReceivedHashPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 1, 1)
+text = "Received Hash:"
+
+[node name="Hash" type="Label" parent="GameScreen/VerificationPanel/VBoxContainer/HBoxContainer/ReceivedHashPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "hash_value_here"
+autowrap_mode = 3
+
+[node name="MatchStatus" type="Label" parent="GameScreen/VerificationPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "✓ MATCH"
+horizontal_alignment = 1
+
+[node name="FeedbackLabel" type="Label" parent="GameScreen/VerificationPanel/VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="ButtonContainer" type="HBoxContainer" parent="GameScreen/VerificationPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="AcceptButton" type="Button" parent="GameScreen/VerificationPanel/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "✓ ACCEPT FILE"
+
+[node name="RejectButton" type="Button" parent="GameScreen/VerificationPanel/VBoxContainer/ButtonContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "✗ REJECT FILE"
+
+[node name="GameOverScreen" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameOverScreen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="GameOverScreen/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "GAME OVER"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="GameOverScreen/VBoxContainer"]
+layout_mode = 2
+text = "System Compromised!"
+horizontal_alignment = 1
+
+[node name="FinalScore" type="Label" parent="GameOverScreen/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Final Score: 0"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="GameOverScreen/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "TRY AGAIN"
+
+[node name="VictoryScreen" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VictoryScreen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Title" type="Label" parent="VictoryScreen/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "🎉 MISSION COMPLETE!"
+horizontal_alignment = 1
+
+[node name="Message" type="RichTextLabel" parent="VictoryScreen/VBoxContainer"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[center][b]You've mastered hash-based integrity verification![/b]
+
+[color=yellow]What You've Learned:[/color]
+✓ Hashing creates unique fingerprints for data
+✓ Any change in data produces a different hash
+✓ Hash comparison detects tampering
+✓ Strong algorithms (SHA-256) are essential
+
+[color=cyan]🔓 Content Unlocked:[/color]
+🔐 Digital Signatures & Certificates
+🛡️ Malware Defense & Removal
+🚨 Incident Response[/center]"
+fit_content = true
+
+[node name="FinalScore" type="Label" parent="VictoryScreen/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Final Score: 0"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="VictoryScreen/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "PLAY AGAIN"
+
+[node name="GameTimer" type="Timer" parent="."]
+
+[node name="TransferTimer" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+
+[connection signal="pressed" from="IntroScreen/VBoxContainer/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="GameScreen/TopBar/HBoxContainer/AlgoButtons/MD5Button" to="." method="_on_algo_button_pressed" binds= ["MD5"]]
+[connection signal="pressed" from="GameScreen/TopBar/HBoxContainer/AlgoButtons/SHA1Button" to="." method="_on_algo_button_pressed" binds= ["SHA-1"]]
+[connection signal="pressed" from="GameScreen/TopBar/HBoxContainer/AlgoButtons/SHA256Button" to="." method="_on_algo_button_pressed" binds= ["SHA-256"]]
+[connection signal="pressed" from="GameScreen/VerificationPanel/VBoxContainer/ButtonContainer/AcceptButton" to="." method="_on_decision_made" binds= [true]]
+[connection signal="pressed" from="GameScreen/VerificationPanel/VBoxContainer/ButtonContainer/RejectButton" to="." method="_on_decision_made" binds= [false]]
+[connection signal="pressed" from="GameOverScreen/VBoxContainer/RestartButton" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="VictoryScreen/VBoxContainer/RestartButton" to="." method="_on_restart_pressed"]
+[connection signal="timeout" from="GameTimer" to="." method="_on_game_timer_timeout"]
+[connection signal="timeout" from="TransferTimer" to="." method="_on_transfer_complete"]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://dntkn8p81g4sv"]
+[gd_scene load_steps=3 format=3 uid="uid://dntkn8p81g4sv"]
 
 [ext_resource type="Script" uid="uid://d0tcxsehgtqou" path="res://script/DropZone.gd" id="1"]
 
@@ -13,9 +13,6 @@ corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
-
-[sub_resource type="RectangleShape2D" id="2"]
-size = Vector2(400, 200)
 
 [node name="DropZone" type="PanelContainer"]
 custom_minimum_size = Vector2(400, 200)
@@ -47,9 +44,3 @@ theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 16
 text = "Files, Databases, Credentials"
 horizontal_alignment = 1
-
-[node name="Area2D" type="Area2D" parent="."]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-position = Vector2(200, 100)
-shape = SubResource("2")

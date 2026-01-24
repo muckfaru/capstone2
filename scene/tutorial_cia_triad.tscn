@@ -1,33 +1,77 @@
-[gd_scene load_steps=5 format=3 uid="uid://bx7j7f3bi2bqh"]
+[gd_scene load_steps=23 format=3 uid="uid://bx7j7f3bi2bqh"]
 
 [ext_resource type="Script" uid="uid://bwml6gv3jyhry" path="res://script/tutorial_cia_triad.gd" id="1"]
 [ext_resource type="Script" uid="uid://wgxi2ss7p62k" path="res://script/cia_triad_drag_area.gd" id="2"]
+[ext_resource type="Texture2D" uid="uid://dyc7hs7ckg366" path="res://asset/minigamesicon/ciatextinf.png" id="2_0in3n"]
+[ext_resource type="Texture2D" uid="uid://bab7c013cai2q" path="res://asset/minigamesicon/bartlt.png" id="2_elcup"]
+[ext_resource type="FontFile" uid="uid://bkyjd2go1dord" path="res://asset/fonts/CONSOLA.TTF" id="2_fk4is"]
+[ext_resource type="Texture2D" uid="uid://bqvjj2lo4pi4y" path="res://asset/minigamesicon/Gemini_Generated_Image_sj7jussj7jussj7j-removebg-preview.png" id="3_5nu4o"]
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_7cy6w"]
+[ext_resource type="Texture2D" uid="uid://bmwlja47p650x" path="res://asset/minigamesicon/I.png" id="4_7ckxx"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_7cy6w"]
+[ext_resource type="Texture2D" uid="uid://dgo8b302tc3wy" path="res://asset/minigamesicon/A.png" id="5_oa5vp"]
+[ext_resource type="AudioStream" uid="uid://cqwlcdb0oong1" path="res://asset/minigamesicon/correct-choice-43861.mp3" id="11_826bi"]
+[ext_resource type="AudioStream" uid="uid://daegfpmhyxgj3" path="res://asset/minigamesicon/windows-error-sound-effect-35894.mp3" id="12_57oo3"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-bg_color = Color(0.12, 0.14, 0.18, 0.95)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.3, 0.6, 0.9, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-shadow_size = 8
-shadow_offset = Vector2(4, 4)
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_8tqrs"]
+texture = ExtResource("2_elcup")
+expand_margin_left = 40.0
+expand_margin_top = 130.0
+expand_margin_right = 40.0
+expand_margin_bottom = 144.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_zone"]
-bg_color = Color(0.15, 0.15, 0.2, 0.8)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.4, 0.4, 0.5, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_167o0"]
+texture = ExtResource("2_0in3n")
+expand_margin_left = 320.0
+expand_margin_right = 320.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7ckxx"]
+texture = ExtResource("3_5nu4o")
+expand_margin_left = 71.0
+expand_margin_right = 45.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_oa5vp"]
+texture = ExtResource("4_7ckxx")
+expand_margin_left = 71.0
+expand_margin_right = 45.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_fk4is"]
+texture = ExtResource("5_oa5vp")
+expand_margin_left = 71.0
+expand_margin_right = 45.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7cy6w"]
+texture = ExtResource("2_0in3n")
+expand_margin_left = 200.0
+expand_margin_top = 50.0
+expand_margin_right = 200.0
+expand_margin_bottom = 50.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_57oo3"]
+texture = ExtResource("2_elcup")
+expand_margin_top = 90.0
+expand_margin_bottom = 90.0
+modulate_color = Color(0.223, 0.223, 0.223, 0.84)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_826bi"]
+texture = ExtResource("2_elcup")
+expand_margin_top = 90.0
+expand_margin_bottom = 90.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ql3u7"]
+texture = ExtResource("2_elcup")
+expand_margin_left = 20.0
+expand_margin_top = 90.0
+expand_margin_right = 20.0
+expand_margin_bottom = 90.0
+modulate_color = Color(0.306923, 0.306923, 0.306923, 0.923)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5o8bi"]
+texture = ExtResource("2_elcup")
+expand_margin_left = 20.0
+expand_margin_top = 90.0
+expand_margin_right = 20.0
+expand_margin_bottom = 90.0
 
 [node name="TutorialCIATriad" type="Control"]
 layout_mode = 3
@@ -45,7 +89,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.0784314, 0.0941176, 0.129412, 1)
+color = Color(0.0466695, 0.107906, 0.0958596, 1)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -54,6 +98,7 @@ anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 80.0
 grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_8tqrs")
 
 [node name="TitleLabel" type="Label" parent="CanvasLayer/TopPanel"]
 layout_mode = 1
@@ -65,9 +110,11 @@ offset_top = 10.0
 offset_right = 250.0
 offset_bottom = 45.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.3, 0.6, 0.9, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_7cy6w")
 theme_override_font_sizes/font_size = 28
-text = "🛡️ CIA TRIAD DEFENDER"
+text = "CIA TRIAD DEFENDER"
 horizontal_alignment = 1
 
 [node name="ScoreLabel" type="Label" parent="CanvasLayer/TopPanel"]
@@ -77,12 +124,14 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -15.0
-offset_right = -20.0
-offset_bottom = 15.0
+offset_left = -208.0
+offset_top = 48.0
+offset_right = -28.0
+offset_bottom = 78.0
 grow_horizontal = 0
 grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_7cy6w")
 theme_override_font_sizes/font_size = 18
 text = "Score: 0/800"
 horizontal_alignment = 2
@@ -92,11 +141,12 @@ layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
-offset_left = 20.0
-offset_top = -15.0
-offset_right = 180.0
-offset_bottom = 15.0
+offset_left = 29.0
+offset_top = 49.0
+offset_right = 189.0
+offset_bottom = 79.0
 grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_7cy6w")
 theme_override_font_sizes/font_size = 18
 text = "Streak: 0"
 
@@ -113,9 +163,10 @@ offset_right = 200.0
 offset_bottom = 35.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
-theme_override_font_sizes/font_size = 14
-text = "👆 Drag incident to correct CIA zone 👇"
+theme_override_colors/font_color = Color(0.308324, 0.38309, 0.25293, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 18
+text = "Drag incident to correct CIA zone "
 horizontal_alignment = 1
 
 [node name="IncidentCard" type="Panel" parent="CanvasLayer"]
@@ -126,19 +177,21 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -300.0
-offset_top = -180.0
-offset_right = 300.0
-offset_bottom = -20.0
+offset_top = -190.0
+offset_right = 322.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+theme_override_styles/panel = SubResource("StyleBoxTexture_167o0")
 
 [node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/IncidentCard"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 31.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 20
@@ -148,6 +201,7 @@ theme_override_constants/margin_bottom = 20
 
 [node name="IncidentText" type="RichTextLabel" parent="CanvasLayer/IncidentCard/MarginContainer"]
 layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("2_fk4is")
 bbcode_enabled = true
 text = "[center]🚨 [b]INCIDENT ALERT #1[/b] 🚨[/center]
 
@@ -170,9 +224,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -480.0
+offset_left = -455.0
 offset_top = 40.0
-offset_right = 480.0
+offset_right = 505.0
 offset_bottom = 240.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -182,7 +236,7 @@ theme_override_constants/separation = 30
 custom_minimum_size = Vector2(300, 200)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_zone")
+theme_override_styles/panel = SubResource("StyleBoxTexture_7ckxx")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/CIAZones/ConfidentialityZone"]
 layout_mode = 1
@@ -197,35 +251,30 @@ alignment = 1
 [node name="Icon" type="Label" parent="CanvasLayer/CIAZones/ConfidentialityZone/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 48
-text = "🔒"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="CanvasLayer/CIAZones/ConfidentialityZone/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 20
-text = "CONFIDENTIALITY"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="CanvasLayer/CIAZones/ConfidentialityZone/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
 theme_override_font_sizes/font_size = 14
-text = "Hidden • Secret"
 horizontal_alignment = 1
 
 [node name="TooltipLabel" type="Label" parent="CanvasLayer/CIAZones/ConfidentialityZone"]
-visible = false
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -80.0
-offset_right = 100.0
-offset_bottom = -40.0
+offset_left = -105.0
+offset_right = 95.0
+offset_bottom = 40.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.9, 0.9, 1, 1)
@@ -238,7 +287,7 @@ autowrap_mode = 3
 custom_minimum_size = Vector2(300, 200)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_zone")
+theme_override_styles/panel = SubResource("StyleBoxTexture_oa5vp")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/CIAZones/IntegrityZone"]
 layout_mode = 1
@@ -253,35 +302,31 @@ alignment = 1
 [node name="Icon" type="Label" parent="CanvasLayer/CIAZones/IntegrityZone/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 48
-text = "✅"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="CanvasLayer/CIAZones/IntegrityZone/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
 theme_override_font_sizes/font_size = 20
-text = "INTEGRITY"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="CanvasLayer/CIAZones/IntegrityZone/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
 theme_override_font_sizes/font_size = 14
-text = "Correct • Trusted"
 horizontal_alignment = 1
 
 [node name="TooltipLabel" type="Label" parent="CanvasLayer/CIAZones/IntegrityZone"]
-visible = false
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -80.0
-offset_right = 100.0
-offset_bottom = -40.0
+offset_left = -109.0
+offset_top = -1.0
+offset_right = 91.0
+offset_bottom = 39.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.9, 0.9, 1, 1)
@@ -294,7 +339,7 @@ autowrap_mode = 3
 custom_minimum_size = Vector2(300, 200)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_zone")
+theme_override_styles/panel = SubResource("StyleBoxTexture_fk4is")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/CIAZones/AvailabilityZone"]
 layout_mode = 1
@@ -309,35 +354,31 @@ alignment = 1
 [node name="Icon" type="Label" parent="CanvasLayer/CIAZones/AvailabilityZone/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 48
-text = "🌐"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="CanvasLayer/CIAZones/AvailabilityZone/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 1, 0.5, 1)
 theme_override_font_sizes/font_size = 20
-text = "AVAILABILITY"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="CanvasLayer/CIAZones/AvailabilityZone/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
 theme_override_font_sizes/font_size = 14
-text = "Access • Open"
 horizontal_alignment = 1
 
 [node name="TooltipLabel" type="Label" parent="CanvasLayer/CIAZones/AvailabilityZone"]
-visible = false
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -80.0
-offset_right = 100.0
-offset_bottom = -40.0
+offset_left = -102.0
+offset_top = -1.0
+offset_right = 98.0
+offset_bottom = 39.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.9, 0.9, 1, 1)
@@ -360,12 +401,17 @@ offset_right = 250.0
 offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_7cy6w")
 
 [node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/FeedbackPopup"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 51.0
+offset_top = -23.0
+offset_right = -49.0
+offset_bottom = 95.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 20
@@ -388,7 +434,11 @@ scroll_active = false
 
 [node name="TryAgainButton" type="Button" parent="CanvasLayer/FeedbackPopup/MarginContainer/VBoxContainer"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_7cy6w")
 theme_override_font_sizes/font_size = 18
+theme_override_styles/hover = SubResource("StyleBoxTexture_57oo3")
+theme_override_styles/normal = SubResource("StyleBoxTexture_826bi")
 text = "TRY AGAIN"
 
 [node name="ResultsScreen" type="Panel" parent="CanvasLayer"]
@@ -439,10 +489,14 @@ custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 20
+theme_override_styles/hover = SubResource("StyleBoxTexture_ql3u7")
+theme_override_styles/normal = SubResource("StyleBoxTexture_5o8bi")
 text = "BACK TO TUTORIALS"
 
 [node name="SFX_Correct" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("11_826bi")
 volume_db = -5.0
 
 [node name="SFX_Wrong" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("12_57oo3")
 volume_db = -5.0

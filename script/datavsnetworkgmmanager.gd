@@ -191,17 +191,18 @@ func spawn_attack():
 	card.alert_number = total_attacks + 1
 	card.time_limit = time_per_attack[current_wave - 1]
 	
-	# Position at top center (centered horizontally)
-	card.position = Vector2(960 - 175, 200)  # Center of screen minus half card width
+	# Position at top center (1080x720 resolution)
+	# Card is 350 wide, so center is 1080/2 - 350/2 = 540 - 175 = 365
+	card.position = Vector2(365, 100)
 	
 	# Connect signals
 	card.card_expired.connect(_on_card_expired)
 	
 	attack_container.add_child(card)
 	
-	# Animate down to middle area
+	# Animate down to middle area (avoid drop zones at y=520)
 	var tween = create_tween()
-	tween.tween_property(card, "position:y", 400, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	tween.tween_property(card, "position:y", 280, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	
 	attacks_spawned += 1
 	total_attacks += 1
@@ -268,7 +269,7 @@ func handle_correct_answer(attack_data, card):
 	else:
 		network_zone.show_success_effect()
 
-func handle_wrong_answer(attack_data, wrong_zone, card):
+func handle_wrong_answer(attack_data, wrong_zone, _card):
 	# Reset combo
 	combo = 0
 	score = max(0, score - 15)
@@ -347,8 +348,8 @@ func complete_wave():
 
 func show_feedback(is_success, title, message):
 	var popup = FEEDBACK_POPUP.instantiate()
-	popup.setup(is_success, title, message)
 	$CanvasLayer.add_child(popup)
+	popup.setup(is_success, title, message)
 
 func show_victory():
 	var victory = VICTORY_SCREEN.instantiate()

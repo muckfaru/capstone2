@@ -13,32 +13,32 @@ float random(vec2 st) {
 
 void fragment() {
     vec2 uv = UV;
-    
+
     // Create columns
     uv.x *= column_count;
     float col = floor(uv.x);
-    
+
     // Vertical movement
     float offset = TIME * rain_speed;
     float cell_y = floor((uv.y * char_height) - offset);
-    
+
     // Random character generation
     float char_rand = random(vec2(col, cell_y));
-    
+
     // Only show some characters (sparse effect)
     float show = step(0.85, char_rand);
-    
+
     // Fade based on position in column
     float fade_y = fract((uv.y * char_height) - offset);
     float alpha = smoothstep(1.0, 0.0, fade_y) * show;
-    
+
     // Brightness variation per column
     float brightness = random(vec2(col, 0.0)) * brightness_variation + (1.0 - brightness_variation);
-    
+
     // Leading bright character
     float lead = step(0.95, fade_y) * 2.0;
-    
+
     vec3 color = rain_color * (brightness + lead);
-    
+
     COLOR = vec4(color, alpha * 0.5);
 }

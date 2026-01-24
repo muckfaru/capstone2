@@ -1,0 +1,181 @@
+[gd_scene load_steps=5 format=3 uid="uid://bvqm8xwxwxwxw"]
+
+[ext_resource type="Script" uid="uid://b3ylng2e8fltb" path="res://script/desvsaesmain.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://bww2188jxlrxy" path="res://script/EncryptionVisualDSAS.gd" id="2_visual"]
+[ext_resource type="Script" uid="uid://x8lleibpcr64" path="res://script/ExplanationPanelDSAS.gd" id="3_panel"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shield"]
+bg_color = Color(0, 0.8, 0.4, 1)
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1280.0
+offset_bottom = 720.0
+color = Color(0.1, 0.1, 0.15, 1)
+
+[node name="EncryptionVisual" type="Node2D" parent="."]
+position = Vector2(200, 360)
+script = ExtResource("2_visual")
+
+[node name="TypeLabel" type="Label" parent="EncryptionVisual"]
+offset_left = -100.0
+offset_top = -150.0
+offset_right = 100.0
+offset_bottom = -120.0
+theme_override_font_sizes/font_size = 32
+text = "DES"
+horizontal_alignment = 1
+
+[node name="KeyLabel" type="Label" parent="EncryptionVisual"]
+offset_left = -100.0
+offset_top = 100.0
+offset_right = 100.0
+offset_bottom = 130.0
+theme_override_font_sizes/font_size = 20
+text = "56-bit Key"
+horizontal_alignment = 1
+
+[node name="Shield" type="Node2D" parent="EncryptionVisual"]
+
+[node name="EnemyContainer" type="Node2D" parent="."]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="PhaseLabel" type="Label" parent="UI"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 20.0
+offset_right = 300.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 28
+text = "PHASE 1: DES"
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -120.0
+offset_right = 400.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 22
+text = "Type commands to defend!"
+horizontal_alignment = 1
+
+[node name="ShieldBar" type="ProgressBar" parent="UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -80.0
+offset_right = 300.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/fill = SubResource("StyleBoxFlat_shield")
+value = 100.0
+show_percentage = false
+
+[node name="ShieldLabel" type="Label" parent="UI/ShieldBar"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -15.0
+offset_right = 100.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "ENCRYPTION SHIELD"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CommandInput" type="LineEdit" parent="UI"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -40.0
+offset_right = 300.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 20
+placeholder_text = "Type command here and press ENTER"
+alignment = 1
+
+[node name="CommandList" type="RichTextLabel" parent="UI"]
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -150.0
+offset_right = -20.0
+offset_bottom = 150.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = true
+text = "Available Commands:
+• KEY_56
+• ROUND_10"
+
+[node name="ExplanationPanel" type="Panel" parent="UI"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -250.0
+offset_right = 400.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/ExplanationPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 30
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/ExplanationPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="UI/ExplanationPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Explanation text goes here"
+autowrap_mode = 3
+
+[node name="ContinueButton" type="Button" parent="UI/ExplanationPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "CONTINUE (Press ENTER)"

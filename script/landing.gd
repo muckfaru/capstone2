@@ -3059,7 +3059,7 @@ func _check_intro_completion() -> void:
 			get_tree().change_scene_to_file("res://scene/intro_cybersecurity.tscn")
 	)
 	
-	http.request(url, headers, HTTPClient.METHOD_GET)
+	intro_http.request(url, headers, HTTPClient.METHOD_GET)
 
 func _on_menu_button_pressed() -> void:
 	if menu_panel:
