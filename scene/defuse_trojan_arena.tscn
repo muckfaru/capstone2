@@ -30,8 +30,8 @@ motion_scale = Vector2(0.5, 0.5)
 motion_mirroring = Vector2(0, 720)
 
 [node name="Background" type="Sprite2D" parent="ParallaxBackground/ParallaxLayer"]
-position = Vector2(551, 354.5)
-scale = Vector2(1.05273, 0.706055)
+position = Vector2(583, 354.5)
+scale = Vector2(1.16797, 0.706055)
 texture = ExtResource("2_rrukm")
 
 [node name="GameLayer" type="Node2D" parent="."]
@@ -42,16 +42,16 @@ texture = ExtResource("2_rrukm")
 position = Vector2(150, -80)
 
 [node name="SpawnCenterLeft" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(308, -86)
+position = Vector2(361, -86)
 
 [node name="SpawnCenter" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(500, -86)
+position = Vector2(568, -94)
 
 [node name="SpawnCenterRight" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(710, -84)
+position = Vector2(816, -88)
 
 [node name="SpawnRight" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(945, -88)
+position = Vector2(1036, -88)
 
 [node name="EnemyContainer" type="Node2D" parent="GameLayer"]
 

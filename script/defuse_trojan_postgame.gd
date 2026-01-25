@@ -32,6 +32,7 @@ var _relay_client: Node = null
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		_title_label.text = "DEFUSE THE TROJAN"
+		_reparent_cards_to_panel()
 		_create_styled_client2_card()
 		_hide_unused_stat_rows()
 		return
@@ -54,9 +55,27 @@ func _ready() -> void:
 
 	_back_button.pressed.connect(_on_back_pressed)
 
+	_reparent_cards_to_panel()
 	_create_styled_client2_card()
 	_hide_unused_stat_rows()
 	_apply_results()
+
+
+func _reparent_cards_to_panel() -> void:
+	var panel := get_node_or_null("NinePatchRect/pstpnl") as Control
+	if not panel:
+		push_warning("[DefuseTrojanPostgame] pstpnl panel not found")
+		return
+	
+	# Reparent HostCard to panel
+	if is_instance_valid(_host_card) and _host_card.get_parent() != panel:
+		_host_card.get_parent().remove_child(_host_card)
+		panel.add_child(_host_card)
+	
+	# Reparent ClientCard to panel  
+	if is_instance_valid(_client_card) and _client_card.get_parent() != panel:
+		_client_card.get_parent().remove_child(_client_card)
+		panel.add_child(_client_card)
 
 
 func _create_styled_client2_card() -> void:
@@ -82,15 +101,13 @@ func _create_styled_client2_card() -> void:
 	else:
 		add_child(_client2_card)
 	
-	# Set proper layout properties
-	_client2_card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_client2_card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_client2_card.custom_minimum_size = Vector2(280, 400)
-	
 	# Set placeholder text for Player 3
 	var uname = _client2_card.get_node_or_null("ClientUsername") as Label
 	if uname:
 		uname.text = "Player 3"
+	
+	# Now reposition all 3 cards for proper layout
+	_layout_three_cards_manual()
 
 
 func _get_cards_container() -> Control:
@@ -99,10 +116,77 @@ func _get_cards_container() -> Control:
 	return self
 
 
-func _layout_three_cards() -> void:
-	# Layout is driven by the .tscn (`CenterContainer` + `HBoxContainer`).
-	# Keep this as a no-op hook in case we want runtime adjustments later.
+func _layout_three_cards_manual() -> void:
+	# This is called during card creation - full layout happens in _layout_cards_for_player_count()
 	pass
+
+
+func _layout_cards_for_player_count(player_count: int) -> void:
+	# Panel size: 1032 x 480 (pstpnl)
+	# Original card size is 400x400 (internal Panel)
+	# We SCALE the cards to fit, since resizing NinePatchRect doesn't resize children
+	const PANEL_WIDTH := 1032.0
+	const PANEL_HEIGHT := 480.0
+	const ORIGINAL_CARD_WIDTH := 400.0
+	const ORIGINAL_CARD_HEIGHT := 400.0
+	const SPACING := 15.0
+	
+	if player_count <= 1:
+		# Solo mode - center single card, no scaling needed
+		var scale_factor := 1.0
+		var scaled_width := ORIGINAL_CARD_WIDTH * scale_factor
+		var start_x := (PANEL_WIDTH - scaled_width) / 2.0
+		var start_y := (PANEL_HEIGHT - ORIGINAL_CARD_HEIGHT) / 2.0
+		
+		if is_instance_valid(_host_card):
+			_host_card.scale = Vector2(scale_factor, scale_factor)
+			_host_card.position = Vector2(start_x, start_y)
+		if is_instance_valid(_client_card):
+			_client_card.visible = false
+		if is_instance_valid(_client2_card):
+			_client2_card.visible = false
+			
+	elif player_count == 2:
+		# 2 players - scale down slightly to fit both
+		var scale_factor := 0.9
+		var scaled_width := ORIGINAL_CARD_WIDTH * scale_factor
+		var scaled_height := ORIGINAL_CARD_HEIGHT * scale_factor
+		var total_width := (scaled_width * 2.0) + SPACING
+		var start_x := (PANEL_WIDTH - total_width) / 2.0
+		var start_y := (PANEL_HEIGHT - scaled_height) / 2.0
+		
+		if is_instance_valid(_host_card):
+			_host_card.scale = Vector2(scale_factor, scale_factor)
+			_host_card.position = Vector2(start_x, start_y)
+		if is_instance_valid(_client_card):
+			var client_x := start_x + scaled_width + SPACING
+			_client_card.scale = Vector2(scale_factor, scale_factor)
+			_client_card.position = Vector2(client_x, start_y)
+		if is_instance_valid(_client2_card):
+			_client2_card.visible = false
+			
+	else:
+		# 3 players - scale down to fit all 3
+		# Available width per card = (1032 - 2*15) / 3 = 334
+		# Scale factor = 334 / 400 = 0.835 -> use 0.8 for safety
+		var scale_factor := 0.8
+		var scaled_width := ORIGINAL_CARD_WIDTH * scale_factor  # 320
+		var scaled_height := ORIGINAL_CARD_HEIGHT * scale_factor  # 320
+		var total_width := (scaled_width * 3.0) + (SPACING * 2.0)  # 320*3 + 30 = 990
+		var start_x := (PANEL_WIDTH - total_width) / 2.0  # (1032-990)/2 = 21
+		var start_y := (PANEL_HEIGHT - scaled_height) / 2.0  # (480-320)/2 = 80
+		
+		if is_instance_valid(_host_card):
+			_host_card.scale = Vector2(scale_factor, scale_factor)
+			_host_card.position = Vector2(start_x, start_y)
+		if is_instance_valid(_client_card):
+			var client_x := start_x + scaled_width + SPACING
+			_client_card.scale = Vector2(scale_factor, scale_factor)
+			_client_card.position = Vector2(client_x, start_y)
+		if is_instance_valid(_client2_card):
+			var client2_x := start_x + (scaled_width * 2.0) + (SPACING * 2.0)
+			_client2_card.scale = Vector2(scale_factor, scale_factor)
+			_client2_card.position = Vector2(client2_x, start_y)
 
 
 func _hide_unused_stat_rows() -> void:
@@ -131,9 +215,10 @@ func _apply_results() -> void:
 
 	var players: Array = _init.get("players", [])
 	var stats_by_pid: Dictionary = _init.get("stats_by_player_id", {})
+	var player_count := players.size()
 
 	# Host card
-	if players.size() >= 1:
+	if player_count >= 1:
 		_apply_card(_host_card, true, players[0], mode, duration_ms, wave_reached, stats_by_pid)
 	else:
 		_get_host_username().text = "Player"
@@ -146,7 +231,7 @@ func _apply_results() -> void:
 		_get_host_streak().text = "STREAK: 0"
 
 	# Client card 1
-	if players.size() >= 2:
+	if player_count >= 2:
 		_client_card.visible = true
 		_apply_card(_client_card, false, players[1], mode, duration_ms, wave_reached, stats_by_pid)
 	else:
@@ -154,11 +239,14 @@ func _apply_results() -> void:
 
 	# Client card 2
 	if _client2_card:
-		if players.size() >= 3:
+		if player_count >= 3:
 			_client2_card.visible = true
 			_apply_card(_client2_card, false, players[2], mode, duration_ms, wave_reached, stats_by_pid)
 		else:
 			_client2_card.visible = false
+	
+	# Re-layout cards based on visible player count
+	_layout_cards_for_player_count(player_count)
 
 
 func _apply_card(card: NinePatchRect, is_host: bool, player: Dictionary, mode: String, duration_ms: int, wave_reached: int, stats_by_pid: Dictionary) -> void:
