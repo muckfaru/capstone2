@@ -2,6 +2,7 @@ extends Control
 
 const POLL_INTERVAL := 2.0
 const LOADING_DURATION_MS := 8000
+const HEARTBEAT_INTERVAL := 30.0  # Send heartbeat every 30 seconds
 
 # Theme colors (Cyber Neon) - match Code Breaker / Akashic
 const COLOR_ACCENT := Color(0, 0.819608, 1, 1) # cyan
@@ -46,6 +47,9 @@ var _relay_connected: bool = false
 
 var _last_client1_present: bool = false
 var _last_client2_present: bool = false
+
+# Heartbeat system - keep room alive in lobby server
+var _heartbeat_timer: Timer = null
 
 func _ready() -> void:
 	var init: Dictionary = {}
@@ -93,6 +97,10 @@ func _ready() -> void:
 
 	_fetch_room()
 	_setup_relay_connection()
+
+	# Start heartbeat system (host only) - keeps room alive in lobby server
+	if _is_host:
+		_start_heartbeat()
 
 	# Initialize embedded room chat with this room context (best-effort; shares same RoomChat UI)
 	var chat := get_node_or_null("RoomChat")
@@ -493,6 +501,8 @@ func _on_start_pressed() -> void:
 
 
 func _on_leave_pressed() -> void:
+	_stop_heartbeat()
+	
 	if _room_id == "" or _lobby_server_url == "":
 		_transition_back_to_landing()
 		return
@@ -514,6 +524,9 @@ func _on_leave_pressed() -> void:
 
 
 func _transition_to_loading(room_data: Dictionary) -> void:
+	# Stop heartbeat before transitioning
+	_stop_heartbeat()
+	
 	# Stop polling to avoid double-transition
 	if _poll_timer and is_instance_valid(_poll_timer):
 		_poll_timer.stop()
@@ -545,6 +558,75 @@ func _transition_to_loading(room_data: Dictionary) -> void:
 
 
 func _transition_back_to_landing() -> void:
+	_stop_heartbeat()
 	if _relay_client and is_instance_valid(_relay_client) and _relay_client.has_method("disconnect_from_relay"):
 		_relay_client.disconnect_from_relay()
 	get_tree().change_scene_to_file("res://scene/landing.tscn")
+
+
+# =============================================================================
+# HEARTBEAT SYSTEM - Keep room alive in lobby server
+# =============================================================================
+
+func _start_heartbeat() -> void:
+	if not _is_host:
+		return
+	
+	if _lobby_server_url == "":
+		push_warning("[DefuseTrojanRoom] Cannot start heartbeat - lobby server URL not set")
+		return
+	
+	if _room_id == "":
+		push_warning("[DefuseTrojanRoom] Cannot start heartbeat - no room ID")
+		return
+	
+	# Create heartbeat timer
+	_heartbeat_timer = Timer.new()
+	_heartbeat_timer.wait_time = HEARTBEAT_INTERVAL
+	_heartbeat_timer.autostart = true
+	_heartbeat_timer.timeout.connect(_on_heartbeat_timeout)
+	add_child(_heartbeat_timer)
+	
+	print("[DefuseTrojanRoom] Heartbeat started - interval: %.0fs" % HEARTBEAT_INTERVAL)
+	
+	# Send initial heartbeat immediately
+	_send_heartbeat()
+
+
+func _on_heartbeat_timeout() -> void:
+	_send_heartbeat()
+
+
+func _send_heartbeat() -> void:
+	if _lobby_server_url == "" or _room_id == "":
+		return
+	
+	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/heartbeat"
+	var http := HTTPRequest.new()
+	add_child(http)
+	
+	http.request_completed.connect(func(_result, code, _headers, _body):
+		http.queue_free()
+		
+		if code == 200:
+			print("[DefuseTrojanRoom] Heartbeat sent successfully")
+		elif code == 404:
+			push_warning("[DefuseTrojanRoom] Room not found in lobby server - may have expired")
+		else:
+			push_warning("[DefuseTrojanRoom] Heartbeat failed HTTP %d" % code)
+	)
+	
+	var headers := ["Content-Type: application/json"]
+	var error := http.request(url, headers, HTTPClient.METHOD_POST, "{}")
+	
+	if error != OK:
+		http.queue_free()
+		push_error("[DefuseTrojanRoom] Failed to send heartbeat request: %d" % error)
+
+
+func _stop_heartbeat() -> void:
+	if _heartbeat_timer and is_instance_valid(_heartbeat_timer):
+		_heartbeat_timer.stop()
+		_heartbeat_timer.queue_free()
+		_heartbeat_timer = null
+		print("[DefuseTrojanRoom] Heartbeat stopped")

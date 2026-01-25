@@ -619,14 +619,44 @@ func _destroy_enemy(enemy: Node2D) -> void:
 		_clear_typing()
 
 func _on_enemy_reached_bottom(enemy: Node2D) -> void:
+	if enemy == null or not is_instance_valid(enemy):
+		return
+	if enemy.is_queued_for_deletion():
+		return
+
 	if _multiplayer and not _is_host_mp:
 		# Host decides damage/removal.
-		if enemy and is_instance_valid(enemy):
+		if enemy and is_instance_valid(enemy) and not enemy.is_queued_for_deletion():
 			enemy.queue_free()
 		return
 
 	if game_over:
+		# Arena is shutting down; best-effort cleanup only.
+		if _multiplayer:
+			var eid_over := _get_enemy_id(enemy)
+			if eid_over != "":
+				_enemies_by_id.erase(eid_over)
+		if enemy and is_instance_valid(enemy) and not enemy.is_queued_for_deletion():
+			enemy.queue_free()
 		return
+
+	# Remove the enemy immediately (before any awaits) to avoid double-free races.
+	if enemy == current_target:
+		_clear_typing()
+
+	# Remove on all clients (host-authoritative)
+	if _multiplayer:
+		var eid := _get_enemy_id(enemy)
+		if eid != "":
+			_send_relay({
+				"type": "dt_enemy_remove",
+				"enemy_id": eid,
+				"reason": "bottom"
+			})
+			_enemies_by_id.erase(eid)
+
+	if enemy and is_instance_valid(enemy) and not enemy.is_queued_for_deletion():
+		enemy.queue_free()
 	
 	# Damage player
 	var damage = 15 + (wave * 2)
@@ -644,22 +674,6 @@ func _on_enemy_reached_bottom(enemy: Node2D) -> void:
 	
 	_update_ui()
 	_update_combo_display()
-	
-	if enemy == current_target:
-		_clear_typing()
-	
-	# Remove on all clients
-	if _multiplayer:
-		var eid := _get_enemy_id(enemy)
-		if eid != "":
-			_send_relay({
-				"type": "dt_enemy_remove",
-				"enemy_id": eid,
-				"reason": "bottom"
-			})
-			_enemies_by_id.erase(eid)
-
-	enemy.queue_free()
 	
 	if health <= 0:
 		_game_over()
@@ -1001,6 +1015,11 @@ func _apply_enemy_state(data: Dictionary) -> void:
 	var prev_wave := wave
 	wave = int(data.get("wave", wave))
 	health = int(data.get("health", health))
+	# If the host says we're dead, stop local gameplay immediately (postgame will arrive via dt_match_end/dt_postgame).
+	if health <= 0 and not game_over:
+		game_over = true
+		targeting_beam.visible = false
+		_clear_typing()
 	var scores_any = data.get("scores", null)
 	if typeof(scores_any) == TYPE_DICTIONARY:
 		_scores_by_player = scores_any
@@ -1389,7 +1408,8 @@ func _game_over() -> void:
 	# Multiplayer: host drives post-game transition.
 	if _multiplayer:
 		if _is_host_mp:
-			call_deferred("_host_finalize_and_broadcast_postgame")
+			# Call directly (not deferred) so we always kick off the coroutine.
+			_host_finalize_and_broadcast_postgame()
 		return
 	
 	# Clear remaining enemies
@@ -1433,13 +1453,23 @@ func _go_to_postgame(payload: Dictionary) -> void:
 		return
 	_postgame_transitioned = true
 	# Pass relay client through so the session can be resumed/closed cleanly.
+	# IMPORTANT: it must not be a child of this arena scene when we change scenes,
+	# otherwise it will be freed and become an invalid instance in postgame.
+	var relay_any = _relay_client
+	if relay_any != null and is_instance_valid(relay_any):
+		var parent := relay_any.get_parent()
+		if parent != null and parent != get_tree().root:
+			parent.remove_child(relay_any)
+			get_tree().root.add_child(relay_any)
+	else:
+		relay_any = null
 	var init := {
 		"mode": str(payload.get("mode", _mode)),
 		"duration_ms": int(payload.get("duration_ms", 0)),
 		"wave_reached": int(payload.get("wave_reached", wave)),
 		"players": payload.get("players", []),
 		"stats_by_player_id": payload.get("stats_by_player_id", {}),
-		"relay_client": _relay_client
+		"relay_client": relay_any
 	}
 	get_tree().set_meta("defuse_trojan_postgame_init", init)
 	get_tree().change_scene_to_file("res://scene/defuse_trojan_postgame.tscn")

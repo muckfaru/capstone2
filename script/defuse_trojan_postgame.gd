@@ -1,3 +1,4 @@
+@tool
 extends Control
 
 # This post-game screen intentionally reuses the Code Breaker postgame UI scene
@@ -5,27 +6,36 @@ extends Control
 
 @onready var _title_label: Label = $TitleLabel
 
+# Cards are at root level in parent scene (code_breaker_postgame.tscn)
 @onready var _host_card: NinePatchRect = $HostCard
 @onready var _client_card: NinePatchRect = $ClientCard
-var _client2_card: NinePatchRect = null
+var _client2_card: NinePatchRect = null  # Created at runtime by duplicating ClientCard
+
+@onready var _cards_container: Control = get_node_or_null("NinePatchRect/pstpnl") as Control
 
 @onready var _back_button: Button = $BackToLandingButton
 
-# Host fields
-@onready var _host_username: Label = $HostCard/HostUsername
-@onready var _host_status: Label = $HostCard/HostStatus
-@onready var _host_wave: Label = $HostCard/HostXP
-@onready var _host_time: Label = $HostCard/HostTime
-@onready var _host_score: Label = $HostCard/HostPowerups
-@onready var _host_wpm: Label = $HostCard/HostWPM
-@onready var _host_accuracy: Label = $HostCard/HostAccuracy
-@onready var _host_streak: Label = $HostCard/HostWrongSubmissions
+# Host fields (access via card reference for clarity)
+func _get_host_username() -> Label: return _host_card.get_node("HostUsername") as Label
+func _get_host_status() -> Label: return _host_card.get_node("HostStatus") as Label
+func _get_host_wave() -> Label: return _host_card.get_node("HostXP") as Label
+func _get_host_time() -> Label: return _host_card.get_node("HostTime") as Label
+func _get_host_score() -> Label: return _host_card.get_node("HostPowerups") as Label
+func _get_host_wpm() -> Label: return _host_card.get_node("HostWPM") as Label
+func _get_host_accuracy() -> Label: return _host_card.get_node("HostAccuracy") as Label
+func _get_host_streak() -> Label: return _host_card.get_node("HostWrongSubmissions") as Label
 
 # Game init data
 var _init: Dictionary = {}
 var _relay_client: Node = null
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		_title_label.text = "DEFUSE THE TROJAN"
+		_create_styled_client2_card()
+		_hide_unused_stat_rows()
+		return
+
 	# Pull init payload
 	if get_tree().has_meta("defuse_trojan_postgame_init"):
 		_init = get_tree().get_meta("defuse_trojan_postgame_init")
@@ -33,72 +43,78 @@ func _ready() -> void:
 
 	_title_label.text = "DEFUSE THE TROJAN"
 
-	_relay_client = _init.get("relay_client", null)
-	if _relay_client and _relay_client.get_parent() == get_tree().root:
-		_relay_client.get_parent().remove_child(_relay_client)
-		add_child(_relay_client)
+	var relay_any = _init.get("relay_client", null)
+	if relay_any != null and is_instance_valid(relay_any):
+		_relay_client = relay_any
+		if _relay_client.get_parent() == get_tree().root:
+			_relay_client.get_parent().remove_child(_relay_client)
+			add_child(_relay_client)
+	else:
+		_relay_client = null
 
 	_back_button.pressed.connect(_on_back_pressed)
 
-	# Create a 3rd card by duplicating ClientCard so styles match.
-	_ensure_third_card()
-	_layout_three_cards()
+	_create_styled_client2_card()
 	_hide_unused_stat_rows()
 	_apply_results()
 
 
-func _ensure_third_card() -> void:
-	if has_node("ClientCard2"):
-		_client2_card = $ClientCard2
+func _create_styled_client2_card() -> void:
+	# Safety check - _client_card must exist
+	if not is_instance_valid(_client_card):
+		push_warning("[DefuseTrojanPostgame] _client_card is null, cannot create ClientCard2")
 		return
-	_client2_card = _client_card.duplicate()
+	
+	# Remove any existing ClientCard2
+	if _client2_card and is_instance_valid(_client2_card):
+		_client2_card.queue_free()
+		_client2_card = null
+	
+	# Create a styled duplicate of ClientCard
+	_client2_card = _client_card.duplicate() as NinePatchRect
 	_client2_card.name = "ClientCard2"
-	add_child(_client2_card)
+	_client2_card.visible = true
+	
+	# Add to same parent as other cards
+	var parent := _client_card.get_parent()
+	if parent:
+		parent.add_child(_client2_card)
+	else:
+		add_child(_client2_card)
+	
+	# Set proper layout properties
+	_client2_card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_client2_card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_client2_card.custom_minimum_size = Vector2(280, 400)
+	
+	# Set placeholder text for Player 3
+	var uname = _client2_card.get_node_or_null("ClientUsername") as Label
+	if uname:
+		uname.text = "Player 3"
+
+
+func _get_cards_container() -> Control:
+	if _cards_container != null:
+		return _cards_container
+	return self
 
 
 func _layout_three_cards() -> void:
-	# Host stays left; move ClientCard to center; ClientCard2 stays right.
-	# HostCard already positioned in inherited scene.
-	_client_card.anchors_preset = Control.PRESET_CENTER
-	_client_card.anchor_left = 0.5
-	_client_card.anchor_top = 0.5
-	_client_card.anchor_right = 0.5
-	_client_card.anchor_bottom = 0.5
-	_client_card.offset_left = -200.0
-	_client_card.offset_right = 200.0
-	_client_card.offset_top = -190.0
-	_client_card.offset_bottom = 17.0
-	_client_card.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_client_card.grow_vertical = Control.GROW_DIRECTION_BOTH
-
-	if _client2_card == null:
-		return
-	_client2_card.anchors_preset = Control.PRESET_CENTER_RIGHT
-	_client2_card.anchor_left = 1.0
-	_client2_card.anchor_top = 0.5
-	_client2_card.anchor_right = 1.0
-	_client2_card.anchor_bottom = 0.5
-	_client2_card.offset_left = -500.0
-	_client2_card.offset_right = -100.0
-	_client2_card.offset_top = -190.0
-	_client2_card.offset_bottom = 17.0
-	_client2_card.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_client2_card.grow_vertical = Control.GROW_DIRECTION_BOTH
+	# Layout is driven by the .tscn (`CenterContainer` + `HBoxContainer`).
+	# Keep this as a no-op hook in case we want runtime adjustments later.
+	pass
 
 
 func _hide_unused_stat_rows() -> void:
 	# We only show: MODE, WAVE, TIME, SCORE, WPM, ACCURACY, STREAK.
-	for path in [
-		"HostCard/HostAvgTime",
-		"HostCard/HostFastestTime",
-		"HostCard/HostDamageStats",
-		"HostCard/HostComebackBadge",
-		"ClientCard/ClientAvgTime",
-		"ClientCard/ClientFastestTime",
-		"ClientCard/ClientDamageStats",
-		"ClientCard/ClientComebackBadge",
-	]:
-		var n = get_node_or_null(path)
+	# Hide unused rows on host card
+	for node_name in ["HostAvgTime", "HostFastestTime", "HostDamageStats", "HostComebackBadge"]:
+		var n = _host_card.get_node_or_null(node_name)
+		if n:
+			n.visible = false
+	# Hide unused rows on client card
+	for node_name in ["ClientAvgTime", "ClientFastestTime", "ClientDamageStats", "ClientComebackBadge"]:
+		var n = _client_card.get_node_or_null(node_name)
 		if n:
 			n.visible = false
 	if _client2_card:
@@ -120,14 +136,14 @@ func _apply_results() -> void:
 	if players.size() >= 1:
 		_apply_card(_host_card, true, players[0], mode, duration_ms, wave_reached, stats_by_pid)
 	else:
-		_host_username.text = "Player"
-		_host_status.text = "MODE: %s" % mode.to_upper()
-		_host_wave.text = "WAVE: %d" % wave_reached
-		_host_time.text = "TIME: %s" % _format_duration(duration_ms)
-		_host_score.text = "SCORE: 0"
-		_host_wpm.text = "WPM: 0.0"
-		_host_accuracy.text = "ACC: 0.0%"
-		_host_streak.text = "STREAK: 0"
+		_get_host_username().text = "Player"
+		_get_host_status().text = "MODE: %s" % mode.to_upper()
+		_get_host_wave().text = "WAVE: %d" % wave_reached
+		_get_host_time().text = "TIME: %s" % _format_duration(duration_ms)
+		_get_host_score().text = "SCORE: 0"
+		_get_host_wpm().text = "WPM: 0.0"
+		_get_host_accuracy().text = "ACC: 0.0%"
+		_get_host_streak().text = "STREAK: 0"
 
 	# Client card 1
 	if players.size() >= 2:
