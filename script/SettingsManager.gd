@@ -49,7 +49,10 @@ func set_fullscreen(enabled: bool) -> void:
 
 func apply_all() -> void:
 	apply_music_volume_db(_map_level_to_db(music_level))
-	apply_display_mode(fullscreen)
+	# NOTE: We intentionally do NOT auto-apply display mode on startup.
+	# This prevents the 2nd instance from going fullscreen when testing multiplayer.
+	# Users can still toggle fullscreen manually via Settings panel.
+	# apply_display_mode(fullscreen)
 
 
 func _map_level_to_db(level: float) -> float:

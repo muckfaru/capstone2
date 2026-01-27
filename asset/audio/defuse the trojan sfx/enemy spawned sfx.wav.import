@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://mouk7vfbiuo0"
+path="res://.godot/imported/enemy spawned sfx.wav-d25b8ea3d6cee56f5bd4b4d57821b69f.sample"
+
+[deps]
+
+source_file="res://asset/audio/defuse the trojan sfx/enemy spawned sfx.wav"
+dest_files=["res://.godot/imported/enemy spawned sfx.wav-d25b8ea3d6cee56f5bd4b4d57821b69f.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

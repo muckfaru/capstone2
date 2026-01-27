@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://o4smwdyd7fn8"
+path="res://.godot/imported/laser firing sound effect.mp3-f518701cddde5fd367b750ea90b3c40e.mp3str"
+
+[deps]
+
+source_file="res://asset/audio/defuse the trojan sfx/laser firing sound effect.mp3"
+dest_files=["res://.godot/imported/laser firing sound effect.mp3-f518701cddde5fd367b750ea90b3c40e.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

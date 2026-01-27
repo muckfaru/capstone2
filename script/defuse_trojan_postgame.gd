@@ -216,6 +216,9 @@ func _apply_results() -> void:
 	var players: Array = _init.get("players", [])
 	var stats_by_pid: Dictionary = _init.get("stats_by_player_id", {})
 	var player_count := players.size()
+	
+	# Save match history to Firestore
+	_save_match_history_to_firestore(mode, duration_ms, wave_reached, players, stats_by_pid)
 
 	# Host card
 	if player_count >= 1:
@@ -296,3 +299,339 @@ func _format_duration(duration_ms: int) -> String:
 
 func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file("res://scene/landing.tscn")
+
+# === Match History Firestore Integration ===
+
+func _save_match_history_to_firestore(mode: String, duration_ms: int, wave_reached: int, players: Array, stats_by_pid: Dictionary) -> void:
+	"""Save Defuse the Trojan match history to Firestore"""
+	if not Auth or not Auth.current_id_token or Auth.current_id_token == "":
+		print("[DefuseTrojanPostgame] ⚠️ No auth token, skipping match history save")
+		return
+	
+	if players.size() == 0:
+		print("[DefuseTrojanPostgame] ⚠️ No players data, skipping match history save")
+		return
+	
+	print("[DefuseTrojanPostgame] 📝 Saving match history to Firestore...")
+	
+	# Generate unique match ID
+	var now_unix_ms: int = int(Time.get_unix_time_from_system() * 1000.0)
+	var match_id := "%d_%s" % [now_unix_ms, Auth.current_local_id]
+	
+	# Build participant IDs array
+	var participant_ids: Array = []
+	var participant_usernames: Array = []
+	for p in players:
+		var pid := str(p.get("player_id", ""))
+		var uname := str(p.get("username", "Player"))
+		if pid != "":
+			participant_ids.append(pid)
+			participant_usernames.append(uname)
+	
+	# Build player stats for storage
+	var player_stats: Dictionary = {}
+	for pid in stats_by_pid.keys():
+		var st: Dictionary = stats_by_pid[pid]
+		player_stats[pid] = {
+			"score": int(st.get("score", 0)),
+			"wpm": float(st.get("wpm", 0.0)),
+			"accuracy_pct": float(st.get("accuracy_pct", 0.0)),
+			"longest_streak": int(st.get("longest_streak", 0))
+		}
+	
+	# Find top scorer
+	var top_score: int = 0
+	var top_scorer_id: String = ""
+	var top_scorer_name: String = ""
+	for i in range(players.size()):
+		var pid := str(players[i].get("player_id", ""))
+		var uname := str(players[i].get("username", "Player"))
+		var st: Dictionary = stats_by_pid.get(pid, {})
+		var sc: int = int(st.get("score", 0))
+		if sc > top_score:
+			top_score = sc
+			top_scorer_id = pid
+			top_scorer_name = uname
+	
+	# Duration in seconds
+	var duration_seconds := int(round(duration_ms / 1000.0))
+	
+	# Create match document
+	var match_data := {
+		"game_type": "defuse_trojan",
+		"mode": mode,
+		"wave_reached": wave_reached,
+		"duration_s": duration_seconds,
+		"duration_formatted": _format_duration(duration_ms),
+		
+		# Participants
+		"participant_ids": participant_ids,
+		"participant_usernames": participant_usernames,
+		"player_count": players.size(),
+		
+		# Top scorer info
+		"top_scorer_id": top_scorer_id,
+		"top_scorer_name": top_scorer_name,
+		"top_score": top_score,
+		
+		# Per-player stats
+		"player_stats": player_stats,
+		
+		# Timestamps
+		"created_at": now_unix_ms - duration_ms,
+		"ended_at": now_unix_ms,
+		"timestamp": now_unix_ms
+	}
+	
+	# Create HTTP request
+	var http := HTTPRequest.new()
+	add_child(http)
+	
+	var firestore_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/match_history?documentId=%s" % match_id
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % Auth.current_id_token
+	])
+	
+	# Format payload for Firestore
+	var payload := _format_firestore_payload(match_data)
+	
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		var response_text: String = body.get_string_from_utf8() if body.size() > 0 else ""
+		if code == 200 or code == 201:
+			print("[DefuseTrojanPostgame] ✅ Match history saved! ID: %s" % match_id)
+			# Also save to user's recent_matches
+			_append_recent_match_to_user_doc(match_data)
+			# Update leaderboard stats
+			_update_leaderboard_stats(match_data.get("wave_reached", 1), match_data.get("top_score", 0))
+		else:
+			print("[DefuseTrojanPostgame] ⚠️ Failed to save match history: %d\n%s" % [code, response_text])
+	)
+	
+	http.request(firestore_url, headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+
+
+func _append_recent_match_to_user_doc(match_data: Dictionary) -> void:
+	"""Append this match to the user's recent_matches array in their user document"""
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		return
+	
+	print("[DefuseTrojanPostgame] 📝 Saving recent match to users/%s" % Auth.current_local_id)
+	
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	var user_doc_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % uid
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	])
+	
+	# Load existing list
+	var http_get := HTTPRequest.new()
+	add_child(http_get)
+	
+	http_get.request_completed.connect(func(_r, code, _h, body):
+		http_get.queue_free()
+		
+		if code != 200:
+			print("[DefuseTrojanPostgame] ⚠️ Failed to load user doc for recent_matches")
+			return
+		
+		var json := JSON.new()
+		if json.parse(body.get_string_from_utf8()) != OK:
+			return
+		var doc = json.get_data()
+		var fields = doc.get("fields", {})
+		
+		# Get existing recent_matches or create empty array
+		var recent: Array = []
+		if fields.has("recent_matches"):
+			recent = _from_firestore_value(fields["recent_matches"])
+			if not recent is Array:
+				recent = []
+		
+		# Create compact entry for this match
+		var entry := {
+			"game_type": "defuse_trojan",
+			"mode": match_data.get("mode", "solo"),
+			"wave_reached": match_data.get("wave_reached", 1),
+			"score": match_data.get("top_score", 0),
+			"duration_s": match_data.get("duration_s", 0),
+			"timestamp": match_data.get("timestamp", 0),
+			"player_count": match_data.get("player_count", 1)
+		}
+		
+		# Add to front, keep max 20 entries
+		recent.insert(0, entry)
+		if recent.size() > 20:
+			recent = recent.slice(0, 20)
+		
+		# Update user doc
+		var http_patch := HTTPRequest.new()
+		add_child(http_patch)
+		
+		var patch_url := "%s?updateMask.fieldPaths=recent_matches" % user_doc_url
+		var patch_payload := {
+			"fields": {
+				"recent_matches": _to_firestore_value(recent)
+			}
+		}
+		
+		http_patch.request_completed.connect(func(_r2, code2, _h2, _body2):
+			http_patch.queue_free()
+			if code2 == 200:
+				print("[DefuseTrojanPostgame] ✅ Recent match appended to user doc")
+			else:
+				print("[DefuseTrojanPostgame] ⚠️ Failed to update recent_matches: %d" % code2)
+		)
+		
+		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(patch_payload))
+	)
+	
+	http_get.request(user_doc_url, headers, HTTPClient.METHOD_GET)
+
+
+func _format_firestore_payload(data: Dictionary) -> Dictionary:
+	"""Convert data dictionary to Firestore document format"""
+	var fields: Dictionary = {}
+	for key in data.keys():
+		fields[key] = _to_firestore_value(data[key])
+	return {"fields": fields}
+
+
+func _to_firestore_value(value) -> Dictionary:
+	if value == null:
+		return {"nullValue": "NULL_VALUE"}
+	if value is String:
+		return {"stringValue": value}
+	if value is int:
+		return {"integerValue": str(value)}
+	if value is float:
+		return {"doubleValue": value}
+	if value is bool:
+		return {"booleanValue": value}
+	if value is Array:
+		var values: Array = []
+		for item in value:
+			values.append(_to_firestore_value(item))
+		return {"arrayValue": {"values": values}}
+	if value is Dictionary:
+		var map_fields: Dictionary = {}
+		for k in value.keys():
+			map_fields[str(k)] = _to_firestore_value(value[k])
+		return {"mapValue": {"fields": map_fields}}
+	# Fallback: stringify
+	return {"stringValue": str(value)}
+
+
+func _from_firestore_value(v) -> Variant:
+	if v == null:
+		return null
+	if v.has("stringValue"):
+		return v["stringValue"]
+	if v.has("integerValue"):
+		return int(v["integerValue"])
+	if v.has("doubleValue"):
+		return float(v["doubleValue"])
+	if v.has("booleanValue"):
+		return bool(v["booleanValue"])
+	if v.has("nullValue"):
+		return null
+	if v.has("arrayValue"):
+		var out: Array = []
+		var arr = v["arrayValue"]
+		if arr.has("values"):
+			for item in arr["values"]:
+				out.append(_from_firestore_value(item))
+		return out
+	if v.has("mapValue"):
+		var out_d: Dictionary = {}
+		var f = v["mapValue"].get("fields", {})
+		for k in f.keys():
+			out_d[str(k)] = _from_firestore_value(f[k])
+		return out_d
+	return null
+
+
+func _update_leaderboard_stats(wave_reached: int, score: int) -> void:
+	"""Update user's Defuse the Trojan leaderboard stats (best wave, high score, games played)"""
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		print("[DefuseTrojanPostgame] ⚠️ Cannot update leaderboard stats - not logged in")
+		return
+	
+	print("[DefuseTrojanPostgame] 📊 Updating leaderboard stats: wave=%d, score=%d" % [wave_reached, score])
+	
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	var user_doc_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % uid
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	])
+	
+	# First GET current stats
+	var http_get := HTTPRequest.new()
+	add_child(http_get)
+	
+	http_get.request_completed.connect(func(_r, code, _h, body):
+		http_get.queue_free()
+		
+		if code != 200:
+			print("[DefuseTrojanPostgame] ⚠️ Failed to GET user doc for leaderboard stats")
+			return
+		
+		var json := JSON.new()
+		if json.parse(body.get_string_from_utf8()) != OK:
+			return
+		var doc = json.get_data()
+		var fields = doc.get("fields", {})
+		
+		# Get existing stats
+		var current_best_wave := 0
+		var current_high_score := 0
+		var current_games_played := 0
+		
+		if fields.has("dt_best_wave"):
+			current_best_wave = int(_from_firestore_value(fields["dt_best_wave"]))
+		if fields.has("dt_high_score"):
+			current_high_score = int(_from_firestore_value(fields["dt_high_score"]))
+		if fields.has("dt_games_played"):
+			current_games_played = int(_from_firestore_value(fields["dt_games_played"]))
+		
+		# Calculate new values
+		var new_best_wave: int = max(current_best_wave, wave_reached)
+		var new_high_score: int = max(current_high_score, score)
+		var new_games_played: int = current_games_played + 1
+		
+		print("[DefuseTrojanPostgame] 📊 Stats update: best_wave %d→%d, high_score %d→%d, games %d→%d" % [
+			current_best_wave, new_best_wave,
+			current_high_score, new_high_score,
+			current_games_played, new_games_played
+		])
+		
+		# PATCH the updated stats
+		var http_patch := HTTPRequest.new()
+		add_child(http_patch)
+		
+		var patch_url := "%s?updateMask.fieldPaths=dt_best_wave&updateMask.fieldPaths=dt_high_score&updateMask.fieldPaths=dt_games_played" % user_doc_url
+		var patch_payload := {
+			"fields": {
+				"dt_best_wave": {"integerValue": str(new_best_wave)},
+				"dt_high_score": {"integerValue": str(new_high_score)},
+				"dt_games_played": {"integerValue": str(new_games_played)}
+			}
+		}
+		
+		http_patch.request_completed.connect(func(_r2, code2, _h2, _body2):
+			http_patch.queue_free()
+			if code2 == 200:
+				print("[DefuseTrojanPostgame] ✅ Leaderboard stats updated!")
+			else:
+				print("[DefuseTrojanPostgame] ⚠️ Failed to update leaderboard stats: %d" % code2)
+		)
+		
+		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(patch_payload))
+	)
+	
+	http_get.request(user_doc_url, headers, HTTPClient.METHOD_GET)

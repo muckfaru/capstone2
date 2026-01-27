@@ -280,21 +280,30 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_irntn")
 
 [node name="AkashicTgcRank" type="Button" parent="VideoStreamPlayer/RankingPanel"]
 layout_mode = 0
-offset_left = 160.0
+offset_left = 100.0
 offset_top = 80.0
-offset_right = 321.0
+offset_right = 261.0
 offset_bottom = 132.0
 mouse_default_cursor_shape = 2
-text = "Akashic TGC"
+text = "Akashic TCG"
 
 [node name="CodeBreakerRank" type="Button" parent="VideoStreamPlayer/RankingPanel"]
 layout_mode = 0
-offset_left = 338.0
-offset_top = 82.0
-offset_right = 505.0
+offset_left = 278.0
+offset_top = 80.0
+offset_right = 445.0
 offset_bottom = 132.0
 mouse_default_cursor_shape = 2
 text = "Code Breaker"
+
+[node name="DefuseTrojanRank" type="Button" parent="VideoStreamPlayer/RankingPanel"]
+layout_mode = 0
+offset_left = 462.0
+offset_top = 80.0
+offset_right = 650.0
+offset_bottom = 132.0
+mouse_default_cursor_shape = 2
+text = "Defuse Trojan"
 
 [node name="list" type="Panel" parent="VideoStreamPlayer/RankingPanel"]
 layout_mode = 0

@@ -536,9 +536,13 @@ func _transition_to_loading(room_data: Dictionary) -> void:
 		_relay_client.get_parent().remove_child(_relay_client)
 		get_tree().root.add_child(_relay_client)
 
-	var host_val = room_data.get("host", {})
-	var c1_val = room_data.get("client", {})
-	var c2_val = room_data.get("client2", {})
+	# Safely get Dictionary values (can be null even with default)
+	var host_raw = room_data.get("host", {})
+	var host_val: Dictionary = host_raw if host_raw is Dictionary else {}
+	var c1_raw = room_data.get("client", {})
+	var c1_val: Dictionary = c1_raw if c1_raw is Dictionary else {}
+	var c2_raw = room_data.get("client2", {})
+	var c2_val: Dictionary = c2_raw if c2_raw is Dictionary else {}
 	var start_ms := int(room_data.get("game_start_time_ms", 0))
 
 	get_tree().set_meta("defuse_trojan_loading_init", {

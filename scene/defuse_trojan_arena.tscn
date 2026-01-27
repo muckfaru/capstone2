@@ -1,9 +1,16 @@
-[gd_scene load_steps=7 format=3 uid="uid://c7dp51haxdi18"]
+[gd_scene load_steps=14 format=3 uid="uid://c7dp51haxdi18"]
 
 [ext_resource type="Script" uid="uid://cf1nxm68yi4di" path="res://script/defuse_trojan_arena.gd" id="1_arena"]
 [ext_resource type="Texture2D" uid="uid://88l8vo83x8qo" path="res://asset/defuse_trojan/space_background.jpg" id="2_rrukm"]
+[ext_resource type="PackedScene" uid="uid://bg6xg78gkf4ts" path="res://scene/Menu.tscn" id="3_menu"]
 [ext_resource type="PackedScene" uid="uid://hf15tfqwkh2e" path="res://scene/defuse_trojan_player.tscn" id="3_player_scene"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_font"]
+[ext_resource type="AudioStream" uid="uid://tcuuwafas18d" path="res://asset/background/defuse the trojan bg music.mp3" id="5_bg_music"]
+[ext_resource type="AudioStream" uid="uid://o4smwdyd7fn8" path="res://asset/audio/defuse the trojan sfx/laser firing sound effect.mp3" id="6_laser_sfx"]
+[ext_resource type="AudioStream" uid="uid://d2k6nbyor6ill" path="res://asset/audio/defuse the trojan sfx/enemy death sfx 1.wav" id="7_death1_sfx"]
+[ext_resource type="AudioStream" uid="uid://ce85f2qs6ny6v" path="res://asset/audio/defuse the trojan sfx/enemy death sfx 2.wav" id="8_death2_sfx"]
+[ext_resource type="AudioStream" uid="uid://mouk7vfbiuo0" path="res://asset/audio/defuse the trojan sfx/enemy spawned sfx.wav" id="9_spawn_sfx"]
+[ext_resource type="AudioStream" uid="uid://cx4p1eql6o2mm" path="res://asset/audio/defuse the trojan sfx/game over.wav" id="10_gameover_sfx"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_defense"]
 size = Vector2(1192, 50)
@@ -63,7 +70,7 @@ begin_cap_mode = 2
 end_cap_mode = 2
 
 [node name="Player" parent="GameLayer" instance=ExtResource("3_player_scene")]
-position = Vector2(600, 591)
+position = Vector2(593, 598)
 
 [node name="PlayerDefenseZone" type="Area2D" parent="GameLayer" groups=["player_defense"]]
 position = Vector2(640, 750)
@@ -84,19 +91,19 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = 3.0
-offset_bottom = -6.0
+offset_left = 37.0
+offset_top = 10.0
+offset_right = 1.0
+offset_bottom = -336.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="TopBar" type="HBoxContainer" parent="CanvasLayer/UI"]
 layout_mode = 0
-offset_left = 20.0
+offset_left = -5.0
 offset_top = 15.0
-offset_right = 320.0
-offset_bottom = 55.0
+offset_right = 1090.0
+offset_bottom = 58.0
 theme_override_constants/separation = 10
 
 [node name="BackButton" type="Button" parent="CanvasLayer/UI/TopBar"]
@@ -108,12 +115,24 @@ theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 18
 text = "← BACK"
 
+[node name="Spacer" type="Control" parent="CanvasLayer/UI/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MenuButton" type="Button" parent="CanvasLayer/UI/TopBar"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 25
+text = "☰"
+
 [node name="HealthContainer" type="HBoxContainer" parent="CanvasLayer/UI"]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 60.0
-offset_right = 280.0
-offset_bottom = 95.0
+offset_left = -13.0
+offset_top = 70.0
+offset_right = 228.0
+offset_bottom = 105.0
 theme_override_constants/separation = 8
 
 [node name="HealthIcon" type="Label" parent="CanvasLayer/UI/HealthContainer"]
@@ -130,6 +149,7 @@ value = 100.0
 show_percentage = false
 
 [node name="HealthLabel" type="Label" parent="CanvasLayer/UI"]
+visible = false
 layout_mode = 0
 offset_left = 20.0
 offset_top = 100.0
@@ -147,10 +167,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -200.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = 100.0
+offset_left = -1123.0
+offset_top = 100.0
+offset_right = -877.0
+offset_bottom = 188.0
 grow_horizontal = 0
 theme_override_constants/separation = 5
 
@@ -162,7 +182,6 @@ theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 28
 text = "SCORE: 0"
-horizontal_alignment = 2
 
 [node name="WaveLabel" type="Label" parent="CanvasLayer/UI/ScoreContainer"]
 layout_mode = 2
@@ -170,9 +189,8 @@ theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 28
 text = "WAVE: 1"
-horizontal_alignment = 2
 
 [node name="ComboLabel" type="Label" parent="CanvasLayer/UI/ScoreContainer"]
 visible = false
@@ -181,9 +199,8 @@ theme_override_colors/font_color = Color(1, 0.5, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 19
 text = "COMBO x5"
-horizontal_alignment = 2
 
 [node name="TypingContainer" type="VBoxContainer" parent="CanvasLayer/UI"]
 visible = false
@@ -215,6 +232,22 @@ bbcode_enabled = true
 text = "[center]_[/center]"
 fit_content = true
 scroll_active = false
+
+[node name="InactivityWarning" type="Label" parent="CanvasLayer/UI"]
+visible = false
+layout_mode = 0
+offset_left = 440.0
+offset_top = 300.0
+offset_right = 840.0
+offset_bottom = 340.0
+theme_override_colors/font_color = Color(1, 0.5, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 28
+text = "⚠ TYPE FASTER!"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="GameOverPanel" type="Panel" parent="CanvasLayer"]
 visible = false
@@ -294,11 +327,32 @@ text = "QUIT"
 
 [node name="AudioPlayers" type="Node" parent="."]
 
+[node name="BGMusic" type="AudioStreamPlayer" parent="AudioPlayers"]
+stream = ExtResource("5_bg_music")
+
 [node name="TypeSFX" type="AudioStreamPlayer" parent="AudioPlayers"]
-volume_db = 2.364
+stream = ExtResource("6_laser_sfx")
+volume_db = -5.0
 
 [node name="DestroySFX" type="AudioStreamPlayer" parent="AudioPlayers"]
-volume_db = 4.091
+stream = ExtResource("7_death1_sfx")
+
+[node name="DestroySFX2" type="AudioStreamPlayer" parent="AudioPlayers"]
+stream = ExtResource("8_death2_sfx")
+
+[node name="SpawnSFX" type="AudioStreamPlayer" parent="AudioPlayers"]
+stream = ExtResource("9_spawn_sfx")
+volume_db = -3.0
+
+[node name="GameOverSFX" type="AudioStreamPlayer" parent="AudioPlayers"]
+stream = ExtResource("10_gameover_sfx")
+
+[node name="MenuPanel" parent="." instance=ExtResource("3_menu")]
+visible = false
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 2.0
+offset_bottom = 2.0
 
 [connection signal="pressed" from="CanvasLayer/UI/TopBar/BackButton" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="CanvasLayer/GameOverPanel/VBoxContainer/ButtonContainer/RetryButton" to="." method="_on_retry_pressed"]

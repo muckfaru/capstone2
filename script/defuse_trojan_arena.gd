@@ -80,6 +80,12 @@ var game_paused: bool = false
 var current_target: Node2D = null
 var typed_text: String = ""
 
+# Inactivity Timer
+var inactivity_timer: float = 0.0
+const INACTIVITY_TIMEOUT: float = 3.0  # Reset after 3 seconds of no typing
+var last_keypress_time: float = 0.0
+var inactivity_warning_shown: bool = false
+
 # Spawning
 var spawn_timer: float = 0.0
 var base_spawn_interval: float = 2.5
@@ -107,17 +113,38 @@ var scroll_speed: float = 50.0
 @onready var combo_label: Label = $CanvasLayer/UI/ScoreContainer/ComboLabel
 @onready var typed_display: RichTextLabel = $CanvasLayer/UI/TypingContainer/TypedDisplay
 @onready var target_word: Label = $CanvasLayer/UI/TypingContainer/TargetWord
+@onready var inactivity_warning: Label = $CanvasLayer/UI/InactivityWarning
 @onready var game_over_panel: Panel = $CanvasLayer/GameOverPanel
 
+# Menu
+@onready var menu_button: Button = $CanvasLayer/UI/TopBar/MenuButton
+@onready var menu_panel: Control = $MenuPanel
+
 # Audio
+@onready var bg_music: AudioStreamPlayer = $AudioPlayers/BGMusic
 @onready var type_sfx: AudioStreamPlayer = $AudioPlayers/TypeSFX
 @onready var destroy_sfx: AudioStreamPlayer = $AudioPlayers/DestroySFX
+@onready var destroy_sfx2: AudioStreamPlayer = $AudioPlayers/DestroySFX2
+@onready var spawn_sfx: AudioStreamPlayer = $AudioPlayers/SpawnSFX
+@onready var game_over_sfx: AudioStreamPlayer = $AudioPlayers/GameOverSFX
 
 # === Lifecycle ===
 func _ready() -> void:
 	_setup_ui()
 	_setup_multiplayer_from_meta()
 	_start_game()
+	
+	# Connect menu button
+	if menu_button:
+		menu_button.pressed.connect(_on_menu_button_pressed)
+	
+	# Start background music
+	if bg_music:
+		bg_music.play()
+		# Connect volume control to settings panel
+		if menu_panel and menu_panel.has_method("set_target_music"):
+			menu_panel.set_target_music(bg_music)
+	
 	if _multiplayer:
 		_setup_players_in_arena()
 		_setup_relay_for_arena()
@@ -192,6 +219,27 @@ func _process(delta: float) -> void:
 	# Parallax scrolling effect
 	parallax_bg.scroll_offset.y += scroll_speed * delta
 	
+	# Inactivity timer - reset typing if player is inactive
+	if typed_text.length() > 0:
+		inactivity_timer += delta
+		
+		# Show warning at 2 seconds
+		if inactivity_timer >= 2.0 and not inactivity_warning_shown:
+			inactivity_warning_shown = true
+			if inactivity_warning:
+				inactivity_warning.visible = true
+				inactivity_warning.modulate = Color(1, 0.5, 0)
+		
+		# Timeout at 3 seconds
+		if inactivity_timer >= INACTIVITY_TIMEOUT:
+			print("[DefuseTrojan] ⏱️ Inactivity timeout - resetting typed text")
+			_reset_typing_from_inactivity()
+	else:
+		inactivity_timer = 0.0
+		inactivity_warning_shown = false
+		if inactivity_warning:
+			inactivity_warning.visible = false
+	
 	# Spawn/waves are host-authoritative in multiplayer.
 	if (not _multiplayer) or _is_host_mp:
 		# Spawn enemies only if wave spawning not complete
@@ -240,6 +288,8 @@ func _input(event: InputEvent) -> void:
 		if key_string.length() == 1 and key_string.to_upper() in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789":
 			_typing_total_keys += 1
 			_last_key_error = false
+			inactivity_timer = 0.0  # Reset inactivity timer
+			last_keypress_time = Time.get_ticks_msec()
 			typed_text += key_string.to_upper()
 			_process_typing()
 			if _last_key_error:
@@ -392,6 +442,11 @@ func _spawn_projectile(target: Node2D) -> void:
 	if not target or not is_instance_valid(target):
 		return
 	
+	# Play laser sound effect (restart each letter)
+	if type_sfx:
+		type_sfx.stop()
+		type_sfx.play()
+	
 	# Rotate player to face target
 	_rotate_player_to_target(target)
 	
@@ -460,6 +515,14 @@ func _on_projectile_hit_enemy(enemy: Node2D) -> void:
 			})
 		return
 
+	# Play destroy sound effect (alternate between 2 sounds)
+	if randi() % 2 == 0:
+		if destroy_sfx:
+			destroy_sfx.play()
+	else:
+		if destroy_sfx2:
+			destroy_sfx2.play()
+	
 	enemy.destroy()
 
 func _find_matching_enemy(text: String) -> Node2D:
@@ -486,6 +549,28 @@ func _clear_typing() -> void:
 	current_target = null
 	targeting_beam.visible = false
 	_update_typed_display()
+
+func _reset_typing_from_inactivity() -> void:
+	"""Reset typing due to inactivity timeout"""
+	typed_text = ""
+	if current_target and is_instance_valid(current_target):
+		current_target.set_targeted(false)
+		# Clear stored progress on timeout
+		if current_target.has_method("update_typed_progress"):
+			current_target.update_typed_progress("")
+	current_target = null
+	combo_count = 0  # Reset combo on timeout
+	inactivity_timer = 0.0
+	inactivity_warning_shown = false
+	if inactivity_warning:
+		inactivity_warning.visible = false
+	targeting_beam.visible = false
+	# Flash screen yellow
+	typed_display.modulate = Color(1, 1, 0.3)
+	var tween = create_tween()
+	tween.tween_property(typed_display, "modulate", Color(1, 1, 1), 0.3)
+	_update_typed_display()
+	_update_combo_display()
 
 func _reevaluate_target() -> void:
 	"""Re-evaluate which enemy should be targeted based on current typed_text"""
@@ -533,9 +618,14 @@ func _update_targeting_beam() -> void:
 	targeting_beam.visible = false
 
 func _update_combo_display() -> void:
+	if not combo_label:
+		print("[DefuseTrojan] ⚠️ combo_label is null!")
+		return
+	
 	if combo_count >= 3:
 		combo_label.visible = true
 		combo_label.text = "COMBO x%d" % combo_count
+		print("[DefuseTrojan] ⭐ Combo displayed: x%d" % combo_count)
 		# Color based on combo level
 		if combo_count >= 10:
 			combo_label.add_theme_color_override("font_color", Color(1, 0, 0.5))
@@ -577,6 +667,10 @@ func _spawn_enemy() -> void:
 	
 	enemy.set_word(word)
 	enemy.set_enemy_type(enemy_type)
+	
+	# Play spawn sound effect
+	if spawn_sfx:
+		spawn_sfx.play()
 	
 	# Increase speed with waves
 	enemy.speed += wave * 8
@@ -1125,6 +1219,15 @@ func _destroy_enemy_authoritative(enemy: Node2D, by_pid: String) -> void:
 	var eid := _get_enemy_id(enemy)
 	if eid == "":
 		return
+	
+	# Play destroy sound effect (alternate between 2 sounds)
+	if randi() % 2 == 0:
+		if destroy_sfx:
+			destroy_sfx.play()
+	else:
+		if destroy_sfx2:
+			destroy_sfx2.play()
+	
 	enemy.set_meta("killed_by", by_pid)
 	# Broadcast destroy first so clients can start animation quickly.
 	_send_relay({
@@ -1404,6 +1507,12 @@ func _show_wave_notification() -> void:
 # === Game Over ===
 func _game_over() -> void:
 	game_over = true
+	
+	# Play game over sound effect and stop background music
+	if bg_music:
+		bg_music.stop()
+	if game_over_sfx:
+		game_over_sfx.play()
 
 	# Multiplayer: host drives post-game transition.
 	if _multiplayer:
@@ -1446,6 +1555,12 @@ func _on_retry_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file("res://scene/landing.tscn")
+
+func _on_menu_button_pressed() -> void:
+	"""Toggle menu panel visibility when menu button is clicked"""
+	if menu_panel:
+		menu_panel.visible = !menu_panel.visible
+		print("[DefuseTrojan] 🎮 Menu panel toggled: %s" % ("VISIBLE" if menu_panel.visible else "HIDDEN"))
 
 
 func _go_to_postgame(payload: Dictionary) -> void:

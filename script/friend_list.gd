@@ -61,8 +61,8 @@ func _ready():
 
 	add_button.pressed.connect(func():
 		var target = add_input.text.strip_edges()
-		var has_uid := Auth.current_local_id != ""
-		var has_token := Auth.current_id_token != ""
+		var has_uid: bool = Auth.current_local_id != ""
+		var has_token: bool = Auth.current_id_token != ""
 		print("[FriendList] Add clicked target='%s' uid=%s token=%s" % [target, str(has_uid), str(has_token)])
 		if target == "":
 			push_warning("[FriendList] Add clicked with empty target.")

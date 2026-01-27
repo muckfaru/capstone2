@@ -52,7 +52,9 @@ var _transitioned: bool = false
 func _ready() -> void:
 	var init: Dictionary = {}
 	if get_tree().has_meta("defuse_trojan_loading_init"):
-		init = get_tree().get_meta("defuse_trojan_loading_init")
+		var meta_value = get_tree().get_meta("defuse_trojan_loading_init")
+		if meta_value != null and meta_value is Dictionary:
+			init = meta_value
 		get_tree().set_meta("defuse_trojan_loading_init", null)
 
 	_room_id = str(init.get("room_id", ""))
@@ -60,9 +62,15 @@ func _ready() -> void:
 	_relay_client = init.get("relay_client", null)
 	_player_id = str(init.get("player_id", ""))
 	_is_host = bool(init.get("is_host", false))
-	_host_data = init.get("host_data", {})
-	_client_data = init.get("client_data", {})
-	_client2_data = init.get("client2_data", {})
+	
+	# Safely get Dictionary values (can be null even with default)
+	var host_val = init.get("host_data", {})
+	_host_data = host_val if host_val is Dictionary else {}
+	var client_val = init.get("client_data", {})
+	_client_data = client_val if client_val is Dictionary else {}
+	var client2_val = init.get("client2_data", {})
+	_client2_data = client2_val if client2_val is Dictionary else {}
+	
 	_game_start_time_ms = int(init.get("game_start_time_ms", 0))
 	_loading_duration_ms = int(init.get("loading_duration_ms", DEFAULT_LOADING_DURATION_MS))
 
