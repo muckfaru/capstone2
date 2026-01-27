@@ -2,7 +2,9 @@ extends Node
 
 const SETTINGS_PATH := "user://settings.cfg"
 
-var music_level: int = 50 # 1..100
+# Default volume set to 80 (approx -16 dB) so first-time users hear audio clearly.
+# Previously was 50 which mapped to ~-40 dB and sounded almost muted.
+var music_level: int = 80 # 1..100
 var fullscreen: bool = false
 
 func _enter_tree() -> void:
@@ -21,6 +23,9 @@ func load_settings() -> void:
 	var cfg := ConfigFile.new()
 	var err := cfg.load(SETTINGS_PATH)
 	if err != OK:
+		# No settings file exists (first-time user). Save defaults now so they
+		# persist immediately and apply_all() uses them.
+		save_settings()
 		return
 
 	music_level = int(cfg.get_value("audio", "music_level", music_level))
