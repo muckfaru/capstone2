@@ -15,6 +15,68 @@ This is a Godot 4.4 educational game project featuring multiple minigames for cy
 - **Player Scene:** `scene/defuse_trojan_player.tscn`
 - **Projectile:** `scene/projectile.tscn`, `script/projectile.gd`
 
+### Multiplayer (Co-op, 2–3 Players)
+
+#### Multiplayer Flow (UI parity with Code Breaker / Akashic)
+- Landing → Defuse Trojan Lobby → Room → Synchronized Loading → Shared Arena → Postgame
+- Lobby/room uses the same “room list + room scene + ready gating” pattern as Code Breaker.
+
+#### Core Multiplayer Files
+- **Lobby Panel Scene:** `scene/defuse_trojan_lobby.tscn`
+- **Lobby Panel Script:** `script/defuse_trojan_lobby.gd`
+- **Room Scene:** `scene/defuse_trojan_room.tscn`
+- **Room Script:** `script/defuse_trojan_room.gd`
+- **Loading Scene (2–3 cards):** `scene/defuse_trojan_loading.tscn`
+- **Loading Script:** `script/defuse_trojan_loading.gd`
+- **Postgame Scene (inherits Code Breaker design):** `scene/defuse_trojan_postgame.tscn`
+- **Postgame Script:** `script/defuse_trojan_postgame.gd`
+
+#### Server / Lobby API Assumptions
+- Lobby server `server/server.js` supports `game_type: "defuse_trojan"` and `max_players: 3`.
+- Room JSON includes `client2` (3rd slot) and `game_start_time_ms` (scheduled start timestamp).
+
+#### Scene Init Meta Contracts
+These are passed via `get_tree().set_meta(...)` before `change_scene_to_file(...)`:
+- `defuse_trojan_room_init` (room id, is_host, lobby url)
+- `defuse_trojan_loading_init` (room data + relay client + `game_start_time_ms`)
+- `defuse_trojan_arena_init` (mode `"multiplayer"`, relay client, room snapshot)
+- `defuse_trojan_postgame_init` (results payload + optional relay client)
+
+#### Relay / WebSocket Message Contracts (Arena)
+Multiplayer uses a WebSocket relay client (`script/WebSocketRelayClient.gd`).
+
+Host-authoritative rules:
+- Host is authoritative for enemy spawn/state and enemy destruction.
+- Clients request kills; host validates and broadcasts results.
+- All peers render shots/projectiles (including host applying remote shots).
+
+Key message types used by the arena:
+- `dt_arena_sync_request` / `dt_arena_sync`: snapshot sync for late join/out-of-sync clients
+- `dt_enemy_spawn`: host → clients spawn enemy with stable `enemy_id`
+- `dt_enemy_state`: host → clients periodic state (positions + wave/health/scores)
+- `dt_kill_request`: client → host request to destroy enemy
+- `dt_enemy_destroy`: host → all; enemy destroyed (includes `by` player id, optional `points`)
+- `dt_enemy_remove`: host → clients; remove enemy without scoring (cleanup)
+- `dt_shot`: any → all; replicate projectile visuals for typing
+
+Match end / postgame sync:
+- `dt_match_end`: host → clients; instruct clients to compute local typing stats
+- `dt_player_stats`: clients → host; send computed stats payload
+- `dt_postgame`: host → all; final results payload to transition everyone to postgame
+
+#### Typing + Score Attribution (Multiplayer)
+- Each keypress fires a projectile locally AND sends a `dt_shot` event so other peers can render it.
+- Final projectile triggers kill request (`dt_kill_request`) from clients; host calls authoritative destroy.
+- Score is tracked per-player (`_scores_by_player`) and displayed from the local player id.
+
+#### Postgame Analytics (Per-Player Cards)
+Postgame reuses Code Breaker’s visual design via scene inheritance and renders up to 3 player cards.
+
+Per-player card fields (minimal schema):
+- Match summary: `mode`, `duration_ms`, `wave_reached`
+- Score: `score`
+- Typing: `wpm`, `accuracy_pct`, `longest_streak`
+
 ### Game Mechanics
 
 #### Typing System
@@ -84,3 +146,21 @@ This is a Godot 4.4 educational game project featuring multiple minigames for cy
 - [ ] Wave clear required before advancing
 - [ ] Priority targeting (closest enemy first)
 - [ ] Player rotates when shooting
+
+### Multiplayer Testing Checklist
+- [ ] Room supports 2–3 players (Host + Client + Client2)
+- [ ] Ready gating works: host can start only when all present clients are ready
+- [ ] Loading screen starts simultaneously (via `game_start_time_ms` or relay fallback)
+- [ ] Host sees client projectiles and clients see each other’s projectiles
+- [ ] Wave UI/notifications update consistently from host state sync
+- [ ] Clients can request kills; host broadcasts destroy; scores attribute to the correct player
+- [ ] Postgame triggers for all peers and shows consistent cards (score/WPM/accuracy/streak)
+
+### Stability / Type-Safety Gotchas (Godot 4.4)
+- Relay/state dictionaries can contain stale references. Never assume a Node pulled from a dictionary is valid.
+  - Always guard with `is_instance_valid(node)` before use.
+  - When invalid, `erase(id)` from mappings like `_enemies_by_id` and request resync.
+- Avoid typed assignments directly from dictionary lookups (can throw “invalid previously freed instance”).
+  - Prefer `var any = dict.get(key, null)` then validate/cast: `var n := any as Node2D`.
+- Some project settings treat warnings as errors; explicitly type values when inference fails.
+  - Example: `var cached_bg: String = str(Auth.get_remote_card_bg(pid))`.

@@ -500,6 +500,10 @@ func _save_recent_match_best_effort() -> void:
 	}
 
 	_append_recent_match_to_user_doc(entry)
+	
+	# Update leaderboard stats (wins/losses)
+	var is_win := result_text == "WIN"
+	_update_cb_leaderboard_stats(is_win)
 
 
 func _append_recent_match_to_user_doc(entry: Dictionary) -> void:
@@ -1494,3 +1498,85 @@ func _fix_white_backgrounds() -> void:
 	_client_card_node.move_child(client_overlay, 0)  # Move to very back
 	
 	print("[PostGame] ✅ Added dark overlay to client card (z-index: -100)")
+
+
+func _update_cb_leaderboard_stats(is_win: bool) -> void:
+	"""Update user's Code Breaker leaderboard stats (wins, losses, games played)"""
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		print("[PostGame] ⚠️ Cannot update leaderboard stats - not logged in")
+		return
+	
+	print("[PostGame] 📊 Updating CB leaderboard stats: is_win=%s" % str(is_win))
+	
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	var user_doc_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % uid
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	])
+	
+	# First GET current stats
+	var http_get := HTTPRequest.new()
+	get_tree().root.add_child(http_get)
+	
+	http_get.request_completed.connect(func(_r, code, _h, body):
+		http_get.queue_free()
+		
+		if code != 200:
+			print("[PostGame] ⚠️ Failed to GET user doc for CB leaderboard stats")
+			return
+		
+		var doc = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(doc) != TYPE_DICTIONARY:
+			return
+		var fields = doc.get("fields", {})
+		
+		# Get existing stats
+		var current_wins := 0
+		var current_losses := 0
+		var current_games := 0
+		
+		if fields.has("cb_wins"):
+			current_wins = int(_from_firestore_value(fields["cb_wins"]))
+		if fields.has("cb_losses"):
+			current_losses = int(_from_firestore_value(fields["cb_losses"]))
+		if fields.has("cb_games_played"):
+			current_games = int(_from_firestore_value(fields["cb_games_played"]))
+		
+		# Calculate new values
+		var new_wins := current_wins + (1 if is_win else 0)
+		var new_losses := current_losses + (0 if is_win else 1)
+		var new_games := current_games + 1
+		
+		print("[PostGame] 📊 CB Stats update: wins %d→%d, losses %d→%d, games %d→%d" % [
+			current_wins, new_wins,
+			current_losses, new_losses,
+			current_games, new_games
+		])
+		
+		# PATCH the updated stats
+		var http_patch := HTTPRequest.new()
+		get_tree().root.add_child(http_patch)
+		
+		var patch_url := "%s?updateMask.fieldPaths=cb_wins&updateMask.fieldPaths=cb_losses&updateMask.fieldPaths=cb_games_played" % user_doc_url
+		var patch_payload := {
+			"fields": {
+				"cb_wins": {"integerValue": str(new_wins)},
+				"cb_losses": {"integerValue": str(new_losses)},
+				"cb_games_played": {"integerValue": str(new_games)}
+			}
+		}
+		
+		http_patch.request_completed.connect(func(_r2, code2, _h2, _body2):
+			http_patch.queue_free()
+			if code2 == 200:
+				print("[PostGame] ✅ CB Leaderboard stats updated!")
+			else:
+				print("[PostGame] ⚠️ Failed to update CB leaderboard stats: %d" % code2)
+		)
+		
+		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(patch_payload))
+	)
+	
+	http_get.request(user_doc_url, headers, HTTPClient.METHOD_GET)

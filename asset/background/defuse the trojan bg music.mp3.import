@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://tcuuwafas18d"
+path="res://.godot/imported/defuse the trojan bg music.mp3-9268a3944791104b3b223cd59757ecb9.mp3str"
+
+[deps]
+
+source_file="res://asset/background/defuse the trojan bg music.mp3"
+dest_files=["res://.godot/imported/defuse the trojan bg music.mp3-9268a3944791104b3b223cd59757ecb9.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

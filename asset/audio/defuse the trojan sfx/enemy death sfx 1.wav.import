@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://d2k6nbyor6ill"
+path="res://.godot/imported/enemy death sfx 1.wav-5562d4db74249d632ea1bb18c791a364.sample"
+
+[deps]
+
+source_file="res://asset/audio/defuse the trojan sfx/enemy death sfx 1.wav"
+dest_files=["res://.godot/imported/enemy death sfx 1.wav-5562d4db74249d632ea1bb18c791a364.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

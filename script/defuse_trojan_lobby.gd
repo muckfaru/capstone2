@@ -253,8 +253,12 @@ func _populate_rooms_from_lobby(rooms_data) -> void:
 			continue
 
 		var current_players: int = int(room.get("current_players", 1))
-		var max_players: int = int(room.get("max_players", 3))
+		# Defuse Trojan supports up to 3 players; older rooms may still report 2.
+		var server_max: int = int(room.get("max_players", 3))
+		var max_players: int = maxi(3, server_max)
 		var joinable := current_players < max_players
+		
+		print("[DefuseTrojanLobby] Room %s: current=%d, server_max=%d, max=%d, joinable=%s" % [room_id, current_players, server_max, max_players, joinable])
 
 		var entry := {
 			"id": room_id,
@@ -295,9 +299,12 @@ func _add_room_row(entry: Dictionary) -> void:
 	var action_btn := Button.new()
 	action_btn.custom_minimum_size = Vector2(100, 28)
 	action_btn.text = "JOIN"
-	action_btn.disabled = not bool(entry.get("joinable", false))
+	var is_joinable := bool(entry.get("joinable", false))
+	action_btn.disabled = not is_joinable
+	print("[DefuseTrojanLobby] Room %s - joinable: %s, button disabled: %s" % [str(entry.get("id", "")), is_joinable, action_btn.disabled])
 	action_btn.pressed.connect(func():
 		var room_id := str(entry.get("id", ""))
+		print("[DefuseTrojanLobby] JOIN button pressed for room: ", room_id)
 		if room_id != "":
 			_join_room_via_lobby(room_id)
 	)
@@ -308,8 +315,11 @@ func _add_room_row(entry: Dictionary) -> void:
 
 func _join_room_via_lobby(room_id: String) -> void:
 	if room_id == "" or _lobby_server_url == "":
+		push_error("[DefuseTrojanLobby] Cannot join - missing room_id or lobby_server_url")
 		return
 
+	print("[DefuseTrojanLobby] Attempting to join room: ", room_id)
+	
 	var url := _lobby_server_url + "/api/rooms/" + room_id + "/join"
 	var http := HTTPRequest.new()
 	add_child(http)
@@ -328,11 +338,19 @@ func _join_room_via_lobby(room_id: String) -> void:
 
 	http.request_completed.connect(func(_result, code, _headers, response_body: PackedByteArray):
 		http.queue_free()
+		var response_str := response_body.get_string_from_utf8()
+		
 		if code != 200:
-			push_error("[DefuseTrojanLobby] Join room failed HTTP %d" % code)
+			push_error("[DefuseTrojanLobby] Join room failed HTTP %d: %s" % [code, response_str])
+			# Show error to user
+			var error_data = JSON.parse_string(response_str)
+			var error_msg := "Failed to join room"
+			if typeof(error_data) == TYPE_DICTIONARY:
+				error_msg = str(error_data.get("error", error_msg))
+			print("[DefuseTrojanLobby] Join error: ", error_msg)
 			return
 
-		var data = JSON.parse_string(response_body.get_string_from_utf8())
+		var data = JSON.parse_string(response_str)
 		if typeof(data) != TYPE_DICTIONARY:
 			push_error("[DefuseTrojanLobby] Invalid join response")
 			return

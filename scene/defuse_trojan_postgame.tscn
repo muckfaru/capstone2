@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://sno24cqalp7m"]
+[gd_scene load_steps=3 format=3 uid="uid://dn0yag36w28sc"]
 
 [ext_resource type="PackedScene" uid="uid://dd58djqli2krd" path="res://scene/code_breaker_postgame.tscn" id="1"]
 [ext_resource type="Script" uid="uid://ra6dnx74clwa" path="res://script/defuse_trojan_postgame.gd" id="2"]
@@ -6,5 +6,27 @@
 [node name="DefuseTrojanPostgame" instance=ExtResource("1")]
 script = ExtResource("2")
 
+[node name="Panel" parent="NinePatchRect" index="1"]
+offset_left = 117.0
+offset_right = 1295.0
+
 [node name="TitleLabel" parent="." index="1"]
 text = "DEFUSE THE TROJAN"
+
+[node name="HostAvgTime" parent="HostCard" index="11"]
+visible = false
+
+[node name="HostFastestTime" parent="HostCard" index="12"]
+visible = false
+
+[node name="HostDamageStats" parent="HostCard" index="13"]
+visible = false
+
+[node name="ClientAvgTime" parent="ClientCard" index="11"]
+visible = false
+
+[node name="ClientFastestTime" parent="ClientCard" index="12"]
+visible = false
+
+[node name="ClientDamageStats" parent="ClientCard" index="13"]
+visible = false

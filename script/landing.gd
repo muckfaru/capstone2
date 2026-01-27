@@ -28,6 +28,11 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 var _match_history_scroll: ScrollContainer = null
 var _match_history_vbox: VBoxContainer = null
 
+# Leaderboard (Ranking Panel)
+var _leaderboard_scroll: ScrollContainer = null
+var _leaderboard_vbox: VBoxContainer = null
+var _current_leaderboard_game: String = "code_breaker"
+
 @onready var inventory_panel: Panel = null
 # Dynamic UI elements (created at runtime)
 var file_dialog: FileDialog
@@ -492,43 +497,92 @@ func _render_match_history(items: Array) -> void:
 		right.add_theme_constant_override("separation", 2)
 
 		var game_type := _fs_string(fields, "game_type", "code_breaker")
-		var game_label := "CODE BREAKER" if game_type == "code_breaker" else "AKASHIC TCG"
+		var game_label := "CODE BREAKER"
+		match game_type:
+			"code_breaker":
+				game_label = "CODE BREAKER"
+			"akashic", "akashic_tcg":
+				game_label = "AKASHIC TCG"
+			"defuse_trojan":
+				game_label = "DEFUSE TROJAN"
+			_:
+				game_label = game_type.to_upper().replace("_", " ")
 
 		var my_username := Auth.current_username
-		var host := _fs_string(fields, "host", "")
-		var client := _fs_string(fields, "client", "")
-		var opponent := ""
-		if fields.has("opponent"):
-			opponent = _fs_string(fields, "opponent", "")
-		if host != "" and client != "":
-			opponent = client if host == my_username else host
+		var title_suffix := ""
+		var subtitle_text := ""
+		
+		# Handle Defuse the Trojan differently (PvE game)
+		if game_type == "defuse_trojan":
+			var wave_reached := _fs_int(fields, "wave_reached", 0)
+			var mode := _fs_string(fields, "mode", "solo")
+			var top_score := _fs_int(fields, "top_score", 0)
+			
+			title_suffix = "Wave %d" % wave_reached if wave_reached > 0 else "Completed"
+			
+			if mode == "solo":
+				subtitle_text = "Solo — Score: %d" % top_score
+			else:
+				# Multiplayer: show team members
+				var usernames: Array = []
+				if fields.has("participant_usernames"):
+					var pu = fields["participant_usernames"]
+					if typeof(pu) == TYPE_DICTIONARY and pu.has("arrayValue"):
+						var av = pu.get("arrayValue", {})
+						var values = av.get("values", [])
+						if typeof(values) == TYPE_ARRAY:
+							for v in values:
+								if typeof(v) == TYPE_DICTIONARY and v.has("stringValue"):
+									var uname = str(v["stringValue"])
+									if uname != my_username:
+										usernames.append(uname)
+				if usernames.size() > 0:
+					subtitle_text = "Team: %s — Score: %d" % [", ".join(usernames), top_score]
+				else:
+					subtitle_text = "Multiplayer — Score: %d" % top_score
 		else:
-			# New schema could have players map; best-effort
-			opponent = _fs_string(fields, "opponent", "")
+			# PvP games (Code Breaker, Akashic)
+			var host := _fs_string(fields, "host", "")
+			var client := _fs_string(fields, "client", "")
+			var opponent := ""
+			if fields.has("opponent"):
+				opponent = _fs_string(fields, "opponent", "")
+			if host != "" and client != "":
+				opponent = client if host == my_username else host
+			else:
+				# New schema could have players map; best-effort
+				opponent = _fs_string(fields, "opponent", "")
 
-		var winner := _fs_string(fields, "winner", "")
-		var loser := _fs_string(fields, "loser", "")
-		var result := "UNKNOWN"
-		if fields.has("result"):
-			result = _fs_string(fields, "result", "UNKNOWN").to_upper()
-		if winner != "" and loser != "" and my_username != "":
-			result = "WIN" if winner == my_username else ("LOSE" if loser == my_username else "UNKNOWN")
-		else:
-			var key_res = "%s_result" % my_username
-			var res_raw = _fs_string(fields, key_res, "")
-			if res_raw != "":
-				result = res_raw.to_upper()
+			var winner := _fs_string(fields, "winner", "")
+			var loser := _fs_string(fields, "loser", "")
+			var result := "UNKNOWN"
+			if fields.has("result"):
+				result = _fs_string(fields, "result", "UNKNOWN").to_upper()
+			if winner != "" and loser != "" and my_username != "":
+				result = "WIN" if winner == my_username else ("LOSE" if loser == my_username else "UNKNOWN")
+			else:
+				var key_res = "%s_result" % my_username
+				var res_raw = _fs_string(fields, key_res, "")
+				if res_raw != "":
+					result = res_raw.to_upper()
+			
+			title_suffix = result
+			subtitle_text = "vs %s" % opponent if opponent != "" else "vs …"
 
 		var duration := _fs_string(fields, "time_ended", "")
 		var my_score := _fs_int(fields, "my_score", -1)
 		var opp_score := _fs_int(fields, "opp_score", -1)
 		if my_score < 0:
 			my_score = _fs_int(fields, my_username, -1)
-		if opp_score < 0:
-			opp_score = _fs_int(fields, opponent, -1)
+		if game_type != "defuse_trojan":
+			var host := _fs_string(fields, "host", "")
+			var client := _fs_string(fields, "client", "")
+			var opponent := client if host == my_username else host
+			if opp_score < 0:
+				opp_score = _fs_int(fields, opponent, -1)
 
 		var title := Label.new()
-		title.text = "%s — %s" % [game_label, result]
+		title.text = "%s — %s" % [game_label, title_suffix]
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		title.clip_text = true
 		title.add_theme_color_override("font_color", Color(0, 1, 1, 1))
@@ -536,10 +590,7 @@ func _render_match_history(items: Array) -> void:
 		left.add_child(title)
 
 		var subtitle := Label.new()
-		if opponent != "":
-			subtitle.text = "vs %s" % opponent
-		else:
-			subtitle.text = "vs …"
+		subtitle.text = subtitle_text
 		subtitle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		subtitle.clip_text = true
 		subtitle.add_theme_color_override("font_color", Color(0, 0.75, 1, 0.9))
@@ -3021,6 +3072,9 @@ func _setup_navigation() -> void:
 		code_breaker_icon.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 	_show_panel(panel_paths, "home")
+	
+	# Setup leaderboard
+	_setup_leaderboard()
 
 
 func _on_module_button_pressed() -> void:
@@ -3925,3 +3979,275 @@ func _on_defuse_trojan_card_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("[Landing] 🎮 DefuseTheTrojan card clicked - opening lobby!")
 		_go_to_defuse_trojan_lobby()
+
+
+# === LEADERBOARD SYSTEM ===
+func _setup_leaderboard() -> void:
+	var ranking_panel = $VideoStreamPlayer/RankingPanel
+	if not ranking_panel:
+		print("[Landing] ⚠️ RankingPanel not found")
+		return
+	
+	var list_panel = ranking_panel.get_node_or_null("list")
+	if not list_panel:
+		print("[Landing] ⚠️ RankingPanel/list not found")
+		return
+	
+	# Create ScrollContainer inside list panel if not exists
+	_leaderboard_scroll = list_panel.get_node_or_null("ScrollContainer")
+	if not _leaderboard_scroll:
+		_leaderboard_scroll = ScrollContainer.new()
+		_leaderboard_scroll.name = "ScrollContainer"
+		_leaderboard_scroll.anchor_left = 0.0
+		_leaderboard_scroll.anchor_top = 0.0
+		_leaderboard_scroll.anchor_right = 1.0
+		_leaderboard_scroll.anchor_bottom = 1.0
+		_leaderboard_scroll.offset_left = 8.0
+		_leaderboard_scroll.offset_top = 8.0
+		_leaderboard_scroll.offset_right = -8.0
+		_leaderboard_scroll.offset_bottom = -8.0
+		list_panel.add_child(_leaderboard_scroll)
+	
+	# Create VBox inside scroll
+	_leaderboard_vbox = _leaderboard_scroll.get_node_or_null("VBoxContainer")
+	if not _leaderboard_vbox:
+		_leaderboard_vbox = VBoxContainer.new()
+		_leaderboard_vbox.name = "VBoxContainer"
+		_leaderboard_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_leaderboard_vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_leaderboard_vbox.add_theme_constant_override("separation", 6)
+		_leaderboard_scroll.add_child(_leaderboard_vbox)
+	
+	# Connect tab buttons
+	var akashic_btn = ranking_panel.get_node_or_null("AkashicTgcRank")
+	var cb_btn = ranking_panel.get_node_or_null("CodeBreakerRank")
+	var dt_btn = ranking_panel.get_node_or_null("DefuseTrojanRank")
+	
+	if akashic_btn:
+		akashic_btn.pressed.connect(func(): _load_leaderboard("akashic_tcg"))
+	if cb_btn:
+		cb_btn.pressed.connect(func(): _load_leaderboard("code_breaker"))
+	if dt_btn:
+		dt_btn.pressed.connect(func(): _load_leaderboard("defuse_trojan"))
+	
+	# Load Code Breaker by default
+	_load_leaderboard("code_breaker")
+
+
+func _load_leaderboard(game_type: String) -> void:
+	_current_leaderboard_game = game_type
+	_clear_leaderboard()
+	_add_leaderboard_placeholder("Loading...")
+	
+	print("[Landing] 📊 Loading leaderboard for: %s" % game_type)
+	
+	if Auth.current_id_token == "":
+		_clear_leaderboard()
+		_add_leaderboard_placeholder("Not logged in")
+		return
+	
+	# Query all users and filter/sort client-side
+	# (Firestore composite indexes would be needed for server-side sorting by custom fields)
+	var url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents:runQuery"
+	var token := Auth.current_id_token
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	])
+	
+	# Query all users (limit 100 for performance)
+	var query_body := {
+		"structuredQuery": {
+			"from": [{"collectionId": "users"}],
+			"limit": 100
+		}
+	}
+	
+	var http_lb := HTTPRequest.new()
+	add_child(http_lb)
+	
+	http_lb.request_completed.connect(func(_r, code, _h, body):
+		http_lb.queue_free()
+		
+		if code != 200:
+			print("[Landing] ⚠️ Leaderboard query failed: %d" % code)
+			_clear_leaderboard()
+			_add_leaderboard_placeholder("Failed to load leaderboard")
+			return
+		
+		var users := _parse_leaderboard_query(body, game_type)
+		_render_leaderboard(users, game_type)
+	)
+	
+	http_lb.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+
+
+func _parse_leaderboard_query(body: PackedByteArray, game_type: String) -> Array:
+	var text := body.get_string_from_utf8() if body.size() > 0 else ""
+	var parsed = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_ARRAY:
+		return []
+	
+	var users: Array = []
+	
+	for entry in parsed:
+		if typeof(entry) != TYPE_DICTIONARY or not entry.has("document"):
+			continue
+		var doc = entry["document"]
+		if typeof(doc) != TYPE_DICTIONARY or not doc.has("fields"):
+			continue
+		
+		var fields: Dictionary = doc.get("fields", {})
+		var username := _fs_string(fields, "username", "Unknown")
+		var avatar := _fs_string(fields, "avatar", "")
+		
+		var user_data := {
+			"username": username,
+			"avatar": avatar
+		}
+		
+		match game_type:
+			"code_breaker":
+				user_data["wins"] = _fs_int(fields, "cb_wins", 0)
+				user_data["losses"] = _fs_int(fields, "cb_losses", 0)
+				user_data["games"] = _fs_int(fields, "cb_games_played", 0)
+				user_data["sort_key"] = user_data["wins"]
+			"akashic_tcg":
+				user_data["wins"] = _fs_int(fields, "akashic_wins", 0)
+				user_data["losses"] = _fs_int(fields, "akashic_losses", 0)
+				user_data["games"] = _fs_int(fields, "akashic_games_played", 0)
+				user_data["sort_key"] = user_data["wins"]
+			"defuse_trojan":
+				user_data["best_wave"] = _fs_int(fields, "dt_best_wave", 0)
+				user_data["high_score"] = _fs_int(fields, "dt_high_score", 0)
+				user_data["games"] = _fs_int(fields, "dt_games_played", 0)
+				user_data["sort_key"] = user_data["best_wave"] * 100000 + user_data["high_score"]
+		
+		# Only include users who have played this game
+		if user_data.get("games", 0) > 0 or user_data.get("sort_key", 0) > 0:
+			users.append(user_data)
+	
+	# Sort by sort_key descending
+	users.sort_custom(func(a, b):
+		return int(a.get("sort_key", 0)) > int(b.get("sort_key", 0))
+	)
+	
+	return users
+
+
+func _render_leaderboard(users: Array, game_type: String) -> void:
+	_clear_leaderboard()
+	
+	if users.is_empty():
+		_add_leaderboard_placeholder("No players yet")
+		return
+	
+	# Add header
+	var header := HBoxContainer.new()
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_theme_constant_override("separation", 10)
+	header.custom_minimum_size = Vector2(0, 32)
+	
+	var rank_header := Label.new()
+	rank_header.text = "#"
+	rank_header.custom_minimum_size = Vector2(40, 0)
+	rank_header.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	rank_header.add_theme_font_size_override("font_size", 14)
+	header.add_child(rank_header)
+	
+	var name_header := Label.new()
+	name_header.text = "Player"
+	name_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_header.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	name_header.add_theme_font_size_override("font_size", 14)
+	header.add_child(name_header)
+	
+	var stat_header := Label.new()
+	match game_type:
+		"code_breaker", "akashic_tcg":
+			stat_header.text = "W / L"
+		"defuse_trojan":
+			stat_header.text = "Best Wave / Score"
+	stat_header.custom_minimum_size = Vector2(120, 0)
+	stat_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	stat_header.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+	stat_header.add_theme_font_size_override("font_size", 14)
+	header.add_child(stat_header)
+	
+	_leaderboard_vbox.add_child(header)
+	
+	# Add separator
+	var sep := HSeparator.new()
+	sep.add_theme_color_override("separator_color", Color(0, 0.8, 1, 0.5))
+	_leaderboard_vbox.add_child(sep)
+	
+	# Render top 20 users
+	var rank := 1
+	for user in users.slice(0, 20):
+		var row := HBoxContainer.new()
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_theme_constant_override("separation", 10)
+		row.custom_minimum_size = Vector2(0, 36)
+		
+		# Rank number with medal colors for top 3
+		var lb_rank_label := Label.new()
+		lb_rank_label.text = str(rank)
+		lb_rank_label.custom_minimum_size = Vector2(40, 0)
+		match rank:
+			1:
+				lb_rank_label.add_theme_color_override("font_color", Color(1, 0.84, 0, 1))  # Gold
+			2:
+				lb_rank_label.add_theme_color_override("font_color", Color(0.75, 0.75, 0.75, 1))  # Silver
+			3:
+				lb_rank_label.add_theme_color_override("font_color", Color(0.8, 0.5, 0.2, 1))  # Bronze
+			_:
+				lb_rank_label.add_theme_color_override("font_color", Color(0.8, 0.9, 1, 0.9))
+		lb_rank_label.add_theme_font_size_override("font_size", 16)
+		row.add_child(lb_rank_label)
+		
+		# Username
+		var name_label := Label.new()
+		name_label.text = str(user.get("username", "Unknown"))
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_label.clip_text = true
+		name_label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+		name_label.add_theme_font_size_override("font_size", 14)
+		row.add_child(name_label)
+		
+		# Stats
+		var stat_label := Label.new()
+		match game_type:
+			"code_breaker", "akashic_tcg":
+				var wins := int(user.get("wins", 0))
+				var losses := int(user.get("losses", 0))
+				stat_label.text = "%d / %d" % [wins, losses]
+			"defuse_trojan":
+				var best_wave := int(user.get("best_wave", 0))
+				var high_score := int(user.get("high_score", 0))
+				stat_label.text = "Wave %d / %d pts" % [best_wave, high_score]
+		stat_label.custom_minimum_size = Vector2(120, 0)
+		stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		stat_label.add_theme_color_override("font_color", Color(0, 0.9, 1, 1))
+		stat_label.add_theme_font_size_override("font_size", 14)
+		row.add_child(stat_label)
+		
+		_leaderboard_vbox.add_child(row)
+		rank += 1
+
+
+func _clear_leaderboard() -> void:
+	if not _leaderboard_vbox:
+		return
+	for child in _leaderboard_vbox.get_children():
+		child.queue_free()
+
+
+func _add_leaderboard_placeholder(text: String) -> void:
+	if not _leaderboard_vbox:
+		return
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.add_theme_color_override("font_color", Color(0.8, 0.9, 1, 0.8))
+	_leaderboard_vbox.add_child(lbl)
