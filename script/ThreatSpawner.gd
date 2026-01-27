@@ -23,8 +23,15 @@ var asset_positions = {
 	"ceo_laptop": Vector2(880, 480)
 }
 
+# ✅ NEW: Legacy spawn function (backwards compatible)
 func spawn_threat(threat_type, target_asset):
+	# Call the advanced version with default values
+	spawn_threat_advanced(threat_type, target_asset, 100.0, 1)
+
+# ✅ NEW: Advanced spawn function with wave configuration
+func spawn_threat_advanced(threat_type: String, target_asset: String, threat_speed: float, threat_health: int):
 	print("📦 Spawning threat: ", threat_type, " targeting ", target_asset)
+	print("   Speed: ", threat_speed, " | Health: ", threat_health)
 	
 	var threat = ThreatScene.instantiate()
 	
@@ -32,6 +39,9 @@ func spawn_threat(threat_type, target_asset):
 	threat.threat_type = threat_type
 	threat.target_asset = target_asset
 	threat.target_position = asset_positions[target_asset]
+	threat.speed = threat_speed           # ✅ NEW: Set custom speed
+	threat.max_health = threat_health     # ✅ NEW: Set custom health
+	threat.current_health = threat_health # ✅ NEW: Initialize current health
 	
 	# Random spawn position
 	var spawn_pos = spawn_positions[randi() % spawn_positions.size()]
@@ -50,7 +60,7 @@ func spawn_threat(threat_type, target_asset):
 	# Connect signals to game manager - PASS THE THREAT OBJECT
 	var game_manager = get_tree().get_nodes_in_group("game_manager")
 	if game_manager.size() > 0:
-		# Lambda adds threat as first parameter
+		# Lambda adds threat as first parameter (YOUR ORIGINAL PATTERN)
 		threat.threat_blocked.connect(func(ttype, defense): 
 			game_manager[0].on_threat_blocked(threat, ttype, defense))
 		threat.threat_succeeded.connect(game_manager[0].on_threat_succeeded)
@@ -60,3 +70,5 @@ func spawn_threat(threat_type, target_asset):
 	
 	# Start moving
 	threat.start_moving()
+	
+	print("   🚀 Threat spawned and moving!")

@@ -59,6 +59,10 @@ const ALPHABET := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 # Wheel elements
 @onready var shift_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/ShiftLabel
 @onready var alphabet_reference = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/AlphabetReference
+@onready var visual_demo = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/VisualDemo
+@onready var alphabet_container = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/VisualDemo/MarginContainer/VBox/AlphabetContainer
+@onready var demo_result_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/VisualDemo/MarginContainer/VBox/ResultLabel
+@onready var demo_example_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/VisualDemo/MarginContainer/VBox/ExampleLabel
 
 # Practice elements
 @onready var practice_encrypted_label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel/VBox/EncryptedLabel
@@ -85,6 +89,8 @@ func _ready() -> void:
 		practice_panel.visible = false
 	if challenge_panel:
 		challenge_panel.visible = false
+	if visual_demo:
+		visual_demo.visible = false
 	
 	# Connect buttons
 	if next_button:
@@ -108,6 +114,10 @@ func _start_phase(phase: Phase) -> void:
 		practice_panel.visible = false
 	if challenge_panel:
 		challenge_panel.visible = false
+	if visual_demo:
+		visual_demo.visible = false
+	if alphabet_reference:
+		alphabet_reference.visible = true
 	
 	if next_button:
 		next_button.disabled = false
@@ -118,52 +128,51 @@ func _start_phase(phase: Phase) -> void:
 			cipher_type_label.text = "Cryptography Type: SUBSTITUTION CIPHER"
 			content_label.text = """WELCOME TO CIPHER WHEEL!
 
-You'll learn about the CAESAR CIPHER - one of the oldest encryption methods.
+Learn the CAESAR CIPHER - one of the oldest encryption methods!
 
 🎯 WHAT IS A CAESAR CIPHER?
-A substitution cipher that shifts each letter by a fixed number.
+A cipher that shifts each letter by a fixed number.
 
-Example with SHIFT = 3:
-• A → D  (moved 3 letters forward)
-• B → E
-• C → F
-• ...
-• X → A  (wraps around)
-• Y → B
-• Z → C
+📝 SIMPLE EXAMPLE:
+Let's encrypt the letter "H" with SHIFT = 3
 
-🔑 THE KEY:
-The "shift number" is the SECRET KEY!
-Without knowing the key, encrypted messages look like gibberish.
+H → Move 3 steps forward → K
 
-Click NEXT to explore the interactive cipher wheel →"""
+Think of it like counting:
+H (start) → I (1) → J (2) → K (3) ✓
+
+🔑 THE SECRET KEY:
+The "shift number" (3) is the SECRET KEY!
+Without the key, messages look like gibberish.
+
+Click NEXT to see it in action →"""
 
 		Phase.LEARN_WHEEL:
-			section_label.text = "Phase 1: Explore the Cipher Wheel"
-			cipher_type_label.text = "Caesar Cipher - Shift: " + str(current_shift)
-			content_label.text = """INTERACTIVE CIPHER WHEEL
+			section_label.text = "Phase 1: Watch How Shifting Works"
+			cipher_type_label.text = "Caesar Cipher - Visual Demo"
+			content_label.text = """SEE THE SHIFT IN ACTION!
 
-See how letters shift when encrypted!
+Watch how we encrypt "H" → "K" by shifting 3 steps:
 
-📊 Current Settings:
-• Shift Key: 3 (Caesar's original shift)
-• Direction: Forward (A→D, B→E, C→F...)
+The box below will move through the alphabet to show you!
 
-🎮 TRY IT:
-Look at the alphabet below:
-• TOP row = Original letters (plaintext)
-• BOTTOM row = Encrypted letters (ciphertext)
+🎯 PAY ATTENTION TO:
+• Starting letter (H)
+• Count 3 steps forward
+• Landing letter (K)
 
-Notice: A becomes D, B becomes E, C becomes F!
+This is ENCRYPTION (plaintext → ciphertext)
 
-🔍 FIND A LETTER:
-Where does "H" go when shifted by 3? 
-Answer: H → K
+To DECRYPT, you do the OPPOSITE:
+K → Count 3 steps BACKWARD → H
 
-Click NEXT when you understand how shifting works →"""
+Watch the animation below →"""
 			
 			wheel_panel.visible = true
+			visual_demo.visible = true
+			alphabet_reference.visible = false
 			_update_alphabet_display()
+			_play_shift_animation()
 
 		Phase.PRACTICE_MODE:
 			section_label.text = "Phase 2: Practice Decryption"
@@ -197,6 +206,7 @@ Example: K → H, O → L
 				
 				practice_panel.visible = true
 				wheel_panel.visible = true
+				alphabet_reference.visible = true
 				_update_alphabet_display()
 				_setup_practice_message(msg)
 				next_button.disabled = true
@@ -231,6 +241,7 @@ Hint: Key = 3 (shift backwards)"""
 				
 				challenge_panel.visible = true
 				wheel_panel.visible = true
+				alphabet_reference.visible = true
 				_update_alphabet_display()
 				_setup_challenge_message(msg)
 				challenge_feedback.text = ""
@@ -308,6 +319,115 @@ func _update_alphabet_display() -> void:
 	alphabet_reference.text = "Plaintext:  " + plaintext_alphabet + "\n"
 	alphabet_reference.text += "Encrypted:  " + cipher_alphabet
 	shift_label.text = "🔑 Shift Key: " + str(current_shift) + " (A→" + _caesar_shift("A", current_shift) + ", B→" + _caesar_shift("B", current_shift) + ", C→" + _caesar_shift("C", current_shift) + "...)"
+
+
+func _play_shift_animation() -> void:
+	"""Animate the shift from H to K"""
+	if not alphabet_container:
+		return
+	
+	# Clear any existing children
+	for child in alphabet_container.get_children():
+		child.queue_free()
+	
+	demo_result_label.text = ""
+	demo_example_label.text = "Example: Encrypting \"H\" with shift 3"
+	
+	# Create alphabet display
+	var alphabet_hbox = HBoxContainer.new()
+	alphabet_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	alphabet_container.add_child(alphabet_hbox)
+	
+	# Add alphabet letters
+	var letter_labels = []
+	for i in range(26):
+		var letter = char(65 + i)  # A-Z
+		var label = Label.new()
+		label.text = letter
+		label.add_theme_font_size_override("font_size", 16)  # Reduced from 24
+		label.custom_minimum_size = Vector2(28, 40)  # Reduced from 40x60
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		
+		# Highlight H and K
+		if letter == "H":
+			label.add_theme_color_override("font_color", Color(0, 0.6, 1))  # Blue for start
+		elif letter == "K":
+			label.add_theme_color_override("font_color", Color(0, 0.8, 0))  # Green for end
+		else:
+			label.add_theme_color_override("font_color", Color(0.3, 0.3, 0.3))
+		
+		alphabet_hbox.add_child(label)
+		letter_labels.append(label)
+	
+	# Create moving highlight box
+	var highlight_box = ColorRect.new()
+	highlight_box.color = Color(1, 0.8, 0, 0.3)  # Transparent yellow
+	highlight_box.size = Vector2(28, 40)  # Match label size
+	alphabet_container.add_child(highlight_box)
+	
+	await get_tree().process_frame
+	
+	# Get position of H (index 7)
+	var h_label = letter_labels[7]
+	var start_pos = h_label.global_position - alphabet_container.global_position
+	
+	# Position box on H
+	highlight_box.position = start_pos
+	
+	# Animate to K (index 10)
+	var k_label = letter_labels[10]
+	var end_pos = k_label.global_position - alphabet_container.global_position
+	
+	# Step-by-step animation
+	demo_result_label.text = "Starting at: H"
+	await get_tree().create_timer(1.0).timeout
+	
+	# Move through I, J, K
+	var steps = ["I", "J", "K"]
+	for step_idx in range(3):
+		var target_idx = 7 + step_idx + 1  # H=7, I=8, J=9, K=10
+		var target_label = letter_labels[target_idx]
+		var target_pos = target_label.global_position - alphabet_container.global_position
+		
+		# Animate movement
+		var tween = create_tween()
+		tween.tween_property(highlight_box, "position", target_pos, 0.5)
+		await tween.finished
+		
+		demo_result_label.text = "Step %d: %s" % [step_idx + 1, steps[step_idx]]
+		await get_tree().create_timer(0.8).timeout
+	
+	# Final result
+	demo_result_label.text = "✓ Result: H → K (shifted 3 steps!)"
+	demo_result_label.add_theme_color_override("font_color", Color(0, 0.8, 0))
+	
+	# Highlight the path
+	for i in range(7, 11):  # H to K
+		letter_labels[i].add_theme_color_override("font_color", Color(1, 0.6, 0))
+	
+	await get_tree().create_timer(2.0).timeout
+	
+	# Show decryption example
+	demo_example_label.text = "Now watch DECRYPTION: \"K\" → \"H\" (backwards)"
+	demo_result_label.text = "Shift 3 steps BACKWARD"
+	
+	await get_tree().create_timer(1.5).timeout
+	
+	# Animate backwards
+	for step_idx in range(2, -1, -1):  # 2, 1, 0
+		var target_idx = 7 + step_idx  # K=10 to H=7
+		var target_label = letter_labels[target_idx]
+		var target_pos = target_label.global_position - alphabet_container.global_position
+		
+		var tween = create_tween()
+		tween.tween_property(highlight_box, "position", target_pos, 0.5)
+		await tween.finished
+		
+		await get_tree().create_timer(0.5).timeout
+	
+	demo_result_label.text = "✓ Decrypted: K → H (original message!)"
+	demo_result_label.add_theme_color_override("font_color", Color(0, 0.6, 1))
 
 
 func _setup_practice_message(msg: Dictionary) -> void:

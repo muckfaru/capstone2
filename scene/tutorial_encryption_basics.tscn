@@ -1,6 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://cg0qoeigupgpd"]
+[gd_scene load_steps=17 format=3 uid="uid://cg0qoeigupgpd"]
 
 [ext_resource type="Script" uid="uid://bj1w0w0eker74" path="res://script/tutorial_encryption_basics.gd" id="1_cipher_wheel"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="2_ihxh7"]
+[ext_resource type="Texture2D" uid="uid://bab7c013cai2q" path="res://asset/minigamesicon/bartlt.png" id="2_lm7w1"]
+[ext_resource type="Texture2D" uid="uid://dyc7hs7ckg366" path="res://asset/minigamesicon/ciatextinf.png" id="4_23ly1"]
+[ext_resource type="Texture2D" uid="uid://b0mirxk4l0w27" path="res://asset/minigamesicon/sbtenc.png" id="5_bpo15"]
+[ext_resource type="Texture2D" uid="uid://b4v1n7fih0by6" path="res://asset/minigamesicon/txtbx.png" id="5_ddtwv"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window_bg"]
 bg_color = Color(0.95, 0.97, 1, 1)
@@ -20,6 +25,54 @@ shadow_size = 10
 bg_color = Color(0.15, 0.4, 0.75, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5xlxb"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_23ly1"]
+texture = ExtResource("2_lm7w1")
+expand_margin_left = 40.0
+expand_margin_top = 50.0
+expand_margin_right = 40.0
+expand_margin_bottom = 50.0
+modulate_color = Color(0.14902, 0.4, 0.74902, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ihxh7"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_23ly1"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ddtwv"]
+texture = ExtResource("4_23ly1")
+expand_margin_left = 300.0
+expand_margin_top = 15.0
+expand_margin_right = 300.0
+expand_margin_bottom = 15.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_byqiy"]
+texture = ExtResource("5_ddtwv")
+expand_margin_left = 40.0
+expand_margin_top = 30.0
+expand_margin_right = 40.0
+expand_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hqmqa"]
+texture = ExtResource("5_bpo15")
+expand_margin_left = 10.0
+expand_margin_top = 20.0
+expand_margin_right = 10.0
+expand_margin_bottom = 20.0
+modulate_color = Color(0.212305, 0.212305, 0.212305, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5jcsb"]
+texture = ExtResource("5_bpo15")
+expand_margin_left = 10.0
+expand_margin_top = 20.0
+expand_margin_right = 10.0
+expand_margin_bottom = 20.0
 
 [node name="TutorialCipherWheel" type="Control"]
 layout_mode = 3
@@ -108,13 +161,15 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_fonts/font = ExtResource("2_ihxh7")
+theme_override_font_sizes/font_size = 16
 text = "Content text here..."
 autowrap_mode = 3
 
 [node name="WheelPanel" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
 visible = false
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_5xlxb")
 
 [node name="VBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel"]
 layout_mode = 2
@@ -123,7 +178,9 @@ theme_override_constants/separation = 10
 [node name="ShiftLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_ihxh7")
 theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_23ly1")
 text = "🔑 Shift Key: 3 (A→D, B→E, C→F...)"
 horizontal_alignment = 1
 
@@ -133,15 +190,51 @@ layout_mode = 2
 
 [node name="AlphabetReference" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.1, 0.1, 0.4, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_ihxh7")
 theme_override_font_sizes/font_size = 13
 text = "Plaintext:  A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
 Encrypted:  D E F G H I J K L M N O P Q R S T U V W X Y Z A B C"
 horizontal_alignment = 1
 
+[node name="VisualDemo" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox"]
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ihxh7")
+
+[node name="MarginContainer" type="MarginContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/VisualDemo"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/VisualDemo/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="ExampleLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/VisualDemo/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_ihxh7")
+theme_override_font_sizes/font_size = 16
+text = "Example: Encrypting \"H\" with shift 3"
+horizontal_alignment = 1
+
+[node name="AlphabetContainer" type="Control" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/VisualDemo/MarginContainer/VBox"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="ResultLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/WheelPanel/VBox/VisualDemo/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.6, 0, 1)
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+
 [node name="PracticePanel" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
 visible = false
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_23ly1")
 
 [node name="VBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel"]
 layout_mode = 2
@@ -150,8 +243,9 @@ theme_override_constants/separation = 15
 [node name="EncryptedLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.4, 0, 1)
+theme_override_fonts/font = ExtResource("2_ihxh7")
 theme_override_font_sizes/font_size = 20
-text = "🔒 Encrypted: KHOOR"
+text = " Encrypted: KHOOR"
 horizontal_alignment = 1
 
 [node name="SlotsContainer" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel/VBox"]
@@ -161,7 +255,8 @@ alignment = 1
 
 [node name="HintLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/PracticePanel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.2, 0.6, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_ihxh7")
 theme_override_font_sizes/font_size = 14
 text = "💡 Click each letter to reveal its decrypted value"
 horizontal_alignment = 1
@@ -169,6 +264,7 @@ horizontal_alignment = 1
 [node name="ChallengePanel" type="PanelContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox"]
 visible = false
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_ddtwv")
 
 [node name="VBox" type="VBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel"]
 layout_mode = 2
@@ -177,8 +273,9 @@ theme_override_constants/separation = 15
 [node name="EncryptedLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.4, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "🔒 VDIH"
+theme_override_fonts/font = ExtResource("2_ihxh7")
+theme_override_font_sizes/font_size = 25
+text = "VDIH"
 horizontal_alignment = 1
 
 [node name="InputHBox" type="HBoxContainer" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox"]
@@ -190,6 +287,7 @@ alignment = 1
 custom_minimum_size = Vector2(300, 40)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_byqiy")
 placeholder_text = "Type decrypted message..."
 alignment = 1
 
@@ -197,7 +295,8 @@ alignment = 1
 custom_minimum_size = Vector2(120, 40)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "SUBMIT"
+theme_override_styles/hover = SubResource("StyleBoxTexture_hqmqa")
+theme_override_styles/normal = SubResource("StyleBoxTexture_5jcsb")
 
 [node name="FeedbackLabel" type="Label" parent="WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ChallengePanel/VBox"]
 layout_mode = 2

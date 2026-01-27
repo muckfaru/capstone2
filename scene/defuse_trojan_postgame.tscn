@@ -1,10 +1,10 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://sno24cqalp7m"]
 
-[ext_resource type="PackedScene" path="res://scene/code_breaker_postgame.tscn" id="1"]
-[ext_resource type="Script" path="res://script/defuse_trojan_postgame.gd" id="2"]
+[ext_resource type="PackedScene" uid="uid://dd58djqli2krd" path="res://scene/code_breaker_postgame.tscn" id="1"]
+[ext_resource type="Script" uid="uid://ra6dnx74clwa" path="res://script/defuse_trojan_postgame.gd" id="2"]
 
 [node name="DefuseTrojanPostgame" instance=ExtResource("1")]
 script = ExtResource("2")
 
-[node name="TitleLabel" parent="."]
+[node name="TitleLabel" parent="." index="1"]
 text = "DEFUSE THE TROJAN"

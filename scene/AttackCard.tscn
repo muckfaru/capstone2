@@ -1,26 +1,47 @@
-[gd_scene load_steps=3 format=3 uid="uid://cr1nyjmwedgar"]
+[gd_scene load_steps=10 format=3 uid="uid://cr1nyjmwedgar"]
 
 [ext_resource type="Script" uid="uid://cu3abji3e54wg" path="res://script/AttackCard.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://nmrggyigl6v7" path="res://asset/minigamesicon/Gemini_Generated_Image_k8q5mnk8q5mnk8q5-removebg-preview.png" id="2_ayh8r"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="3_bcf5t"]
+[ext_resource type="Texture2D" uid="uid://c5vy38on5dxr4" path="res://asset/minigamesicon/htbarntvsdt.png" id="4_3u8hd"]
+[ext_resource type="FontFile" uid="uid://l0twhmllixdy" path="res://asset/minigamesicon/BruceForeverRegular-X3jd2.ttf" id="5_bcf5t"]
 
-[sub_resource type="StyleBoxFlat" id="1"]
-bg_color = Color(0.15, 0.15, 0.18, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.8, 0.6, 0.2, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bcf5t"]
+bg_color = Color(0.851, 0.882, 0.851, 0.221)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_sqffh"]
+texture = ExtResource("2_ayh8r")
+expand_margin_left = 45.0
+expand_margin_top = 5.0
+expand_margin_right = 75.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_akbpl"]
+texture = ExtResource("4_3u8hd")
+expand_margin_left = 31.0
+expand_margin_top = 50.0
+expand_margin_right = 30.0
+expand_margin_bottom = 50.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ayh8r"]
+bg_color = Color(0, 0.728, 0.094, 0.398)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [node name="AttackCard" type="PanelContainer"]
 custom_minimum_size = Vector2(350, 180)
+theme_override_styles/panel = SubResource("StyleBoxFlat_bcf5t")
 script = ExtResource("1")
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 2
-theme_override_styles/panel = SubResource("1")
+theme_override_styles/panel = SubResource("StyleBoxTexture_sqffh")
 
 [node name="VBox" type="VBoxContainer" parent="."]
 layout_mode = 2
@@ -31,12 +52,17 @@ layout_mode = 2
 [node name="AlertLabel" type="Label" parent="VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_bcf5t")
 theme_override_font_sizes/font_size = 20
-text = "⚠️ ALERT #1"
 
 [node name="TimerBar" type="ProgressBar" parent="VBox/Header"]
 custom_minimum_size = Vector2(80, 20)
 layout_mode = 2
+size_flags_stretch_ratio = 0.0
+theme_override_styles/background = SubResource("StyleBoxTexture_akbpl")
+theme_override_styles/fill = SubResource("StyleBoxFlat_ayh8r")
 max_value = 1.0
 value = 1.0
 show_percentage = false
@@ -46,6 +72,7 @@ custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
 [node name="Icon" type="Control" parent="VBox"]
+visible = false
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -56,7 +83,11 @@ layout_mode = 2
 
 [node name="Description" type="Label" parent="VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Attack Description Here"
+theme_override_colors/font_color = Color(0.852847, 0.884072, 0.852076, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("5_bcf5t")
+theme_override_font_sizes/font_size = 16
+text = "Attack 
+Description Here"
 horizontal_alignment = 1
 autowrap_mode = 2

@@ -1,13 +1,106 @@
-[gd_scene load_steps=2 format=3 uid="uid://d4addxdd2kf8p"]
+[gd_scene load_steps=18 format=3 uid="uid://d4addxdd2kf8p"]
 
 [ext_resource type="Script" uid="uid://blapcvglkgell" path="res://script/VictoryScreen.gd" id="1"]
+[ext_resource type="Script" uid="uid://4i5tkjqth4lf" path="res://script/PointLight2DOrbit.gd" id="2"]
+[ext_resource type="Texture2D" uid="uid://djj4j2ajcdmcj" path="res://asset/minigamesicon/Gemini_Generated_Image_5hpnou5hpnou5hpn-removebg-preview.png" id="2_84s7y"]
+[ext_resource type="FontFile" uid="uid://bktr2cgctw33m" path="res://asset/minigamesicon/QuantroSport-0vY5o.ttf" id="3_84s7y"]
+[ext_resource type="FontFile" uid="uid://gj4s1cvcj5il" path="res://asset/fonts/ChakraPetch-SemiBold.ttf" id="4_b6s4a"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="5_ng1v7"]
+[ext_resource type="Texture2D" uid="uid://ukfph2g20t25" path="res://asset/minigamesicon/ntrt.png" id="6_dh8gk"]
+[ext_resource type="Texture2D" uid="uid://bwaey6j7bn1fn" path="res://asset/minigamesicon/ntfinish.png" id="7_r1fvd"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_aespl"]
+texture = ExtResource("2_84s7y")
+expand_margin_left = 510.0
+expand_margin_top = 30.0
+expand_margin_right = 510.0
+expand_margin_bottom = 30.0
+
+[sub_resource type="Gradient" id="Gradient_84s7y"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_h8yfo"]
+gradient = SubResource("Gradient_84s7y")
+fill = 1
+fill_from = Vector2(0, 0.047619)
+fill_to = Vector2(0.0822511, 0.0692641)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8set5"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_f6r4v"]
+texture = ExtResource("6_dh8gk")
+expand_margin_left = 10.0
+expand_margin_top = 40.0
+expand_margin_right = 10.0
+expand_margin_bottom = 20.0
+modulate_color = Color(0.584314, 0.584314, 0.584314, 0.545098)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b6s4a"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_k2lwc"]
+texture = ExtResource("6_dh8gk")
+expand_margin_left = 10.0
+expand_margin_top = 40.0
+expand_margin_right = 10.0
+expand_margin_bottom = 20.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xlw3c"]
+texture = ExtResource("7_r1fvd")
+expand_margin_left = 10.0
+expand_margin_top = 40.0
+expand_margin_right = 10.0
+expand_margin_bottom = 20.0
+modulate_color = Color(0.585, 0.585, 0.585, 0.547)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_pl15h"]
+texture = ExtResource("7_r1fvd")
+expand_margin_left = 10.0
+expand_margin_top = 40.0
+expand_margin_right = 10.0
+expand_margin_bottom = 20.0
 
 [node name="VictoryScreen" type="ColorRect"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0, 0, 0, 0.8)
+color = Color(1, 1, 1, 0)
 script = ExtResource("1")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_aespl")
+
+[node name="PointLight2D" type="PointLight2D" parent="Panel"]
+position = Vector2(566.5, 49.5)
+scale = Vector2(17.6094, 1.60938)
+energy = 0.42
+texture = SubResource("GradientTexture2D_h8yfo")
+script = ExtResource("2")
+
+[node name="PointLight2D2" type="PointLight2D" parent="Panel"]
+position = Vector2(89, 377.5)
+scale = Vector2(2.51563, 8.64063)
+energy = 0.42
+texture = SubResource("GradientTexture2D_h8yfo")
+script = ExtResource("2")
+
+[node name="PointLight2D3" type="PointLight2D" parent="Panel"]
+position = Vector2(651.25, 606)
+scale = Vector2(15.0391, 1.60938)
+energy = 0.42
+texture = SubResource("GradientTexture2D_h8yfo")
+script = ExtResource("2")
+
+[node name="PointLight2D4" type="PointLight2D" parent="Panel"]
+position = Vector2(1057.5, 328.25)
+scale = Vector2(2.32813, 7.08594)
+energy = 0.42
+texture = SubResource("GradientTexture2D_h8yfo")
+script = ExtResource("2")
 
 [node name="VBox" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -16,18 +109,21 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
+offset_left = -341.0
 offset_top = -250.0
-offset_right = 300.0
-offset_bottom = 250.0
+offset_right = 339.0
+offset_bottom = 234.0
 grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
 [node name="Title" type="Label" parent="VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "🎉 MISSION COMPLETE!"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_84s7y")
+theme_override_font_sizes/font_size = 80
+text = "MISSION COMPLETE!"
 horizontal_alignment = 1
 
 [node name="Spacer1" type="Control" parent="VBox"]
@@ -36,12 +132,18 @@ layout_mode = 2
 
 [node name="ScoreLabel" type="Label" parent="VBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_b6s4a")
 theme_override_font_sizes/font_size = 32
 text = "Final Score: 850"
 horizontal_alignment = 1
 
 [node name="AccuracyLabel" type="Label" parent="VBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.942823, 0.942823, 0.942823, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_b6s4a")
 theme_override_font_sizes/font_size = 24
 text = "Accuracy: 85%"
 horizontal_alignment = 1
@@ -52,14 +154,16 @@ layout_mode = 2
 
 [node name="DataLabel" type="Label" parent="VBox"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("5_ng1v7")
 theme_override_font_sizes/font_size = 20
-text = "📁 Data Security: 9/10 ✓"
+text = "Data Security: 9/10 ✓"
 horizontal_alignment = 1
 
 [node name="NetworkLabel" type="Label" parent="VBox"]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("5_ng1v7")
 theme_override_font_sizes/font_size = 20
-text = "🌐 Network Security: 8/10 ✓"
+text = " Network Security: 8/10 ✓"
 horizontal_alignment = 1
 
 [node name="Spacer3" type="Control" parent="VBox"]
@@ -68,17 +172,22 @@ layout_mode = 2
 
 [node name="ButtonContainer" type="HBoxContainer" parent="VBox"]
 layout_mode = 2
+theme_override_constants/separation = 25
 alignment = 1
 
 [node name="RetryButton" type="Button" parent="VBox/ButtonContainer"]
 custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
-text = "RETRY"
+theme_override_styles/focus = SubResource("StyleBoxEmpty_8set5")
+theme_override_styles/hover = SubResource("StyleBoxTexture_f6r4v")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_b6s4a")
+theme_override_styles/normal = SubResource("StyleBoxTexture_k2lwc")
 
 [node name="NextButton" type="Button" parent="VBox/ButtonContainer"]
 custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
-text = "NEXT LESSON"
+theme_override_styles/hover = SubResource("StyleBoxTexture_xlw3c")
+theme_override_styles/normal = SubResource("StyleBoxTexture_pl15h")
 
 [connection signal="pressed" from="VBox/ButtonContainer/RetryButton" to="." method="_on_retry_pressed"]
 [connection signal="pressed" from="VBox/ButtonContainer/NextButton" to="." method="_on_next_pressed"]

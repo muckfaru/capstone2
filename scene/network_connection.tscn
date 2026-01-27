@@ -1,0 +1,106 @@
+[gd_scene load_steps=9 format=3 uid="uid://pyb5vgnfajc2"]
+
+[ext_resource type="Script" uid="uid://b3a6moynp6mcb" path="res://script/network_connection.gd" id="1_conn"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="2_font"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="2_ln7kb"]
+[ext_resource type="Texture2D" uid="uid://ckvxcu8yi6jlv" path="res://asset/minigamesicon/spawner.png" id="2_uvdut"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
+size = Vector2(320, 177)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lchf6"]
+texture = ExtResource("2_uvdut")
+expand_margin_left = 160.0
+expand_margin_top = 20.0
+expand_margin_right = 140.0
+expand_margin_bottom = 20.0
+modulate_color = Color(0.700117, 0.673779, 0.817013, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uvdut"]
+bg_color = Color(1, 1, 1, 1)
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.259821, 0.0840511, 0.187818, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 2
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lchf6"]
+bg_color = Color(0.820963, 0, 0.207203, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.258824, 0.0823529, 0.188235, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 2
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 2
+
+[node name="NetworkConnection" type="Area2D"]
+script = ExtResource("1_conn")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-5, 2.5)
+shape = SubResource("RectangleShape2D_1")
+
+[node name="GlowRect" type="ColorRect" parent="."]
+z_index = -1
+offset_left = -105.0
+offset_top = -55.0
+offset_right = 105.0
+offset_bottom = 55.0
+mouse_filter = 2
+color = Color(0.5, 0.7, 1, 0.2)
+
+[node name="Panel" type="Panel" parent="."]
+offset_left = -134.0
+offset_top = -67.0
+offset_right = 145.0
+offset_bottom = 67.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_lchf6")
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+offset_right = 260.0
+offset_bottom = 134.0
+theme_override_constants/separation = 5
+
+[node name="ConnectionLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_ln7kb")
+theme_override_font_sizes/font_size = 20
+text = "192.168.1.100"
+horizontal_alignment = 1
+
+[node name="CategoryLabel" type="Label" parent="Panel/VBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Category: Private"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="Panel/VBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 11
+text = "💡 Hint text here"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="TimerBar" type="ProgressBar" parent="Panel/VBox"]
+custom_minimum_size = Vector2(5, 8)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_uvdut")
+theme_override_styles/fill = SubResource("StyleBoxFlat_lchf6")
+show_percentage = false

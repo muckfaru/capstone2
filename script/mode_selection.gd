@@ -429,16 +429,16 @@ func _show_tutorial_menu(level: String) -> void:
 				{"name": "Cybersecurity Fundamentals (Start Here!)", "scene": "res://scene/tutorial_cyber_fundamentals.tscn", "id": "beginner_fundamentals"},
 				{"name": "Network Basics", "scene": "res://scene/tutorial_network_basics.tscn", "id": "beginner_network"},
 				{"name": "Encryption", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "advanced_encryption"},
-				{"name": "Password Fortress Defender", "scene": "res://scene/tutorial_password_basics.tscn", "id": "beginner_password"},
+				{"name": "Malware Types Overview", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware"},
 				{"name": "Drop Zone Defender", "scene": "res://scene/datavsnetwork.tscn", "id": "beginner_drop_zone"}
 				
 			]
 		"intermediate":
 			level_int = 2
 			tutorials = [
-				{"name": "Malware Types Overview", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware"},
+				{"name": "Password Fortress Defender", "scene": "res://scene/tutorial_password_basics.tscn", "id": "beginner_password"},
 				{"name": "Phishing Detection Lab", "scene": "res://scene/phishing_intro.tscn", "id": "intermediate_phishing"},
-				{"name": "Data Vault", "scene": "res://scene/DataVault.tscn", "id": "intermediate_datavault"},
+				{"name": "Crypt Contract", "scene": "res://scene/PhoneEncryption.tscn", "id": "intermediate_crypt_contract"},
 				{"name": "Asset vs Threats", "scene": "res://scene/Assetandthreat.tscn", "id": "intermediate_assetandthreat"},
 				{"name": "Incident Commander", "scene": "res://scene/SOCMain.tscn", "id": "intermediate_incident_commander"}
 
@@ -446,7 +446,6 @@ func _show_tutorial_menu(level: String) -> void:
 		"advanced":
 			level_int = 3
 			tutorials = [ 
-				{"name": "Des vs AES Simulation", "scene": "res://scene/desvsaesmain.tscn", "id": "advanced_des_vs_aes"},
 				{"name": "KeyMaster", "scene": "res://scene/Asymmetricmain.tscn", "id": "advanced_asymmetricmain"},
 				{"name": "Security Guardian", "scene": "res://scene/authgmMain.tscn", "id": "advanced_security_guardian"},
 				{"name": "Detective Hash", "scene": "res://scene/hash_integrity_game.tscn", "id": "advanced_hash_integrity_game"},

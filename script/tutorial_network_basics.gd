@@ -9,28 +9,18 @@ extends Control
 enum Section {
 	INTRO,
 	IP_LESSON,
-	IP_CHALLENGE,
 	PORT_LESSON,
-	PORT_CHALLENGE,
 	PROTOCOL_LESSON,
-	PROTOCOL_CHALLENGE,
 	COMPLETE
 }
 
 var current_section = Section.INTRO
-var score := 0
 var xp_earned := 150
-var challenge_items := []
-var current_challenge_index := 0
-var reference_visible := true
 
 # Node references
 @onready var section_label: Label = $WindowDialog/VBox/TitleBar/MarginContainer/HBox/SectionLabel
 @onready var content_scroll: ScrollContainer = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll
 @onready var content_label: Label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ContentScroll/ContentLabel
-@onready var quiz_panel: VBoxContainer = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/QuizPanel
-@onready var quiz_question: Label = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/QuizPanel/QuestionLabel
-@onready var option_container: VBoxContainer = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/QuizPanel/OptionsContainer
 @onready var next_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/NextButton
 @onready var back_button: Button = $WindowDialog/VBox/ContentPanel/MarginContainer/MainVBox/ButtonContainer/BackButton
 @onready var confirm_overlay: ColorRect = $ConfirmOverlay
@@ -45,35 +35,7 @@ var cursor_blink_tween: Tween = null
 var cursor_label: Label = null
 var cmd_prefix_label: Label = null
 
-# Challenge data
-var ip_challenges := [
-	{"ip": "192.168.1.100", "type": "private", "hint": "Starts with 192.168 = Your home network!"},
-	{"ip": "10.0.0.50", "type": "private", "hint": "Starts with 10 = Company network"},
-	{"ip": "45.33.32.156", "type": "public", "hint": "Not 192.168 or 10 = Internet!"},
-	{"ip": "172.16.5.20", "type": "private", "hint": "172.16-31 = Private range"},
-	{"ip": "8.8.8.8", "type": "public", "hint": "Google DNS = Public internet IP"},
-	{"ip": "192.168.0.1", "type": "private", "hint": "192.168 again = Your router!"},
-	{"ip": "203.45.67.89", "type": "public", "hint": "Unknown number = Public IP"}
-]
-
-var port_challenges := [
-	{"connection": "192.168.1.100:80", "action": "allow", "hint": "Port 80 = Normal websites (HTTP)"},
-	{"connection": "45.33.32.156:443", "action": "allow", "hint": "Port 443 = Secure websites (HTTPS)"},
-	{"connection": "203.45.12.34:4444", "action": "block", "hint": "Port 4444 = BACKDOOR TROJAN!"},
-	{"connection": "192.168.1.50:22", "action": "allow", "hint": "Port 22 = SSH remote login (safe)"},
-	{"connection": "45.67.89.12:31337", "action": "block", "hint": "Port 31337 = Hacker port (elite)"},
-	{"connection": "8.8.8.8:53", "action": "allow", "hint": "Port 53 = DNS lookups (normal)"},
-	{"connection": "203.12.45.67:1337", "action": "block", "hint": "Port 1337 = Suspicious malware port"}
-]
-
-var protocol_challenges := [
-	{"protocol": "HTTPS", "type": "secure", "hint": "HTTPS = The 'S' means SECURE!"},
-	{"protocol": "HTTP", "type": "unsafe", "hint": "HTTP = NO encryption, anyone can read it"},
-	{"protocol": "SSH", "type": "secure", "hint": "SSH = Encrypted remote login"},
-	{"protocol": "FTP", "type": "unsafe", "hint": "FTP = Old file transfer, no encryption"},
-	{"protocol": "TLS", "type": "secure", "hint": "TLS = Encryption layer (used in HTTPS)"},
-	{"protocol": "Telnet", "type": "unsafe", "hint": "Telnet = Sends passwords in plain text!"}
-]
+# No challenge data needed - only explanations
 func _setup_cmd_interface() -> void:
 	var content_panel = $WindowDialog/VBox/ContentPanel
 	
@@ -284,8 +246,6 @@ func _type_text(text: String) -> void:
 func _ready() -> void:
 	print("🌐 Network Basics Tutorial Ready")
 	
-	quiz_panel.visible = false
-	
 	# Setup CMD-style interface
 	_setup_cmd_interface()
 	
@@ -294,7 +254,6 @@ func _ready() -> void:
 
 func _start_section(section: Section) -> void:
 	current_section = section
-	quiz_panel.visible = false
 	content_scroll.visible = true
 	content_label.visible = true
 	
@@ -383,20 +342,7 @@ When you see: \"Connection to 192.168.1.50\"
    → That's a PRIVATE IP on YOUR network
    → Just your phone or laptop
 
-Ready to practice? →"""
-		
-		Section.IP_CHALLENGE:
-			section_label.text = "Practice: Identify IP Addresses"
-			if typing_tween:
-				typing_tween.kill()
-				typing_tween = null
-			content_scroll.visible = false
-			content_label.visible = false
-			quiz_panel.visible = true
-			challenge_items = ip_challenges
-			current_challenge_index = 0
-			_show_challenge("IP")
-			return
+Ready to learn about ports? →"""
 		
 		Section.PORT_LESSON:
 			section_label.text = "Lesson 2: Ports"
@@ -456,18 +402,7 @@ and ALLOW safe ports!
 
 Ready to be a firewall defender? →"""
 		
-		Section.PORT_CHALLENGE:
-			section_label.text = "Practice: Block or Allow Connections"
-			if typing_tween:
-				typing_tween.kill()
-				typing_tween = null
-			content_scroll.visible = false
-			content_label.visible = false
-			quiz_panel.visible = true
-			challenge_items = port_challenges
-			current_challenge_index = 0
-			_show_challenge("PORT")
-			return
+
 		
 		Section.PROTOCOL_LESSON:
 			section_label.text = "Lesson 3: Protocols"
@@ -529,18 +464,7 @@ Look for the LOCK icon in your browser:
 
 Ready to identify secure protocols? →"""
 		
-		Section.PROTOCOL_CHALLENGE:
-			section_label.text = "Practice: Secure or Unsafe?"
-			if typing_tween:
-				typing_tween.kill()
-				typing_tween = null
-			content_scroll.visible = false
-			content_label.visible = false
-			quiz_panel.visible = true
-			challenge_items = protocol_challenges
-			current_challenge_index = 0
-			_show_challenge("PROTOCOL")
-			return
+
 		
 		Section.COMPLETE:
 			section_label.text = "Network Basics Mastered!"
@@ -582,10 +506,8 @@ You NOW know:
 
 ═══════════════════════════════════════════
 
-Score: %d/18 correct
-
-You're ready for advanced security tutorials!""" % [xp_earned, score]
-			next_button.text = "FINISH"
+Now let's test your skills in a real defense simulation!""" % [xp_earned]
+			next_button.text = "START DEFENSE GAME"
 			next_button.disabled = false
 	
 	# Start typing animation
@@ -593,116 +515,7 @@ You're ready for advanced security tutorials!""" % [xp_earned, score]
 		_type_text(section_text)
 
 
-func _show_challenge(challenge_type: String) -> void:
-	if current_challenge_index >= challenge_items.size():
-		# All challenges complete - move to next section
-		match challenge_type:
-			"IP":
-				_start_section(Section.PORT_LESSON)
-			"PORT":
-				_start_section(Section.PROTOCOL_LESSON)
-			"PROTOCOL":
-				_start_section(Section.COMPLETE)
-		return
-	
-	quiz_panel.visible = true
-	var item = challenge_items[current_challenge_index]
-	
-	# Build challenge text with hint
-	var challenge_text = ""
-	var hint_text = ""
-	
-	match challenge_type:
-		"IP":
-			challenge_text = "🌐 IP Address: %s" % item["ip"]
-			hint_text = "💡 Hint: %s" % item["hint"]
-		"PORT":
-			challenge_text = "🔌 Connection: %s" % item["connection"]
-			hint_text = "💡 Hint: %s" % item["hint"]
-		"PROTOCOL":
-			challenge_text = "📡 Protocol: %s" % item["protocol"]
-			hint_text = "💡 Hint: %s" % item["hint"]
-	
-	# Show challenge with progress
-	quiz_question.text = "[center]Challenge %d/%d\n\n%s\n\n%s[/center]" % [
-		current_challenge_index + 1,
-		challenge_items.size(),
-		challenge_text,
-		hint_text if reference_visible else ""
-	]
-	quiz_question.add_theme_color_override("font_color", Color.WHITE)
-	
-	# Clear previous buttons
-	for child in option_container.get_children():
-		child.queue_free()
-	
-	# Create answer buttons based on challenge type
-	match challenge_type:
-		"IP":
-			_create_answer_button("🟢 PRIVATE", "private", item)
-			_create_answer_button("🔴 PUBLIC", "public", item)
-		"PORT":
-			_create_answer_button("✅ ALLOW", "allow", item)
-			_create_answer_button("🛑 BLOCK", "block", item)
-		"PROTOCOL":
-			_create_answer_button("🔒 SECURE", "secure", item)
-			_create_answer_button("⚠️ UNSAFE", "unsafe", item)
-	
-	# Disable next/back during challenge
-	next_button.disabled = true
-	back_button.disabled = true
-
-
-func _create_answer_button(text: String, answer: String, item: Dictionary) -> void:
-	var button = Button.new()
-	button.text = text
-	button.custom_minimum_size = Vector2(200, 50)
-	button.add_theme_font_size_override("font_size", 18)
-	
-	# Get the correct answer key based on challenge type
-	var correct_answer = ""
-	if item.has("type"):
-		correct_answer = item["type"]
-	elif item.has("action"):
-		correct_answer = item["action"]
-	
-	button.pressed.connect(func(): _on_challenge_answer(answer, correct_answer))
-	option_container.add_child(button)
-
-
-func _on_challenge_answer(selected: String, correct: String) -> void:
-	var is_correct = (selected == correct)
-	
-	# Disable all buttons
-	for button in option_container.get_children():
-		button.disabled = true
-	
-	# Show feedback
-	if is_correct:
-		score += 1
-		quiz_question.text += "\n\n✅ CORRECT!"
-		quiz_question.add_theme_color_override("font_color", Color(0, 0.8, 0))
-	else:
-		quiz_question.text += "\n\n❌ WRONG! The answer was: %s" % correct.to_upper()
-		quiz_question.add_theme_color_override("font_color", Color(0.8, 0, 0))
-	
-	await get_tree().create_timer(2.0).timeout
-	quiz_question.add_theme_color_override("font_color", Color.WHITE)
-	
-	# Move to next challenge
-	current_challenge_index += 1
-	
-	# Determine challenge type from current section
-	var challenge_type = ""
-	match current_section:
-		Section.IP_CHALLENGE:
-			challenge_type = "IP"
-		Section.PORT_CHALLENGE:
-			challenge_type = "PORT"
-		Section.PROTOCOL_CHALLENGE:
-			challenge_type = "PROTOCOL"
-	
-	_show_challenge(challenge_type)
+# Challenge functions removed - this tutorial only has explanations
 
 
 func _on_next_pressed() -> void:
@@ -710,14 +523,13 @@ func _on_next_pressed() -> void:
 		Section.INTRO:
 			_start_section(Section.IP_LESSON)
 		Section.IP_LESSON:
-			_start_section(Section.IP_CHALLENGE)
+			_start_section(Section.PORT_LESSON)
 		Section.PORT_LESSON:
-			_start_section(Section.PORT_CHALLENGE)
+			_start_section(Section.PROTOCOL_LESSON)
 		Section.PROTOCOL_LESSON:
-			_start_section(Section.PROTOCOL_CHALLENGE)
+			_start_section(Section.COMPLETE)
 		Section.COMPLETE:
-			print("[TUTORIAL] FINISH button pressed!")
-			print("[TUTORIAL] Score: %d/18" % score)
+			print("[TUTORIAL] START DEFENSE GAME button pressed!")
 			print("[TUTORIAL] XP Earned: %d" % xp_earned)
 			
 			# Save tutorial result with XP
@@ -733,8 +545,8 @@ func _on_next_pressed() -> void:
 			else:
 				push_error("[TUTORIAL] TutorialManager not found!")
 			
-			# Return to mode selection
-			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+			# Transition to Network Defense game
+			get_tree().change_scene_to_file("res://scene/network_defense_game.tscn")
 
 
 func _on_back_pressed() -> void:
@@ -743,18 +555,12 @@ func _on_back_pressed() -> void:
 			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 		Section.IP_LESSON:
 			_start_section(Section.INTRO)
-		Section.IP_CHALLENGE:
-			_start_section(Section.IP_LESSON)
 		Section.PORT_LESSON:
-			_start_section(Section.IP_CHALLENGE)
-		Section.PORT_CHALLENGE:
-			_start_section(Section.PORT_LESSON)
+			_start_section(Section.IP_LESSON)
 		Section.PROTOCOL_LESSON:
-			_start_section(Section.PORT_CHALLENGE)
-		Section.PROTOCOL_CHALLENGE:
-			_start_section(Section.PROTOCOL_LESSON)
+			_start_section(Section.PORT_LESSON)
 		Section.COMPLETE:
-			_start_section(Section.PROTOCOL_CHALLENGE)
+			_start_section(Section.PROTOCOL_LESSON)
 
 
 func _on_close_button_pressed() -> void:
