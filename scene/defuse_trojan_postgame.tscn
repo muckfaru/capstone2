@@ -12,21 +12,3 @@ offset_right = 1295.0
 
 [node name="TitleLabel" parent="." index="1"]
 text = "DEFUSE THE TROJAN"
-
-[node name="HostAvgTime" parent="HostCard" index="11"]
-visible = false
-
-[node name="HostFastestTime" parent="HostCard" index="12"]
-visible = false
-
-[node name="HostDamageStats" parent="HostCard" index="13"]
-visible = false
-
-[node name="ClientAvgTime" parent="ClientCard" index="11"]
-visible = false
-
-[node name="ClientFastestTime" parent="ClientCard" index="12"]
-visible = false
-
-[node name="ClientDamageStats" parent="ClientCard" index="13"]
-visible = false
