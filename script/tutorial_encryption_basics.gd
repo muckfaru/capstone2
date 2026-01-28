@@ -368,8 +368,14 @@ func _play_shift_animation() -> void:
 	
 	await get_tree().process_frame
 	
+	# Validate nodes before accessing positions
+	if not is_instance_valid(alphabet_container) or letter_labels.size() < 11:
+		return
+	
 	# Get position of H (index 7)
 	var h_label = letter_labels[7]
+	if not is_instance_valid(h_label):
+		return
 	var start_pos = h_label.global_position - alphabet_container.global_position
 	
 	# Position box on H
@@ -377,6 +383,8 @@ func _play_shift_animation() -> void:
 	
 	# Animate to K (index 10)
 	var k_label = letter_labels[10]
+	if not is_instance_valid(k_label):
+		return
 	var end_pos = k_label.global_position - alphabet_container.global_position
 	
 	# Step-by-step animation
@@ -388,6 +396,11 @@ func _play_shift_animation() -> void:
 	for step_idx in range(3):
 		var target_idx = 7 + step_idx + 1  # H=7, I=8, J=9, K=10
 		var target_label = letter_labels[target_idx]
+		
+		# Validate node before accessing position
+		if not is_instance_valid(target_label) or not is_instance_valid(alphabet_container) or not is_instance_valid(highlight_box):
+			return
+		
 		var target_pos = target_label.global_position - alphabet_container.global_position
 		
 		# Animate movement
@@ -404,7 +417,8 @@ func _play_shift_animation() -> void:
 	
 	# Highlight the path
 	for i in range(7, 11):  # H to K
-		letter_labels[i].add_theme_color_override("font_color", Color(1, 0.6, 0))
+		if is_instance_valid(letter_labels[i]):
+			letter_labels[i].add_theme_color_override("font_color", Color(1, 0.6, 0))
 	
 	await get_tree().create_timer(2.0).timeout
 	
@@ -418,6 +432,10 @@ func _play_shift_animation() -> void:
 	for step_idx in range(2, -1, -1):  # 2, 1, 0
 		var target_idx = 7 + step_idx  # K=10 to H=7
 		var target_label = letter_labels[target_idx]
+		
+		# Validate node before accessing position
+		if not is_instance_valid(target_label) or not is_instance_valid(alphabet_container) or not is_instance_valid(highlight_box):
+			return
 		var target_pos = target_label.global_position - alphabet_container.global_position
 		
 		var tween = create_tween()

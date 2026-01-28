@@ -1,4 +1,4 @@
-[gd_scene load_steps=85 format=3 uid="uid://y8aua0l44ioi"]
+[gd_scene load_steps=97 format=3 uid="uid://y8aua0l44ioi"]
 
 [ext_resource type="Script" uid="uid://bgu66tgku68bx" path="res://script/PhoneEncryption.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://baaruvhlv8t2q" path="res://asset/minigamesicon/bgrrr.png" id="2_1jga8"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://tgqw7ilimwqx" path="res://asset/minigamesicon/ttbarwes.png" id="3_b06k3"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="4_cwt8l"]
 [ext_resource type="Texture2D" uid="uid://l3gyll2mnve4" path="res://asset/minigamesicon/westernframre.png" id="5_8d83f"]
+[ext_resource type="Texture2D" uid="uid://celxa8te2wluy" path="res://asset/minigamesicon/quithome.png" id="5_lskm7"]
 [ext_resource type="Texture2D" uid="uid://bab7c013cai2q" path="res://asset/minigamesicon/bartlt.png" id="5_wey7g"]
 [ext_resource type="Texture2D" uid="uid://cjb1k3sebxkhr" path="res://asset/minigamesicon/contbt.png" id="6_wey7g"]
 [ext_resource type="Texture2D" uid="uid://dtkajedhduvwa" path="res://asset/minigamesicon/textbox.png" id="8_ehf6c"]
@@ -28,6 +29,40 @@ expand_margin_left = 60.0
 expand_margin_top = 70.0
 expand_margin_right = 60.0
 expand_margin_bottom = 90.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mch8i"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j610u"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j2f65"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mlw0s"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yqj78"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1ucum"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ufbku"]
+texture = ExtResource("5_lskm7")
+expand_margin_left = 70.0
+expand_margin_top = 40.0
+expand_margin_right = 70.0
+expand_margin_bottom = 40.0
+modulate_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xi6k5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pmyhm"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yltqp"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_fgbas"]
+texture = ExtResource("5_lskm7")
+expand_margin_left = 70.0
+expand_margin_top = 40.0
+expand_margin_right = 70.0
+expand_margin_bottom = 40.0
+modulate_color = Color(0.688471, 0.281236, 0, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_do8fc"]
 texture = ExtResource("5_8d83f")
@@ -316,37 +351,55 @@ theme_override_font_sizes/font_size = 40
 text = " $0"
 horizontal_alignment = 2
 
+[node name="Quitbtn" type="Button" parent="TopBar"]
+layout_mode = 0
+offset_left = 1086.0
+offset_top = 604.0
+offset_right = 1177.0
+offset_bottom = 648.0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_mch8i")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_j610u")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_j2f65")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_mlw0s")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_yqj78")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_1ucum")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ufbku")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_xi6k5")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_pmyhm")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_yltqp")
+theme_override_styles/normal = SubResource("StyleBoxTexture_fgbas")
+
 [node name="HeartsContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = 255.0
-offset_top = 11.0
+offset_top = 6.0
 offset_right = 564.0
-offset_bottom = 78.0
+offset_bottom = 73.0
 grow_horizontal = 2
 theme_override_constants/separation = 15
 alignment = 1
 
 [node name="Heart1" type="Label" parent="HeartsContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 30
 text = "❤️"
 
 [node name="Heart2" type="Label" parent="HeartsContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 30
 text = "❤️"
 
 [node name="Heart3" type="Label" parent="HeartsContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 30
 text = "❤️"
 
 [node name="Heart4" type="Label" parent="HeartsContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 30
 text = "❤️"
 
 [node name="PhoneContainer" type="Control" parent="."]
@@ -853,6 +906,7 @@ theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 
 [node name="TutorialPanel" type="Panel" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

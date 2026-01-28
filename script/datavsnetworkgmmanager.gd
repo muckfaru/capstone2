@@ -35,6 +35,7 @@ var available_attacks = []
 @onready var audio_success = $AudioSuccess
 @onready var audio_fail = $AudioFail
 @onready var audio_spawn = $AudioSpawn
+@onready var quit_btn: Button = $TextureRect/Quit
 
 func _ready():
 	load_attack_data()
@@ -42,6 +43,7 @@ func _ready():
 	update_wave_label()
 	spawn_timer.wait_time = time_per_attack[0]
 	spawn_attack()
+	quit_btn.pressed.connect(_on_quit_pressed)
 
 func load_attack_data():
 	# Load from JSON file
@@ -62,6 +64,11 @@ func load_attack_data():
 	# Filter attacks for wave 1
 	update_available_attacks()
 
+func _on_quit_pressed() -> void:
+	"""Return to mode selection from anywhere in the game"""
+	print("[Network Defense] Quit button pressed, returning to mode selection...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	
 func get_default_attacks():
 	return [
 		# WAVE 1 - Basic DATA attacks (Easy to understand)
@@ -489,3 +496,8 @@ func update_score_label():
 
 func update_wave_label():
 	wave_label.text = "WAVE %d/%d" % [current_wave, total_waves]
+
+func _input(event):
+	# Press ESC to quit
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_on_quit_pressed()

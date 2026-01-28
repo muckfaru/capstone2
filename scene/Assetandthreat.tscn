@@ -1,4 +1,4 @@
-[gd_scene load_steps=113 format=3 uid="uid://hqosriabiqhy"]
+[gd_scene load_steps=125 format=3 uid="uid://hqosriabiqhy"]
 
 [ext_resource type="Script" uid="uid://bcrwqjamwa43l" path="res://script/GameManager.gd" id="1"]
 [ext_resource type="Script" uid="uid://d27de5h78jkjp" path="res://script/ThreatSpawner.gd" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://dq8djqptj30s2" path="res://scene/point_light_2d.gd" id="3_tbxa5"]
 [ext_resource type="Texture2D" uid="uid://c8ln7f6w6ut8c" path="res://asset/minigamesicon/bosslaptop.png" id="3_yckjt"]
 [ext_resource type="Script" uid="uid://cofo2j8varoeo" path="res://script/FeedbackPopup.gd" id="4"]
+[ext_resource type="Texture2D" uid="uid://celxa8te2wluy" path="res://asset/minigamesicon/quithome.png" id="4_bw1ex"]
 [ext_resource type="Texture2D" uid="uid://db11brxecs832" path="res://asset/minigamesicon/routerarm-removebg-preview.png" id="4_d31th"]
 [ext_resource type="Texture2D" uid="uid://brqfkmnqtn2xe" path="res://asset/toolboxA.png" id="4_dmne6"]
 [ext_resource type="Texture2D" uid="uid://j6saiaaf8wd8" path="res://asset/minigamesicon/serverema-removebg-preview.png" id="4_dyur8"]
@@ -42,6 +43,40 @@ texture = ExtResource("2_qgma4")
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_w470u"]
 gradient = SubResource("Gradient_rf0f6")
 fill = 1
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5qpxn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_aijhp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4v0dr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_eejsa"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g3qab"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dccpi"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5n6sv"]
+texture = ExtResource("4_bw1ex")
+expand_margin_left = 40.0
+expand_margin_top = 30.0
+expand_margin_right = 40.0
+expand_margin_bottom = 30.0
+modulate_color = Color(0.321728, 0.321728, 0.321728, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_er54l"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6c7lf"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pircp"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ydpd7"]
+texture = ExtResource("4_bw1ex")
+expand_margin_left = 40.0
+expand_margin_top = 30.0
+expand_margin_right = 40.0
+expand_margin_bottom = 30.0
+modulate_color = Color(0.173583, 0.473839, 0.422958, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_d31th"]
 texture = ExtResource("3_t6jst")
@@ -377,6 +412,24 @@ script = ExtResource("3_tbxa5")
 offset_right = 1155.0
 offset_bottom = 649.0
 color = Color(0.121569, 0.141176, 0.180392, 0.360784)
+
+[node name="Quit" type="Button" parent="Background"]
+layout_mode = 0
+offset_left = 1097.0
+offset_top = 57.0
+offset_right = 1149.0
+offset_bottom = 65.0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_5qpxn")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_aijhp")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_4v0dr")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_eejsa")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_g3qab")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_dccpi")
+theme_override_styles/hover = SubResource("StyleBoxTexture_5n6sv")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_er54l")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_6c7lf")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_pircp")
+theme_override_styles/normal = SubResource("StyleBoxTexture_ydpd7")
 
 [node name="NetworkDiagram" type="Node2D" parent="."]
 position = Vector2(0, 80)
@@ -943,7 +996,6 @@ text = "+10 XP"
 horizontal_alignment = 1
 
 [node name="InstructionPanel" type="Control" parent="UILayer"]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

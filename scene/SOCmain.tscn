@@ -1,10 +1,11 @@
-[gd_scene load_steps=47 format=3 uid="uid://bkp6qa2w5ipqe"]
+[gd_scene load_steps=63 format=3 uid="uid://bkp6qa2w5ipqe"]
 
 [ext_resource type="Script" uid="uid://b1friigt1ll1h" path="res://script/SOCMain.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://w3er6lpnv87k" path="res://asset/minigamesicon/txtboxhud only.png" id="2_ghkc1"]
 [ext_resource type="Texture2D" uid="uid://bwjvtgmdvayc4" path="res://asset/minigamesicon/Gemini_Generated_Image_58u3ws58u3ws58u3.png" id="2_o6kul"]
 [ext_resource type="Texture2D" uid="uid://c8oyjeavwa56t" path="res://asset/minigamesicon/wardbg.png" id="2_xa7k1"]
 [ext_resource type="Texture2D" uid="uid://fr6f0o1v6qe1" path="res://asset/minigamesicon/waraleinvasion.png" id="3_6wxqr"]
+[ext_resource type="Texture2D" uid="uid://celxa8te2wluy" path="res://asset/minigamesicon/quithome.png" id="3_fqlbc"]
 [ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_ghkc1"]
 [ext_resource type="Texture2D" uid="uid://1seoipae0fix" path="res://asset/minigamesicon/killcount.png" id="3_iwgg1"]
 [ext_resource type="FontFile" uid="uid://be2unc3ma8sna" path="res://asset/fonts/SpaceMission-rgyw9.otf" id="3_jj1ka"]
@@ -21,6 +22,41 @@
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_wjujp"]
 texture = ExtResource("2_o6kul")
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_by4tk"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1tp16"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ja266"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tw3t2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l7dsw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tstky"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_l7dsw"]
+texture = ExtResource("3_fqlbc")
+expand_margin_left = 40.0
+expand_margin_top = 30.0
+expand_margin_right = 40.0
+expand_margin_bottom = 30.0
+modulate_color = Color(0.572, 0.71, 0.989, 0.835)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u0eyw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6ly6g"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_v58qd"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_fqlbc"]
+font = ExtResource("6_ho8js")
+font_size = 14
+font_color = Color(0, 0, 0, 1)
+outline_size = 10
+outline_color = Color(0.982343, 0.982342, 0.982342, 1)
+shadow_size = 10
+shadow_color = Color(0.61619, 0.083203, 0.484168, 0.967)
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_2lla4"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ed7vx"]
@@ -30,12 +66,29 @@ expand_margin_top = 70.0
 expand_margin_right = 75.0
 expand_margin_bottom = 70.0
 
+[sub_resource type="LabelSettings" id="LabelSettings_1tp16"]
+font = ExtResource("6_ho8js")
+font_size = 14
+font_color = Color(0, 0.961804, 0.165704, 1)
+outline_size = 10
+outline_color = Color(0.0728426, 0.0728426, 0.0728426, 1)
+shadow_size = 10
+shadow_color = Color(1, 0.246, 0.91, 1)
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ilbbj"]
 texture = ExtResource("3_oowtm")
 expand_margin_left = 70.0
 expand_margin_top = 40.0
 expand_margin_right = 60.0
 expand_margin_bottom = 40.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_by4tk"]
+font = ExtResource("6_ho8js")
+font_color = Color(0.422247, 0.709931, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.481168, 0.315884, 0.98523, 0.839)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_iwgg1"]
 texture = ExtResource("3_wjujp")
@@ -50,6 +103,15 @@ corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
+
+[sub_resource type="LabelSettings" id="LabelSettings_ja266"]
+font = ExtResource("6_ho8js")
+font_size = 15
+font_color = Color(0.974856, 0.936541, 0.944274, 1)
+outline_size = 10
+outline_color = Color(0.215166, 0.00360523, 0.135833, 1)
+shadow_size = 8
+shadow_color = Color(0, 0, 0, 0.907)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_fqlbc"]
 texture = ExtResource("8_ilbbj")
@@ -109,6 +171,14 @@ border_color = Color(0.8, 0.172549, 0.0470588, 1)
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 
+[sub_resource type="LabelSettings" id="LabelSettings_tw3t2"]
+font_size = 70
+font_color = Color(0, 0, 0, 1)
+outline_size = 10
+outline_color = Color(0.316704, 0.768518, 7.70092e-07, 1)
+shadow_size = 10
+shadow_color = Color(0.74989, 3.3499e-05, 0.557038, 1)
+
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ho8js"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kx70i"]
@@ -158,6 +228,33 @@ offset_right = 1152.0
 offset_bottom = 654.0
 color = Color(0.21619, 1.20327e-06, 0.138495, 0.458824)
 
+[node name="Quit" type="Button" parent="Background"]
+offset_left = -8.0
+offset_top = -5.0
+offset_right = 114.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6_ho8js")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_by4tk")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_1tp16")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_ja266")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_tw3t2")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_l7dsw")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_tstky")
+theme_override_styles/hover = SubResource("StyleBoxTexture_l7dsw")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_u0eyw")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_6ly6g")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_v58qd")
+
+[node name="Label" type="Label" parent="Background"]
+layout_mode = 0
+offset_left = 1037.0
+offset_top = 618.0
+offset_right = 1138.0
+offset_bottom = 638.0
+text = "ESC/EXIT"
+label_settings = SubResource("LabelSettings_fqlbc")
+
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="TopBar" type="Panel" parent="UI"]
@@ -177,19 +274,21 @@ theme_override_fonts/font = ExtResource("5_2lla4")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_ed7vx")
 text = "Score: 0"
+label_settings = SubResource("LabelSettings_1tp16")
 horizontal_alignment = 1
 
 [node name="WaveLabel" type="Label" parent="UI/TopBar"]
 layout_mode = 0
-offset_left = 451.0
-offset_top = 25.0
-offset_right = 651.0
-offset_bottom = 59.0
+offset_left = 466.0
+offset_top = 28.0
+offset_right = 666.0
+offset_bottom = 53.0
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("5_2lla4")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxTexture_ilbbj")
 text = "Wave: 1"
+label_settings = SubResource("LabelSettings_by4tk")
 horizontal_alignment = 1
 
 [node name="HealthBar" type="ProgressBar" parent="UI/TopBar"]
@@ -213,9 +312,9 @@ offset_right = 914.0
 offset_bottom = 57.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("5_2lla4")
 theme_override_font_sizes/font_size = 25
 text = "Systems Health"
+label_settings = SubResource("LabelSettings_ja266")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -228,19 +327,19 @@ offset_bottom = 400.0
 
 [node name="ReferenceTitle" type="Label" parent="UI/CommandReference"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = 290.0
-offset_bottom = 35.0
+offset_left = 249.0
+offset_top = 17.0
+offset_right = 529.0
+offset_bottom = 43.0
 theme_override_font_sizes/font_size = 18
 text = "AVAILABLE COMMANDS"
 
 [node name="ReferenceList" type="RichTextLabel" parent="UI/CommandReference"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 45.0
-offset_right = 290.0
-offset_bottom = 310.0
+offset_left = 253.0
+offset_top = 46.0
+offset_right = 533.0
+offset_bottom = 311.0
 theme_override_font_sizes/normal_font_size = 12
 bbcode_enabled = true
 text = "[color=yellow]PERIMETER:[/color]
@@ -389,10 +488,10 @@ context_menu_enabled = false
 
 [node name="FeedbackLabel" type="RichTextLabel" parent="UI/CommandTerminal"]
 layout_mode = 0
-offset_left = -224.0
-offset_top = 38.0
-offset_right = 3.0
-offset_bottom = 97.0
+offset_left = -212.0
+offset_top = 35.0
+offset_right = 15.0
+offset_bottom = 94.0
 theme_override_fonts/normal_font = ExtResource("5_5uaqy")
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
@@ -401,7 +500,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TutorialPanel" type="Panel" parent="UI"]
-visible = false
 offset_left = 6.0
 offset_top = 3.0
 offset_right = 1150.0
@@ -436,6 +534,7 @@ theme_override_fonts/font = ExtResource("3_jj1ka")
 theme_override_font_sizes/font_size = 70
 theme_override_styles/normal = SubResource("StyleBoxFlat_jj1ka")
 text = "TUTORIAL"
+label_settings = SubResource("LabelSettings_tw3t2")
 horizontal_alignment = 1
 
 [node name="TutorialText" type="RichTextLabel" parent="UI/TutorialPanel"]
@@ -447,9 +546,8 @@ offset_bottom = 470.0
 theme_override_colors/default_color = Color(1, 1, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/normal_font = ExtResource("5_5uaqy")
-theme_override_font_sizes/normal_font_size = 23
+theme_override_font_sizes/normal_font_size = 26
 bbcode_enabled = true
-text = "herthe"
 
 [node name="ContinueButton" type="Button" parent="UI/TutorialPanel"]
 layout_mode = 0
@@ -513,6 +611,7 @@ text = "Restart Game"
 wait_time = 3.0
 one_shot = true
 
+[connection signal="pressed" from="Background/Quit" to="." method="_on_quit_pressed"]
 [connection signal="text_submitted" from="UI/CommandTerminal/CommandInput" to="." method="_on_command_submitted"]
 [connection signal="pressed" from="UI/TutorialPanel/ContinueButton" to="." method="_on_tutorial_continue"]
 [connection signal="pressed" from="UI/DebriefPanel/RestartButton" to="." method="_on_restart_game"]

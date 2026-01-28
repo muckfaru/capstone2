@@ -157,11 +157,26 @@ var threat_types := {
 	}
 }
 
+@onready var quit_btn: Button = $Background/Quit
+
 func _ready():
+	# Just make sure quit button is on top
+	if has_node("Background/Quit"):
+		quit_btn = $Background/Quit
+		quit_btn.z_index = 1000
+		quit_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+	
 	randomize()
 	update_ui()
 	show_tutorial()
 	$UI/CommandTerminal/CommandInput.grab_focus()
+	
+func _on_quit_pressed() -> void:
+	"""Return to mode selection from anywhere in the tutorial"""
+	print("[CIA Triad] Quit button pressed, returning to mode selection...")
+	print("[DEBUG] About to change scene...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	print("[DEBUG] Scene change called")
 
 func _process(_delta):
 	# Keep input focused
@@ -399,3 +414,8 @@ func game_over():
 
 func _on_restart_game():
 	get_tree().reload_current_scene()
+
+func _input(event):
+	# Press ESC to quit
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_on_quit_pressed()

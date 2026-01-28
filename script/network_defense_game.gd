@@ -55,6 +55,8 @@ var is_game_over := false
 # Active connections on screen
 var active_connections := []
 
+@onready var quit_btn: Button = $TextureRect/Quit
+
 # Challenge data
 var ip_challenges := [
 	{"text": "192.168.1.100", "type": ConnectionType.SAFE, "category": "private", "hint": "192.168 = Home network"},
@@ -114,13 +116,19 @@ func _ready() -> void:
 	# Connect signals
 	allow_zone.area_entered.connect(_on_allow_zone_entered)
 	block_zone.area_entered.connect(_on_block_zone_entered)
-	
+	quit_btn.pressed.connect(_on_quit_pressed)
 	hint_button.pressed.connect(_use_hint)
 	freeze_button.pressed.connect(_use_time_freeze)
 	auto_button.pressed.connect(_use_auto_filter)
 	
 	_update_ui()
 	_start_phase(GamePhase.INTRO)
+
+
+func _on_quit_pressed() -> void:
+	"""Return to mode selection from anywhere in the game"""
+	print("[Network Defense] Quit button pressed, returning to mode selection...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if debug_mode and event is InputEventKey and event.pressed:

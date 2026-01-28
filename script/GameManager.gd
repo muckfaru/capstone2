@@ -9,7 +9,7 @@ var is_game_active = false
 var current_wave = 1
 var max_waves = 5
 var wave_in_progress = false
-
+@onready var quit_btn: Button = $Background/Quit
 # ✅ NEW: Wave completion tracking
 var threats_spawned_this_wave = 0
 var threats_defeated_this_wave = 0
@@ -126,7 +126,7 @@ func _ready():
 	show_start_screen()
 	
 	load_custom_cursor()
-	
+	quit_btn.pressed.connect(_on_quit_pressed)
 	print("\n=== 🛡️ DEFENSE MATRIX ===")
 	for threat in defense_matrix.keys():
 		print("  ", threat, " → ", defense_matrix[threat])
@@ -198,6 +198,11 @@ func start_game():
 	set_cursor_for_gameplay()
 	
 	start_wave(current_wave)
+
+func _on_quit_pressed() -> void:
+	"""Return to mode selection from anywhere in the game"""
+	print("[Network Defense] Quit button pressed, returning to mode selection...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 func _process(delta):
 	if is_game_active:

@@ -23,7 +23,7 @@ extends Control
 @onready var back_btn: Button = $CanvasLayer/ResultsScreen/MarginContainer/VBoxContainer/BackButton
 @onready var sfx_correct: AudioStreamPlayer = $SFX_Correct
 @onready var sfx_wrong: AudioStreamPlayer = $SFX_Wrong
-
+@onready var quit_btn: Button = $CanvasLayer/TopPanel/Button
 # CIA Zone tooltips
 @onready var c_tooltip: Label = $CanvasLayer/CIAZones/ConfidentialityZone/TooltipLabel
 @onready var i_tooltip: Label = $CanvasLayer/CIAZones/IntegrityZone/TooltipLabel
@@ -103,7 +103,8 @@ func _ready() -> void:
 	# Connect signals
 	try_again_btn.pressed.connect(_on_try_again_pressed)
 	back_btn.pressed.connect(_on_back_pressed)
-	
+	quit_btn.pressed.connect(_on_quit_pressed)
+
 	# Setup tooltips
 	_setup_tooltips()
 	
@@ -116,6 +117,10 @@ func _ready() -> void:
 	# Update display
 	_update_ui()
 
+func _on_quit_pressed() -> void:
+	"""Return to mode selection from anywhere in the tutorial"""
+	print("[CIA Triad] Quit button pressed, returning to mode selection...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 func _setup_tooltips() -> void:
 	"""Setup hover tooltips for CIA zones"""
@@ -410,3 +415,7 @@ func _on_card_dropped(global_pos: Vector2) -> void:
 	# Dropped outside zones - snap back
 	var tween = create_tween()
 	tween.tween_property(incident_card, "position", card_original_position, 0.2)
+
+
+func _on_button_pressed() -> void:
+	pass # Replace with function body.

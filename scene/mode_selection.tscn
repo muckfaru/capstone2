@@ -292,6 +292,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_intermediate_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_intermediate")
 text = "ADVANCED"
 
+[connection signal="pressed" from="CanvasLayer/BackButton" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="CanvasLayer/MenuButton" to="." method="_on_menu_pressed"]
 [connection signal="mouse_entered" from="CanvasLayer/ButtonContainer/BeginnerButton" to="." method="_on_button_hover" binds= ["beginner"]]
 [connection signal="pressed" from="CanvasLayer/ButtonContainer/BeginnerButton" to="." method="_on_level_selected" binds= ["beginner"]]

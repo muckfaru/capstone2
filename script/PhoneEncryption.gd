@@ -27,11 +27,10 @@ var boss_encrypted_message = ""
 var boss_decrypted_message = ""
 var player_message = ""
 var player_encrypted_message = ""
-
+@onready var quit_btn: Button = $TopBar/Quitbtn
 # Message index
 var message_index = 0
 var messages_per_level = 3
-
 # Mission-specific boss messages
 var boss_messages_by_mission = {
 	1: [  # Mission 1 - Introduction/Simple jobs
@@ -154,10 +153,15 @@ func _ready():
 	if game_over_panel:
 		game_over_panel.visible = false
 	start_tutorial()
-
+	quit_btn.pressed.connect(_on_quit_pressed)
 # ============================================================================
 # TUTORIAL SYSTEM
 # ============================================================================
+
+func _on_quit_pressed() -> void:
+	"""Return to mode selection from anywhere in the game"""
+	print("[Network Defense] Quit button pressed, returning to mode selection...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 func start_tutorial():
 	current_mode = GameMode.TUTORIAL

@@ -60,7 +60,7 @@ func _ready() -> void:
 		# Verify auth state
 		if Auth.current_local_id == "" or Auth.current_id_token == "":
 			push_error("❌ No auth state! Redirecting to login...")
-			get_tree().change_scene_to_file("res://scene/login.tscn")
+			get_tree().change_scene_to_file.call_deferred("res://scene/login.tscn")
 			return
 		
 		print("[ModeSelection] ========== MODE SELECTION READY ==========")
@@ -82,9 +82,7 @@ func _ready() -> void:
 			print("[ModeSelection] TutorialManager already has data (XP: %d)" % TutorialManager.total_xp)
 			call_deferred("_update_xp_display")
 		
-		# Connect back button
-		if back_btn:
-			back_btn.pressed.connect(_on_back_pressed)
+		# Note: back_btn.pressed signal is connected in mode_selection.tscn
 		
 		# Animate entrance
 		_animate_entrance()
