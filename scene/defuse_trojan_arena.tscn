@@ -46,19 +46,19 @@ texture = ExtResource("2_rrukm")
 [node name="SpawnPoints" type="Node2D" parent="GameLayer"]
 
 [node name="SpawnLeft" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(150, -80)
+position = Vector2(145, -20)
 
 [node name="SpawnCenterLeft" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(361, -86)
+position = Vector2(356, -26)
 
 [node name="SpawnCenter" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(568, -94)
+position = Vector2(577, -18)
 
 [node name="SpawnCenterRight" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(816, -88)
+position = Vector2(817, -18)
 
 [node name="SpawnRight" type="Marker2D" parent="GameLayer/SpawnPoints"]
-position = Vector2(1036, -88)
+position = Vector2(1031, -28)
 
 [node name="EnemyContainer" type="Node2D" parent="GameLayer"]
 
