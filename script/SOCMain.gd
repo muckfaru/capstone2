@@ -16,6 +16,14 @@ var tutorial_active := true
 var active_threats := []
 var threat_scene := preload("res://scene/SOCThreat.tscn")
 
+# Spawn position settings - ADJUST THESE TO FIT YOUR GAME
+const SPAWN_X := 1200  # How far right threats spawn (off-screen)
+const SPAWN_Y_MIN := 120  # Minimum Y position (below the top UI)
+const SPAWN_Y_MAX := 380  # Maximum Y position (above the command terminal)
+# Note: Your game area appears to be ~650px tall
+# Top UI is ~120px, Command Terminal starts at ~520px
+# So safe spawn zone is roughly 120-480
+
 # Command database
 var command_database := {
 	"block-source": {
@@ -216,7 +224,10 @@ func spawn_threat():
 	var threat = threat_scene.instantiate()
 	
 	threat.setup(threat_type, threat_types[threat_type], current_wave <= 3)
-	threat.position = Vector2(1200, randf_range(100, 500))
+	
+	# FIXED SPAWN POSITION - Now uses constants defined at the top
+	threat.position = Vector2(SPAWN_X, randf_range(SPAWN_Y_MIN, SPAWN_Y_MAX))
+	
 	threat.reached_target.connect(_on_threat_reached_target)
 	
 	$ThreatContainer.add_child(threat)
@@ -347,12 +358,19 @@ func update_ui():
 	$UI/TopBar/ScoreLabel.text = "Score: " + str(score)
 	$UI/TopBar/WaveLabel.text = "Wave: " + str(current_wave)
 	
-	var health_display = ""
-	for i in range(systems_health):
-		health_display += "█"
-	for i in range(3 - systems_health):
-		health_display += "░"
-	$UI/TopBar/HealthLabel.text = "Systems: " + health_display
+	# Update health bar VALUE (this controls the fill)
+	$UI/TopBar/HealthBar.value = systems_health
+	
+	# Get the fill StyleBox and change its color based on health
+	var fill_style = $UI/TopBar/HealthBar.get_theme_stylebox("fill")
+	if fill_style is StyleBoxFlat:
+		# Color coding based on health
+		if systems_health == 3:
+			fill_style.bg_color = Color(0.0235294, 0.529412, 0.0941176, 0.772549)  # Green
+		elif systems_health == 2:
+			fill_style.bg_color = Color(1.0, 1.0, 0.0, 0.8)  # Yellow
+		else:
+			fill_style.bg_color = Color(1.0, 0.0, 0.0, 0.8)  # Red
 
 func game_over():
 	$Timers/WaveTimer.stop()

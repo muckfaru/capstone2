@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://ddefuse_trojan_room"]
+[gd_scene load_steps=25 format=3 uid="uid://c0a33ucrvsryb"]
 
 [ext_resource type="Script" path="res://script/defuse_trojan_room.gd" id="1_room"]
 [ext_resource type="PackedScene" uid="uid://caeteha34m08t" path="res://scene/room_chat.tscn" id="2_room_chat"]
@@ -13,32 +13,6 @@ border_width_top = 2
 border_width_right = 2
 border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 corner_radius_top_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_host_bottom"]
-bg_color = Color(0.2, 0.2, 0.25098, 1)
-border_width_left = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
-corner_radius_bottom_right = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_top"]
-bg_color = Color(1, 0.427451, 0.356863, 0.768627)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_color = Color(0.827396, 0.01185, 0, 0.784314)
-border_blend = true
-corner_radius_top_right = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_bottom"]
-bg_color = Color(1, 0.427451, 0.356863, 0.768627)
-border_width_left = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.827451, 0.0117647, 0, 0.784314)
-border_blend = true
-corner_radius_bottom_left = 8
 
 [sub_resource type="Animation" id="Animation_hostname_reset"]
 length = 0.001
@@ -76,6 +50,14 @@ _data = {
 &"hostnameani": SubResource("Animation_hostnameani")
 }
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_host_bottom"]
+bg_color = Color(0.2, 0.2, 0.25098, 1)
+border_width_left = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+corner_radius_bottom_right = 8
+
 [sub_resource type="Animation" id="Animation_readyhost_reset"]
 length = 0.001
 tracks/0/type = "value"
@@ -112,6 +94,15 @@ _data = {
 &"readyhostani": SubResource("Animation_readyhostani")
 }
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_top"]
+bg_color = Color(1, 0.427451, 0.356863, 0.768627)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_color = Color(0.827396, 0.01185, 0, 0.784314)
+border_blend = true
+corner_radius_top_right = 8
+
 [sub_resource type="Animation" id="Animation_usrready_reset"]
 length = 0.001
 tracks/0/type = "value"
@@ -147,6 +138,15 @@ _data = {
 &"RESET": SubResource("Animation_usrready_reset"),
 &"usrreadyani": SubResource("Animation_usrreadyani")
 }
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_bottom"]
+bg_color = Color(1, 0.427451, 0.356863, 0.768627)
+border_width_left = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.827451, 0.0117647, 0, 0.784314)
+border_blend = true
+corner_radius_bottom_left = 8
 
 [sub_resource type="Animation" id="Animation_usersearch_reset"]
 length = 0.001
@@ -222,10 +222,12 @@ _data = {
 }
 
 [node name="DefuseTrojanRoom" type="Control"]
-layout_mode = 1
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_room")
 
 [node name="Background" type="TextureRect" parent="."]
@@ -233,6 +235,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 texture = ExtResource("4_room_bg")
 expand_mode = 1
 stretch_mode = 5
@@ -275,8 +279,8 @@ offset_left = -650.0
 offset_top = -100.0
 offset_right = 650.0
 offset_bottom = 200.0
-alignment = 1
 theme_override_constants/separation = 30
+alignment = 1
 
 [node name="HostCard" type="NinePatchRect" parent="CardsContainer"]
 custom_minimum_size = Vector2(260, 400)
@@ -349,9 +353,9 @@ autoplay = "readyhostani"
 speed_scale = 3.0
 
 [node name="ClientCard" type="NinePatchRect" parent="CardsContainer"]
+self_modulate = Color(0.617455, 0.617455, 0.617455, 1)
 custom_minimum_size = Vector2(260, 400)
 layout_mode = 2
-self_modulate = Color(1, 1, 1, 1)
 
 [node name="Username" type="Label" parent="CardsContainer/ClientCard"]
 layout_mode = 1
@@ -423,9 +427,9 @@ libraries = {
 }
 
 [node name="Client2Card" type="NinePatchRect" parent="CardsContainer"]
+self_modulate = Color(0.617455, 0.617455, 0.617455, 1)
 custom_minimum_size = Vector2(260, 400)
 layout_mode = 2
-self_modulate = Color(1, 1, 1, 1)
 
 [node name="Username" type="Label" parent="CardsContainer/Client2Card"]
 layout_mode = 1

@@ -1,21 +1,382 @@
-[gd_scene load_steps=7 format=3 uid="uid://hqosriabiqhy"]
+[gd_scene load_steps=113 format=3 uid="uid://hqosriabiqhy"]
 
 [ext_resource type="Script" uid="uid://bcrwqjamwa43l" path="res://script/GameManager.gd" id="1"]
 [ext_resource type="Script" uid="uid://d27de5h78jkjp" path="res://script/ThreatSpawner.gd" id="2"]
+[ext_resource type="Texture2D" uid="uid://dsx3xr71ci51i" path="res://asset/minigamesicon/officbg.png" id="2_qgma4"]
 [ext_resource type="Script" uid="uid://chjpwllto78rx" path="res://script/Asset.gd" id="3"]
+[ext_resource type="Texture2D" uid="uid://hstur8hv7j0y" path="res://asset/minigamesicon/employeepc.png" id="3_t6jst"]
+[ext_resource type="Script" uid="uid://dq8djqptj30s2" path="res://scene/point_light_2d.gd" id="3_tbxa5"]
+[ext_resource type="Texture2D" uid="uid://c8ln7f6w6ut8c" path="res://asset/minigamesicon/bosslaptop.png" id="3_yckjt"]
 [ext_resource type="Script" uid="uid://cofo2j8varoeo" path="res://script/FeedbackPopup.gd" id="4"]
+[ext_resource type="Texture2D" uid="uid://db11brxecs832" path="res://asset/minigamesicon/routerarm-removebg-preview.png" id="4_d31th"]
+[ext_resource type="Texture2D" uid="uid://brqfkmnqtn2xe" path="res://asset/toolboxA.png" id="4_dmne6"]
+[ext_resource type="Texture2D" uid="uid://j6saiaaf8wd8" path="res://asset/minigamesicon/serverema-removebg-preview.png" id="4_dyur8"]
+[ext_resource type="Texture2D" uid="uid://dgo1p8wq4wis1" path="res://asset/minigamesicon/databaseA.png" id="4_f8xt3"]
 [ext_resource type="Script" uid="uid://b5dafhjdb051s" path="res://script/DefenseTool.gd" id="5"]
+[ext_resource type="Script" uid="uid://0infjd2pjve1" path="res://script/InstructionManager.gd" id="5_instruction"]
+[ext_resource type="FontFile" uid="uid://l0twhmllixdy" path="res://asset/minigamesicon/BruceForeverRegular-X3jd2.ttf" id="6_j7akr"]
+[ext_resource type="Texture2D" uid="uid://bm424obd6awfl" path="res://asset/Firewallshield.png" id="6_jc6st"]
+[ext_resource type="Texture2D" uid="uid://ck1c5l38auk5s" path="res://asset/minigamesicon/introarmyth.png" id="6_sdkxj"]
+[ext_resource type="Texture2D" uid="uid://vk3m6i3ivlex" path="res://asset/minigamesicon/antiv.png" id="7_pteti"]
+[ext_resource type="Texture2D" uid="uid://bqmj8wvwfp52n" path="res://asset/minigamesicon/BACJKUP.png" id="8_l4dle"]
+[ext_resource type="Texture2D" uid="uid://doxpn6c220fsf" path="res://asset/minigamesicon/emailfiltering.png" id="8_qwfp3"]
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="8_s1tmq"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="9_dmne6"]
+[ext_resource type="Texture2D" uid="uid://bfjrhyahkpd8g" path="res://asset/minigamesicon/password.png" id="9_kbgdo"]
+[ext_resource type="Texture2D" uid="uid://6ihq42ve5pgd" path="res://asset/minigamesicon/backup.png" id="10_r05iq"]
+[ext_resource type="Texture2D" uid="uid://3v6oqasa5hjy" path="res://asset/minigamesicon/militarybar.png" id="10_s1tmq"]
+[ext_resource type="Texture2D" uid="uid://4mlyyxdeqdk5" path="res://asset/minigamesicon/patch.png" id="11_e21bp"]
+[ext_resource type="Texture2D" uid="uid://daonxij33hyoi" path="res://asset/minigamesicon/authee.png" id="12_cspwu"]
+[ext_resource type="Texture2D" uid="uid://bx4p8k1kn5l12" path="res://asset/minigamesicon/timerbomb.png" id="12_ew4hq"]
+[ext_resource type="FontFile" uid="uid://gj4s1cvcj5il" path="res://asset/fonts/ChakraPetch-SemiBold.ttf" id="12_htnct"]
+[ext_resource type="Texture2D" uid="uid://c0fpb71st2bky" path="res://asset/minigamesicon/commandoframe.png" id="21_bpolg"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="23_bpolg"]
+[ext_resource type="Texture2D" uid="uid://deomm8qbhtt3i" path="res://asset/minigamesicon/gameoverbg.png" id="32_rf0f6"]
+[ext_resource type="Texture2D" uid="uid://ciitmtsne5rc5" path="res://asset/minigamesicon/commandotopbar.png" id="32_w470u"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vj0ud"]
+texture = ExtResource("2_qgma4")
+
+[sub_resource type="Gradient" id="Gradient_rf0f6"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_w470u"]
+gradient = SubResource("Gradient_rf0f6")
+fill = 1
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_d31th"]
+texture = ExtResource("3_t6jst")
+expand_margin_left = 50.0
+expand_margin_top = 30.0
+expand_margin_right = 50.0
+expand_margin_bottom = 30.0
 
 [sub_resource type="RectangleShape2D" id="1"]
 size = Vector2(80, 80)
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qgma4"]
+texture = ExtResource("4_f8xt3")
+expand_margin_left = 50.0
+expand_margin_top = 20.0
+expand_margin_right = 50.0
+expand_margin_bottom = 40.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_l4dle"]
+texture = ExtResource("4_d31th")
+expand_margin_left = 20.0
+expand_margin_top = 30.0
+expand_margin_right = 20.0
+expand_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_f8xt3"]
+texture = ExtResource("4_dyur8")
+expand_margin_left = 60.0
+expand_margin_top = 30.0
+expand_margin_right = 60.0
+expand_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_y8ji5"]
+texture = ExtResource("8_l4dle")
+expand_margin_left = 40.0
+expand_margin_top = 20.0
+expand_margin_right = 49.0
+expand_margin_bottom = 40.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dyur8"]
+texture = ExtResource("3_yckjt")
+expand_margin_left = 40.0
+expand_margin_top = 30.0
+expand_margin_right = 40.0
+expand_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_eehii"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_rf0f6"]
+texture = ExtResource("12_ew4hq")
+expand_margin_left = 50.0
+expand_margin_top = 60.0
+expand_margin_right = 50.0
+expand_margin_bottom = 60.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ew4hq"]
+bg_color = Color(0.262745, 0.262745, 0.262745, 0.45098)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_pteti"]
+texture = ExtResource("4_dmne6")
+expand_margin_left = 20.0
+expand_margin_top = 120.0
+expand_margin_right = 20.0
+expand_margin_bottom = 120.0
+modulate_color = Color(0.468768, 0.338654, 0.303691, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qwfp3"]
+texture = ExtResource("6_jc6st")
+expand_margin_left = 20.0
+expand_margin_top = 10.0
+expand_margin_right = 20.0
+expand_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_kbgdo"]
+texture = ExtResource("7_pteti")
+expand_margin_left = 20.0
+expand_margin_top = 5.0
+expand_margin_right = 20.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_r05iq"]
+texture = ExtResource("8_qwfp3")
+expand_margin_left = 20.0
+expand_margin_top = 10.0
+expand_margin_right = 20.0
+expand_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_e21bp"]
+texture = ExtResource("9_kbgdo")
+expand_margin_left = 20.0
+expand_margin_top = 10.0
+expand_margin_right = 20.0
+expand_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_cspwu"]
+texture = ExtResource("10_r05iq")
+expand_margin_left = 20.0
+expand_margin_top = 10.0
+expand_margin_right = 20.0
+expand_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yckjt"]
+texture = ExtResource("11_e21bp")
+expand_margin_left = 20.0
+expand_margin_top = 10.0
+expand_margin_right = 20.0
+expand_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_t6jst"]
+texture = ExtResource("12_cspwu")
+expand_margin_left = 20.0
+expand_margin_top = 10.0
+expand_margin_right = 20.0
+expand_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tbxa5"]
+texture = ExtResource("21_bpolg")
+expand_margin_left = 140.0
+expand_margin_right = 140.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bpolg"]
+texture = ExtResource("6_sdkxj")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y8ji5"]
+bg_color = Color(0.10385, 0.161584, 0.148429, 0.933333)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.147724, 0.223023, 0.207945, 0.933333)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y8ji5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vj0ud"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bpolg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_htnct"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ew4hq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tbxa5"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_htnct"]
+texture = ExtResource("10_s1tmq")
+expand_margin_left = 5.0
+expand_margin_top = 47.0
+expand_margin_right = 5.0
+expand_margin_bottom = 47.0
+modulate_color = Color(0.0322944, 0.123496, 0.0315781, 0.596078)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rf0f6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_w470u"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bw1ex"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ew4hq"]
+texture = ExtResource("10_s1tmq")
+expand_margin_left = 5.0
+expand_margin_top = 47.0
+expand_margin_right = 5.0
+expand_margin_bottom = 47.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5n6sv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ydpd7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8nst1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fq8to"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_poc5y"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ncrvv"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_sbahx"]
+texture = ExtResource("10_s1tmq")
+expand_margin_left = 5.0
+expand_margin_top = 47.0
+expand_margin_right = 5.0
+expand_margin_bottom = 47.0
+modulate_color = Color(0.0313726, 0.121569, 0.0313726, 0.596078)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_8fuwe"]
+texture = ExtResource("10_s1tmq")
+expand_margin_left = 5.0
+expand_margin_top = 47.0
+expand_margin_right = 5.0
+expand_margin_bottom = 47.0
+modulate_color = Color(0.0863776, 0.236324, 0.08641, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sbahx"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8fuwe"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fwg35"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mwh1y"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_486co"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_r0487"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_eehii"]
+texture = ExtResource("10_s1tmq")
+expand_margin_left = 5.0
+expand_margin_top = 47.0
+expand_margin_right = 5.0
+expand_margin_bottom = 47.0
+modulate_color = Color(0.0313726, 0.121569, 0.0313726, 0.596078)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_q3cm3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_d5rci"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_r6rvt"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dq85v"]
+content_margin_left = 45.0
+content_margin_right = 22.0
+texture = ExtResource("10_s1tmq")
+expand_margin_left = 5.0
+expand_margin_top = 64.0
+expand_margin_right = 5.0
+expand_margin_bottom = 64.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_jc6st"]
+texture = ExtResource("6_sdkxj")
+expand_margin_right = 80.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s1tmq"]
+bg_color = Color(0.6, 0.6, 0.6, 0.32549)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_s1tmq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dmne6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jc6st"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pteti"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qwfp3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kbgdo"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dmne6"]
+texture = ExtResource("10_s1tmq")
+expand_margin_left = 21.0
+expand_margin_top = 50.0
+expand_margin_right = 21.0
+expand_margin_bottom = 50.0
+modulate_color = Color(0.362829, 0.362829, 0.362829, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_r05iq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e21bp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cspwu"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_sdkxj"]
+texture = ExtResource("10_s1tmq")
+expand_margin_left = 21.0
+expand_margin_top = 50.0
+expand_margin_right = 21.0
+expand_margin_bottom = 50.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bw1ex"]
+texture = ExtResource("32_rf0f6")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dq85v"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hrmkp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y0trj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_w1nnn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wk1hk"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qojie"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5qpxn"]
+texture = ExtResource("32_w470u")
+expand_margin_left = 10.0
+expand_margin_top = 70.0
+expand_margin_right = 10.0
+expand_margin_bottom = 70.0
+modulate_color = Color(0.0633545, 0.281785, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_aebwp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vf18p"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_x5nol"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_aijhp"]
+texture = ExtResource("32_w470u")
+expand_margin_left = 10.0
+expand_margin_top = 70.0
+expand_margin_right = 10.0
+expand_margin_bottom = 70.0
+
 [node name="Main" type="Node2D" groups=["game_manager"]]
 script = ExtResource("1")
 
+[node name="Panel" type="Panel" parent="."]
+offset_right = 1155.0
+offset_bottom = 646.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_vj0ud")
+
+[node name="PointLight2D" type="PointLight2D" parent="Panel"]
+position = Vector2(384, 81)
+rotation = 3.3896
+scale = Vector2(4.18978, 1)
+color = Color(1, 0.2, 1, 1)
+texture = SubResource("GradientTexture2D_w470u")
+script = ExtResource("3_tbxa5")
+
+[node name="PointLight2D2" type="PointLight2D" parent="Panel"]
+position = Vector2(1105.91, 157.232)
+rotation = 3.06911
+scale = Vector2(1.52473, 0.584855)
+color = Color(1, 0.2, 1, 1)
+texture = SubResource("GradientTexture2D_w470u")
+script = ExtResource("3_tbxa5")
+
 [node name="Background" type="ColorRect" parent="."]
-offset_right = 1080.0
-offset_bottom = 720.0
-color = Color(0.12, 0.14, 0.18, 1)
+offset_right = 1155.0
+offset_bottom = 649.0
+color = Color(0.121569, 0.141176, 0.180392, 0.360784)
 
 [node name="NetworkDiagram" type="Node2D" parent="."]
 position = Vector2(0, 80)
@@ -30,15 +391,18 @@ offset_top = -50.0
 offset_right = 40.0
 offset_bottom = -10.0
 theme_override_font_sizes/font_size = 40
-text = "💻"
+theme_override_styles/normal = SubResource("StyleBoxTexture_d31th")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="NetworkDiagram/employee_pc"]
 offset_left = -60.0
-offset_top = 10.0
+offset_top = 17.0
 offset_right = 60.0
-offset_bottom = 35.0
-theme_override_font_sizes/font_size = 14
+offset_bottom = 42.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Employee PC"
 horizontal_alignment = 1
 
@@ -62,23 +426,26 @@ offset_top = -50.0
 offset_right = 40.0
 offset_bottom = -10.0
 theme_override_font_sizes/font_size = 40
-text = "🗄️"
+theme_override_styles/normal = SubResource("StyleBoxTexture_qgma4")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="NetworkDiagram/database"]
-offset_left = -60.0
-offset_top = 10.0
-offset_right = 60.0
-offset_bottom = 35.0
-theme_override_font_sizes/font_size = 14
+offset_left = -58.0
+offset_top = 24.0
+offset_right = 54.0
+offset_bottom = 48.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Database"
 horizontal_alignment = 1
 
 [node name="HealthBar" type="ColorRect" parent="NetworkDiagram/database"]
 offset_left = -30.0
-offset_top = 40.0
+offset_top = 44.0
 offset_right = 30.0
-offset_bottom = 50.0
+offset_bottom = 54.0
 color = Color(0, 1, 0, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="NetworkDiagram/database"]
@@ -94,15 +461,17 @@ offset_top = -50.0
 offset_right = 40.0
 offset_bottom = -10.0
 theme_override_font_sizes/font_size = 40
-text = "📡"
+theme_override_styles/normal = SubResource("StyleBoxTexture_l4dle")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="NetworkDiagram/router"]
-offset_left = -60.0
-offset_top = 10.0
-offset_right = 60.0
-offset_bottom = 35.0
-theme_override_font_sizes/font_size = 14
+offset_left = -59.0
+offset_top = 20.0
+offset_right = 61.0
+offset_bottom = 45.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Router"
 horizontal_alignment = 1
 
@@ -126,17 +495,20 @@ offset_top = -50.0
 offset_right = 40.0
 offset_bottom = -10.0
 theme_override_font_sizes/font_size = 40
-text = "📧"
+theme_override_styles/normal = SubResource("StyleBoxTexture_f8xt3")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="NetworkDiagram/email_server"]
 offset_left = -70.0
-offset_top = 10.0
+offset_top = 17.0
 offset_right = 70.0
-offset_bottom = 35.0
-theme_override_font_sizes/font_size = 14
+offset_bottom = 42.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Email Server"
 horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="HealthBar" type="ColorRect" parent="NetworkDiagram/email_server"]
 offset_left = -30.0
@@ -158,17 +530,20 @@ offset_top = -50.0
 offset_right = 40.0
 offset_bottom = -10.0
 theme_override_font_sizes/font_size = 40
-text = "💾"
+theme_override_styles/normal = SubResource("StyleBoxTexture_y8ji5")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="NetworkDiagram/backup"]
 offset_left = -60.0
-offset_top = 10.0
+offset_top = 19.0
 offset_right = 60.0
-offset_bottom = 35.0
-theme_override_font_sizes/font_size = 14
+offset_bottom = 44.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Backup"
 horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="HealthBar" type="ColorRect" parent="NetworkDiagram/backup"]
 offset_left = -30.0
@@ -176,6 +551,7 @@ offset_top = 40.0
 offset_right = 30.0
 offset_bottom = 50.0
 color = Color(0, 1, 0, 1)
+metadata/_edit_use_anchors_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="NetworkDiagram/backup"]
 shape = SubResource("1")
@@ -185,29 +561,33 @@ position = Vector2(880, 400)
 script = ExtResource("3")
 
 [node name="IconLabel" type="Label" parent="NetworkDiagram/ceo_laptop"]
-offset_left = -40.0
-offset_top = -50.0
-offset_right = 40.0
-offset_bottom = -10.0
+offset_left = -57.0
+offset_top = -38.0
+offset_right = 50.0
+offset_bottom = 17.0
 theme_override_font_sizes/font_size = 40
-text = "👔💻"
+theme_override_styles/normal = SubResource("StyleBoxTexture_dyur8")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="NetworkDiagram/ceo_laptop"]
 offset_left = -60.0
-offset_top = 10.0
+offset_top = 25.0
 offset_right = 60.0
-offset_bottom = 35.0
-theme_override_font_sizes/font_size = 14
+offset_bottom = 50.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "CEO Laptop"
 horizontal_alignment = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="HealthBar" type="ColorRect" parent="NetworkDiagram/ceo_laptop"]
 offset_left = -30.0
-offset_top = 40.0
+offset_top = 45.0
 offset_right = 30.0
-offset_bottom = 50.0
+offset_bottom = 55.0
 color = Color(0, 1, 0, 1)
+metadata/_edit_use_anchors_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="NetworkDiagram/ceo_laptop"]
 shape = SubResource("1")
@@ -228,36 +608,74 @@ mouse_filter = 2
 
 [node name="TopBar" type="Panel" parent="UILayer/GameUI"]
 layout_mode = 0
-offset_right = 1080.0
+offset_right = 1151.0
 offset_bottom = 60.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_eehii")
+
+[node name="timericon" type="Panel" parent="UILayer/GameUI/TopBar"]
+layout_mode = 0
+offset_left = 54.0
+offset_top = 29.0
+offset_right = 249.0
+offset_bottom = 79.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_rf0f6")
 
 [node name="TimeLabel" type="Label" parent="UILayer/GameUI/TopBar"]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 15.0
-offset_right = 150.0
-offset_bottom = 45.0
-theme_override_font_sizes/font_size = 24
+offset_left = 132.0
+offset_top = 36.0
+offset_right = 205.0
+offset_bottom = 64.0
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("12_htnct")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_ew4hq")
 text = "Time: 90s"
 
 [node name="ScoreLabel" type="Label" parent="UILayer/GameUI/TopBar"]
 layout_mode = 0
-offset_left = 880.0
-offset_top = 15.0
-offset_right = 1060.0
-offset_bottom = 45.0
-theme_override_font_sizes/font_size = 24
+offset_left = 951.0
+offset_top = 13.0
+offset_right = 1131.0
+offset_bottom = 47.0
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("12_htnct")
+theme_override_font_sizes/font_size = 30
 text = "Score: 0"
 horizontal_alignment = 2
 
+[node name="CPUParticles2D" type="CPUParticles2D" parent="UILayer/GameUI/TopBar"]
+position = Vector2(276, 54)
+amount = 50
+lifetime = 0.6
+speed_scale = 2.43
+explosiveness = 0.4
+randomness = 1.0
+direction = Vector2(0, 1)
+spread = 180.0
+gravity = Vector2(0, 150)
+initial_velocity_max = 485.71
+linear_accel_min = -100.0
+linear_accel_max = -50.0
+scale_amount_min = 1.5
+scale_amount_max = 3.0
+color = Color(0.992157, 0.878431, 0.4, 1)
+
 [node name="DefenseToolbar" type="Panel" parent="UILayer/GameUI"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -120.0
-offset_right = 1080.0
-offset_bottom = 720.0
+offset_left = -14.0
+offset_top = -95.0
+offset_right = 12.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxTexture_pteti")
 
 [node name="HBox" type="HBoxContainer" parent="UILayer/GameUI/DefenseToolbar"]
 layout_mode = 1
@@ -266,7 +684,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 10.0
 offset_top = 10.0
-offset_right = -1080.0
+offset_right = -10.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -278,21 +696,28 @@ size_flags_horizontal = 3
 script = ExtResource("5")
 
 [node name="Label" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/Firewall"]
-layout_mode = 0
-offset_left = 15.0
-offset_top = 5.0
-offset_right = 85.0
-offset_bottom = 55.0
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.16
+anchor_bottom = 2.402
+offset_left = 35.0
+offset_top = 1.0
+offset_right = 104.68
+offset_bottom = -134.562
 theme_override_font_sizes/font_size = 40
-text = "🧱"
+theme_override_styles/normal = SubResource("StyleBoxTexture_qwfp3")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/Firewall"]
 layout_mode = 0
-offset_top = 60.0
-offset_right = 100.0
-offset_bottom = 85.0
-theme_override_font_sizes/font_size = 12
+offset_left = 31.0
+offset_top = 61.0
+offset_right = 131.0
+offset_bottom = 86.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Firewall"
 horizontal_alignment = 1
 
@@ -304,20 +729,24 @@ defense_type = "antivirus"
 
 [node name="Label" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/Antivirus"]
 layout_mode = 0
-offset_left = 15.0
-offset_top = 5.0
-offset_right = 85.0
-offset_bottom = 55.0
+offset_left = 36.0
+offset_top = 6.0
+offset_right = 125.0
+offset_bottom = 61.0
 theme_override_font_sizes/font_size = 40
-text = "🛡️"
+theme_override_styles/normal = SubResource("StyleBoxTexture_kbgdo")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/Antivirus"]
 layout_mode = 0
-offset_top = 60.0
-offset_right = 100.0
-offset_bottom = 85.0
-theme_override_font_sizes/font_size = 12
+offset_left = 35.0
+offset_top = 61.0
+offset_right = 135.0
+offset_bottom = 86.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Antivirus"
 horizontal_alignment = 1
 
@@ -332,17 +761,21 @@ layout_mode = 0
 offset_left = 15.0
 offset_top = 5.0
 offset_right = 85.0
-offset_bottom = 55.0
+offset_bottom = 60.0
 theme_override_font_sizes/font_size = 32
-text = "📧🚫"
+theme_override_styles/normal = SubResource("StyleBoxTexture_r05iq")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/EmailFilter"]
 layout_mode = 0
-offset_top = 60.0
-offset_right = 100.0
-offset_bottom = 85.0
-theme_override_font_sizes/font_size = 12
+offset_left = 9.0
+offset_top = 62.0
+offset_right = 109.0
+offset_bottom = 87.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Email Filter"
 horizontal_alignment = 1
 
@@ -357,17 +790,21 @@ layout_mode = 0
 offset_left = 15.0
 offset_top = 5.0
 offset_right = 85.0
-offset_bottom = 55.0
+offset_bottom = 63.0
 theme_override_font_sizes/font_size = 40
-text = "🔐"
+theme_override_styles/normal = SubResource("StyleBoxTexture_e21bp")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/StrongPassword"]
 layout_mode = 0
-offset_top = 60.0
-offset_right = 100.0
-offset_bottom = 85.0
-theme_override_font_sizes/font_size = 12
+offset_left = 4.0
+offset_top = 63.0
+offset_right = 104.0
+offset_bottom = 88.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Password"
 horizontal_alignment = 1
 
@@ -379,20 +816,24 @@ defense_type = "backup_system"
 
 [node name="Label" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/BackupSystem"]
 layout_mode = 0
-offset_left = 15.0
+offset_left = 9.0
 offset_top = 5.0
 offset_right = 85.0
-offset_bottom = 55.0
+offset_bottom = 64.0
 theme_override_font_sizes/font_size = 32
-text = "💾🔄"
+theme_override_styles/normal = SubResource("StyleBoxTexture_cspwu")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/BackupSystem"]
 layout_mode = 0
-offset_top = 60.0
-offset_right = 100.0
-offset_bottom = 85.0
-theme_override_font_sizes/font_size = 12
+offset_left = 4.0
+offset_top = 64.0
+offset_right = 104.0
+offset_bottom = 89.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Backup"
 horizontal_alignment = 1
 
@@ -404,20 +845,24 @@ defense_type = "security_patch"
 
 [node name="Label" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/SecurityPatch"]
 layout_mode = 0
-offset_left = 15.0
-offset_top = 5.0
-offset_right = 85.0
-offset_bottom = 55.0
+offset_left = 18.0
+offset_top = 4.0
+offset_right = 132.0
+offset_bottom = 59.0
 theme_override_font_sizes/font_size = 40
-text = "🩹"
+theme_override_styles/normal = SubResource("StyleBoxTexture_yckjt")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/SecurityPatch"]
 layout_mode = 0
-offset_top = 60.0
-offset_right = 100.0
-offset_bottom = 85.0
-theme_override_font_sizes/font_size = 12
+offset_left = 25.0
+offset_top = 64.0
+offset_right = 125.0
+offset_bottom = 89.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Patch"
 horizontal_alignment = 1
 
@@ -429,20 +874,24 @@ defense_type = "access_control"
 
 [node name="Label" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/AccessControl"]
 layout_mode = 0
-offset_left = 15.0
-offset_top = 5.0
-offset_right = 85.0
-offset_bottom = 55.0
+offset_left = 17.0
+offset_top = 9.0
+offset_right = 116.0
+offset_bottom = 58.0
 theme_override_font_sizes/font_size = 32
-text = "🚪🔑"
+theme_override_styles/normal = SubResource("StyleBoxTexture_t6jst")
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="UILayer/GameUI/DefenseToolbar/HBox/AccessControl"]
 layout_mode = 0
-offset_top = 60.0
-offset_right = 100.0
-offset_bottom = 85.0
-theme_override_font_sizes/font_size = 12
+offset_left = 18.0
+offset_top = 65.0
+offset_right = 118.0
+offset_bottom = 90.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 16
 text = "Access"
 horizontal_alignment = 1
 
@@ -453,73 +902,222 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -75.0
-offset_right = 150.0
-offset_bottom = 75.0
+offset_left = -135.0
+offset_top = -313.0
+offset_right = 165.0
+offset_bottom = -163.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_tbxa5")
 script = ExtResource("4")
 
 [node name="VBox" type="VBoxContainer" parent="UILayer/FeedbackPopup"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 38.0
+offset_top = 29.0
+offset_right = -42.0
+offset_bottom = -36.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="UILayer/FeedbackPopup/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 25
 text = "✅ BLOCKED!"
 horizontal_alignment = 1
 
 [node name="MessageLabel" type="Label" parent="UILayer/FeedbackPopup/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("23_bpolg")
+theme_override_font_sizes/font_size = 14
 text = "+10 XP"
 horizontal_alignment = 1
+
+[node name="InstructionPanel" type="Control" parent="UILayer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5_instruction")
+
+[node name="Panel" type="Panel" parent="UILayer/InstructionPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_bpolg")
+
+[node name="Background" type="ColorRect" parent="UILayer/InstructionPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 562.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0784314, 0.0941176, 0.141176, 0)
+
+[node name="VBox" type="VBoxContainer" parent="UILayer/InstructionPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -280.0
+offset_right = 400.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="UILayer/InstructionPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.8, 0.4, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_j7akr")
+theme_override_font_sizes/font_size = 36
+text = "CYBER DEFENSE COMMAND"
+horizontal_alignment = 1
+
+[node name="ContentScroll" type="ScrollContainer" parent="UILayer/InstructionPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_y8ji5")
+
+[node name="ContentVBox" type="VBoxContainer" parent="UILayer/InstructionPanel/VBox/ContentScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="ButtonBox" type="HBoxContainer" parent="UILayer/InstructionPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="PrevButton" type="Button" parent="UILayer/InstructionPanel/VBox/ButtonBox"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("StyleBoxEmpty_y8ji5")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_vj0ud")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_bpolg")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_htnct")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_ew4hq")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_tbxa5")
+theme_override_styles/hover = SubResource("StyleBoxTexture_htnct")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_rf0f6")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_w470u")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_bw1ex")
+theme_override_styles/normal = SubResource("StyleBoxTexture_ew4hq")
+text = "◀ Previous"
+
+[node name="NextButton" type="Button" parent="UILayer/InstructionPanel/VBox/ButtonBox"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("StyleBoxEmpty_5n6sv")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_ydpd7")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_8nst1")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_fq8to")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_poc5y")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_ncrvv")
+theme_override_styles/hover = SubResource("StyleBoxTexture_sbahx")
+theme_override_styles/normal = SubResource("StyleBoxTexture_8fuwe")
+text = "Next ▶"
+
+[node name="StartButton" type="Button" parent="UILayer/InstructionPanel/VBox/ButtonBox"]
+visible = false
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6_j7akr")
+theme_override_font_sizes/font_size = 26
+theme_override_styles/focus = SubResource("StyleBoxEmpty_sbahx")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_8fuwe")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_fwg35")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_mwh1y")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_486co")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_r0487")
+theme_override_styles/hover = SubResource("StyleBoxTexture_eehii")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_q3cm3")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_d5rci")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_r6rvt")
+theme_override_styles/normal = SubResource("StyleBoxTexture_dq85v")
+text = "START MISSION"
 
 [node name="StartPanel" type="Panel" parent="UILayer"]
 visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -532.0
-offset_top = -385.0
-offset_right = 548.0
-offset_bottom = 335.0
+offset_left = 11.0
+offset_top = 4.0
+offset_right = -1.0
+offset_bottom = 3.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_jc6st")
 
 [node name="VBox" type="VBoxContainer" parent="UILayer/StartPanel"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -200.0
-offset_right = 300.0
-offset_bottom = 200.0
+offset_left = -401.0
+offset_top = -223.5
+offset_right = 441.0
+offset_bottom = 224.5
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 20
 
 [node name="TitleLabel" type="Label" parent="UILayer/StartPanel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "🛡️ CYBER DEFENSE COMMAND 🛡️"
+theme_override_colors/font_color = Color(0, 0.548261, 0.317109, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_j7akr")
+theme_override_font_sizes/font_size = 40
+text = " CYBER DEFENSE COMMAND "
 horizontal_alignment = 1
 
 [node name="SubtitleLabel" type="Label" parent="UILayer/StartPanel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("8_s1tmq")
+theme_override_font_sizes/font_size = 30
 text = "Assets & Threats Training"
 horizontal_alignment = 1
 
 [node name="InstructionsLabel" type="Label" parent="UILayer/StartPanel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 0.556863, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_s1tmq")
 text = "MISSION BRIEFING:
 Shadow Byte is attacking CyberCorp's network!
 
@@ -530,7 +1128,20 @@ horizontal_alignment = 1
 
 [node name="StartButton" type="Button" parent="UILayer/StartPanel/VBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6_j7akr")
 theme_override_font_sizes/font_size = 24
+theme_override_styles/focus = SubResource("StyleBoxEmpty_s1tmq")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_dmne6")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_jc6st")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_pteti")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_qwfp3")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_kbgdo")
+theme_override_styles/hover = SubResource("StyleBoxTexture_dmne6")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_r05iq")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_e21bp")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_cspwu")
+theme_override_styles/normal = SubResource("StyleBoxTexture_sdkxj")
 text = "START MISSION"
 
 [node name="GameOverPanel" type="Panel" parent="UILayer"]
@@ -538,12 +1149,13 @@ visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -544.0
-offset_top = -416.0
-offset_right = 536.0
-offset_bottom = 304.0
+offset_left = 7.0
+offset_top = 1.0
+offset_right = 77.0
+offset_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_bw1ex")
 
 [node name="VBox" type="VBoxContainer" parent="UILayer/GameOverPanel"]
 layout_mode = 0
@@ -559,6 +1171,9 @@ theme_override_constants/separation = 20
 
 [node name="ResultLabel" type="Label" parent="UILayer/GameOverPanel/VBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("6_j7akr")
 theme_override_font_sizes/font_size = 36
 text = "MISSION SUCCESS!
 Rating: Gold ⭐⭐⭐"
@@ -566,6 +1181,9 @@ horizontal_alignment = 1
 
 [node name="StatsLabel" type="Label" parent="UILayer/GameOverPanel/VBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.78852, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_dmne6")
 theme_override_font_sizes/font_size = 18
 text = "Score: 150
 Threats Blocked: 12
@@ -575,7 +1193,20 @@ horizontal_alignment = 1
 
 [node name="RestartButton" type="Button" parent="UILayer/GameOverPanel/VBox"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.60933, 0.60933, 0.60933, 1)
+theme_override_fonts/font = ExtResource("6_j7akr")
 theme_override_font_sizes/font_size = 24
+theme_override_styles/focus = SubResource("StyleBoxEmpty_dq85v")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_hrmkp")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_y0trj")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_w1nnn")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_wk1hk")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_qojie")
+theme_override_styles/hover = SubResource("StyleBoxTexture_5qpxn")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_aebwp")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_vf18p")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_x5nol")
+theme_override_styles/normal = SubResource("StyleBoxTexture_aijhp")
 text = "PLAY AGAIN"
 
 [connection signal="pressed" from="UILayer/StartPanel/VBox/StartButton" to="." method="_on_StartButton_pressed"]

@@ -64,108 +64,221 @@ func load_attack_data():
 
 func get_default_attacks():
 	return [
+		# WAVE 1 - Basic DATA attacks (Easy to understand)
 		{
 			"id": 1,
 			"name": "Ransomware Encryption",
 			"category": "data",
 			"description": "Malware encrypting employee database files!",
 			"icon": "📁🔒",
-			"explanation": "Ransomware targets DATA by encrypting files. Use backups and encryption defenses.",
+			"explanation": "Ransomware locks your DATA files. Think of it like someone putting a padlock on your filing cabinet. Use backups to recover!",
 			"cia_impact": {"C": 15, "I": 10},
 			"wave_unlock": 1
 		},
 		{
 			"id": 2,
-			"name": "DDoS Attack",
-			"category": "network",
-			"description": "1000+ bots flooding web server with traffic!",
-			"icon": "🌐💥",
-			"explanation": "DDoS targets NETWORK availability by overwhelming infrastructure. Use firewalls and rate limiting.",
-			"cia_impact": {"A": 20},
+			"name": "USB Virus",
+			"category": "data",
+			"description": "Infected USB drive copying files from computers!",
+			"icon": "💾🦠",
+			"explanation": "A virus on a USB stick steals DATA when plugged in. Like a thief copying files from your desk. Use antivirus protection!",
+			"cia_impact": {"C": 18},
 			"wave_unlock": 1
 		},
 		{
 			"id": 3,
+			"name": "Password Theft",
+			"category": "data",
+			"description": "Keylogger recording usernames and passwords!",
+			"icon": "🔑💀",
+			"explanation": "Someone is stealing your login DATA. Like writing down passwords from your keyboard. Use strong unique passwords!",
+			"cia_impact": {"C": 20},
+			"wave_unlock": 1
+		},
+		
+		# WAVE 1 - Basic NETWORK attacks
+		{
+			"id": 4,
+			"name": "DDoS Attack",
+			"category": "network",
+			"description": "1000+ bots flooding web server with traffic!",
+			"icon": "🌐💥",
+			"explanation": "Too many fake visitors crashing your NETWORK. Like thousands of people blocking a store entrance. Use traffic filters!",
+			"cia_impact": {"A": 20},
+			"wave_unlock": 1
+		},
+		{
+			"id": 5,
+			"name": "WiFi Jamming",
+			"category": "network",
+			"description": "Signal blocker disrupting wireless connections!",
+			"icon": "📡❌",
+			"explanation": "Someone is blocking your WiFi NETWORK signals. Like jamming a radio frequency. Use wired connections as backup!",
+			"cia_impact": {"A": 18},
+			"wave_unlock": 1
+		},
+		{
+			"id": 6,
+			"name": "Spam Email Flood",
+			"category": "network",
+			"description": "Millions of junk emails overloading mail server!",
+			"icon": "📧🌊",
+			"explanation": "Too many spam emails clogging your NETWORK email system. Like mailbox stuffing. Use spam filters!",
+			"cia_impact": {"A": 15},
+			"wave_unlock": 1
+		},
+		
+		# WAVE 2 - Intermediate DATA attacks
+		{
+			"id": 7,
 			"name": "SQL Injection",
 			"category": "data",
 			"description": "Hacker inserting code to extract customer records!",
 			"icon": "💉📊",
-			"explanation": "SQL Injection steals DATA from databases. Use input validation and parameterized queries.",
+			"explanation": "Attacker tricks your database to reveal DATA. Like asking a trick question to get secret info. Validate all inputs!",
 			"cia_impact": {"C": 20},
-			"wave_unlock": 1
-		},
-		{
-			"id": 4,
-			"name": "Man-in-the-Middle",
-			"category": "network",
-			"description": "Attacker intercepting unencrypted Wi-Fi traffic!",
-			"icon": "👤📡",
-			"explanation": "MitM attacks exploit NETWORK vulnerabilities. Use encryption (TLS/VPN).",
-			"cia_impact": {"C": 15},
 			"wave_unlock": 2
 		},
 		{
-			"id": 5,
+			"id": 8,
 			"name": "Insider Data Leak",
 			"category": "data",
 			"description": "Employee copying files to personal USB drive!",
 			"icon": "💾🚨",
-			"explanation": "Insider threats target DATA access. Use DLP and access controls.",
+			"explanation": "Someone inside is stealing DATA files. Like an employee photocopying documents. Monitor file access!",
 			"cia_impact": {"C": 18, "I": 5},
 			"wave_unlock": 2
 		},
 		{
-			"id": 6,
+			"id": 9,
+			"name": "Cloud Storage Hack",
+			"category": "data",
+			"description": "Weak password exposed company cloud files!",
+			"icon": "☁️🔓",
+			"explanation": "Your online DATA storage was accessed. Like someone guessing your locker combination. Use 2-factor authentication!",
+			"cia_impact": {"C": 22},
+			"wave_unlock": 2
+		},
+		
+		# WAVE 2 - Intermediate NETWORK attacks
+		{
+			"id": 10,
+			"name": "Man-in-the-Middle",
+			"category": "network",
+			"description": "Attacker intercepting unencrypted WiFi traffic!",
+			"icon": "👤📡",
+			"explanation": "Someone is eavesdropping on your NETWORK connection. Like tapping a phone line. Use encrypted connections (HTTPS)!",
+			"cia_impact": {"C": 15},
+			"wave_unlock": 2
+		},
+		{
+			"id": 11,
 			"name": "Port Scanning",
 			"category": "network",
 			"description": "Unknown IP probing network for open ports!",
 			"icon": "🔍🔌",
-			"explanation": "Port scanning is NETWORK reconnaissance. Use firewalls and IDS.",
+			"explanation": "Someone is checking your NETWORK for weak points. Like a burglar testing doors and windows. Use firewalls!",
 			"cia_impact": {},
 			"wave_unlock": 2
 		},
 		{
-			"id": 7,
+			"id": 12,
+			"name": "Rogue WiFi Hotspot",
+			"category": "network",
+			"description": "Fake 'Free WiFi' stealing login credentials!",
+			"icon": "📶🎭",
+			"explanation": "A fake WiFi NETWORK pretending to be real. Like a fake ATM stealing card info. Verify network names!",
+			"cia_impact": {"C": 20},
+			"wave_unlock": 2
+		},
+		
+		# WAVE 3 - Advanced DATA attacks
+		{
+			"id": 13,
 			"name": "Backup Corruption",
 			"category": "data",
 			"description": "Malware deleting disaster recovery backups!",
 			"icon": "💿❌",
-			"explanation": "Backup attacks target DATA redundancy. Use immutable backups.",
+			"explanation": "Your backup DATA copies are being destroyed. Like burning your emergency file copies. Use offline backups!",
 			"cia_impact": {"A": 25},
 			"wave_unlock": 3
 		},
 		{
-			"id": 8,
+			"id": 14,
+			"name": "Database Modification",
+			"category": "data",
+			"description": "Attacker changing prices in product database!",
+			"icon": "📊✏️",
+			"explanation": "Someone is altering your stored DATA. Like changing numbers in your ledger. Use database integrity checks!",
+			"cia_impact": {"I": 20},
+			"wave_unlock": 3
+		},
+		{
+			"id": 15,
+			"name": "Photo Metadata Leak",
+			"category": "data",
+			"description": "Uploaded images revealing GPS locations!",
+			"icon": "📸🗺️",
+			"explanation": "Hidden DATA in photos shows private locations. Like photos accidentally showing your address. Strip metadata!",
+			"cia_impact": {"C": 12},
+			"wave_unlock": 3
+		},
+		
+		# WAVE 3 - Advanced NETWORK attacks
+		{
+			"id": 16,
 			"name": "DNS Spoofing",
 			"category": "network",
 			"description": "Fake DNS redirecting traffic to malicious sites!",
 			"icon": "🌐🎭",
-			"explanation": "DNS spoofing corrupts NETWORK routing. Use DNSSEC.",
+			"explanation": "Your NETWORK address book is being faked. Like changing road signs to wrong destinations. Use secure DNS!",
 			"cia_impact": {"I": 15},
 			"wave_unlock": 3
 		},
 		{
-			"id": 9,
-			"name": "Phishing Keylogger",
+			"id": 17,
+			"name": "IP Spoofing",
+			"category": "network",
+			"description": "Attacker faking trusted IP address!",
+			"icon": "🎭🌐",
+			"explanation": "Someone pretends to be a trusted NETWORK device. Like using a fake ID badge. Verify device identities!",
+			"cia_impact": {"I": 18},
+			"wave_unlock": 3
+		},
+		{
+			"id": 18,
+			"name": "Cable Tap",
+			"category": "network",
+			"description": "Physical device attached to network cable!",
+			"icon": "🔌👀",
+			"explanation": "A spy device is reading NETWORK cable data. Like wiretapping a phone. Secure physical access to cables!",
+			"cia_impact": {"C": 22},
+			"wave_unlock": 3
+		},
+		
+		# WAVE 4 & 5 - Expert level attacks
+		{
+			"id": 19,
+			"name": "Document Forgery",
 			"category": "data",
-			"description": "Trojan capturing user login credentials!",
-			"icon": "🎣🔑",
-			"explanation": "Keyloggers steal DATA (credentials). Use 2FA and endpoint protection.",
-			"cia_impact": {"C": 20},
+			"description": "Fake invoices inserted into accounting system!",
+			"icon": "📄🖊️",
+			"explanation": "Someone is adding false DATA documents. Like forging checks in your checkbook. Use digital signatures!",
+			"cia_impact": {"I": 25},
 			"wave_unlock": 4
 		},
 		{
-			"id": 10,
-			"name": "Firewall Bypass",
+			"id": 20,
+			"name": "VPN Tunnel Breach",
 			"category": "network",
-			"description": "Attacker tunneling through VPN to internal network!",
+			"description": "Attacker exploiting weak VPN encryption!",
 			"icon": "🚧🕳️",
-			"explanation": "VPN attacks exploit NETWORK access controls. Use zero-trust architecture.",
-			"cia_impact": {"C": 10, "I": 10},
+			"explanation": "Your secure NETWORK tunnel has a hole. Like a secret passage being discovered. Update VPN security!",
+			"cia_impact": {"C": 20, "I": 10},
 			"wave_unlock": 4
 		}
 	]
-
+	
 func update_available_attacks():
 	available_attacks.clear()
 	for attack in attack_database:
@@ -284,7 +397,7 @@ func handle_wrong_answer(attack_data, wrong_zone, _card):
 	var wrong_category = "Network" if wrong_zone == "network" else "Data"
 	var correct_category = "DATA" if attack_data.category == "data" else "NETWORK"
 	var message = "Wrong! %s targets %s Security, not %s." % [attack_data.name, correct_category, wrong_category]
-	show_feedback(false, "❌ MISROUTED ATTACK!", message + "\n\n" + attack_data.explanation)
+	show_feedback(false, "MISROUTED ATTACK!", message + "\n\n" + attack_data.explanation)
 	
 	if audio_fail:
 		audio_fail.play()
@@ -311,7 +424,7 @@ func _on_card_expired(card):
 	for cia_type in cia_impact.keys():
 		system_health.reduce_cia(cia_type, cia_impact[cia_type] * 1.5)
 	
-	show_feedback(false, "⏱️ TIMEOUT!", "Failed to respond! " + attack_data.name + " succeeded.\n\n" + attack_data.explanation)
+	show_feedback(false, "⏱ TIMEOUT!", "Failed to respond! " + attack_data.name + " succeeded.\n\n" + attack_data.explanation)
 	
 	if audio_fail:
 		audio_fail.play()
@@ -352,14 +465,20 @@ func show_feedback(is_success, title, message):
 	popup.setup(is_success, title, message)
 
 func show_victory():
+	spawn_timer.stop()
+	
 	var victory = VICTORY_SCREEN.instantiate()
+	$CanvasLayer.add_child(victory)  # Add to CanvasLayer instead of Main
+	
+	# Wait for the victory screen to be ready
+	await victory.ready
+	
 	var accuracy = int((float(correct_attacks) / float(total_attacks)) * 100) if total_attacks > 0 else 0
 	victory.setup(score, accuracy, data_correct, data_total, network_correct, network_total)
-	add_child(victory)
 
 func game_over():
 	spawn_timer.stop()
-	show_feedback(false, "💀 SYSTEM COMPROMISED!", "CIA Triad integrity lost. Mission failed.\n\nBetter luck next time!")
+	show_feedback(false, "SYSTEM COMPROMISED!", "CIA Triad integrity lost. Mission failed.\n\nBetter luck next time!")
 	await get_tree().create_timer(3.0).timeout
 	get_tree().reload_current_scene()
 

@@ -1,7 +1,7 @@
 extends PanelContainer
 
-@onready var status_label = $VBox/StatusLabel
-@onready var message_label = $VBox/MessageLabel
+@onready var status_label = $MarginContainer/VBox/StatusLabel
+@onready var message_label = $MarginContainer/VBox/MessageLabel
 @onready var timer = $Timer
 
 func setup(is_success: bool, title: String, message: String):

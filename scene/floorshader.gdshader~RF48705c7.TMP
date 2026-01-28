@@ -1,0 +1,105 @@
+shader_type spatial;
+
+// Color controls
+uniform vec3 rock_color_dark : source_color = vec3(0.2, 0.2, 0.22);
+uniform vec3 rock_color_light : source_color = vec3(0.4, 0.38, 0.35);
+uniform vec3 crack_color : source_color = vec3(0.1, 0.1, 0.12);
+
+// Surface properties
+uniform float roughness : hint_range(0.0, 1.0) = 0.9;
+uniform float rock_scale : hint_range(0.1, 10.0) = 2.0;
+uniform float crack_amount : hint_range(0.0, 1.0) = 0.3;
+uniform float bump_strength : hint_range(0.0, 2.0) = 0.5;
+
+// Hash function for noise
+float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+}
+
+// 2D Noise function
+float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+// Fractal Brownian Motion (layered noise)
+float fbm(vec2 p) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    float frequency = 1.0;
+
+    for(int i = 0; i < 5; i++) {
+        value += amplitude * noise(p * frequency);
+        frequency *= 2.0;
+        amplitude *= 0.5;
+    }
+
+    return value;
+}
+
+// Voronoi pattern for cracks
+vec2 voronoi(vec2 p) {
+    vec2 n = floor(p);
+    vec2 f = fract(p);
+
+    float min_dist = 1.0;
+    vec2 min_point;
+
+    for(int j = -1; j <= 1; j++) {
+        for(int i = -1; i <= 1; i++) {
+            vec2 neighbor = vec2(float(i), float(j));
+            vec2 point = hash(n + neighbor) * vec2(1.0, 1.0) + neighbor;
+            float dist = length(point - f);
+
+            if(dist < min_dist) {
+                min_dist = dist;
+                min_point = point;
+            }
+        }
+    }
+
+    return vec2(min_dist, hash(n + min_point));
+}
+
+void fragment() {
+    // Scale UV coordinates
+    vec2 uv = UV * rock_scale;
+
+    // Generate base rock texture
+    float rock_pattern = fbm(uv * 2.0);
+
+    // Generate cracks using voronoi
+    vec2 voronoi_data = voronoi(uv * 8.0);
+    float cracks = smoothstep(crack_amount * 0.1, crack_amount * 0.2, voronoi_data.x);
+
+    // Mix colors based on noise
+    vec3 base_color = mix(rock_color_dark, rock_color_light, rock_pattern);
+
+    // Apply cracks
+    vec3 final_color = mix(crack_color, base_color, cracks);
+
+    // Add some variation
+    final_color *= 0.9 + 0.2 * noise(uv * 20.0);
+
+    ALBEDO = final_color;
+    ROUGHNESS = roughness;
+    METALLIC = 0.0;
+
+    // Create normal map for bumps
+    float height = rock_pattern * bump_strength;
+    NORMAL_MAP = vec3(
+        dFdx(height),
+        dFdy(height),
+        1.0
+    );
+}

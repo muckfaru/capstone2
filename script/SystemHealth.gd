@@ -25,10 +25,10 @@ func update_display():
 	integrity_bar.value = cia_values["I"]
 	availability_bar.value = cia_values["A"]
 	
-	# Update colors
-	update_bar_color(confidentiality_bar, cia_values["C"])
-	update_bar_color(integrity_bar, cia_values["I"])
-	update_bar_color(availability_bar, cia_values["A"])
+	# Update fill colors
+	update_bar_fill_color(confidentiality_bar, cia_values["C"])
+	update_bar_fill_color(integrity_bar, cia_values["I"])
+	update_bar_fill_color(availability_bar, cia_values["A"])
 	
 	# Update title
 	var avg = (cia_values["C"] + cia_values["I"] + cia_values["A"]) / 3.0
@@ -41,13 +41,15 @@ func update_display():
 	else:
 		title_label.add_theme_color_override("font_color", Color(1, 1, 1))
 
-func update_bar_color(bar: ProgressBar, value: float):
-	if value < 30:
-		bar.modulate = Color(1, 0.2, 0.2)
-	elif value < 60:
-		bar.modulate = Color(1, 1, 0.2)
-	else:
-		bar.modulate = Color(0.2, 1, 0.2)
+func update_bar_fill_color(bar: ProgressBar, value: float):
+	var style = bar.get_theme_stylebox("fill")
+	if style is StyleBoxFlat:
+		if value < 30:
+			style.bg_color = Color(1, 0.2, 0.2, 0.73)  # Red with transparency
+		elif value < 60:
+			style.bg_color = Color(1, 0.6, 0, 0.73)  # Orange with transparency
+		else:
+			style.bg_color = Color(0, 0.725, 0.412, 0.73)  # Green with transparency (#00b9419a)
 
 func show_damage_effect(cia_type: String):
 	var bar = get_bar_for_type(cia_type)
