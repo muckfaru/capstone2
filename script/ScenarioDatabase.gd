@@ -1,16 +1,15 @@
 class_name ScenarioDatabase
 extends Node
 
-# All game scenarios organized by wave
+# All game scenarios organized by wave with educational focus on authentication
 var scenarios_data = []
 
 func _init():
 	_initialize_scenarios()
 
 func _initialize_scenarios():
-	# WAVE 1-3: FUNDAMENTALS
+	# WAVE 1: AUTHENTICATION BASICS - Understanding WHO is requesting access
 	scenarios_data = [
-		# Wave 1
 		{
 			"user_name": "Sarah Chen",
 			"user_role": "employee",
@@ -23,11 +22,30 @@ func _initialize_scenarios():
 			"context_flags": [],
 			"correct_action": "grant",
 			"is_attacker": false,
-			"feedback_correct": "Correct! Employee accessing appropriate departmental resources.",
-			"feedback_incorrect": "This was a legitimate request. Denying appropriate access hurts productivity.",
+			"feedback_correct": "✓ CORRECT! Simple password authentication is acceptable for low-risk resources when all context is normal.",
+			"feedback_incorrect": "✗ This was legitimate. Don't over-restrict - balance security with productivity.",
 			"threat_consequence": 10,
 			"wave": 1,
-			"time_limit": 20.0
+			"time_limit": 25.0
+		},
+		{
+			"user_name": "James Wilson",
+			"user_role": "employee",
+			"auth_level": 1,
+			"auth_passed": false,
+			"requested_resource": "Employee Portal",
+			"risk_level": "low",
+			"location": "Seattle, WA",
+			"device": "Company Laptop",
+			"time": "09:00 PST",
+			"context_flags": ["mfa_failed"],
+			"correct_action": "deny",
+			"is_attacker": true,
+			"feedback_correct": "✓ EXCELLENT! Failed authentication = deny access. This is fundamental Rule #1.",
+			"feedback_incorrect": "✗ BREACH! Never grant access when authentication fails. Authentication verifies WHO the user is.",
+			"threat_consequence": 45,
+			"wave": 1,
+			"time_limit": 25.0
 		},
 		{
 			"user_name": "Marcus Johnson",
@@ -41,12 +59,14 @@ func _initialize_scenarios():
 			"context_flags": [],
 			"correct_action": "deny",
 			"is_attacker": false,
-			"feedback_correct": "Correct! Interns should not access financial data. Least privilege enforced.",
-			"feedback_incorrect": "Security breach! Intern accessed financial records. This violates least privilege principle.",
+			"feedback_correct": "✓ CORRECT! Authentication passed (WHO) but authorization failed (WHAT). Interns lack permission for financial data.",
+			"feedback_incorrect": "✗ Authentication ≠ Authorization! They proved WHO they are, but don't have permission for WHAT they requested.",
 			"threat_consequence": 30,
 			"wave": 1,
-			"time_limit": 20.0
+			"time_limit": 25.0
 		},
+		
+		# WAVE 2: MULTI-FACTOR AUTHENTICATION (MFA) - Strengthening WHO verification
 		{
 			"user_name": "Dr. Elena Rodriguez",
 			"user_role": "admin",
@@ -59,14 +79,30 @@ func _initialize_scenarios():
 			"context_flags": ["public_network", "personal_device"],
 			"correct_action": "require_mfa",
 			"is_attacker": false,
-			"feedback_correct": "Excellent! Admin access from public network requires MFA for security.",
-			"feedback_incorrect": "Risky! Admin credentials on public WiFi without MFA can be intercepted.",
-			"threat_consequence": 25,
-			"wave": 1,
-			"time_limit": 20.0
+			"feedback_correct": "✓ PERFECT! Password-only auth is weak. MFA adds 'something you have' to 'something you know' = 99% attack prevention.",
+			"feedback_incorrect": "✗ RISKY! Passwords can be stolen/intercepted. MFA requires a second factor to prove WHO they are.",
+			"threat_consequence": 35,
+			"wave": 2,
+			"time_limit": 22.0
 		},
-		
-		# Wave 2
+		{
+			"user_name": "Lisa Wong",
+			"user_role": "developer",
+			"auth_level": 1,
+			"requested_resource": "Production Database Access",
+			"risk_level": "critical",
+			"location": "Seattle, WA",
+			"device": "Company Laptop",
+			"time": "15:00 PST",
+			"context_flags": [],
+			"correct_action": "require_mfa",
+			"is_attacker": false,
+			"feedback_correct": "✓ GREAT! Critical resources should ALWAYS require MFA, even in normal conditions. Defense in depth!",
+			"feedback_incorrect": "✗ Critical systems need MFA protection. One compromised password = entire database breach without MFA.",
+			"threat_consequence": 40,
+			"wave": 2,
+			"time_limit": 22.0
+		},
 		{
 			"user_name": "James Park",
 			"user_role": "developer",
@@ -79,17 +115,113 @@ func _initialize_scenarios():
 			"context_flags": [],
 			"correct_action": "grant",
 			"is_attacker": false,
-			"feedback_correct": "Good! Developer with proper MFA accessing appropriate resources.",
-			"feedback_incorrect": "This was legitimate. Developer needs code access for their job.",
+			"feedback_correct": "✓ GOOD! MFA completed = strong authentication. All context normal. This is proper security!",
+			"feedback_incorrect": "✗ Don't over-restrict legitimate users who've completed proper MFA. Trust but verify!",
 			"threat_consequence": 15,
 			"wave": 2,
+			"time_limit": 22.0
+		},
+		{
+			"user_name": "Robert Martinez",
+			"user_role": "employee",
+			"auth_level": 2,
+			"auth_passed": false,
+			"requested_resource": "Email System",
+			"risk_level": "low",
+			"location": "Seattle, WA",
+			"device": "Company Phone",
+			"time": "11:30 PST",
+			"context_flags": ["mfa_failed"],
+			"correct_action": "deny",
+			"is_attacker": true,
+			"feedback_correct": "✓ EXCELLENT! MFA failure = authentication failure. Even for 'low risk' resources, failed auth = DENY.",
+			"feedback_incorrect": "✗ BREACH! Attacker tried stolen password but didn't have the second factor (phone). MFA stopped this!",
+			"threat_consequence": 40,
+			"wave": 2,
+			"time_limit": 22.0
+		},
+		
+		# WAVE 3: AUTHENTICATION CONTEXT - Location, Time, Device matter
+		{
+			"user_name": "Sarah Chen",
+			"user_role": "employee",
+			"auth_level": 1,
+			"requested_resource": "Company Wiki",
+			"risk_level": "low",
+			"location": "Tokyo, Japan",
+			"device": "Personal Phone",
+			"time": "22:00 PST (2pm local)",
+			"context_flags": [],
+			"correct_action": "grant",
+			"is_attacker": false,
+			"feedback_correct": "✓ CORRECT! Business travel is normal. Different location isn't suspicious if it makes sense for the user.",
+			"feedback_incorrect": "✗ Don't deny legitimate travel! Context awareness means understanding user behavior patterns.",
+			"threat_consequence": 15,
+			"wave": 3,
+			"time_limit": 20.0
+		},
+		{
+			"user_name": "Elena Rodriguez",
+			"user_role": "admin",
+			"auth_level": 1,
+			"requested_resource": "Server Access",
+			"risk_level": "high",
+			"location": "Moscow, Russia",
+			"device": "Unknown Device",
+			"time": "03:00 PST",
+			"context_flags": ["wrong_location", "unknown_device", "unusual_time"],
+			"correct_action": "require_mfa",
+			"is_attacker": false,
+			"feedback_correct": "✓ SMART! Unusual context = verify identity harder. MFA confirms WHO they are despite red flags.",
+			"feedback_incorrect": "✗ Multiple red flags demand stronger authentication! MFA would verify their identity.",
+			"threat_consequence": 35,
+			"wave": 3,
+			"time_limit": 20.0
+		},
+		{
+			"user_name": "James Park",
+			"user_role": "developer",
+			"auth_level": 1,
+			"auth_passed": false,
+			"requested_resource": "AWS Console",
+			"risk_level": "critical",
+			"location": "Lagos, Nigeria",
+			"device": "Unknown Device",
+			"time": "04:30 PST",
+			"context_flags": ["mfa_failed", "wrong_location", "unknown_device", "unusual_time"],
+			"correct_action": "deny",
+			"is_attacker": true,
+			"feedback_correct": "✓ PERFECT! Failed auth + suspicious context = credential theft. Authentication stopped this attack!",
+			"feedback_incorrect": "✗ CRITICAL BREACH! Stolen credentials from different country. MFA failure is the key indicator!",
+			"threat_consequence": 55,
+			"wave": 3,
+			"time_limit": 20.0
+		},
+		
+		# WAVE 4: AUTHENTICATION LEVELS - Different strengths for different needs
+		{
+			"user_name": "Priya Sharma",
+			"user_role": "contractor",
+			"auth_level": 2,
+			"requested_resource": "Client Database - Read Only",
+			"risk_level": "medium",
+			"location": "Mumbai, India",
+			"device": "Personal Device",
+			"time": "09:00 PST (9:30pm local)",
+			"context_flags": [],
+			"correct_action": "grant",
+			"is_attacker": false,
+			"feedback_correct": "✓ GOOD! MFA authentication for contractors accessing client data is appropriate security.",
+			"feedback_incorrect": "✗ Contractors with proper MFA and valid contracts should have access to their assigned resources.",
+			"threat_consequence": 20,
+			"wave": 4,
 			"time_limit": 18.0
 		},
 		{
 			"user_name": "Priya Sharma",
 			"user_role": "contractor",
 			"auth_level": 2,
-			"requested_resource": "Client Database - All Records",
+			"requested_resource": "Client Database - Full Access",
 			"risk_level": "high",
 			"location": "Mumbai, India",
 			"device": "Personal Device",
@@ -97,34 +229,32 @@ func _initialize_scenarios():
 			"context_flags": ["contract_expired", "unusual_time"],
 			"correct_action": "deny",
 			"is_attacker": false,
-			"feedback_correct": "Perfect! Contract expired 2 weeks ago. Access should have been revoked.",
-			"feedback_incorrect": "Major breach! Former contractor retained access to sensitive client data.",
-			"threat_consequence": 40,
-			"wave": 2,
+			"feedback_correct": "✓ EXCELLENT! Contract expired = authentication credentials should be revoked. MFA doesn't help if account should be disabled!",
+			"feedback_incorrect": "✗ MAJOR BREACH! Former contractor retained access. Authentication management includes disabling old accounts!",
+			"threat_consequence": 45,
+			"wave": 4,
 			"time_limit": 18.0
 		},
-		
-		# Wave 3
 		{
-			"user_name": "Alex Thompson",
-			"user_role": "employee",
-			"auth_level": 1,
-			"requested_resource": "HR Payroll System",
-			"risk_level": "high",
+			"user_name": "Dr. Elena Rodriguez",
+			"user_role": "admin",
+			"auth_level": 3,
+			"requested_resource": "Domain Controller Access",
+			"risk_level": "critical",
 			"location": "Seattle, WA",
-			"device": "Company Laptop",
-			"time": "11:00 PST",
-			"context_flags": ["wrong_department"],
-			"correct_action": "deny",
+			"device": "Company Laptop + Hardware Token",
+			"time": "10:00 PST",
+			"context_flags": [],
+			"correct_action": "grant",
 			"is_attacker": false,
-			"feedback_correct": "Correct! Marketing employee shouldn't access HR payroll. Least privilege.",
-			"feedback_incorrect": "Privacy violation! Non-HR employee accessed salary information.",
-			"threat_consequence": 35,
-			"wave": 3,
+			"feedback_correct": "✓ PERFECT! Hardware token = strongest authentication (Level 3). Something you HAVE + can't be phished!",
+			"feedback_incorrect": "✗ This is gold standard authentication! Hardware tokens provide cryptographic proof of identity.",
+			"threat_consequence": 10,
+			"wave": 4,
 			"time_limit": 18.0
 		},
 		
-		# WAVE 4-6: MFA & CONTEXT AWARENESS
+		# WAVE 5: SESSION HIJACKING & RE-AUTHENTICATION
 		{
 			"user_name": "James Park",
 			"user_role": "developer",
@@ -137,70 +267,179 @@ func _initialize_scenarios():
 			"context_flags": ["unusual_time"],
 			"correct_action": "grant",
 			"is_attacker": false,
-			"feedback_correct": "Good judgment! Late deployment with proper MFA is acceptable for developers.",
-			"feedback_incorrect": "This was legitimate. Developers often deploy after hours to minimize disruption.",
+			"feedback_correct": "✓ GOOD! Late deployment with proper MFA is acceptable. Authentication context should consider job role patterns.",
+			"feedback_incorrect": "✗ Developers often deploy after hours. Strong authentication allows flexibility for legitimate work.",
 			"threat_consequence": 20,
-			"wave": 4,
-			"time_limit": 15.0
+			"wave": 5,
+			"time_limit": 16.0
 		},
-		{
-			"user_name": "Elena Rodriguez",
-			"user_role": "admin",
-			"auth_level": 1,
-			"auth_passed": false,
-			"requested_resource": "Security Audit Logs",
-			"risk_level": "high",
-			"location": "Kyiv, Ukraine",
-			"device": "Unknown Device",
-			"time": "03:15 PST",
-			"context_flags": ["mfa_failed", "wrong_location", "unusual_time", "unknown_device"],
-			"correct_action": "deny",
-			"is_attacker": true,
-			"feedback_correct": "Excellent! Stolen admin credentials detected. MFA failure + wrong location = attack.",
-			"feedback_incorrect": "CRITICAL BREACH! Attacker gained admin access. They can now cover their tracks.",
-			"threat_consequence": 50,
-			"wave": 4,
-			"time_limit": 15.0
-		},
-		
-		# Wave 5
 		{
 			"user_name": "Sarah Chen",
 			"user_role": "employee",
 			"auth_level": 2,
 			"requested_resource": "Download Customer Database (500GB)",
-			"risk_level": "high",
+			"risk_level": "critical",
 			"location": "Seattle, WA",
 			"device": "Company Laptop",
 			"time": "14:00 PST",
 			"context_flags": ["unusual_request", "large_download"],
-			"correct_action": "deny",
+			"correct_action": "require_mfa",
 			"is_attacker": false,
-			"feedback_correct": "Great call! HR employee has no business downloading entire customer database.",
-			"feedback_incorrect": "Data exfiltration! 50,000 customer records exposed. GDPR fine: $500,000.",
-			"threat_consequence": 45,
+			"feedback_correct": "✓ SMART! Unusual behavior = re-authenticate! Step-up authentication for sensitive actions even in active session.",
+			"feedback_incorrect": "✗ HR downloading entire customer DB is unusual! Re-authentication verifies it's really them doing this.",
+			"threat_consequence": 40,
 			"wave": 5,
+			"time_limit": 16.0
+		},
+		{
+			"user_name": "Lisa Wong",
+			"user_role": "developer",
+			"auth_level": 2,
+			"requested_resource": "Change Password for User 'admin'",
+			"risk_level": "critical",
+			"location": "Seattle, WA",
+			"device": "Work Laptop",
+			"time": "15:30 PST",
+			"context_flags": ["privilege_escalation"],
+			"correct_action": "deny",
+			"is_attacker": true,
+			"feedback_correct": "✓ EXCELLENT! Session hijacked! Real user authenticated, but attacker took over. Unusual action reveals the attack.",
+			"feedback_incorrect": "✗ BREACH! Attacker hijacked authenticated session. Authentication isn't just login - monitor ongoing activity!",
+			"threat_consequence": 50,
+			"wave": 5,
+			"time_limit": 16.0
+		},
+		
+		# WAVE 6: BIOMETRIC & ADAPTIVE AUTHENTICATION
+		{
+			"user_name": "Dr. Elena Rodriguez",
+			"user_role": "admin",
+			"auth_level": 3,
+			"requested_resource": "Security Audit Logs",
+			"risk_level": "high",
+			"location": "Seattle, WA",
+			"device": "Company Laptop + Fingerprint",
+			"time": "09:00 PST",
+			"context_flags": [],
+			"correct_action": "grant",
+			"is_attacker": false,
+			"feedback_correct": "✓ PERFECT! Biometric (fingerprint) + hardware token = multi-modal authentication. Extremely secure!",
+			"feedback_incorrect": "✗ This is best-practice authentication! Biometrics provide 'something you ARE' factor.",
+			"threat_consequence": 10,
+			"wave": 6,
+			"time_limit": 15.0
+		},
+		{
+			"user_name": "Alex Thompson",
+			"user_role": "employee",
+			"auth_level": 2,
+			"requested_resource": "Change Email Forwarding Rules",
+			"risk_level": "medium",
+			"location": "Seattle, WA",
+			"device": "Company Laptop",
+			"time": "14:00 PST",
+			"context_flags": ["unusual_request"],
+			"correct_action": "require_mfa",
+			"is_attacker": false,
+			"feedback_correct": "✓ GREAT! Adaptive authentication! Email forwarding changes are attack indicators - verify identity again.",
+			"feedback_incorrect": "✗ Email forwarding = common attack vector. Re-authentication for sensitive settings changes!",
+			"threat_consequence": 35,
+			"wave": 6,
+			"time_limit": 15.0
+		},
+		{
+			"user_name": "Marcus Johnson",
+			"user_role": "intern",
+			"auth_level": 1,
+			"requested_resource": "VPN Access from New Location",
+			"risk_level": "medium",
+			"location": "Home Address (First Time)",
+			"device": "Personal Laptop",
+			"time": "18:00 PST",
+			"context_flags": ["unknown_device"],
+			"correct_action": "require_mfa",
+			"is_attacker": false,
+			"feedback_correct": "✓ EXCELLENT! Risk-based authentication! New device/location = verify identity more thoroughly.",
+			"feedback_incorrect": "✗ First-time access from new location should trigger MFA challenge. Adaptive security!",
+			"threat_consequence": 30,
+			"wave": 6,
 			"time_limit": 15.0
 		},
 		
-		# WAVE 7-10: ADVANCED THREATS
+		# WAVE 7: SOCIAL ENGINEERING & AUTHENTICATION BYPASS
 		{
 			"user_name": "Marcus Johnson",
 			"user_role": "intern",
 			"auth_level": 1,
 			"requested_resource": "Admin Panel Access",
-			"risk_level": "high",
+			"risk_level": "critical",
 			"location": "Seattle, WA",
-			"device": "New Device",
+			"device": "Company Laptop",
 			"time": "02:00 PST",
 			"context_flags": ["unusual_time", "privilege_escalation", "social_engineering"],
 			"correct_action": "deny",
 			"is_attacker": true,
-			"feedback_correct": "Perfect! Social engineering detected. 'CEO urgent request' at 2 AM is classic attack.",
-			"feedback_incorrect": "Compromised! Attacker used stolen intern credentials to gain admin access.",
+			"feedback_correct": "✓ PERFECT! Social engineering detected. Authentication succeeded but authorization logic violated. 'CEO urgent request' = classic attack.",
+			"feedback_incorrect": "✗ COMPROMISED! Stolen intern credentials + social engineering. Authentication alone isn't enough - check authorization!",
+			"threat_consequence": 55,
+			"wave": 7,
+			"time_limit": 12.0
+		},
+		{
+			"user_name": "IT Support",
+			"user_role": "employee",
+			"auth_level": 1,
+			"requested_resource": "Password Reset for 'Elena Rodriguez'",
+			"risk_level": "high",
+			"location": "Seattle, WA",
+			"device": "Help Desk System",
+			"time": "16:00 PST",
+			"context_flags": ["social_engineering"],
+			"correct_action": "require_mfa",
+			"is_attacker": true,
+			"feedback_correct": "✓ GREAT! Password reset requests should verify BOTH the support agent AND the account owner via out-of-band MFA!",
+			"feedback_incorrect": "✗ ATTACK! Attacker impersonated IT support. Password resets need multi-channel verification!",
 			"threat_consequence": 50,
 			"wave": 7,
 			"time_limit": 12.0
+		},
+		{
+			"user_name": "Sarah Chen",
+			"user_role": "employee",
+			"auth_level": 1,
+			"requested_resource": "Click Link in Email: 'Reset Your Password'",
+			"risk_level": "critical",
+			"location": "Seattle, WA",
+			"device": "Company Laptop",
+			"time": "10:00 PST",
+			"context_flags": ["social_engineering"],
+			"correct_action": "deny",
+			"is_attacker": true,
+			"feedback_correct": "✓ EXCELLENT! Phishing attack! Never authenticate via email links. User should go directly to official site.",
+			"feedback_incorrect": "✗ PHISHED! Email links can lead to fake authentication pages. Always verify URL before entering credentials!",
+			"threat_consequence": 45,
+			"wave": 7,
+			"time_limit": 12.0
+		},
+		
+		# WAVE 8: ZERO TRUST & CONTINUOUS AUTHENTICATION
+		{
+			"user_name": "James Park",
+			"user_role": "developer",
+			"auth_level": 2,
+			"requested_resource": "Access Git Repository",
+			"risk_level": "low",
+			"location": "Seattle, WA",
+			"device": "Work Laptop",
+			"time": "10:00 PST",
+			"context_flags": [],
+			"correct_action": "grant",
+			"is_attacker": false,
+			"feedback_correct": "✓ GOOD! Zero Trust doesn't mean deny everything - it means verify everything. Normal activity with proper auth = grant.",
+			"feedback_incorrect": "✗ Zero Trust = verify, not deny. Authenticated users doing normal work should have access.",
+			"threat_consequence": 15,
+			"wave": 8,
+			"time_limit": 10.0
 		},
 		{
 			"user_name": "James Park",
@@ -214,35 +453,111 @@ func _initialize_scenarios():
 			"context_flags": ["destructive_action", "unusual_request"],
 			"correct_action": "deny",
 			"is_attacker": true,
-			"feedback_correct": "Critical save! This was ransomware attempting to delete backups before encryption.",
-			"feedback_incorrect": "CATASTROPHIC! Ransomware deleted backups then encrypted systems. Recovery cost: $2.4M",
+			"feedback_correct": "✓ CRITICAL SAVE! Zero Trust principle: Never trust, always verify. Destructive actions need re-authentication + approval!",
+			"feedback_incorrect": "✗ CATASTROPHIC! Ransomware using compromised authenticated session. Continuous authentication monitors behavior!",
 			"threat_consequence": 60,
 			"wave": 8,
 			"time_limit": 10.0
 		},
 		{
+			"user_name": "Lisa Wong",
+			"user_role": "developer",
+			"auth_level": 3,
+			"requested_resource": "Install Backdoor Service",
+			"risk_level": "critical",
+			"location": "Seattle, WA",
+			"device": "Work Laptop + Hardware Token",
+			"time": "14:00 PST",
+			"context_flags": ["unusual_request"],
+			"correct_action": "deny",
+			"is_attacker": true,
+			"feedback_correct": "✓ PERFECT! Even strong authentication doesn't mean blind trust. Unusual behavior = deny + investigate!",
+			"feedback_incorrect": "✗ BREACH! Strong authentication was bypassed via compromised device. Zero Trust = continuous verification!",
+			"threat_consequence": 55,
+			"wave": 8,
+			"time_limit": 10.0
+		},
+		
+		# WAVE 9: AUTHENTICATION BEST PRACTICES
+		{
 			"user_name": "Dr. Elena Rodriguez",
 			"user_role": "admin",
 			"auth_level": 3,
-			"requested_resource": "System Configuration Files",
+			"requested_resource": "View Security Policies",
 			"risk_level": "medium",
 			"location": "Seattle, WA",
-			"device": "Company Laptop",
+			"device": "Company Laptop + Hardware Token",
 			"time": "10:00 PST",
 			"context_flags": [],
 			"correct_action": "grant",
 			"is_attacker": false,
-			"feedback_correct": "Correct! Legitimate admin request with strong authentication.",
-			"feedback_incorrect": "False denial. This was the actual admin with hardware token MFA.",
+			"feedback_correct": "✓ PERFECT! Legitimate admin with strongest authentication. This is textbook proper access!",
+			"feedback_incorrect": "✗ False denial. Don't over-restrict properly authenticated administrators doing their job.",
 			"threat_consequence": 10,
 			"wave": 9,
+			"time_limit": 10.0
+		},
+		{
+			"user_name": "Automated Service",
+			"user_role": "service_account",
+			"auth_level": 3,
+			"requested_resource": "Backup Database at 2 AM",
+			"risk_level": "low",
+			"location": "Internal Network",
+			"device": "Backup Server",
+			"time": "02:00 PST",
+			"context_flags": [],
+			"correct_action": "grant",
+			"is_attacker": false,
+			"feedback_correct": "✓ EXCELLENT! Service account authentication with API keys/certificates. Scheduled tasks are normal at odd hours!",
+			"feedback_incorrect": "✗ Service accounts need authentication too! API keys, certificates = non-human authentication methods.",
+			"threat_consequence": 25,
+			"wave": 9,
+			"time_limit": 10.0
+		},
+		{
+			"user_name": "Guest WiFi",
+			"user_role": "guest",
+			"auth_level": 1,
+			"requested_resource": "Internal File Servers",
+			"risk_level": "high",
+			"location": "Office - Guest Network",
+			"device": "Unknown Device",
+			"time": "11:00 PST",
+			"context_flags": ["wrong_network"],
+			"correct_action": "deny",
+			"is_attacker": true,
+			"feedback_correct": "✓ PERFECT! Network segmentation + authentication. Guest network should NEVER access internal resources!",
+			"feedback_incorrect": "✗ BREACH! Guest WiFi lacks proper authentication for internal access. Network boundaries matter!",
+			"threat_consequence": 50,
+			"wave": 9,
+			"time_limit": 10.0
+		},
+		
+		# WAVE 10: FINAL EXAM - Complex Authentication Scenarios
+		{
+			"user_name": "Alex Thompson",
+			"user_role": "employee",
+			"auth_level": 2,
+			"requested_resource": "Access Personal Files",
+			"risk_level": "low",
+			"location": "Seattle, WA",
+			"device": "Company Laptop",
+			"time": "13:00 PST",
+			"context_flags": [],
+			"correct_action": "grant",
+			"is_attacker": false,
+			"feedback_correct": "✓ CORRECT! MFA completed, normal context, appropriate resource. Efficient security allows productivity!",
+			"feedback_incorrect": "✗ Don't block legitimate work! Authentication is about protecting, not obstructing.",
+			"threat_consequence": 10,
+			"wave": 10,
 			"time_limit": 10.0
 		},
 		{
 			"user_name": "Alex Thompson",
 			"user_role": "employee",
 			"auth_level": 2,
-			"requested_resource": "Install Third-Party Software",
+			"requested_resource": "Install Unapproved Software: 'Productivity Tool'",
 			"risk_level": "high",
 			"location": "Seattle, WA",
 			"device": "Company Laptop",
@@ -250,9 +565,45 @@ func _initialize_scenarios():
 			"context_flags": ["unapproved_software"],
 			"correct_action": "deny",
 			"is_attacker": false,
-			"feedback_correct": "Good! Employees shouldn't install unapproved software. Malware prevention.",
-			"feedback_incorrect": "Malware installed! Network-wide ransomware infection. 200 systems compromised.",
+			"feedback_correct": "✓ EXCELLENT! Authentication passed, but authorization failed. Software installation needs admin privileges + approval!",
+			"feedback_incorrect": "✗ MALWARE! Authentication confirms WHO, not WHAT they can do. Privilege separation prevents this!",
 			"threat_consequence": 55,
+			"wave": 10,
+			"time_limit": 10.0
+		},
+		{
+			"user_name": "CFO Office",
+			"user_role": "executive",
+			"auth_level": 1,
+			"requested_resource": "Wire Transfer $50,000",
+			"risk_level": "critical",
+			"location": "Seattle, WA",
+			"device": "Company Desktop",
+			"time": "16:45 PST",
+			"context_flags": ["social_engineering"],
+			"correct_action": "require_mfa",
+			"is_attacker": true,
+			"feedback_correct": "✓ PERFECT! BEC (Business Email Compromise) attack! Financial transactions need multi-person authentication!",
+			"feedback_incorrect": "✗ $50,000 STOLEN! Never trust urgent financial requests. Require MFA + callback verification!",
+			"threat_consequence": 60,
+			"wave": 10,
+			"time_limit": 10.0
+		},
+		{
+			"user_name": "System Administrator",
+			"user_role": "admin",
+			"auth_level": 3,
+			"requested_resource": "Emergency Server Restart",
+			"risk_level": "high",
+			"location": "Seattle, WA",
+			"device": "Admin Workstation + Hardware Token",
+			"time": "03:00 PST",
+			"context_flags": ["unusual_time"],
+			"correct_action": "grant",
+			"is_attacker": false,
+			"feedback_correct": "✓ PERFECT! IT emergencies happen at odd hours. Strongest authentication + admin role = appropriate access!",
+			"feedback_incorrect": "✗ False denial during emergency! Proper authentication allows admins to respond to critical issues.",
+			"threat_consequence": 30,
 			"wave": 10,
 			"time_limit": 10.0
 		}
@@ -263,10 +614,27 @@ func get_scenarios_for_wave(wave: int) -> Array:
 	for data in scenarios_data:
 		if data.wave == wave:
 			wave_scenarios.append(Scenario.create_scenario(data))
+	
+	# Randomize the order within the wave
+	wave_scenarios.shuffle()
 	return wave_scenarios
 
 func get_all_scenarios() -> Array:
 	var all = []
 	for data in scenarios_data:
 		all.append(Scenario.create_scenario(data))
+	
+	# Shuffle all scenarios randomly
+	all.shuffle()
 	return all
+
+func get_randomized_scenarios_by_wave() -> Array:
+	"""Get scenarios organized by wave, but randomized within each wave"""
+	var result = []
+	
+	# Process each wave separately to maintain difficulty progression
+	for wave_num in range(1, 11):  # Waves 1-10
+		var wave_scenarios = get_scenarios_for_wave(wave_num)
+		result.append_array(wave_scenarios)
+	
+	return result

@@ -1,0 +1,385 @@
+[gd_scene load_steps=2 format=3 uid="uid://dpq8vn5hx7m2e"]
+
+[ext_resource type="Script" uid="uid://b4gsjtsahcpcy" path="res://script/Crypto adventure.gd" id="1"]
+
+[node name="CryptoAdventure" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.08, 0.15, 1)
+
+[node name="GameArea" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayerArea" type="Control" parent="GameArea"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 50.0
+offset_top = -75.0
+offset_right = 200.0
+offset_bottom = 75.0
+grow_vertical = 2
+
+[node name="PlayerSprite" type="Label" parent="GameArea/PlayerArea"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -40.0
+offset_right = 40.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 64
+text = "🛡️"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EnemyArea" type="Control" parent="GameArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="AttackArea" type="Control" parent="GameArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TopBar" type="PanelContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 100.0
+grow_horizontal = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/TopBar"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="PlayerStats" type="VBoxContainer" parent="UI/TopBar/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="HealthLabel" type="Label" parent="UI/TopBar/HBoxContainer/PlayerStats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 20
+text = "❤️ Health: 100 / 100"
+
+[node name="HealthBar" type="ProgressBar" parent="UI/TopBar/HBoxContainer/PlayerStats"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="LevelLabel" type="Label" parent="UI/TopBar/HBoxContainer/PlayerStats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 16
+text = "⭐ Level: 1"
+
+[node name="KeysLabel" type="Label" parent="UI/TopBar/HBoxContainer/PlayerStats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "🔑 Keys: 0"
+
+[node name="WaveInfo" type="VBoxContainer" parent="UI/TopBar/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="WaveLabel" type="Label" parent="UI/TopBar/HBoxContainer/WaveInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "🌊 Wave: 0"
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="UI/TopBar/HBoxContainer/WaveInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Defeat enemies to progress!"
+horizontal_alignment = 1
+
+[node name="BossBar" type="PanelContainer" parent="UI"]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 20.0
+offset_right = 300.0
+offset_bottom = 80.0
+grow_horizontal = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/BossBar"]
+layout_mode = 2
+
+[node name="BossLabel" type="Label" parent="UI/BossBar/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 24
+text = "👾 BOSS"
+horizontal_alignment = 1
+
+[node name="BossHealthBar" type="ProgressBar" parent="UI/BossBar/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="BottomBar" type="PanelContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -120.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="AbilityBar" type="HBoxContainer" parent="UI/BottomBar"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="TutorialLabel" type="Label" parent="UI"]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -180.0
+offset_right = 200.0
+offset_bottom = -140.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 18
+text = "Press keys to use abilities!"
+horizontal_alignment = 1
+
+[node name="MenuPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -250.0
+offset_right = 300.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MenuPanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="MenuPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 1, 1)
+theme_override_font_sizes/font_size = 48
+text = "🔐 CRYPTO DEFENDER"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="MenuPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 20
+text = "Action-Adventure Cryptography Game"
+horizontal_alignment = 1
+
+[node name="DescriptionLabel" type="Label" parent="MenuPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 16
+text = "⚔️ Fight cyber threats with encryption!
+🔑 Collect keys to unlock powerful abilities!
+👾 Defeat the Master Hacker boss!"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="StartButton" type="Button" parent="MenuPanel/VBoxContainer"]
+custom_minimum_size = Vector2(250, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "⚔️ START GAME"
+
+[node name="ControlsLabel" type="Label" parent="MenuPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 14
+text = "Controls:
+[E] - Encrypt Attack
+[D] - Decrypt (Heal)
+[Space] - Shield"
+horizontal_alignment = 1
+
+[node name="DialoguePanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -200.0
+offset_right = 400.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="DialoguePanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="DialogueText" type="Label" parent="DialoguePanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Dialogue text here..."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="ContinueButton" type="Button" parent="DialoguePanel/VBox"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
+text = "Continue →"
+
+[node name="GameOverPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="GameOverPanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="GameOverPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 42
+text = "💀 GAME OVER"
+horizontal_alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="GameOverPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Score info here"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="GameOverPanel/VBox"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
+text = "🔄 Restart"
+
+[node name="QuitButton" type="Button" parent="GameOverPanel/VBox"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
+text = "❌ Quit"
+
+[node name="ExplanationPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -200.0
+offset_right = 350.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="ExplanationPanel"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="ExplanationText" type="RichTextLabel" parent="ExplanationPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Explanation text here..."
+fit_content = true
+scroll_active = false
+
+[node name="CloseButton" type="Button" parent="ExplanationPanel/VBox"]
+custom_minimum_size = Vector2(200, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Got it! ✓"
+
+[connection signal="pressed" from="MenuPanel/VBoxContainer/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="DialoguePanel/VBox/ContinueButton" to="." method="_on_continue_button_pressed"]
+[connection signal="pressed" from="GameOverPanel/VBox/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="GameOverPanel/VBox/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="pressed" from="ExplanationPanel/VBox/CloseButton" to="." method="_on_explanation_close_pressed"]

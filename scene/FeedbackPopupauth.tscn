@@ -1,9 +1,31 @@
-[gd_scene load_steps=2 format=3 uid="uid://dw7yp3jx5mf0h"]
+[gd_scene load_steps=8 format=3 uid="uid://dw7yp3jx5mf0h"]
 
 [ext_resource type="Script" uid="uid://dufw6jmkkw67a" path="res://script/AuthFeedbackPopup.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://rvup0qkqaky8" path="res://asset/minigamesicon/medunlock.png" id="2_h7mro"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="3_544dv"]
+[ext_resource type="FontFile" uid="uid://b7kohftqccqbr" path="res://asset/fonts/CardivalDemoRegular-rvlvO.ttf" id="3_dyvy8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h7mro"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_544dv"]
+bg_color = Color(0.241156, 0.241156, 0.241156, 1)
+border_width_bottom = 5
+border_color = Color(0.706849, 0.801411, 0.993953, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="LabelSettings" id="LabelSettings_7fe1w"]
+font = ExtResource("3_dyvy8")
+font_size = 30
+font_color = Color(0.396422, 0.771918, 1.54018e-06, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.800491, 0.800491, 0.800491, 1)
 
 [node name="FeedbackPopup" type="Panel"]
-visible = false
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -15,6 +37,7 @@ offset_right = 250.0
 offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_h7mro")
 script = ExtResource("1")
 
 [node name="VBox" type="VBoxContainer" parent="."]
@@ -28,22 +51,23 @@ offset_right = -20.0
 offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 20
 alignment = 1
 
-[node name="ResultIcon" type="Label" parent="VBox"]
+[node name="ResultIcon" type="TextureRect" parent="VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 1, 0, 1)
-theme_override_font_sizes/font_size = 48
-text = "✅"
-horizontal_alignment = 1
-vertical_alignment = 1
+size_flags_horizontal = 4
+texture = ExtResource("2_h7mro")
+stretch_mode = 5
 
 [node name="FeedbackText" type="RichTextLabel" parent="VBox"]
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_fonts/normal_font = ExtResource("3_544dv")
+theme_override_styles/normal = SubResource("StyleBoxFlat_544dv")
 bbcode_enabled = true
-text = "Feedback message here"
+text = " Feedback message here"
 fit_content = true
 scroll_active = false
 
@@ -51,6 +75,7 @@ scroll_active = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 text = "Trust Score: +15"
+label_settings = SubResource("LabelSettings_7fe1w")
 horizontal_alignment = 1
 vertical_alignment = 1
 

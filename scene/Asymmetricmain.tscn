@@ -1,15 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://bni7ydtteimxp"]
+[gd_scene load_steps=2 format=3 uid="uid://c7yx8kwp3n5qg"]
 
-[ext_resource type="Script" uid="uid://81ngeamfja6x" path="res://script/Asymmetricmain.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://81ngeamfja6x" path="res://script/Asymmetricmain.gd" id="1"]
 
-[node name="MainGame" type="Control"]
+[node name="AsymmetricCryptoGame" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_main")
+script = ExtResource("1")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 1
@@ -18,9 +18,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.1, 0.05, 0.15, 1)
+color = Color(0.08, 0.05, 0.12, 1)
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MainContainer" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -32,220 +32,167 @@ theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MainContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Header" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="HeaderPanel" type="PanelContainer" parent="MainContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 5
 
-[node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+[node name="VBox" type="VBoxContainer" parent="MainContainer/VBoxContainer/HeaderPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="MainContainer/VBoxContainer/HeaderPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.7, 1, 1)
-theme_override_font_sizes/font_size = 32
-text = "🔐 Asymmetric Cryptography: Secure Key Exchange"
+theme_override_font_sizes/font_size = 36
+text = "🔐 Asymmetric Cryptography Academy"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="MarginContainer/VBoxContainer/Header"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.5, 0.9, 1)
-theme_override_font_sizes/font_size = 16
-text = "Advanced Security Training Module"
-horizontal_alignment = 1
-
-[node name="PhaseInfo" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 120)
-layout_mode = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PhaseInfo"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="PhaseTitle" type="Label" parent="MarginContainer/VBoxContainer/PhaseInfo/VBoxContainer"]
+[node name="PhaseTitle" type="Label" parent="MainContainer/VBoxContainer/HeaderPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
 theme_override_font_sizes/font_size = 24
-text = "Phase 1: The Unsafe Approach"
+text = "Phase Title"
+horizontal_alignment = 1
 
-[node name="PhaseObjective" type="Label" parent="MarginContainer/VBoxContainer/PhaseInfo/VBoxContainer"]
+[node name="ProgressBar" type="ProgressBar" parent="MainContainer/VBoxContainer/HeaderPanel/VBox"]
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "🎯 Try sending the session key directly"
+show_percentage = false
 
-[node name="ExplanationPanel" type="PanelContainer" parent="MarginContainer/VBoxContainer/PhaseInfo/VBoxContainer"]
-layout_mode = 2
-
-[node name="ExplanationText" type="Label" parent="MarginContainer/VBoxContainer/PhaseInfo/VBoxContainer/ExplanationPanel"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 14
-text = "💡 Explanation text goes here"
-autowrap_mode = 3
-
-[node name="GameGrid" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="ContentArea" type="HBoxContainer" parent="MainContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_constants/separation = 15
+
+[node name="LeftPanel" type="VBoxContainer" parent="MainContainer/VBoxContainer/ContentArea"]
+custom_minimum_size = Vector2(350, 0)
+layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="ClientArea" type="PanelContainer" parent="MarginContainer/VBoxContainer/GameGrid"]
-custom_minimum_size = Vector2(250, 0)
+[node name="InstructionPanel" type="PanelContainer" parent="MainContainer/VBoxContainer/ContentArea/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainContainer/VBoxContainer/ContentArea/LeftPanel/InstructionPanel"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea"]
+[node name="Label" type="Label" parent="MainContainer/VBoxContainer/ContentArea/LeftPanel/InstructionPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "📚 Instructions"
+
+[node name="HSeparator" type="HSeparator" parent="MainContainer/VBoxContainer/ContentArea/LeftPanel/InstructionPanel/VBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer"]
+[node name="InstructionScroll" type="ScrollContainer" parent="MainContainer/VBoxContainer/ContentArea/LeftPanel/InstructionPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+size_flags_vertical = 3
+
+[node name="InstructionText" type="RichTextLabel" parent="MainContainer/VBoxContainer/ContentArea/LeftPanel/InstructionPanel/VBoxContainer/InstructionScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Instructions will appear here..."
+fit_content = true
+
+[node name="CenterPanel" type="PanelContainer" parent="MainContainer/VBoxContainer/ContentArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainContainer/VBoxContainer/ContentArea/CenterPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainContainer/VBoxContainer/ContentArea/CenterPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 20
+text = "🎬 Visual Demo"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MainContainer/VBoxContainer/ContentArea/CenterPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="VisualArea" type="Control" parent="MainContainer/VBoxContainer/ContentArea/CenterPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 500)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RightPanel" type="VBoxContainer" parent="MainContainer/VBoxContainer/ContentArea"]
+custom_minimum_size = Vector2(350, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="InfoPanel" type="PanelContainer" parent="MainContainer/VBoxContainer/ContentArea/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MainContainer/VBoxContainer/ContentArea/RightPanel/InfoPanel"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MainContainer/VBoxContainer/ContentArea/RightPanel/InfoPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 20
+text = "💡 Key Concepts"
+
+[node name="HSeparator" type="HSeparator" parent="MainContainer/VBoxContainer/ContentArea/RightPanel/InfoPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="InfoScroll" type="ScrollContainer" parent="MainContainer/VBoxContainer/ContentArea/RightPanel/InfoPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InfoText" type="RichTextLabel" parent="MainContainer/VBoxContainer/ContentArea/RightPanel/InfoPanel/VBoxContainer/InfoScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Detailed information will appear here..."
+fit_content = true
+
+[node name="BottomPanel" type="PanelContainer" parent="MainContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+
+[node name="ButtonContainer" type="HBoxContainer" parent="MainContainer/VBoxContainer/BottomPanel"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="BtnShowHint" type="Button" parent="MainContainer/VBoxContainer/BottomPanel/ButtonContainer"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 0.7, 1)
 theme_override_font_sizes/font_size = 18
-text = "🖥️ Client (You)"
+text = "💡 Show Hint"
 
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer"]
-layout_mode = 2
-
-[node name="KeysContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="PublicKey" type="PanelContainer" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer/KeysContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer/KeysContainer/PublicKey"]
+[node name="BtnTryAction" type="Button" parent="MainContainer/VBoxContainer/BottomPanel/ButtonContainer"]
+custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 1, 0.7, 1)
-text = "🔑 Public Key (shareable)"
+theme_override_font_sizes/font_size = 18
+text = "▶️ Try Action"
 
-[node name="PrivateKey" type="PanelContainer" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer/KeysContainer"]
+[node name="BtnNext" type="Button" parent="MainContainer/VBoxContainer/BottomPanel/ButtonContainer"]
+custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
-
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer/KeysContainer/PrivateKey"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
-text = "🔐 Private Key (locked)"
-
-[node name="SessionKey" type="PanelContainer" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer/KeysContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer/KeysContainer/SessionKey"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 0.6, 1)
-text = "🎫 Session Key: ABC123"
-
-[node name="ActionButtons" type="VBoxContainer" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="BtnSendPlaintext" type="Button" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer/ActionButtons"]
-layout_mode = 2
-theme_override_colors/font_hover_color = Color(1, 0.9, 0.9, 1)
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-text = "📤 Send Key (Plaintext)"
-
-[node name="BtnSendEncrypted" type="Button" parent="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer/ActionButtons"]
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 1, 0.7, 1)
-text = "🔒 Encrypt & Send Key"
-
-[node name="NetworkArea" type="PanelContainer" parent="MarginContainer/VBoxContainer/GameGrid"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/GameGrid/NetworkArea"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/GameGrid/NetworkArea/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.7, 0.3, 1)
 theme_override_font_sizes/font_size = 18
-text = "🌐 Public Network (Insecure)"
+text = "Next →"
 
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/GameGrid/NetworkArea/VBoxContainer"]
+[node name="BtnGlossary" type="Button" parent="MainContainer/VBoxContainer/BottomPanel/ButtonContainer"]
+custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
-
-[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/GameGrid/NetworkArea/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/GameGrid/NetworkArea/VBoxContainer/ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 5
-
-[node name="ServerArea" type="PanelContainer" parent="MarginContainer/VBoxContainer/GameGrid"]
-custom_minimum_size = Vector2(250, 0)
-layout_mode = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/GameGrid/ServerArea"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/GameGrid/ServerArea/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.7, 1, 1)
+theme_override_colors/font_color = Color(0.9, 0.7, 1, 1)
 theme_override_font_sizes/font_size = 18
-text = "🖥️ Server"
+text = "📖 Glossary"
 
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/GameGrid/ServerArea/VBoxContainer"]
-layout_mode = 2
-
-[node name="KeysContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/GameGrid/ServerArea/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="PublicKey" type="PanelContainer" parent="MarginContainer/VBoxContainer/GameGrid/ServerArea/VBoxContainer/KeysContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/GameGrid/ServerArea/VBoxContainer/KeysContainer/PublicKey"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.9, 1, 1)
-text = "🔑 Public Key (shared)"
-
-[node name="PrivateKey" type="PanelContainer" parent="MarginContainer/VBoxContainer/GameGrid/ServerArea/VBoxContainer/KeysContainer"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/GameGrid/ServerArea/VBoxContainer/KeysContainer/PrivateKey"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
-text = "🔐 Private Key (secret)"
-
-[node name="ServerStatus" type="Label" parent="MarginContainer/VBoxContainer/GameGrid/ServerArea/VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-
-[node name="AttackerArea" type="PanelContainer" parent="MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 150)
-layout_mode = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/AttackerArea"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/AttackerArea/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
-theme_override_font_sizes/font_size = 18
-text = "👁️ Attacker (Eavesdropper)"
-
-[node name="Description" type="Label" parent="MarginContainer/VBoxContainer/AttackerArea/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 12
-text = "Intercepts all network traffic but cannot access client or server directly"
-
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/AttackerArea/VBoxContainer"]
-layout_mode = 2
-
-[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/AttackerArea/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/AttackerArea/VBoxContainer/ScrollContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 5
-
-[node name="FeedbackPanel" type="PanelContainer" parent="."]
+[node name="GlossaryPanel" type="PanelContainer" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -254,166 +201,80 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -400.0
-offset_top = -60.0
+offset_top = -300.0
 offset_right = 400.0
-offset_bottom = 60.0
+offset_bottom = 300.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="FeedbackLabel" type="Label" parent="FeedbackPanel"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Feedback message"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 3
-
-[node name="CompletionPanel" type="PanelContainer" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -150.0
-offset_right = 300.0
-offset_bottom = 150.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="CompletionPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="GlossaryPanel"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="Title" type="Label" parent="CompletionPanel/VBoxContainer"]
+[node name="Title" type="Label" parent="GlossaryPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
-theme_override_font_sizes/font_size = 32
-text = "Mission Complete! 🎉"
+theme_override_colors/font_color = Color(0.9, 0.7, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "📖 Cryptography Glossary"
 horizontal_alignment = 1
 
-[node name="Message" type="Label" parent="CompletionPanel/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="GlossaryPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "You've mastered asymmetric cryptography!"
-horizontal_alignment = 1
+size_flags_vertical = 3
 
-[node name="Description" type="Label" parent="CompletionPanel/VBoxContainer"]
+[node name="GlossaryText" type="RichTextLabel" parent="GlossaryPanel/VBoxContainer/ScrollContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.7, 1, 1)
-theme_override_font_sizes/font_size = 14
-text = "You now understand how public and private keys enable secure communication over insecure networks."
-horizontal_alignment = 1
-autowrap_mode = 3
+size_flags_horizontal = 3
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[b]Public Key[/b] - A cryptographic key that can be shared openly. Used to ENCRYPT messages.
 
-[node name="BottomControls" type="HBoxContainer" parent="."]
+[b]Private Key[/b] - A secret key that must never be shared. Used to DECRYPT messages encrypted with the corresponding public key.
+
+[b]Asymmetric Encryption[/b] - Encryption that uses two different keys (public and private) instead of one shared key.
+
+[b]Symmetric Encryption[/b] - Encryption that uses the same key for both encryption and decryption.
+
+[b]Key Pair[/b] - The combination of a public key and its matching private key.
+
+[b]Encryption[/b] - The process of scrambling data so only authorized parties can read it.
+
+[b]Decryption[/b] - The process of unscrambling encrypted data back to its original form.
+
+[b]RSA[/b] - A popular asymmetric encryption algorithm invented in 1977.
+
+[b]One-Way Function[/b] - A mathematical operation that's easy to compute in one direction but extremely hard to reverse.
+
+[b]Key Distribution Problem[/b] - The challenge of securely sharing secret keys over insecure networks. Asymmetric cryptography solves this!
+
+[b]HTTPS[/b] - Secure web browsing that uses asymmetric encryption to protect your data.
+
+[b]Digital Signature[/b] - Uses private key to prove you created a message (reverse of encryption).
+
+[b]Certificate[/b] - A digital document containing a public key and information about its owner."
+fit_content = true
+
+[node name="CloseButton" type="Button" parent="GlossaryPanel/VBoxContainer"]
+layout_mode = 2
+text = "Close"
+
+[node name="HintPanel" type="PanelContainer" parent="."]
+visible = false
 layout_mode = 1
-anchors_preset = 7
+anchors_preset = 5
 anchor_left = 0.5
-anchor_top = 1.0
 anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -250.0
-offset_top = -60.0
-offset_right = 250.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_constants/separation = 20
-alignment = 1
-
-[node name="BtnNextPhase" type="Button" parent="BottomControls"]
-visible = false
-custom_minimum_size = Vector2(150, 40)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "Next Phase →"
-
-[node name="BtnChallengeMode" type="Button" parent="BottomControls"]
-visible = false
-custom_minimum_size = Vector2(150, 40)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_font_sizes/font_size = 16
-text = "⚔️ Challenge Mode"
-
-[node name="BtnPlayAgain" type="Button" parent="BottomControls"]
-visible = false
-custom_minimum_size = Vector2(150, 40)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "Play Again"
-
-[node name="ChallengeHUD" type="PanelContainer" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
+offset_left = -300.0
+offset_top = 20.0
+offset_right = 300.0
 offset_bottom = 100.0
 grow_horizontal = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="ChallengeHUD"]
+[node name="HintLabel" type="Label" parent="HintPanel"]
 layout_mode = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="ChallengeHUD/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 30
-alignment = 1
-
-[node name="WaveLabel" type="Label" parent="ChallengeHUD/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
-text = "🌊 Wave: 1/5"
-
-[node name="TimerLabel" type="Label" parent="ChallengeHUD/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 0.5, 1)
-theme_override_font_sizes/font_size = 24
-text = "⏱️ Time: 30s"
-
-[node name="ScoreLabel" type="Label" parent="ChallengeHUD/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_font_sizes/font_size = 24
-text = "⭐ Score: 0"
-
-[node name="LivesLabel" type="Label" parent="ChallengeHUD/VBoxContainer/HBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
-theme_override_font_sizes/font_size = 24
-text = "❤️ Lives: 3"
-
-[node name="CommandInput" type="LineEdit" parent="ChallengeHUD"]
-visible = false
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-placeholder_text = "Type defense command..."
-alignment = 1
-
-[node name="AttackContainer" type="VBoxContainer" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -200.0
-offset_right = 300.0
-offset_bottom = 200.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 10
-
-[connection signal="pressed" from="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer/ActionButtons/BtnSendPlaintext" to="." method="_on_btn_send_plaintext_pressed"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer/GameGrid/ClientArea/VBoxContainer/ActionButtons/BtnSendEncrypted" to="." method="_on_btn_send_encrypted_pressed"]
-[connection signal="pressed" from="BottomControls/BtnNextPhase" to="." method="_on_btn_next_phase_pressed"]
-[connection signal="pressed" from="BottomControls/BtnChallengeMode" to="." method="_on_btn_challenge_mode_pressed"]
-[connection signal="pressed" from="BottomControls/BtnPlayAgain" to="." method="_on_btn_play_again_pressed"]
-[connection signal="text_submitted" from="ChallengeHUD/CommandInput" to="." method="_on_command_input_text_submitted"]
+theme_override_colors/font_color = Color(1, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "Hint will appear here..."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3

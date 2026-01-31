@@ -15,9 +15,14 @@ func show_debrief(total_scenarios: int, correct_decisions: int, attacks_blocked:
 				  total_attacks: int, false_denials: int, final_trust: int, final_xp: int):
 	visible = true
 	
-	# Calculate stats
-	var accuracy = (float(correct_decisions) / float(total_scenarios)) * 100.0 if total_scenarios > 0 else 0
-	var attack_block_rate = (float(attacks_blocked) / float(total_attacks)) * 100.0 if total_attacks > 0 else 0
+	# Calculate stats (FIX: Use proper float division)
+	var accuracy: float = 0.0
+	if total_scenarios > 0:
+		accuracy = (float(correct_decisions) / float(total_scenarios)) * 100.0
+	
+	var attack_block_rate: float = 0.0
+	if total_attacks > 0:
+		attack_block_rate = (float(attacks_blocked) / float(total_attacks)) * 100.0
 	
 	# Stats summary
 	stats_label.text = """[center]Requests Processed: %d
@@ -67,7 +72,10 @@ func _calculate_grade(trust: int) -> String:
 func _generate_lessons(correct: int, total: int, blocked: int, attacks: int, false_denials: int) -> String:
 	var lessons = "[b]KEY LESSONS:[/b]\n\n"
 	
-	var accuracy = (float(correct) / float(total)) * 100.0 if total > 0 else 0
+	# FIX: Use proper float division
+	var accuracy: float = 0.0
+	if total > 0:
+		accuracy = (float(correct) / float(total)) * 100.0
 	
 	if accuracy >= 80:
 		lessons += "✓ [color=green]Excellent decision-making skills demonstrated[/color]\n"

@@ -25,6 +25,7 @@ var false_denials: int = 0
 
 # UI References
 @onready var hud = $HUD
+@onready var metrics_panel = $HUD/MetricsPanel
 @onready var trust_bar = $HUD/MetricsPanel/VBox/TrustBar
 @onready var trust_label = $HUD/MetricsPanel/VBox/TrustLabel
 @onready var threats_label = $HUD/MetricsPanel/VBox/ThreatsLabel
@@ -34,15 +35,20 @@ var false_denials: int = 0
 @onready var feedback_popup = $FeedbackPopup
 @onready var debrief_screen = $DebriefScreen
 @onready var intro_panel = $IntroPanel
-@onready var start_button = $IntroPanel/VBox/StartButton
+@onready var start_button = $IntroPanel/MarginContainer/VBox/StartButton
+@onready var decision_bar = $DecisionBar
 
 func _ready():
+	# Seed random number generator for better randomization
+	randomize()
+	
 	# Initialize database using the preloaded script
 	scenario_database = ScenarioDatabaseScript.new()
 	add_child(scenario_database)
 	
-	# Load all scenarios
-	all_scenarios = scenario_database.get_all_scenarios()
+	# Load all scenarios with randomization
+	# This maintains wave difficulty progression but randomizes order within waves
+	all_scenarios = scenario_database.get_randomized_scenarios_by_wave()
 	
 	# Count total attacks
 	for scenario in all_scenarios:
@@ -54,10 +60,12 @@ func _ready():
 	feedback_popup.feedback_complete.connect(_on_feedback_complete)
 	debrief_screen.continue_pressed.connect(_on_continue_pressed)
 	debrief_screen.replay_pressed.connect(_on_replay_pressed)
-	start_button.pressed.connect(_on_start_pressed)
 	
 	# Start with intro
 	_show_intro()
+	
+	print("Game initialized with ", all_scenarios.size(), " randomized scenarios")
+	print("Total attacks in game: ", total_attacks)
 
 func _show_intro():
 	current_state = GameState.INTRO
@@ -66,10 +74,14 @@ func _show_intro():
 	feedback_popup.visible = false
 	debrief_screen.visible = false
 	hud.visible = false
+	decision_bar.visible = false
+	metrics_panel.visible = false
 
 func _on_start_pressed():
 	intro_panel.visible = false
 	hud.visible = true
+	decision_bar.visible = true
+	metrics_panel.visible = true
 	_start_game()
 
 func _start_game():
@@ -82,6 +94,20 @@ func _start_game():
 	correct_decisions = 0
 	attacks_blocked = 0
 	false_denials = 0
+	
+	# Re-randomize scenarios on each new game
+	all_scenarios = scenario_database.get_randomized_scenarios_by_wave()
+	
+	# Recount attacks (in case randomization changed anything)
+	total_attacks = 0
+	for scenario in all_scenarios:
+		if scenario.is_attacker:
+			total_attacks += 1
+	
+	print("\n=== NEW GAME STARTED ===")
+	print("Scenarios shuffled: ", all_scenarios.size())
+	print("Total attacks: ", total_attacks)
+	print("========================\n")
 	
 	_update_hud()
 	_show_next_scenario()
@@ -157,6 +183,7 @@ func _on_feedback_complete():
 
 func _show_game_over():
 	debrief_screen.visible = true
+	metrics_panel.visible = false
 	debrief_screen.show_debrief(
 		total_scenarios,
 		correct_decisions,
@@ -171,6 +198,8 @@ func _show_debrief():
 	current_state = GameState.DEBRIEF
 	request_card.visible = false
 	feedback_popup.visible = false
+	decision_bar.visible = false
+	metrics_panel.visible = false
 	debrief_screen.visible = true
 	
 	debrief_screen.show_debrief(
@@ -189,6 +218,7 @@ func _on_continue_pressed():
 
 func _on_replay_pressed():
 	debrief_screen.visible = false
+	metrics_panel.visible = true
 	_start_game()
 
 func _update_hud():

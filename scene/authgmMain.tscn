@@ -1,29 +1,152 @@
-[gd_scene load_steps=7 format=3 uid="uid://bmqvyprd3m38d"]
+[gd_scene load_steps=42 format=3 uid="uid://bmqvyprd3m38d"]
 
 [ext_resource type="Script" uid="uid://w2jp71qhpdi6" path="res://script/authgmMain.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://ybhntv0jnfp7" path="res://scene/RequestCard.tscn" id="2"]
+[ext_resource type="Texture2D" uid="uid://cafpa6f2yfya3" path="res://asset/minigamesicon/Gemini_Generated_Image_89k6o789k6o789k6.png" id="2_gmueb"]
+[ext_resource type="Texture2D" uid="uid://c0nbogafwglxc" path="res://asset/minigamesicon/bggate.png" id="2_mu0re"]
 [ext_resource type="PackedScene" uid="uid://dw7yp3jx5mf0h" path="res://scene/FeedbackPopupauth.tscn" id="3"]
+[ext_resource type="Texture2D" uid="uid://c221oekjimlkd" path="res://asset/minigamesicon/metricsbg.png" id="3_1j1vo"]
+[ext_resource type="FontFile" uid="uid://b7kohftqccqbr" path="res://asset/fonts/CardivalDemoRegular-rvlvO.ttf" id="3_mu0re"]
+[ext_resource type="FontFile" uid="uid://cdqgkoxul1s46" path="res://asset/fonts/MountainKingRegular-woBYn.ttf" id="3_vh6yr"]
 [ext_resource type="PackedScene" uid="uid://cnvt4r5gkj2xp" path="res://scene/DebriefScreen.tscn" id="4"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="4_vh6yr"]
+[ext_resource type="Texture2D" uid="uid://bl0ukj32b44ky" path="res://asset/minigamesicon/medibutton.png" id="5_frqhj"]
+[ext_resource type="Texture2D" uid="uid://cpatyt5qyrjvh" path="res://asset/minigamesicon/medihealthbar.png" id="5_vhexw"]
+[ext_resource type="PackedScene" uid="uid://g6y8d2pke8ro" path="res://scene/DecisionPanel.tscn" id="9"]
 
-[sub_resource type="StyleBoxFlat" id="1"]
-bg_color = Color(0.15, 0.17, 0.2, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.6, 0.9, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_mu0re"]
+texture = ExtResource("2_mu0re")
+modulate_color = Color(0.808998, 0.808998, 0.808998, 1)
 
-[sub_resource type="StyleBoxFlat" id="2"]
-bg_color = Color(0.08, 0.1, 0.12, 0.95)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.2, 0.5, 0.9, 1)
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vhexw"]
+texture = ExtResource("3_1j1vo")
+
+[sub_resource type="LabelSettings" id="LabelSettings_1j1vo"]
+font = ExtResource("3_mu0re")
+font_size = 20
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.662, 0.3, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_mu0re"]
+font = ExtResource("3_mu0re")
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.662745, 0.301961, 0, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_kmm5y"]
+texture = ExtResource("5_vhexw")
+expand_margin_left = 30.0
+expand_margin_top = 40.0
+expand_margin_right = 20.0
+expand_margin_bottom = 40.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5kq70"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_vhexw"]
+font = ExtResource("3_mu0re")
+outline_size = 10
+outline_color = Color(0.0542495, 0.0913254, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.662745, 0.301961, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_0jiiq"]
+font = ExtResource("3_mu0re")
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.662745, 0.301961, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_kmm5y"]
+font = ExtResource("3_mu0re")
+font_color = Color(1, 0.872639, 0.927348, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.662745, 0.301961, 0, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gmueb"]
+texture = ExtResource("2_gmueb")
+expand_margin_right = 70.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_frqhj"]
+font = ExtResource("3_vh6yr")
+font_size = 40
+font_color = Color(0.996438, 0.887894, 0.777962, 1)
+outline_size = 12
+outline_color = Color(0.278534, 0.105983, 0.0555086, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_skpk8"]
+font = ExtResource("4_vh6yr")
+font_size = 18
+outline_size = 8
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vh6yr"]
+bg_color = Color(0.178072, 0.098238, 0.00728728, 0.596)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_frqhj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_skpk8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_aph1v"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mu0re"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1j1vo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vhexw"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0jiiq"]
+texture = ExtResource("5_frqhj")
+expand_margin_left = 30.0
+expand_margin_top = 5.0
+expand_margin_right = 30.0
+expand_margin_bottom = 5.0
+modulate_color = Color(0.563075, 0.357614, 0.0297797, 0.873)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0jiiq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kmm5y"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_d4r0e"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_skpk8"]
+texture = ExtResource("5_frqhj")
+expand_margin_left = 30.0
+expand_margin_top = 5.0
+expand_margin_right = 30.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_aph1v"]
+font = ExtResource("3_vh6yr")
+font_size = 24
+font_color = Color(0.995715, 0.595276, 0.384182, 1)
+outline_size = 8
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 8
+shadow_color = Color(0.512, 0.484, 0.787, 0.862)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skpk8"]
+bg_color = Color(0.6, 0.6, 0.6, 0.199)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="LabelSettings" id="LabelSettings_d4r0e"]
+font = ExtResource("3_vh6yr")
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vhexw"]
+bg_color = Color(0.115065, 0.0664184, 0.00125705, 0.619)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -38,17 +161,30 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -3.0
+offset_top = 5.0
+offset_right = -1.0
+offset_bottom = 5.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_mu0re")
+
 [node name="Background" type="ColorRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.0666667, 0.0784314, 0.0941176, 1)
+color = Color(0.287132, 0.0819925, 0, 1)
 
 [node name="HUD" type="Control" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -58,11 +194,14 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Title" type="Label" parent="HUD"]
+visible = false
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 20.0
-offset_bottom = 65.0
+offset_left = -8.0
+offset_top = -4.0
+offset_right = -8.0
+offset_bottom = 41.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
 text = "🔐 GATEKEEPER PROTOCOL - Authentication Control"
@@ -74,30 +213,31 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -280.0
-offset_top = 80.0
-offset_right = -20.0
-offset_bottom = 300.0
+offset_left = -306.0
+offset_top = 125.0
+offset_right = -12.0
+offset_bottom = 403.0
 grow_horizontal = 0
-theme_override_styles/panel = SubResource("1")
+theme_override_styles/panel = SubResource("StyleBoxTexture_vhexw")
 
 [node name="VBox" type="VBoxContainer" parent="HUD/MetricsPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 15.0
-offset_top = 15.0
-offset_right = -15.0
-offset_bottom = -15.0
+offset_left = 17.0
+offset_top = 33.0
+offset_right = -12.0
+offset_bottom = -29.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 20
 
 [node name="MetricsTitle" type="Label" parent="HUD/MetricsPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
 text = "SECURITY METRICS"
+label_settings = SubResource("LabelSettings_1j1vo")
 horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="HUD/MetricsPanel/VBox"]
@@ -106,73 +246,96 @@ layout_mode = 2
 [node name="TrustLabel" type="Label" parent="HUD/MetricsPanel/VBox"]
 layout_mode = 2
 text = "Trust Score: 100%"
+label_settings = SubResource("LabelSettings_mu0re")
 
 [node name="TrustBar" type="ProgressBar" parent="HUD/MetricsPanel/VBox"]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_mu0re")
+theme_override_styles/background = SubResource("StyleBoxTexture_kmm5y")
+theme_override_styles/fill = SubResource("StyleBoxEmpty_5kq70")
 value = 100.0
-show_percentage = false
 
 [node name="ThreatsLabel" type="Label" parent="HUD/MetricsPanel/VBox"]
 layout_mode = 2
 text = "Active Threats: 0 🔴"
+label_settings = SubResource("LabelSettings_vhexw")
 
 [node name="XPLabel" type="Label" parent="HUD/MetricsPanel/VBox"]
 layout_mode = 2
 text = "XP: 0"
+label_settings = SubResource("LabelSettings_0jiiq")
 
 [node name="WaveLabel" type="Label" parent="HUD/MetricsPanel/VBox"]
 layout_mode = 2
 text = "Wave: 1/10"
+label_settings = SubResource("LabelSettings_kmm5y")
 
 [node name="IntroPanel" type="Panel" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -250.0
-offset_right = 400.0
-offset_bottom = 250.0
+offset_left = -573.0
+offset_top = -337.0
+offset_right = 595.0
+offset_bottom = 323.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("2")
+theme_override_styles/panel = SubResource("StyleBoxTexture_gmueb")
 
-[node name="VBox" type="VBoxContainer" parent="IntroPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="IntroPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 40.0
-offset_top = 40.0
-offset_right = -40.0
-offset_bottom = -40.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 20
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="IntroPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
 alignment = 1
 
-[node name="Title" type="Label" parent="IntroPanel/VBox"]
+[node name="Title" type="Label" parent="IntroPanel/MarginContainer/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
-text = "🔐 GATEKEEPER PROTOCOL"
+text = "GATEKEEPER PROTOCOL"
+label_settings = SubResource("LabelSettings_frqhj")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Subtitle" type="Label" parent="IntroPanel/VBox"]
+[node name="Subtitle" type="Label" parent="IntroPanel/MarginContainer/VBox"]
 layout_mode = 2
 text = "Authentication & Access Control Training"
+label_settings = SubResource("LabelSettings_skpk8")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="IntroPanel/VBox"]
+[node name="HSeparator" type="HSeparator" parent="IntroPanel/MarginContainer/VBox"]
 layout_mode = 2
 
-[node name="Instructions" type="RichTextLabel" parent="IntroPanel/VBox"]
-custom_minimum_size = Vector2(0, 200)
+[node name="ScrollContainer" type="ScrollContainer" parent="IntroPanel/MarginContainer/VBox"]
+custom_minimum_size = Vector2(0, 420)
 layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Instructions" type="RichTextLabel" parent="IntroPanel/MarginContainer/VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/font_selected_color = Color(1, 1, 1, 1)
+theme_override_fonts/normal_font = ExtResource("4_vh6yr")
+theme_override_font_sizes/normal_font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_vh6yr")
 bbcode_enabled = true
 text = "[center][b]MISSION BRIEFING[/b][/center]
 
@@ -182,8 +345,14 @@ Your job: Verify user identities and grant appropriate access.
 [b]HOW TO PLAY:[/b]
 • Review each access request carefully
 • Check user role, authentication level, and context
-• Make your decision: Grant, Deny, or Require MFA
+• DRAG a decision panel to the request card
+• Click CONFIRM to finalize your decision
 • Watch for red flags: unusual times, locations, requests
+
+[b]DECISION OPTIONS:[/b]
+✅ GRANT ACCESS = Allow the request
+🔐 REQUIRE MFA = Request multi-factor authentication
+❌ DENY ACCESS = Block the request
 
 [b]REMEMBER:[/b]
 ✓ Authentication = WHO (verify identity)
@@ -195,15 +364,100 @@ Your job: Verify user identities and grant appropriate access.
 Trust score below 20% = GAME OVER
 "
 fit_content = true
-scroll_active = false
 
-[node name="StartButton" type="Button" parent="IntroPanel/VBox"]
-custom_minimum_size = Vector2(200, 52)
+[node name="HSeparator2" type="HSeparator" parent="IntroPanel/MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="StartButton" type="Button" parent="IntroPanel/MarginContainer/VBox"]
+custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "▶️ START MISSION"
+theme_override_styles/focus = SubResource("StyleBoxEmpty_frqhj")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_skpk8")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_aph1v")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_mu0re")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_1j1vo")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_vhexw")
+theme_override_styles/hover = SubResource("StyleBoxTexture_0jiiq")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_0jiiq")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_kmm5y")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_d4r0e")
+theme_override_styles/normal = SubResource("StyleBoxTexture_skpk8")
+
+[node name="BUTTONtext" type="Label" parent="IntroPanel/MarginContainer/VBox/StartButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -39.0
+offset_top = -15.5
+offset_right = 39.0
+offset_bottom = 15.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "START"
+label_settings = SubResource("LabelSettings_aph1v")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DecisionBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 212.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_skpk8")
+
+[node name="VBox" type="VBoxContainer" parent="DecisionBar"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Label" type="Label" parent="DecisionBar/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("4_vh6yr")
+theme_override_font_sizes/font_size = 16
+text = "🎯 YOUR DECISION TOOLS"
+label_settings = SubResource("LabelSettings_d4r0e")
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="PanelsContainer" type="VBoxContainer" parent="DecisionBar/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="GrantPanel" parent="DecisionBar/VBox/PanelsContainer" groups=["decision_panels"] instance=ExtResource("9")]
+layout_mode = 2
+
+[node name="MFAPanel" parent="DecisionBar/VBox/PanelsContainer" groups=["decision_panels"] instance=ExtResource("9")]
+layout_mode = 2
+decision_type = 1
+
+[node name="DenyPanel" parent="DecisionBar/VBox/PanelsContainer" groups=["decision_panels"] instance=ExtResource("9")]
+layout_mode = 2
+decision_type = 2
 
 [node name="RequestCard" parent="." instance=ExtResource("2")]
+layout_mode = 0
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 228.0
+offset_top = 15.0
+offset_right = 836.0
+offset_bottom = 639.0
+grow_horizontal = 1
+grow_vertical = 1
+scale = Vector2(0.995779, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_vhexw")
+
+[node name="FeedbackPopup" parent="." instance=ExtResource("3")]
 visible = false
 layout_mode = 0
 anchors_preset = 0
@@ -211,26 +465,15 @@ anchor_left = 0.0
 anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 600.0
-offset_bottom = 500.0
-grow_horizontal = 1
-grow_vertical = 1
-
-[node name="FeedbackPopup" parent="." instance=ExtResource("3")]
-layout_mode = 0
-anchors_preset = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 500.0
-offset_bottom = 300.0
+offset_left = 311.0
+offset_top = 182.0
+offset_right = 811.0
+offset_bottom = 482.0
 grow_horizontal = 1
 grow_vertical = 1
 
 [node name="DebriefScreen" parent="." instance=ExtResource("4")]
+visible = false
 layout_mode = 1
+
+[connection signal="pressed" from="IntroPanel/MarginContainer/VBox/StartButton" to="." method="_on_start_pressed"]

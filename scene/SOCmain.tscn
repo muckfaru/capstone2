@@ -229,6 +229,7 @@ offset_bottom = 654.0
 color = Color(0.21619, 1.20327e-06, 0.138495, 0.458824)
 
 [node name="Quit" type="Button" parent="Background"]
+layout_mode = 0
 offset_left = -8.0
 offset_top = -5.0
 offset_right = 114.0
