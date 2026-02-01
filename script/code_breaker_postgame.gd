@@ -1572,6 +1572,17 @@ func _update_cb_leaderboard_stats(is_win: bool) -> void:
 			http_patch.queue_free()
 			if code2 == 200:
 				print("[PostGame] ✅ CB Leaderboard stats updated!")
+				# Also update RTDB leaderboard
+				var lb_username: String = ""
+				if fields.has("username"):
+					lb_username = str(_from_firestore_value(fields["username"]))
+				if lb_username == "":
+					lb_username = "Player"
+				_update_rtdb_leaderboard("code_breaker", uid, lb_username, {
+					"wins": new_wins,
+					"losses": new_losses,
+					"games": new_games
+				})
 			else:
 				print("[PostGame] ⚠️ Failed to update CB leaderboard stats: %d" % code2)
 		)
@@ -1580,3 +1591,39 @@ func _update_cb_leaderboard_stats(is_win: bool) -> void:
 	)
 	
 	http_get.request(user_doc_url, headers, HTTPClient.METHOD_GET)
+
+
+func _update_rtdb_leaderboard(game_type: String, uid: String, username: String, stats: Dictionary) -> void:
+	"""Update leaderboard entry in RTDB"""
+	var token := Auth.current_id_token
+	if token == "":
+		return
+	
+	# Calculate sort_key
+	var sort_key: int = int(stats.get("wins", 0))
+	
+	var entry := {
+		"username": username,
+		"sort_key": sort_key,
+		"wins": stats.get("wins", 0),
+		"losses": stats.get("losses", 0),
+		"games": stats.get("games", 0)
+	}
+	
+	var url := "https://capstone-823dc-default-rtdb.firebaseio.com/leaderboards/%s/%s.json?auth=%s" % [
+		game_type, uid, token
+	]
+	
+	var http := HTTPRequest.new()
+	get_tree().root.add_child(http)
+	
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code == 200:
+			print("[PostGame] ✅ RTDB Leaderboard updated for %s" % username)
+		else:
+			print("[PostGame] ⚠️ RTDB Leaderboard update failed: HTTP %d" % code)
+	)
+	
+	var hdr := PackedStringArray(["Content-Type: application/json"])
+	http.request(url, hdr, HTTPClient.METHOD_PUT, JSON.stringify(entry))

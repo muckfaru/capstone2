@@ -3981,7 +3981,9 @@ func _on_defuse_trojan_card_input(event: InputEvent) -> void:
 		_go_to_defuse_trojan_lobby()
 
 
-# === LEADERBOARD SYSTEM ===
+# === LEADERBOARD SYSTEM (RTDB) ===
+const RTDB_LEADERBOARD_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
+
 func _setup_leaderboard() -> void:
 	var ranking_panel = $VideoStreamPlayer/RankingPanel
 	if not ranking_panel:
@@ -4046,22 +4048,11 @@ func _load_leaderboard(game_type: String) -> void:
 		_add_leaderboard_placeholder("Not logged in")
 		return
 	
-	# Query all users and filter/sort client-side
-	# (Firestore composite indexes would be needed for server-side sorting by custom fields)
-	var url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents:runQuery"
-	var token := Auth.current_id_token
-	var headers := PackedStringArray([
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % token
-	])
-	
-	# Query all users (limit 100 for performance)
-	var query_body := {
-		"structuredQuery": {
-			"from": [{"collectionId": "users"}],
-			"limit": 100
-		}
-	}
+	# Use RTDB instead of Firestore - simple read, sort client-side
+	var url := "%s/leaderboards/%s.json?auth=%s" % [
+		RTDB_LEADERBOARD_BASE, game_type, Auth.current_id_token
+	]
+	print("[Landing] 📊 Leaderboard URL: %s" % url.substr(0, 100))
 	
 	var http_lb := HTTPRequest.new()
 	add_child(http_lb)
@@ -4069,61 +4060,64 @@ func _load_leaderboard(game_type: String) -> void:
 	http_lb.request_completed.connect(func(_r, code, _h, body):
 		http_lb.queue_free()
 		
+		var body_text: String = ""
+		if body.size() > 0:
+			body_text = body.get_string_from_utf8()
+		print("[Landing] 📊 Leaderboard HTTP code: %d, body size: %d" % [code, body.size()])
+		
 		if code != 200:
 			print("[Landing] ⚠️ Leaderboard query failed: %d" % code)
+			print("[Landing] ⚠️ Error response: %s" % body_text.substr(0, 500))
 			_clear_leaderboard()
-			_add_leaderboard_placeholder("Failed to load leaderboard")
+			_add_leaderboard_placeholder("Failed to load leaderboard (HTTP %d)" % code)
 			return
 		
-		var users := _parse_leaderboard_query(body, game_type)
+		var users := _parse_rtdb_leaderboard(body_text, game_type)
+		print("[Landing] 📊 Parsed %d users for leaderboard" % users.size())
 		_render_leaderboard(users, game_type)
 	)
 	
-	http_lb.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+	http_lb.request(url)
 
 
-func _parse_leaderboard_query(body: PackedByteArray, game_type: String) -> Array:
-	var text := body.get_string_from_utf8() if body.size() > 0 else ""
-	var parsed = JSON.parse_string(text)
-	if typeof(parsed) != TYPE_ARRAY:
+func _parse_rtdb_leaderboard(body_text: String, game_type: String) -> Array:
+	"""Parse RTDB leaderboard response"""
+	var parsed = JSON.parse_string(body_text)
+	if parsed == null or typeof(parsed) != TYPE_DICTIONARY:
+		print("[Landing] ⚠️ Leaderboard data is null or not a dictionary")
 		return []
 	
 	var users: Array = []
 	
-	for entry in parsed:
-		if typeof(entry) != TYPE_DICTIONARY or not entry.has("document"):
+	for uid in parsed.keys():
+		var entry = parsed[uid]
+		if typeof(entry) != TYPE_DICTIONARY:
 			continue
-		var doc = entry["document"]
-		if typeof(doc) != TYPE_DICTIONARY or not doc.has("fields"):
-			continue
-		
-		var fields: Dictionary = doc.get("fields", {})
-		var username := _fs_string(fields, "username", "Unknown")
-		var avatar := _fs_string(fields, "avatar", "")
 		
 		var user_data := {
-			"username": username,
-			"avatar": avatar
+			"username": str(entry.get("username", "Unknown")),
+			"avatar": str(entry.get("avatar", "")),
+			"uid": uid
 		}
 		
 		match game_type:
 			"code_breaker":
-				user_data["wins"] = _fs_int(fields, "cb_wins", 0)
-				user_data["losses"] = _fs_int(fields, "cb_losses", 0)
-				user_data["games"] = _fs_int(fields, "cb_games_played", 0)
+				user_data["wins"] = int(entry.get("wins", 0))
+				user_data["losses"] = int(entry.get("losses", 0))
+				user_data["games"] = int(entry.get("games", 0))
 				user_data["sort_key"] = user_data["wins"]
 			"akashic_tcg":
-				user_data["wins"] = _fs_int(fields, "akashic_wins", 0)
-				user_data["losses"] = _fs_int(fields, "akashic_losses", 0)
-				user_data["games"] = _fs_int(fields, "akashic_games_played", 0)
+				user_data["wins"] = int(entry.get("wins", 0))
+				user_data["losses"] = int(entry.get("losses", 0))
+				user_data["games"] = int(entry.get("games", 0))
 				user_data["sort_key"] = user_data["wins"]
 			"defuse_trojan":
-				user_data["best_wave"] = _fs_int(fields, "dt_best_wave", 0)
-				user_data["high_score"] = _fs_int(fields, "dt_high_score", 0)
-				user_data["games"] = _fs_int(fields, "dt_games_played", 0)
+				user_data["best_wave"] = int(entry.get("best_wave", 0))
+				user_data["high_score"] = int(entry.get("high_score", 0))
+				user_data["games"] = int(entry.get("games", 0))
 				user_data["sort_key"] = user_data["best_wave"] * 100000 + user_data["high_score"]
 		
-		# Only include users who have played this game
+		# Only include users who have played
 		if user_data.get("games", 0) > 0 or user_data.get("sort_key", 0) > 0:
 			users.append(user_data)
 	
@@ -4251,3 +4245,66 @@ func _add_leaderboard_placeholder(text: String) -> void:
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.add_theme_color_override("font_color", Color(0.8, 0.9, 1, 0.8))
 	_leaderboard_vbox.add_child(lbl)
+
+
+# === LEADERBOARD UPDATE HELPERS (Call from postgame scripts) ===
+static func update_leaderboard_rtdb(game_type: String, uid: String, username: String, stats: Dictionary) -> void:
+	"""
+	Update leaderboard entry in RTDB. Call this from postgame scripts.
+	
+	Example usage for Code Breaker:
+		Landing.update_leaderboard_rtdb("code_breaker", Auth.current_user_id, username, {
+			"wins": new_wins,
+			"losses": new_losses,
+			"games": total_games
+		})
+	
+	Example usage for Defuse Trojan:
+		Landing.update_leaderboard_rtdb("defuse_trojan", Auth.current_user_id, username, {
+			"best_wave": best_wave,
+			"high_score": high_score,
+			"games": total_games
+		})
+	"""
+	if uid == "" or game_type == "":
+		print("[Landing] ⚠️ Cannot update leaderboard - missing uid or game_type")
+		return
+	
+	var token := Auth.current_id_token
+	if token == "":
+		print("[Landing] ⚠️ Cannot update leaderboard - not logged in")
+		return
+	
+	# Calculate sort_key based on game type
+	var sort_key: int = 0
+	match game_type:
+		"code_breaker", "akashic_tcg":
+			sort_key = int(stats.get("wins", 0))
+		"defuse_trojan":
+			sort_key = int(stats.get("best_wave", 0)) * 100000 + int(stats.get("high_score", 0))
+	
+	var entry := {
+		"username": username,
+		"sort_key": sort_key
+	}
+	# Merge stats into entry
+	for key in stats.keys():
+		entry[key] = stats[key]
+	
+	var url := "%s/leaderboards/%s/%s.json?auth=%s" % [
+		"https://capstone-823dc-default-rtdb.firebaseio.com", game_type, uid, token
+	]
+	
+	var http := HTTPRequest.new()
+	Engine.get_main_loop().root.add_child(http)
+	
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code == 200:
+			print("[Landing] ✅ Leaderboard updated for %s (%s)" % [username, game_type])
+		else:
+			print("[Landing] ⚠️ Failed to update leaderboard: HTTP %d" % code)
+	)
+	
+	var headers := PackedStringArray(["Content-Type: application/json"])
+	http.request(url, headers, HTTPClient.METHOD_PUT, JSON.stringify(entry))

@@ -627,6 +627,17 @@ func _update_leaderboard_stats(wave_reached: int, score: int) -> void:
 			http_patch.queue_free()
 			if code2 == 200:
 				print("[DefuseTrojanPostgame] ✅ Leaderboard stats updated!")
+				# Also update RTDB leaderboard
+				var lb_username: String = ""
+				if fields.has("username"):
+					lb_username = str(_from_firestore_value(fields["username"]))
+				if lb_username == "":
+					lb_username = "Player"
+				_update_rtdb_leaderboard("defuse_trojan", uid, lb_username, {
+					"best_wave": new_best_wave,
+					"high_score": new_high_score,
+					"games": new_games_played
+				})
 			else:
 				print("[DefuseTrojanPostgame] ⚠️ Failed to update leaderboard stats: %d" % code2)
 		)
@@ -635,3 +646,39 @@ func _update_leaderboard_stats(wave_reached: int, score: int) -> void:
 	)
 	
 	http_get.request(user_doc_url, headers, HTTPClient.METHOD_GET)
+
+
+func _update_rtdb_leaderboard(game_type: String, uid: String, username: String, stats: Dictionary) -> void:
+	"""Update leaderboard entry in RTDB for Defuse the Trojan"""
+	var token := Auth.current_id_token
+	if token == "":
+		return
+	
+	# Calculate sort_key: best_wave * 100000 + high_score
+	var sort_key: int = int(stats.get("best_wave", 0)) * 100000 + int(stats.get("high_score", 0))
+	
+	var entry := {
+		"username": username,
+		"sort_key": sort_key,
+		"best_wave": stats.get("best_wave", 0),
+		"high_score": stats.get("high_score", 0),
+		"games": stats.get("games", 0)
+	}
+	
+	var url := "https://capstone-823dc-default-rtdb.firebaseio.com/leaderboards/%s/%s.json?auth=%s" % [
+		game_type, uid, token
+	]
+	
+	var http := HTTPRequest.new()
+	get_tree().root.add_child(http)
+	
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code == 200:
+			print("[DefuseTrojanPostgame] ✅ RTDB Leaderboard updated for %s" % username)
+		else:
+			print("[DefuseTrojanPostgame] ⚠️ RTDB Leaderboard update failed: HTTP %d" % code)
+	)
+	
+	var hdr := PackedStringArray(["Content-Type: application/json"])
+	http.request(url, hdr, HTTPClient.METHOD_PUT, JSON.stringify(entry))
