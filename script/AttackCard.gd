@@ -9,6 +9,7 @@ var time_remaining: float = 0.0
 var is_dragging: bool = false
 var drag_offset: Vector2 = Vector2.ZERO
 var original_position: Vector2 = Vector2.ZERO
+var game_manager = null  # Reference to main game manager for sounds
 
 @onready var timer_bar = $VBox/Header/TimerBar
 @onready var icon = $VBox/Icon
@@ -61,6 +62,9 @@ func _gui_input(event):
 				is_dragging = true
 				drag_offset = get_local_mouse_position()
 				z_index = 100
+				# Play pickup sound
+				if game_manager:
+					game_manager.play_card_pickup_sound()
 			else:
 				is_dragging = false
 				z_index = 0
@@ -71,7 +75,9 @@ func check_drop_zones():
 	
 	print("Card dropped - center point: %s" % card_center)
 	
-	var game_manager = get_tree().root.get_node("Main")
+	if not game_manager:
+		game_manager = get_tree().root.get_node("Main")
+	
 	if not game_manager:
 		print("  - ERROR: Could not find game manager!")
 		return_to_original()
@@ -96,5 +102,9 @@ func check_drop_zones():
 	return_to_original()
 
 func return_to_original():
+	# Play return sound
+	if game_manager:
+		game_manager.play_card_return_sound()
+	
 	var tween = create_tween()
 	tween.tween_property(self, "position", original_position, 0.3).set_ease(Tween.EASE_OUT)

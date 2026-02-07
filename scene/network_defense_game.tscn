@@ -394,6 +394,58 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="SFX" type="Node" parent="."]
+
+[node name="Correct" type="AudioStreamPlayer" parent="SFX"]
+volume_db = -10.0
+bus = &"SFX"
+
+[node name="Wrong" type="AudioStreamPlayer" parent="SFX"]
+volume_db = -12.0
+bus = &"SFX"
+
+[node name="Combo" type="AudioStreamPlayer" parent="SFX"]
+volume_db = -8.0
+bus = &"SFX"
+
+[node name="ShieldLost" type="AudioStreamPlayer" parent="SFX"]
+volume_db = -6.0
+bus = &"SFX"
+
+[node name="PowerUp" type="AudioStreamPlayer" parent="SFX"]
+volume_db = -10.0
+bus = &"SFX"
+
+[node name="PhaseComplete" type="AudioStreamPlayer" parent="SFX"]
+volume_db = -6.0
+bus = &"SFX"
+
+[node name="GameOver" type="AudioStreamPlayer" parent="SFX"]
+volume_db = -6.0
+bus = &"SFX"
+
+[node name="Victory" type="AudioStreamPlayer" parent="SFX"]
+volume_db = -4.0
+bus = &"SFX"
+
+[node name="UIClick" type="AudioStreamPlayer" parent="SFX"]
+volume_db = -16.0
+bus = &"UI"
+
+[node name="Music" type="Node" parent="."]
+
+[node name="Gameplay" type="AudioStreamPlayer" parent="Music"]
+volume_db = -18.0
+bus = &"Music"
+
+[node name="Boss" type="AudioStreamPlayer" parent="Music"]
+volume_db = -16.0
+bus = &"Music"
+
+[node name="Victory" type="AudioStreamPlayer" parent="Music"]
+volume_db = -14.0
+bus = &"Music"
+
 [node name="UI" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15

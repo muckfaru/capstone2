@@ -41,34 +41,31 @@ func show_success_effect():
 	var style = panel.get_theme_stylebox("panel")
 	if style is StyleBoxFlat:
 		var tween = create_tween()
-		tween.tween_property(style, "border_color", Color(0.2, 1, 0.2), 0.1)
-		tween.tween_property(style, "bg_color", Color(0.2, 0.8, 0.2, 0.3), 0.1)
+		# Flash bright green with higher opacity
+		tween.tween_property(style, "border_color", Color(0.2, 1, 0.2), 0.15)
+		tween.tween_property(style, "bg_color", Color(0.2, 1, 0.2, 0.7), 0.15)
+		# Hold the green for a moment
+		tween.tween_property(style, "border_color", Color(0.2, 1, 0.2), 0.2)
+		tween.tween_property(style, "bg_color", Color(0.2, 1, 0.2, 0.7), 0.2)
+		# Return to original
 		tween.tween_property(style, "border_color", zone_color, 0.3)
 		tween.tween_property(style, "bg_color", Color(0.2, 0.2, 0.25, 0.5), 0.3)
-	
-	var shield = Label.new()
-	shield.text = "🛡️"
-	shield.add_theme_font_size_override("font_size", 60)
-	shield.position = size / 2 - Vector2(30, 30)
-	shield.modulate = Color(1, 1, 1, 0)
-	add_child(shield)
-	
-	var tween2 = create_tween()
-	tween2.tween_property(shield, "modulate:a", 1.0, 0.2)
-	tween2.tween_property(shield, "scale", Vector2(1.3, 1.3), 0.3)
-	tween2.tween_property(shield, "modulate:a", 0.0, 0.3)
-	await tween2.finished
-	shield.queue_free()
 
 func show_fail_effect():
 	var style = panel.get_theme_stylebox("panel")
 	if style is StyleBoxFlat:
 		var tween = create_tween()
-		tween.tween_property(style, "border_color", Color(1, 0.2, 0.2), 0.1)
-		tween.tween_property(style, "bg_color", Color(1, 0.2, 0.2, 0.3), 0.1)
+		# Flash bright red with higher opacity
+		tween.tween_property(style, "border_color", Color(1, 0.2, 0.2), 0.15)
+		tween.tween_property(style, "bg_color", Color(1, 0.2, 0.2, 0.7), 0.15)
+		# Hold the red for a moment
+		tween.tween_property(style, "border_color", Color(1, 0.2, 0.2), 0.2)
+		tween.tween_property(style, "bg_color", Color(1, 0.2, 0.2, 0.7), 0.2)
+		# Return to original
 		tween.tween_property(style, "border_color", zone_color, 0.3)
 		tween.tween_property(style, "bg_color", Color(0.2, 0.2, 0.25, 0.5), 0.3)
 	
+	# Shake effect
 	var original_pos = position
 	var tween2 = create_tween()
 	for i in range(4):

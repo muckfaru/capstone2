@@ -1,13 +1,16 @@
-[gd_scene load_steps=19 format=3 uid="uid://b5qx36cct5pmd"]
+[gd_scene load_steps=30 format=3 uid="uid://b5qx36cct5pmd"]
 
 [ext_resource type="Script" uid="uid://5s4wvpjcqiko" path="res://script/datavsnetworkgmmanager.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://0lk311hegbtp" path="res://scene/SystemHealth.tscn" id="2"]
-[ext_resource type="Texture2D" uid="uid://djco0c55yui51" path="res://asset/minigamesicon/dtvsntbg.png" id="2_2yvah"]
+[ext_resource type="AudioStream" uid="uid://b8h8qiefllap0" path="res://asset/minigamessoundsfx/chrisiex1-correct-156911.mp3" id="2_8wydy"]
+[ext_resource type="Texture2D" uid="uid://1iqa78oh77fa" path="res://asset/minigamesicon/laboratory.png" id="2_ruhgf"]
 [ext_resource type="PackedScene" uid="uid://dntkn8p81g4sv" path="res://scene/DropZone.tscn" id="3"]
 [ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_mv2j0"]
 [ext_resource type="PackedScene" uid="uid://gojniaipnw0u" path="res://scene/NetworkZone.tscn" id="4"]
 [ext_resource type="Texture2D" uid="uid://bmlkp4v42ft52" path="res://asset/minigamesicon/titlebarntvsdt.png" id="5_ruhgf"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="5_wjd1k"]
+[ext_resource type="Texture2D" uid="uid://cfmjifmk1os2r" path="res://asset/minigamesicon/blueprent.png" id="9_v6xym"]
+[ext_resource type="AudioStream" uid="uid://b1m01oniwjvmb" path="res://asset/minigamessoundsfx/wrong.mp3" id="11_audio_fail"]
 
 [sub_resource type="Gradient" id="Gradient_ruhgf"]
 offsets = PackedFloat32Array(0, 0.580838, 1)
@@ -27,6 +30,21 @@ expand_margin_left = 20.0
 expand_margin_top = 40.0
 expand_margin_right = 20.0
 expand_margin_bottom = 40.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_ruhgf"]
+font = ExtResource("5_wjd1k")
+font_size = 18
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_v6xym"]
+font = ExtResource("3_mv2j0")
+font_size = 20
+font_color = Color(0.222115, 1, 0.380537, 1)
+outline_size = 15
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 5
+shadow_color = Color(0.186881, 0.0778457, 0, 0)
 
 [sub_resource type="Animation" id="Animation_qr805"]
 tracks/0/type = "value"
@@ -98,16 +116,48 @@ _data = {
 &"netani": SubResource("Animation_8wydy")
 }
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gkpfd"]
+texture = ExtResource("9_v6xym")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qr805"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gkpfd"]
+draw_center = false
+border_width_left = 5
+
+[sub_resource type="LabelSettings" id="LabelSettings_gkpfd"]
+font = ExtResource("5_wjd1k")
+font_size = 32
+font_color = Color(0.821401, 0.000172212, 0.714012, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v6xym"]
+bg_color = Color(0, 0, 0, 0.448)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.2, 0.25, 0.3, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 1, 0.4, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
 [node name="Main" type="Node2D"]
 script = ExtResource("1")
 
 [node name="TextureRect" type="TextureRect" parent="."]
-offset_right = 1233.0
-offset_bottom = 654.0
-texture = ExtResource("2_2yvah")
+offset_right = 1153.0
+offset_bottom = 647.0
+texture = ExtResource("2_ruhgf")
 expand_mode = 1
 
 [node name="Background" type="ColorRect" parent="TextureRect"]
+visible = false
 layout_mode = 0
 offset_left = -41.0
 offset_top = -4.0
@@ -116,7 +166,7 @@ offset_bottom = 665.0
 color = Color(0.1, 0.12, 0.15, 0.398)
 
 [node name="CPUParticles2D" type="CPUParticles2D" parent="TextureRect"]
-position = Vector2(318, 392)
+position = Vector2(885, 353)
 amount = 70
 lifetime = 0.6
 explosiveness = 1.0
@@ -132,10 +182,10 @@ linear_accel_min = -100.0
 linear_accel_max = -50.0
 scale_amount_min = 3.0
 scale_amount_max = 3.0
-color = Color(1, 0.872882, 0.367626, 1)
+color = Color(1.05888e-05, 0.677212, 0.932059, 1)
 
 [node name="CPUParticles2D2" type="CPUParticles2D" parent="TextureRect"]
-position = Vector2(942, 405)
+position = Vector2(1080, 356)
 amount = 70
 lifetime = 0.6
 explosiveness = 1.0
@@ -151,11 +201,11 @@ linear_accel_min = -100.0
 linear_accel_max = -50.0
 scale_amount_min = 3.0
 scale_amount_max = 3.0
-color = Color(1, 0.872882, 0.367626, 1)
+color = Color(0.783151, 0.892696, 1, 1)
 
 [node name="PointLight2D" type="PointLight2D" parent="TextureRect"]
-position = Vector2(986.875, 285)
-scale = Vector2(0.566406, 1.875)
+position = Vector2(554, 245)
+scale = Vector2(0.566406, 3.65625)
 color = Color(0.48619, 0.110178, 0, 1)
 texture = SubResource("GradientTexture2D_v6xym")
 
@@ -166,7 +216,7 @@ color = Color(0.48619, 0.110178, 0, 1)
 texture = SubResource("GradientTexture2D_v6xym")
 
 [node name="PointLight2D3" type="PointLight2D" parent="TextureRect"]
-position = Vector2(1191, 323)
+position = Vector2(1195, 323)
 scale = Vector2(1.59375, 1.96875)
 color = Color(0.201749, 0.426819, 0.053878, 1)
 texture = SubResource("GradientTexture2D_v6xym")
@@ -185,6 +235,7 @@ theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
 theme_override_fonts/font = ExtResource("3_mv2j0")
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxEmpty_ruhgf")
+text = "ESC"
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -204,7 +255,8 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("5_wjd1k")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxTexture_v6xym")
-text = "WAVE 1/5"
+text = "WAVE 1/8"
+label_settings = SubResource("LabelSettings_ruhgf")
 horizontal_alignment = 1
 
 [node name="ScoreLabel" type="Label" parent="CanvasLayer"]
@@ -217,6 +269,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3_mv2j0")
 theme_override_font_sizes/font_size = 22
 text = "SCORE: 0"
+label_settings = SubResource("LabelSettings_v6xym")
 horizontal_alignment = 2
 
 [node name="InstructionLabel" type="Label" parent="CanvasLayer"]
@@ -264,21 +317,163 @@ libraries = {
 autoplay = "RESET"
 
 [node name="AttackContainer" type="Control" parent="CanvasLayer"]
+clip_contents = true
 layout_mode = 3
 anchors_preset = 0
-offset_left = -14.0
-offset_top = -87.0
-offset_right = 1345.0
-offset_bottom = 663.0
+offset_right = 1152.0
+offset_bottom = 648.0
+
+[node name="TutorialOverlay" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="DarkOverlay" type="ColorRect" parent="TutorialOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.8)
+
+[node name="ContentPanel" type="PanelContainer" parent="TutorialOverlay"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -450.0
+offset_top = -280.0
+offset_right = 450.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_gkpfd")
+
+[node name="Panel" type="Panel" parent="TutorialOverlay/ContentPanel"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_qr805")
+
+[node name="MarginContainer" type="MarginContainer" parent="TutorialOverlay/ContentPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="VBox" type="VBoxContainer" parent="TutorialOverlay/ContentPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="TutorialOverlay/ContentPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_fonts/font = ExtResource("5_wjd1k")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_gkpfd")
+text = "DATA VS NETWORK SECURITY"
+label_settings = SubResource("LabelSettings_gkpfd")
+horizontal_alignment = 1
+
+[node name="PageContainer" type="VBoxContainer" parent="TutorialOverlay/ContentPanel/MarginContainer/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 15
+
+[node name="PageTitle" type="Label" parent="TutorialOverlay/ContentPanel/MarginContainer/VBox/PageContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("3_mv2j0")
+theme_override_font_sizes/font_size = 24
+text = "What is Cybersecurity?"
+horizontal_alignment = 1
+
+[node name="PageContent" type="RichTextLabel" parent="TutorialOverlay/ContentPanel/MarginContainer/VBox/PageContainer"]
+custom_minimum_size = Vector2(0, 280)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.93408, 0.93408, 0.93408, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_fonts/normal_font = ExtResource("5_wjd1k")
+theme_override_font_sizes/normal_font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_v6xym")
+bbcode_enabled = true
+text = "Cybersecurity protects computers, networks, and data from digital attacks.
+
+In this game, you'll learn about TWO main types of security:"
+
+[node name="ButtonContainer" type="HBoxContainer" parent="TutorialOverlay/ContentPanel/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="PrevButton" type="Button" parent="TutorialOverlay/ContentPanel/MarginContainer/VBox/ButtonContainer"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(0.2, 1, 0.4, 1)
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+theme_override_fonts/font = ExtResource("3_mv2j0")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+disabled = true
+text = "◀ Previous"
+
+[node name="PageIndicator" type="Label" parent="TutorialOverlay/ContentPanel/MarginContainer/VBox/ButtonContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_fonts/font = ExtResource("3_mv2j0")
+theme_override_font_sizes/font_size = 16
+text = "Page 1 of 4"
+vertical_alignment = 1
+
+[node name="NextButton" type="Button" parent="TutorialOverlay/ContentPanel/MarginContainer/VBox/ButtonContainer"]
+custom_minimum_size = Vector2(150, 50)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(0.3, 1, 0.5, 1)
+theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
+theme_override_fonts/font = ExtResource("3_mv2j0")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "Next ▶"
+
+[node name="StartButton" type="Button" parent="TutorialOverlay/ContentPanel/MarginContainer/VBox"]
+visible = false
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(1, 1, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(1, 1, 0.2, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("5_wjd1k")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "🚀 START GAME 🚀"
 
 [node name="SpawnTimer" type="Timer" parent="."]
-wait_time = 3.0
-autostart = true
+wait_time = 5.0
 
 [node name="AudioSuccess" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_8wydy")
 
 [node name="AudioFail" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("11_audio_fail")
 
 [node name="AudioSpawn" type="AudioStreamPlayer" parent="."]
+
+[node name="AudioButtonClick" type="AudioStreamPlayer" parent="."]
+
+[node name="AudioCardDrag" type="AudioStreamPlayer" parent="."]
+
+[node name="AudioCombo" type="AudioStreamPlayer" parent="."]
+
+[node name="AudioWaveComplete" type="AudioStreamPlayer" parent="."]
+
+[node name="AudioTimeout" type="AudioStreamPlayer" parent="."]
+
+[node name="AudioGameOver" type="AudioStreamPlayer" parent="."]
+
+[node name="AudioVictory" type="AudioStreamPlayer" parent="."]
 
 [connection signal="timeout" from="SpawnTimer" to="." method="_on_spawn_timer_timeout"]

@@ -260,6 +260,7 @@ theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_3bw8i")
 theme_override_styles/normal = SubResource("StyleBoxFlat_v2vn5")
 
 [node name="Label" type="Label" parent="Panel/VBox/Buttons/ContinueButton"]
+layout_mode = 0
 offset_left = 9.0
 offset_top = 3.5
 offset_right = 95.0

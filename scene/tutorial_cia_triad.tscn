@@ -10,8 +10,8 @@
 [ext_resource type="Texture2D" uid="uid://bmwlja47p650x" path="res://asset/minigamesicon/I.png" id="4_7ckxx"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_7cy6w"]
 [ext_resource type="Texture2D" uid="uid://dgo8b302tc3wy" path="res://asset/minigamesicon/A.png" id="5_oa5vp"]
-[ext_resource type="AudioStream" uid="uid://cqwlcdb0oong1" path="res://asset/minigamesicon/correct-choice-43861.mp3" id="11_826bi"]
-[ext_resource type="AudioStream" uid="uid://daegfpmhyxgj3" path="res://asset/minigamesicon/windows-error-sound-effect-35894.mp3" id="12_57oo3"]
+[ext_resource type="AudioStream" uid="uid://dm1bfqd4wro8o" path="res://asset/minigamessoundsfx/corrects.mp3" id="11_826bi"]
+[ext_resource type="AudioStream" uid="uid://b6bulkwejahfy" path="res://asset/minigamessoundsfx/error.mp3" id="12_826bi"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_8tqrs"]
 texture = ExtResource("2_elcup")
@@ -510,10 +510,9 @@ text = "BACK TO TUTORIALS"
 
 [node name="SFX_Correct" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("11_826bi")
-volume_db = -5.0
+volume_db = -9.397
 
 [node name="SFX_Wrong" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("12_57oo3")
-volume_db = -5.0
+stream = ExtResource("12_826bi")
 
 [connection signal="pressed" from="CanvasLayer/TopPanel/Button" to="." method="_on_quit_pressed"]

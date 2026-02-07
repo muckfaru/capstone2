@@ -1,7 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://cr1nyjmwedgar"]
+[gd_scene load_steps=11 format=3 uid="uid://cr1nyjmwedgar"]
 
 [ext_resource type="Script" uid="uid://cu3abji3e54wg" path="res://script/AttackCard.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://nmrggyigl6v7" path="res://asset/minigamesicon/Gemini_Generated_Image_k8q5mnk8q5mnk8q5-removebg-preview.png" id="2_ayh8r"]
+[ext_resource type="Texture2D" uid="uid://25ao4vgxxmdt" path="res://asset/minigamesicon/attackcard.png" id="2_bcf5t"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="3_bcf5t"]
 [ext_resource type="Texture2D" uid="uid://c5vy38on5dxr4" path="res://asset/minigamesicon/htbarntvsdt.png" id="4_3u8hd"]
 [ext_resource type="FontFile" uid="uid://l0twhmllixdy" path="res://asset/minigamesicon/BruceForeverRegular-X3jd2.ttf" id="5_bcf5t"]
@@ -9,11 +9,9 @@
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bcf5t"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_sqffh"]
-texture = ExtResource("2_ayh8r")
-expand_margin_left = 45.0
-expand_margin_top = 5.0
-expand_margin_right = 75.0
-expand_margin_bottom = 5.0
+texture = ExtResource("2_bcf5t")
+expand_margin_left = 40.0
+expand_margin_right = 40.0
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_akbpl"]
 texture = ExtResource("4_3u8hd")
@@ -28,6 +26,15 @@ corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
+
+[sub_resource type="LabelSettings" id="LabelSettings_bcf5t"]
+font = ExtResource("5_bcf5t")
+font_size = 14
+font_color = Color(1, 0.0985729, 0.782987, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 20
+shadow_color = Color(0.315722, 0.35644, 0.495105, 1)
 
 [node name="AttackCard" type="PanelContainer"]
 custom_minimum_size = Vector2(350, 180)
@@ -84,5 +91,6 @@ theme_override_fonts/font = ExtResource("5_bcf5t")
 theme_override_font_sizes/font_size = 16
 text = "Attack 
 Description Here"
+label_settings = SubResource("LabelSettings_bcf5t")
 horizontal_alignment = 1
-autowrap_mode = 2
+autowrap_mode = 3

@@ -1,0 +1,1200 @@
+[gd_scene load_steps=100 format=3 uid="uid://y8aua0l44ioi"]
+
+[ext_resource type="Script" uid="uid://bgu66tgku68bx" path="res://script/PhoneEncryption.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://baaruvhlv8t2q" path="res://asset/minigamesicon/bgrrr.png" id="2_1jga8"]
+[ext_resource type="FontFile" uid="uid://bktr2cgctw33m" path="res://asset/minigamesicon/QuantroSport-0vY5o.ttf" id="2_v6k45"]
+[ext_resource type="Texture2D" uid="uid://mlhpyghqod2i" path="res://asset/minigamesicon/westBG2dvtr.png" id="2_vexkl"]
+[ext_resource type="Texture2D" uid="uid://tgqw7ilimwqx" path="res://asset/minigamesicon/ttbarwes.png" id="3_b06k3"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="4_cwt8l"]
+[ext_resource type="Texture2D" uid="uid://l3gyll2mnve4" path="res://asset/minigamesicon/westernframre.png" id="5_8d83f"]
+[ext_resource type="Texture2D" uid="uid://celxa8te2wluy" path="res://asset/minigamesicon/quithome.png" id="5_lskm7"]
+[ext_resource type="Texture2D" uid="uid://bab7c013cai2q" path="res://asset/minigamesicon/bartlt.png" id="5_wey7g"]
+[ext_resource type="Texture2D" uid="uid://cjb1k3sebxkhr" path="res://asset/minigamesicon/contbt.png" id="6_wey7g"]
+[ext_resource type="Texture2D" uid="uid://dtkajedhduvwa" path="res://asset/minigamesicon/textbox.png" id="8_ehf6c"]
+[ext_resource type="Texture2D" uid="uid://ckbisud71jyp5" path="res://asset/minigamesicon/keyct.png" id="9_do8fc"]
+[ext_resource type="Texture2D" uid="uid://bwi8mue4400iv" path="res://asset/minigamesicon/Gemini_Generated_Image_6mkjnc6mkjnc6mkj-removebg-preview.png" id="10_hpcp3"]
+[ext_resource type="Texture2D" uid="uid://vrp4h3vcu77m" path="res://asset/minigamesicon/Gemini_Generated_Image_4s2ygh4s2ygh4s2y-removebg-preview.png" id="11_b7ctq"]
+[ext_resource type="Texture2D" uid="uid://cwxntpylol2dk" path="res://asset/minigamesicon/sherif.png" id="12_eip7d"]
+[ext_resource type="Texture2D" uid="uid://d35v63v5erqkt" path="res://asset/minigamesicon/sheriff.png" id="13_23x8b"]
+[ext_resource type="FontFile" uid="uid://gj4s1cvcj5il" path="res://asset/fonts/ChakraPetch-SemiBold.ttf" id="13_u86fp"]
+[ext_resource type="Texture2D" uid="uid://cwui0w87jjcna" path="res://asset/minigamesicon/timeer.png" id="15_23x8b"]
+[ext_resource type="Texture2D" uid="uid://b6gypchoo6ut0" path="res://asset/minigamesicon/westvectortrtl.png" id="17_vexkl"]
+[ext_resource type="Texture2D" uid="uid://ce2bv7fllqb6u" path="res://asset/minigamesicon/jail.png" id="18_rfa40"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_wey7g"]
+texture = ExtResource("2_vexkl")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ufbku"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_qhpyf"]
+font_size = 60
+font_color = Color(0, 0.889354, 0.238746, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.631, 0.441, 0.101, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mch8i"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j610u"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j2f65"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mlw0s"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yqj78"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1ucum"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ufbku"]
+texture = ExtResource("5_lskm7")
+expand_margin_left = 70.0
+expand_margin_top = 40.0
+expand_margin_right = 70.0
+expand_margin_bottom = 40.0
+modulate_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xi6k5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pmyhm"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yltqp"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_fgbas"]
+texture = ExtResource("5_lskm7")
+expand_margin_left = 70.0
+expand_margin_top = 40.0
+expand_margin_right = 70.0
+expand_margin_bottom = 40.0
+modulate_color = Color(0.688471, 0.281236, 0, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_do8fc"]
+texture = ExtResource("5_8d83f")
+expand_margin_left = 190.0
+expand_margin_top = 10.0
+expand_margin_right = 290.0
+expand_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="phone_screen"]
+bg_color = Color(0.95, 0.95, 0.98, 1)
+draw_center = false
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ehf6c"]
+texture = ExtResource("5_wey7g")
+expand_margin_left = 10.0
+expand_margin_top = 40.0
+expand_margin_right = 10.0
+expand_margin_bottom = 40.0
+modulate_color = Color(0.707006, 0.364753, 0.374015, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hpcp3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ehf6c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_do8fc"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_b7ctq"]
+texture = ExtResource("8_ehf6c")
+expand_margin_left = 20.0
+expand_margin_top = 40.0
+expand_margin_right = 20.0
+expand_margin_bottom = 40.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_eip7d"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u86fp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_23x8b"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rfa40"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lskm7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vexkl"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qhpyf"]
+texture = ExtResource("9_do8fc")
+expand_margin_left = 35.0
+expand_margin_top = 30.0
+expand_margin_right = 35.0
+expand_margin_bottom = 30.0
+modulate_color = Color(0.190762, 0.190762, 0.190762, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qhpyf"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_m53c0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_so5vk"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_u86fp"]
+texture = ExtResource("9_do8fc")
+expand_margin_left = 35.0
+expand_margin_top = 30.0
+expand_margin_right = 35.0
+expand_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hpcp3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b7ctq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wufut"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_eip7d"]
+texture = ExtResource("8_ehf6c")
+expand_margin_left = 20.0
+expand_margin_top = 40.0
+expand_margin_right = 20.0
+expand_margin_bottom = 40.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2s3af"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_p1c7e"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fgbas"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_x61mv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y3s07"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hjf2c"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lskm7"]
+texture = ExtResource("10_hpcp3")
+expand_margin_left = 35.0
+expand_margin_top = 30.0
+expand_margin_right = 35.0
+expand_margin_bottom = 30.0
+modulate_color = Color(0.133196, 0.133196, 0.133196, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_wufut"]
+texture = ExtResource("10_hpcp3")
+expand_margin_left = 35.0
+expand_margin_top = 30.0
+expand_margin_right = 35.0
+expand_margin_bottom = 30.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_23x8b"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_rfa40"]
+texture = ExtResource("11_b7ctq")
+expand_margin_left = 40.0
+expand_margin_top = 40.0
+expand_margin_right = 40.0
+expand_margin_bottom = 40.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vexkl"]
+texture = ExtResource("12_eip7d")
+modulate_color = Color(1, 1, 1, 0.85098)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_m53c0"]
+texture = ExtResource("13_23x8b")
+expand_margin_left = 50.0
+expand_margin_top = 20.0
+expand_margin_right = 50.0
+expand_margin_bottom = 20.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_so5vk"]
+texture = ExtResource("15_23x8b")
+expand_margin_left = 100.0
+expand_margin_top = 60.0
+expand_margin_right = 50.0
+expand_margin_bottom = 70.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_jirve"]
+texture = ExtResource("17_vexkl")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5lg64"]
+texture = ExtResource("3_b06k3")
+expand_margin_left = 40.0
+expand_margin_top = 70.0
+expand_margin_right = 40.0
+expand_margin_bottom = 70.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_vexkl"]
+font = ExtResource("2_v6k45")
+font_size = 40
+font_color = Color(0.795009, 0.0492124, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.801408, 0.361138, 0.0856808, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1jga8"]
+bg_color = Color(0, 0, 0, 0.293)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xr5ja"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pu6bo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o2eo6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_f3qtx"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8hkge"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e6drg"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1jga8"]
+texture = ExtResource("6_wey7g")
+expand_margin_left = 10.0
+expand_margin_top = 70.0
+expand_margin_right = 10.0
+expand_margin_bottom = 70.0
+modulate_color = Color(0.408, 0.408, 0.408, 0.729)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_122rg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6mewg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cpksh"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_cwt8l"]
+texture = ExtResource("6_wey7g")
+expand_margin_left = 10.0
+expand_margin_top = 70.0
+expand_margin_right = 10.0
+expand_margin_bottom = 70.0
+
+[sub_resource type="Gradient" id="Gradient_1jga8"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_jirve"]
+gradient = SubResource("Gradient_1jga8")
+fill_from = Vector2(0.931624, 0.0811966)
+fill_to = Vector2(0, 0.910256)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_2s3af"]
+texture = ExtResource("18_rfa40")
+expand_margin_right = 70.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_p1c7e"]
+texture = ExtResource("2_1jga8")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5n6wa"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uqu3d"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_44b1c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dnabp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5hiwo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e7cpg"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xr5ja"]
+texture = ExtResource("12_eip7d")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jktuv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ctn4x"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hxpa8"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_pu6bo"]
+texture = ExtResource("12_eip7d")
+
+[node name="PhoneEncryptionGame" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_wey7g")
+
+[node name="TopBar" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -7.0
+offset_right = 8.0
+offset_bottom = 45.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_ufbku")
+
+[node name="LevelLabel" type="Label" parent="TopBar"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 31.0
+offset_top = -24.0
+offset_right = 270.0
+offset_bottom = 54.0
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_v6k45")
+theme_override_font_sizes/font_size = 60
+text = "MISSION 1"
+label_settings = SubResource("LabelSettings_qhpyf")
+
+[node name="ScoreLabel" type="Label" parent="TopBar"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -70.0
+offset_top = 50.0
+offset_right = -26.0
+offset_bottom = 102.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_v6k45")
+theme_override_font_sizes/font_size = 40
+text = " $0"
+horizontal_alignment = 2
+
+[node name="Quitbtn" type="Button" parent="TopBar"]
+layout_mode = 0
+offset_left = 1086.0
+offset_top = 604.0
+offset_right = 1177.0
+offset_bottom = 648.0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_mch8i")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_j610u")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_j2f65")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_mlw0s")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_yqj78")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_1ucum")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ufbku")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_xi6k5")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_pmyhm")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_yltqp")
+theme_override_styles/normal = SubResource("StyleBoxTexture_fgbas")
+
+[node name="HeartsContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 255.0
+offset_top = 6.0
+offset_right = 564.0
+offset_bottom = 73.0
+grow_horizontal = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="Heart1" type="Label" parent="HeartsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "❤️"
+
+[node name="Heart2" type="Label" parent="HeartsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "❤️"
+
+[node name="Heart3" type="Label" parent="HeartsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "❤️"
+
+[node name="Heart4" type="Label" parent="HeartsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "❤️"
+
+[node name="PhoneContainer" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 0.5
+anchor_top = 0.391
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -217.0
+offset_top = -177.368
+offset_right = 133.0
+offset_bottom = 312.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PhoneBody" type="Panel" parent="PhoneContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -475.0
+offset_top = -3.0
+offset_right = 142.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_do8fc")
+
+[node name="PhoneScreen" type="Panel" parent="PhoneContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 15.0
+offset_top = 25.0
+offset_right = -15.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("phone_screen")
+
+[node name="Header" type="Panel" parent="PhoneContainer/PhoneScreen"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -224.0
+offset_top = -18.0
+offset_right = 3.0
+offset_bottom = 39.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_ehf6c")
+
+[node name="ContactName" type="Label" parent="PhoneContainer/PhoneScreen/Header"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -88.5
+offset_top = -14.5
+offset_right = 71.5
+offset_bottom = 15.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_cwt8l")
+theme_override_font_sizes/font_size = 20
+text = " THE BOSS"
+horizontal_alignment = 1
+
+[node name="ChatScrollContainer" type="ScrollContainer" parent="PhoneContainer/PhoneScreen"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -228.0
+offset_top = 57.0
+offset_bottom = -273.0
+follow_focus = true
+
+[node name="ChatDisplay" type="VBoxContainer" parent="PhoneContainer/PhoneScreen/ChatScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 5
+
+[node name="KeyCreationPanel" type="Panel" parent="PhoneContainer/PhoneScreen"]
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -286.0
+offset_right = -105.0
+offset_bottom = -72.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxTexture_hpcp3")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneScreen/KeyCreationPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -8.0
+offset_top = 22.0
+offset_right = -8.0
+offset_bottom = 53.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("2_v6k45")
+theme_override_font_sizes/font_size = 20
+text = "Create Encryption Key"
+horizontal_alignment = 1
+
+[node name="Info" type="Label" parent="PhoneContainer/PhoneScreen/KeyCreationPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -149.5
+offset_top = -64.0
+offset_right = 130.5
+offset_bottom = -27.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("4_cwt8l")
+theme_override_font_sizes/font_size = 11
+text = "3-6 characters (letters/numbers)
+Avoid: 123, ABC, KEY..."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="KeyInput" type="LineEdit" parent="PhoneContainer/PhoneScreen/KeyCreationPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -136.5
+offset_top = 6.0
+offset_right = 128.5
+offset_bottom = 65.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ehf6c")
+theme_override_styles/read_only = SubResource("StyleBoxEmpty_do8fc")
+theme_override_styles/normal = SubResource("StyleBoxTexture_b7ctq")
+placeholder_text = "Your key"
+alignment = 1
+max_length = 6
+
+[node name="CreateKeyButton" type="Button" parent="PhoneContainer/PhoneScreen/KeyCreationPanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -112.5
+offset_top = 26.0
+offset_right = 115.5
+offset_bottom = 53.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_eip7d")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_u86fp")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_23x8b")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_rfa40")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_lskm7")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_vexkl")
+theme_override_styles/hover = SubResource("StyleBoxTexture_qhpyf")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_qhpyf")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_m53c0")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_so5vk")
+theme_override_styles/normal = SubResource("StyleBoxTexture_u86fp")
+
+[node name="IncomingMessagePanel" type="Panel" parent="PhoneContainer/PhoneScreen"]
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -98.0
+offset_top = -253.0
+offset_right = -98.0
+offset_bottom = -128.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_hpcp3")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneScreen/IncomingMessagePanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -19.0
+offset_top = -10.0
+offset_right = -19.0
+offset_bottom = 16.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("2_v6k45")
+theme_override_font_sizes/font_size = 20
+text = "ENCRYPTED MESSAGE"
+horizontal_alignment = 1
+
+[node name="EncryptedText" type="Label" parent="PhoneContainer/PhoneScreen/IncomingMessagePanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -157.0
+offset_top = -32.5
+offset_right = 123.0
+offset_bottom = -12.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 0.5, 1)
+theme_override_fonts/font = ExtResource("4_cwt8l")
+theme_override_font_sizes/font_size = 14
+text = "ENCRYPTED..."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="DecryptedText" type="Label" parent="PhoneContainer/PhoneScreen/IncomingMessagePanel"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = -5.0
+offset_right = 140.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="KeyInput" type="LineEdit" parent="PhoneContainer/PhoneScreen/IncomingMessagePanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -149.0
+offset_top = 15.5
+offset_right = 113.0
+offset_bottom = 80.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 18
+theme_override_styles/focus = SubResource("StyleBoxEmpty_b7ctq")
+theme_override_styles/read_only = SubResource("StyleBoxEmpty_wufut")
+theme_override_styles/normal = SubResource("StyleBoxTexture_eip7d")
+placeholder_text = "Your key?"
+alignment = 1
+max_length = 6
+
+[node name="DecryptButton" type="Button" parent="PhoneContainer/PhoneScreen/IncomingMessagePanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -123.0
+offset_top = 77.0
+offset_right = 107.0
+offset_bottom = 118.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2s3af")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_p1c7e")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_fgbas")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_x61mv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_y3s07")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_hjf2c")
+theme_override_styles/hover = SubResource("StyleBoxTexture_lskm7")
+theme_override_styles/normal = SubResource("StyleBoxTexture_wufut")
+
+[node name="ReplyPanel" type="Panel" parent="PhoneContainer/PhoneScreen"]
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -108.0
+offset_top = -235.0
+offset_right = -108.0
+offset_bottom = -110.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxTexture_23x8b")
+
+[node name="Label" type="Label" parent="PhoneContainer/PhoneScreen/ReplyPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -11.0
+offset_top = -29.0
+offset_right = -11.0
+offset_bottom = -4.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("2_v6k45")
+theme_override_font_sizes/font_size = 24
+text = " YOUR REPLY"
+horizontal_alignment = 1
+
+[node name="ReplyText" type="Label" parent="PhoneContainer/PhoneScreen/ReplyPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -145.0
+offset_top = -49.5
+offset_right = 135.0
+offset_bottom = -24.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "Your message here"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="SendButton" type="Button" parent="PhoneContainer/PhoneScreen/ReplyPanel"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -92.0
+offset_top = -6.5
+offset_right = 75.0
+offset_bottom = 33.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_rfa40")
+
+[node name="CurrentKeyDisplay" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -70.0
+offset_right = 150.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="KeyLabel" type="Label" parent="CurrentKeyDisplay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_font_sizes/font_size = 22
+text = "🔑 YOUR KEY: XYZ"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PolicePanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -317.0
+offset_top = -105.0
+offset_right = -17.0
+offset_bottom = 195.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_vexkl")
+
+[node name="PoliceIcon" type="Label" parent="PolicePanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -68.0
+offset_top = 20.0
+offset_right = 66.0
+offset_bottom = 106.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 48
+theme_override_styles/normal = SubResource("StyleBoxTexture_m53c0")
+horizontal_alignment = 1
+
+[node name="PoliceStatus" type="Label" parent="PolicePanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -1.0
+offset_top = 120.0
+offset_right = -1.0
+offset_bottom = 159.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_v6k45")
+theme_override_font_sizes/font_size = 30
+text = " MONITORING"
+horizontal_alignment = 1
+
+[node name="PoliceText" type="Label" parent="PolicePanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -116.0
+offset_top = 8.0
+offset_right = 144.0
+offset_bottom = 38.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0, 0.27451, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("13_u86fp")
+theme_override_font_sizes/font_size = 16
+text = "Watching for weak encryption..."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="PoliceAttempts" type="Label" parent="PolicePanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -130.0
+offset_top = 35.0
+offset_right = 130.0
+offset_bottom = 60.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="CrackingBar" type="ProgressBar" parent="PolicePanel"]
+custom_minimum_size = Vector2(80, 20)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 94.0
+offset_top = -56.0
+offset_right = -46.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.929412, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_v6k45")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/background = SubResource("StyleBoxTexture_so5vk")
+
+[node name="CrackLabel" type="Label" parent="PolicePanel/CrackingBar"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -41.0
+offset_top = -46.5
+offset_right = 59.0
+offset_bottom = -26.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+
+[node name="TutorialPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_jirve")
+
+[node name="TutorialTitle" type="Label" parent="TutorialPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 1.0
+offset_top = 5.0
+offset_right = 1.0
+offset_bottom = 65.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.589875, 0.145645, 0.156808, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_v6k45")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxTexture_5lg64")
+text = "ENCRYPTED CHAT"
+label_settings = SubResource("LabelSettings_vexkl")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TutorialText" type="RichTextLabel" parent="TutorialPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = -210.0
+offset_right = 420.0
+offset_bottom = 196.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/default_color = Color(0.942823, 0.942823, 0.942823, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/normal_font = ExtResource("4_cwt8l")
+theme_override_font_sizes/normal_font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_1jga8")
+bbcode_enabled = true
+text = "Tutorial text here..."
+
+[node name="ContinueButton" type="Button" parent="TutorialPanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -174.0
+offset_top = -111.0
+offset_right = 179.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 18
+theme_override_styles/focus = SubResource("StyleBoxEmpty_xr5ja")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_pu6bo")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_o2eo6")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_f3qtx")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_8hkge")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_e6drg")
+theme_override_styles/hover = SubResource("StyleBoxTexture_1jga8")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_122rg")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_6mewg")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_cpksh")
+theme_override_styles/normal = SubResource("StyleBoxTexture_cwt8l")
+
+[node name="PointLight2D" type="PointLight2D" parent="TutorialPanel"]
+position = Vector2(576, 34.5)
+scale = Vector2(17, 0.921875)
+texture = SubResource("GradientTexture2D_jirve")
+
+[node name="PointLight2D2" type="PointLight2D" parent="TutorialPanel"]
+position = Vector2(572, 591)
+scale = Vector2(2.32812, 0.78125)
+texture = SubResource("GradientTexture2D_jirve")
+
+[node name="EncryptionDemoPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -280.0
+offset_right = 400.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DemoTitle" type="Label" parent="EncryptionDemoPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 50.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 0.3, 1)
+theme_override_font_sizes/font_size = 26
+text = "🔐 Encryption in Action"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ProcessDisplay" type="RichTextLabel" parent="EncryptionDemoPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -100.0
+offset_right = 350.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "Processing..."
+scroll_following = true
+
+[node name="GameOverPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -572.0
+offset_top = -318.0
+offset_right = 574.0
+offset_bottom = 334.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_2s3af")
+
+[node name="GameOverTitle" type="Label" parent="GameOverPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 57.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_v6k45")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxTexture_p1c7e")
+text = "🚔 ARRESTED!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameOverText" type="Label" parent="GameOverPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -540.0
+offset_top = -192.0
+offset_right = 107.0
+offset_bottom = 179.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("4_cwt8l")
+theme_override_font_sizes/font_size = 18
+text = "You've been arrested!"
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="RetryButton" type="Button" parent="GameOverPanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -90.0
+offset_top = -60.0
+offset_right = 90.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.745098, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_v6k45")
+theme_override_font_sizes/font_size = 35
+theme_override_styles/focus = SubResource("StyleBoxEmpty_5n6wa")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_uqu3d")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_44b1c")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_dnabp")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_5hiwo")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_e7cpg")
+theme_override_styles/hover = SubResource("StyleBoxTexture_xr5ja")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_jktuv")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_ctn4x")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_hxpa8")
+theme_override_styles/normal = SubResource("StyleBoxTexture_pu6bo")
+text = "TRY AGAIN"
+
+[node name="VictoryPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -250.0
+offset_right = 350.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VictoryTitle" type="Label" parent="VictoryPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 70.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 0.3, 1)
+theme_override_font_sizes/font_size = 40
+text = "🎉 VICTORY!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VictoryText" type="Label" parent="VictoryPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -140.0
+offset_right = 300.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 15
+text = "Mission Complete!"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="QuitButton" type="Button" parent="VictoryPanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -90.0
+offset_top = -60.0
+offset_right = 90.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 18
+text = "🏁 FINISH"
+
+[connection signal="pressed" from="PhoneContainer/PhoneScreen/KeyCreationPanel/CreateKeyButton" to="." method="_on_create_key_button_pressed"]
+[connection signal="pressed" from="PhoneContainer/PhoneScreen/IncomingMessagePanel/DecryptButton" to="." method="_on_decrypt_button_pressed"]
+[connection signal="pressed" from="PhoneContainer/PhoneScreen/ReplyPanel/SendButton" to="." method="_on_send_button_pressed"]
+[connection signal="pressed" from="TutorialPanel/ContinueButton" to="." method="_on_tutorial_continue_pressed"]
+[connection signal="pressed" from="GameOverPanel/RetryButton" to="." method="_on_retry_button_pressed"]
+[connection signal="pressed" from="VictoryPanel/QuitButton" to="." method="_on_quit_button_pressed"]

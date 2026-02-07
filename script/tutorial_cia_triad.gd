@@ -21,31 +21,31 @@ extends Control
 @onready var results_screen: Panel = $CanvasLayer/ResultsScreen
 @onready var results_text: RichTextLabel = $CanvasLayer/ResultsScreen/MarginContainer/VBoxContainer/ResultsText
 @onready var back_btn: Button = $CanvasLayer/ResultsScreen/MarginContainer/VBoxContainer/BackButton
-@onready var sfx_correct: AudioStreamPlayer = $SFX_Correct
-@onready var sfx_wrong: AudioStreamPlayer = $SFX_Wrong
 @onready var quit_btn: Button = $CanvasLayer/TopPanel/Button
+
 # CIA Zone tooltips
 @onready var c_tooltip: Label = $CanvasLayer/CIAZones/ConfidentialityZone/TooltipLabel
 @onready var i_tooltip: Label = $CanvasLayer/CIAZones/IntegrityZone/TooltipLabel
 @onready var a_tooltip: Label = $CanvasLayer/CIAZones/AvailabilityZone/TooltipLabel
 
-# Scenario data
-# Scenario data
-const SCENARIOS = [
+# Audio - Created dynamically in code
+var sfx_correct: AudioStreamPlayer
+var sfx_wrong: AudioStreamPlayer
+var bgm_player: AudioStreamPlayer
+
+# Background music settings
+const BGM_NORMAL_VOLUME := -10.0  # Normal background music volume in dB
+const BGM_FADE_VOLUME := -25.0    # Faded (quiet) volume in dB
+const BGM_FADE_DURATION := 2.0    # How long the fade takes in seconds
+const BGM_FADE_BEFORE_LOOP := 3.0 # Start fading X seconds before loop ends
+
+# ALL AVAILABLE SCENARIOS (will be shuffled each game)
+const ALL_SCENARIOS = [
+	# CONFIDENTIALITY scenarios
 	{
 		"text": "Someone broke into the hospital's computer system using a weak password. Now personal medical records of 10,000 patients can be seen by anyone on the internet.",
 		"correct": "C",
 		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nConfidentiality means keeping sensitive data PRIVATE. Patient records were exposed to unauthorized people—this breaks confidentiality."
-	},
-	{
-		"text": "A virus locked all the company's files and demands payment to unlock them. Workers can't open emails, check payroll, or access any documents. Everything has been blocked for 2 days.",
-		"correct": "A",
-		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nAvailability means keeping systems ACCESSIBLE when needed. The virus didn't steal or change data—it blocked access to it."
-	},
-	{
-		"text": "Someone hacked the school's computer and changed 20 students' report card grades from C to A without permission.",
-		"correct": "I",
-		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nIntegrity means keeping data ACCURATE and UNCHANGED. The grades were modified incorrectly—this breaks integrity."
 	},
 	{
 		"text": "A laptop was stolen from a coffee shop. Inside the laptop were company financial reports and customer credit card information that weren't password-protected.",
@@ -53,9 +53,73 @@ const SCENARIOS = [
 		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nThe sensitive financial data can now be SEEN by unauthorized people (the thief). Confidentiality breach!"
 	},
 	{
+		"text": "An employee found a USB flash drive in the parking lot labeled 'Employee Salaries 2025' and plugged it into their work computer. A hidden virus copied company files and sent them to criminals on the internet.",
+		"correct": "C",
+		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nThe virus STOLE and SENT files to attackers. Private data was exposed to unauthorized parties."
+	},
+	{
+		"text": "A hacker intercepted unencrypted emails containing social security numbers and bank account details of 500 customers.",
+		"correct": "C",
+		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nSensitive customer data was EXPOSED to unauthorized parties through interception."
+	},
+	{
+		"text": "An employee accidentally sent an email with the entire customer database to a wrong recipient outside the company.",
+		"correct": "C",
+		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nConfidential customer information was DISCLOSED to unauthorized external parties."
+	},
+	{
+		"text": "Security cameras caught someone taking photos of confidential documents displayed on unattended computer screens in the office.",
+		"correct": "C",
+		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nConfidential information was ACCESSED and potentially copied by unauthorized individuals."
+	},
+	{
+		"text": "A company's internal chat logs discussing unreleased product designs were leaked to a competitor through a former employee.",
+		"correct": "C",
+		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nProprietary information was DISCLOSED to competitors, violating confidentiality."
+	},
+	
+	# INTEGRITY scenarios
+	{
+		"text": "Someone hacked the school's computer and changed 20 students' report card grades from C to A without permission.",
+		"correct": "I",
+		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nIntegrity means keeping data ACCURATE and UNCHANGED. The grades were modified incorrectly—this breaks integrity."
+	},
+	{
 		"text": "Attackers broke into the company website and replaced the homepage with spray paint-style graffiti and posted fake news about the CEO.",
 		"correct": "I",
 		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nIntegrity means data stays CORRECT and TRUSTWORTHY. The website content was tampered with—breaking integrity."
+	},
+	{
+		"text": "A malicious insider modified the prices in the online store database, changing $1,000 items to $1 before making purchases.",
+		"correct": "I",
+		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nThe product pricing data was ALTERED without authorization, compromising data integrity."
+	},
+	{
+		"text": "Hackers modified bank account balances in the system, transferring money to fake accounts they created.",
+		"correct": "I",
+		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nFinancial records were TAMPERED with, making the data inaccurate and untrustworthy."
+	},
+	{
+		"text": "An attacker altered the timestamp logs in the security system to hide evidence of when they broke into the building.",
+		"correct": "I",
+		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nAudit logs were MODIFIED to conceal unauthorized activity, destroying data integrity."
+	},
+	{
+		"text": "Someone intercepted a payment transaction and changed the recipient's bank account number to redirect the funds.",
+		"correct": "I",
+		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nTransaction data was ALTERED during transmission, compromising its accuracy."
+	},
+	{
+		"text": "A disgruntled employee modified customer shipping addresses in the database, causing orders to be sent to wrong locations.",
+		"correct": "I",
+		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nCustomer data was CORRUPTED through unauthorized modifications."
+	},
+	
+	# AVAILABILITY scenarios
+	{
+		"text": "A virus locked all the company's files and demands payment to unlock them. Workers can't open emails, check payroll, or access any documents. Everything has been blocked for 2 days.",
+		"correct": "A",
+		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nAvailability means keeping systems ACCESSIBLE when needed. The virus didn't steal or change data—it blocked access to it."
 	},
 	{
 		"text": "Attackers flooded the online shopping website with millions of fake visitors at once. Real customers can't load the website or buy anything because it's too overloaded.",
@@ -63,14 +127,29 @@ const SCENARIOS = [
 		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nThe website is BLOCKED from legitimate users. The data wasn't stolen or changed—just made inaccessible."
 	},
 	{
-		"text": "An employee found a USB flash drive in the parking lot labeled 'Employee Salaries 2025' and plugged it into their work computer. A hidden virus copied company files and sent them to criminals on the internet.",
-		"correct": "C",
-		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nThe virus STOLE and SENT files to attackers. Private data was exposed to unauthorized parties."
-	},
-	{
 		"text": "The company's backup storage system broke during a building fire. When they tried to recover their data afterwards, they realized nothing was saved for the past 6 months—all that work is now gone forever.",
 		"correct": "A",
 		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nThe data couldn't be ACCESSED when needed. Even though the original data wasn't stolen or changed, it became unavailable due to lack of proper backups."
+	},
+	{
+		"text": "A power outage caused the hospital's patient monitoring systems to go offline for 3 hours, preventing doctors from accessing vital patient information.",
+		"correct": "A",
+		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nCritical systems were UNAVAILABLE when needed, even though data wasn't stolen or modified."
+	},
+	{
+		"text": "Hackers crashed the airline's booking system during peak holiday season, preventing customers from purchasing tickets for 48 hours.",
+		"correct": "A",
+		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nThe service was DISRUPTED and inaccessible to legitimate users."
+	},
+	{
+		"text": "A construction crew accidentally cut the fiber optic cable, causing the company's internet and cloud services to be down for an entire day.",
+		"correct": "A",
+		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nNetwork services became UNAVAILABLE, preventing access to business systems."
+	},
+	{
+		"text": "A misconfigured update caused the email server to crash. Employees couldn't send or receive emails for the entire morning shift.",
+		"correct": "A",
+		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nThe email service was INACCESSIBLE due to system failure."
 	}
 ]
 
@@ -78,8 +157,9 @@ const SCENARIOS = [
 var current_scenario_index := 0
 var score := 0
 var streak := 0
-const TOTAL_SCENARIOS := 8
-const POINTS_PER_CORRECT := 100
+var shuffled_scenarios := []  # Will hold randomized scenarios for this game
+const SCENARIOS_PER_GAME := 10  # How many scenarios to show per game
+const POINTS_PER_CORRECT := 30  # Changed from 100 to 30
 
 # Drag state
 var dragging := false
@@ -92,6 +172,18 @@ const TUTORIAL_ID := "cia_triad_basics"
 
 func _ready() -> void:
 	print("[CIA Triad] Tutorial scene ready!")
+	
+	# FIX MASTER BUS VOLUME FIRST!
+	_fix_audio_bus()
+	
+	# CREATE AUDIO PLAYERS DYNAMICALLY IN CODE
+	_setup_audio()
+	
+	# START BACKGROUND MUSIC
+	_start_background_music()
+	
+	# SHUFFLE SCENARIOS FOR THIS GAME SESSION
+	_shuffle_scenarios()
 	
 	# Hide popups initially
 	feedback_popup.hide()
@@ -117,10 +209,179 @@ func _ready() -> void:
 	# Update display
 	_update_ui()
 
+
+func _process(delta: float) -> void:
+	"""Monitor background music for smooth looping with fade"""
+	if bgm_player and bgm_player.playing:
+		var stream_length = bgm_player.stream.get_length()
+		var current_position = bgm_player.get_playback_position()
+		var time_remaining = stream_length - current_position
+		
+		# Start fade out before loop ends
+		if time_remaining <= BGM_FADE_BEFORE_LOOP and time_remaining > BGM_FADE_BEFORE_LOOP - 0.1:
+			_fade_bgm_for_loop()
+
+
+func _shuffle_scenarios() -> void:
+	"""Shuffle scenarios and select a random subset for this game"""
+	print("[DEBUG] Shuffling scenarios...")
+	
+	# Create a copy of all scenarios
+	var all_scenarios_copy = ALL_SCENARIOS.duplicate()
+	
+	# Shuffle the array using Fisher-Yates algorithm
+	randomize()  # Seed random number generator
+	for i in range(all_scenarios_copy.size() - 1, 0, -1):
+		var j = randi() % (i + 1)
+		var temp = all_scenarios_copy[i]
+		all_scenarios_copy[i] = all_scenarios_copy[j]
+		all_scenarios_copy[j] = temp
+	
+	# Take first SCENARIOS_PER_GAME scenarios
+	shuffled_scenarios = all_scenarios_copy.slice(0, SCENARIOS_PER_GAME)
+	
+	print("[DEBUG] Selected %d random scenarios from %d total scenarios" % [shuffled_scenarios.size(), ALL_SCENARIOS.size()])
+
+
+func _fix_audio_bus() -> void:
+	"""Fix the Master audio bus volume if it's too low"""
+	var master_bus_index = AudioServer.get_bus_index("Master")
+	var current_volume = AudioServer.get_bus_volume_db(master_bus_index)
+	
+	print("[DEBUG] Current Master bus volume: ", current_volume, " dB")
+	
+	# If volume is below -20 dB, it's probably muted/too quiet
+	if current_volume < -20.0:
+		print("[WARNING] Master bus volume is TOO LOW (", current_volume, " dB)")
+		print("[FIX] Setting Master bus to 0 dB (normal volume)")
+		AudioServer.set_bus_volume_db(master_bus_index, 0.0)
+		print("[DEBUG] New Master bus volume: ", AudioServer.get_bus_volume_db(master_bus_index), " dB")
+	else:
+		print("[DEBUG] Master bus volume is fine")
+
+
+func _setup_audio() -> void:
+	"""Create and configure audio players dynamically in code"""
+	print("[DEBUG] Setting up audio players in code...")
+	
+	# Create CORRECT sound effect player
+	sfx_correct = AudioStreamPlayer.new()
+	sfx_correct.name = "SFX_Correct_Dynamic"
+	
+	# Load the audio stream
+	var correct_stream = load("res://asset/minigamessoundsfx/corrects.mp3")
+	if correct_stream:
+		sfx_correct.stream = correct_stream
+		sfx_correct.volume_db = -9.397
+		sfx_correct.bus = "Master"
+		add_child(sfx_correct)
+		print("[DEBUG] ✓ Correct SFX loaded")
+	else:
+		print("[ERROR] ✗ Failed to load correct SFX")
+	
+	# Create WRONG sound effect player
+	sfx_wrong = AudioStreamPlayer.new()
+	sfx_wrong.name = "SFX_Wrong_Dynamic"
+	
+	# Load the audio stream
+	var wrong_stream = load("res://asset/minigamessoundsfx/wrongs.mp3")
+	if wrong_stream:
+		sfx_wrong.stream = wrong_stream
+		sfx_wrong.volume_db = -9.397
+		sfx_wrong.bus = "Master"
+		add_child(sfx_wrong)
+		print("[DEBUG] ✓ Wrong SFX loaded")
+	else:
+		print("[ERROR] ✗ Failed to load wrong SFX")
+	
+	# Create BACKGROUND MUSIC player
+	bgm_player = AudioStreamPlayer.new()
+	bgm_player.name = "BGM_Player_Dynamic"
+	
+	# Try to load background music (replace with your music file path)
+	var bgm_stream = load("res://asset/minigamessoundsfx/ciabg.mp3")  # CHANGE THIS PATH
+	if bgm_stream:
+		bgm_player.stream = bgm_stream
+		bgm_player.volume_db = BGM_NORMAL_VOLUME
+		bgm_player.bus = "Master"
+		add_child(bgm_player)
+		print("[DEBUG] ✓ Background music loaded")
+	else:
+		print("[WARNING] Background music not found at res://asset/minigamessoundsfx/ciabg.mp3")
+		print("[INFO] Looking for alternative music files...")
+		
+		# Try alternative paths
+		var alternative_paths = [
+			"res://asset/minigamessoundsfx/bgm.mp3",
+			"res://asset/minigamessoundsfx/background.mp3",
+			"res://asset/minigamessoundsfx/music.mp3",
+			"res://asset/minigamessoundsfx/game_music.ogg",
+		]
+		
+		for path in alternative_paths:
+			bgm_stream = load(path)
+			if bgm_stream:
+				bgm_player.stream = bgm_stream
+				bgm_player.volume_db = BGM_NORMAL_VOLUME
+				bgm_player.bus = "Master"
+				add_child(bgm_player)
+				print("[DEBUG] ✓ Background music loaded from: ", path)
+				break
+		
+		if not bgm_player.stream:
+			print("[WARNING] No background music found - game will run without BGM")
+
+
+func _start_background_music() -> void:
+	"""Start playing background music with fade-in"""
+	if bgm_player and bgm_player.stream:
+		print("[DEBUG] Starting background music with fade-in...")
+		
+		# Start at very low volume
+		bgm_player.volume_db = -80.0
+		bgm_player.play()
+		
+		# Fade in to normal volume
+		var tween = create_tween()
+		tween.tween_property(bgm_player, "volume_db", BGM_NORMAL_VOLUME, BGM_FADE_DURATION)
+		
+		print("[DEBUG] Background music started")
+	else:
+		print("[INFO] No background music to play")
+
+
+func _fade_bgm_for_loop() -> void:
+	"""Fade BGM out and back in for smooth looping"""
+	if not bgm_player or not bgm_player.playing:
+		return
+	
+	print("[DEBUG] Fading BGM for smooth loop...")
+	
+	# Create fade out tween
+	var fade_out = create_tween()
+	fade_out.tween_property(bgm_player, "volume_db", BGM_FADE_VOLUME, BGM_FADE_DURATION / 2)
+	
+	# Wait for fade out to complete, then fade back in
+	await fade_out.finished
+	
+	# Create fade in tween
+	var fade_in = create_tween()
+	fade_in.tween_property(bgm_player, "volume_db", BGM_NORMAL_VOLUME, BGM_FADE_DURATION / 2)
+
+
 func _on_quit_pressed() -> void:
 	"""Return to mode selection from anywhere in the tutorial"""
 	print("[CIA Triad] Quit button pressed, returning to mode selection...")
+	
+	# Fade out music before leaving
+	if bgm_player and bgm_player.playing:
+		var fade_out = create_tween()
+		fade_out.tween_property(bgm_player, "volume_db", -80.0, 0.5)
+		await fade_out.finished
+		bgm_player.stop()
+	
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+
 
 func _setup_tooltips() -> void:
 	"""Setup hover tooltips for CIA zones"""
@@ -164,11 +425,11 @@ func _gui_input(event: InputEvent) -> void:
 
 func _load_scenario() -> void:
 	"""Load current scenario into the incident card"""
-	if current_scenario_index >= TOTAL_SCENARIOS:
+	if current_scenario_index >= shuffled_scenarios.size():
 		_show_results()
 		return
 	
-	var scenario = SCENARIOS[current_scenario_index]
+	var scenario = shuffled_scenarios[current_scenario_index]
 	incident_text.text = "[center]🚨 [b]INCIDENT ALERT #%d[/b] 🚨[/center]\n\n%s" % [current_scenario_index + 1, scenario["text"]]
 	
 	# Reset card position and appearance
@@ -176,12 +437,13 @@ func _load_scenario() -> void:
 	incident_card.modulate = Color.WHITE
 	incident_card.show()
 	
-	print("[CIA Triad] Loaded scenario %d/%d" % [current_scenario_index + 1, TOTAL_SCENARIOS])
+	print("[CIA Triad] Loaded scenario %d/%d" % [current_scenario_index + 1, shuffled_scenarios.size()])
 
 
 func _update_ui() -> void:
 	"""Update score and streak display"""
-	score_label.text = "Score: %d/%d" % [score, TOTAL_SCENARIOS * POINTS_PER_CORRECT]
+	var max_score = shuffled_scenarios.size() * POINTS_PER_CORRECT
+	score_label.text = "Score: %d/%d" % [score, max_score]
 	
 	if streak > 0:
 		streak_label.text = "Streak: %d 🔥" % streak
@@ -191,7 +453,7 @@ func _update_ui() -> void:
 
 func _check_answer(zone_type: String) -> void:
 	"""Check if the selected zone is correct"""
-	var scenario = SCENARIOS[current_scenario_index]
+	var scenario = shuffled_scenarios[current_scenario_index]
 	var correct_answer = scenario["correct"]
 	
 	if zone_type == correct_answer:
@@ -206,7 +468,7 @@ func _handle_correct_answer(zone_type: String) -> void:
 	streak += 1
 	
 	# Play success sound
-	if sfx_correct:
+	if sfx_correct and sfx_correct.stream:
 		sfx_correct.play()
 	
 	# Visual feedback
@@ -226,7 +488,7 @@ func _handle_wrong_answer(chosen: String, correct: String) -> void:
 	streak = 0
 	
 	# Play wrong sound
-	if sfx_wrong:
+	if sfx_wrong and sfx_wrong.stream:
 		sfx_wrong.play()
 	
 	# Visual feedback
@@ -288,7 +550,7 @@ func _play_wrong_animation() -> void:
 
 func _show_feedback(correct_answer: String) -> void:
 	"""Show educational feedback popup"""
-	var scenario = SCENARIOS[current_scenario_index]
+	var scenario = shuffled_scenarios[current_scenario_index]
 	
 	var principle_name := ""
 	var principle_color := ""
@@ -336,13 +598,13 @@ func _on_try_again_pressed() -> void:
 
 func _show_results() -> void:
 	"""Show final results screen"""
-	print("[CIA Triad] Tutorial complete! Score: %d/%d" % [score, TOTAL_SCENARIOS * POINTS_PER_CORRECT])
+	var max_score = shuffled_scenarios.size() * POINTS_PER_CORRECT
+	print("[CIA Triad] Tutorial complete! Score: %d/%d" % [score, max_score])
 	
 	# Hide game UI
 	incident_card.hide()
 	
 	# Calculate percentage
-	var max_score = TOTAL_SCENARIOS * POINTS_PER_CORRECT
 	var percentage = (float(score) / float(max_score)) * 100.0
 	
 	# Determine grade
@@ -391,6 +653,14 @@ func _show_results() -> void:
 func _on_back_pressed() -> void:
 	"""Return to mode selection"""
 	print("[CIA Triad] Returning to mode selection...")
+	
+	# Fade out music before leaving
+	if bgm_player and bgm_player.playing:
+		var fade_out = create_tween()
+		fade_out.tween_property(bgm_player, "volume_db", -80.0, 0.5)
+		await fade_out.finished
+		bgm_player.stop()
+	
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=0 format=3 uid="uid://c1ceqfc3b7afj"]
+[gd_scene format=3 uid="uid://c1ceqfc3b7afj"]
 
 [node name="NetworkDefenseGame2" type="Control"]
 layout_mode = 3

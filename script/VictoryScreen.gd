@@ -4,12 +4,32 @@ var score_label
 var accuracy_label
 var data_label
 var network_label
+var game_manager = null  # Reference for audio
 
 func _ready():
 	score_label = $VBox/ScoreLabel
 	accuracy_label = $VBox/AccuracyLabel
 	data_label = $VBox/DataLabel
 	network_label = $VBox/NetworkLabel
+	
+	# Connect button sounds
+	var retry_btn = $VBox/ButtonContainer/RetryButton
+	var next_btn = $VBox/ButtonContainer/NextButton
+	
+	if retry_btn:
+		retry_btn.mouse_entered.connect(_on_button_hover)
+		retry_btn.pressed.connect(_on_button_click)
+	if next_btn:
+		next_btn.mouse_entered.connect(_on_button_hover)
+		next_btn.pressed.connect(_on_button_click)
+
+func _on_button_hover():
+	if game_manager:
+		game_manager._play_sfx(game_manager.audio_zone_hover, 0.1, 1.0)
+
+func _on_button_click():
+	if game_manager:
+		game_manager._play_sfx(game_manager.audio_button_click, 0.05, 1.0)
 
 func setup(final_score: int, accuracy: int, data_correct: int, data_total: int, network_correct: int, network_total: int):
 	# Ensure nodes are ready
@@ -29,6 +49,5 @@ func _on_retry_pressed():
 	get_tree().reload_current_scene()
 
 func _on_next_pressed():
-	# TODO: Load next lesson scene
 	print("Next lesson not implemented yet")
 	get_tree().quit()

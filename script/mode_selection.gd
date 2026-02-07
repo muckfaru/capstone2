@@ -447,7 +447,6 @@ func _show_tutorial_menu(level: String) -> void:
 				{"name": "Security Guardian", "scene": "res://scene/authgmMain.tscn", "id": "advanced_security_guardian"},
 				{"name": "Malware Defense & Removal", "scene": "res://scene/MalwareDefense.tscn", "id": "advanced_malware_defense"},
 				{"name": "CMD Defender: Incident Response Training", "scene": "res://scene/incedentmain.tscn", "id": "advanced_incident_response"},
-				
 			]
 	
 	# Update Auth level

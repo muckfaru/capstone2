@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://gojniaipnw0u"]
+[gd_scene load_steps=8 format=3 uid="uid://gojniaipnw0u"]
 
 [ext_resource type="Script" uid="uid://b5usryyina8xw" path="res://script/NetworkZone.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://v27agpqpxwly" path="res://asset/minigamesicon/ntdd.png" id="2_cq6gr"]
+[ext_resource type="Texture2D" uid="uid://dfkdacwss3umv" path="res://asset/minigamesicon/dtvsnt.png" id="2_cq6gr"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="3"]
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="4_1tsd8"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_network"]
 
@@ -12,6 +13,14 @@ expand_margin_left = 10.0
 expand_margin_top = 20.0
 expand_margin_right = 10.0
 expand_margin_bottom = 20.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_3vbvy"]
+font = ExtResource("4_1tsd8")
+font_size = 23
+font_color = Color(0.0858877, 0.406606, 1, 1)
+outline_size = 10
+shadow_size = 10
+shadow_color = Color(0.992, 0.526, 0.718, 1)
 
 [node name="NetworkZone" type="PanelContainer"]
 custom_minimum_size = Vector2(400, 200)
@@ -36,12 +45,12 @@ text = "🌐"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="VBox"]
-visible = false
 layout_mode = 2
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 28
 text = "NETWORK SECURITY"
+label_settings = SubResource("LabelSettings_3vbvy")
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="VBox"]

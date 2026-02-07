@@ -7,8 +7,12 @@ var attempts = 0
 var processes = []
 var malicious_files = []
 var registry_keys = []
-var game_state = "tutorial"
+var game_state = "menu"  # menu, tutorial, challenge, complete
 var command_history = []
+var tutorial_mode = true
+var tutorial_step = 0
+var current_tutorial_steps = []
+var tutorial_completed = false
 
 # UI references
 @onready var terminal_output = $VBoxContainer/TerminalPanel/ScrollContainer/TerminalOutput
@@ -23,268 +27,594 @@ var command_history = []
 @onready var process_list = $VBoxContainer/SystemStatus/ProcessPanel/ProcessList
 @onready var file_list = $VBoxContainer/SystemStatus/FilePanel/FileList
 @onready var registry_list = $VBoxContainer/SystemStatus/RegistryPanel/RegistryList
+@onready var tutorial_progress = $TutorialPanel/VBoxContainer/ProgressLabel
+@onready var next_step_button = $TutorialPanel/VBoxContainer/NextStepButton
+@onready var auto_fill_button = $TutorialPanel/VBoxContainer/AutoFillButton
+@onready var mode_label = $VBoxContainer/HeaderPanel/HBoxContainer/ModeLabel
 
-# Stage definitions with detailed tutorials
+# Mode selection menu
+@onready var mode_selection_panel = $ModeSelectionPanel
+@onready var tutorial_mode_button = $ModeSelectionPanel/VBoxContainer/TutorialModeButton
+@onready var challenge_mode_button = $ModeSelectionPanel/VBoxContainer/ChallengeModeButton
+
+# Tutorial step definitions for each stage
+var tutorial_steps_data = {
+	0: [  # Stage 1: tasklist
+		{
+			"title": "Welcome to Incident Response Training!",
+			"text": """🎓 WELCOME TO THE CMD INCIDENT RESPONSE SIMULATOR!
+
+You are a cybersecurity analyst who just received an URGENT alert:
+⚠️ Suspicious network activity detected
+⚠️ Possible malware infection
+⚠️ Data exfiltration in progress
+
+Your mission is to investigate and neutralize the threat using Windows command-line tools.
+
+This tutorial will guide you through EVERY STEP of the incident response process.
+
+Click 'Next Step' to begin your training!""",
+			"action": "none"
+		},
+		{
+			"title": "Understanding the Threat",
+			"text": """📋 CURRENT SITUATION:
+
+Our monitoring systems detected:
+• Multiple outbound connections to suspicious IP: 45.142.212.61
+• Unusual process behavior
+• Potential data theft in progress
+
+🎯 FIRST STEP: PROCESS DISCOVERY
+
+Before we can stop the threat, we need to see what's running on the system.
+
+The 'tasklist' command shows all active processes:
+• Process names (program executables)
+• Process IDs (PID) - unique numbers for each process
+• Memory usage
+• Session information
+
+Click 'Next Step' to learn the exact command.""",
+			"action": "none"
+		},
+		{
+			"title": "Running Your First Command",
+			"text": """⌨️ TYPE THIS COMMAND:
+
+tasklist
+
+This command will display all running processes on the system.
+
+📝 WHAT TO LOOK FOR:
+Look for processes with suspicious names. Malware often disguises itself as legitimate Windows processes but with small differences:
+• svchost32.exe ❌ (FAKE - has a number)
+• svchost.exe ✅ (REAL - no number)
+
+💡 TIP: You can click 'Auto-Fill Command' to automatically fill in the correct command, or type it yourself for practice!
+
+When ready, click the ⚡ EXECUTE button or press Enter to run the command.""",
+			"action": "command",
+			"command": "tasklist"
+		}
+	],
+	1: [  # Stage 2: tasklist /v
+		{
+			"title": "Great! Process Found",
+			"text": """✅ EXCELLENT WORK!
+
+You successfully listed all running processes and identified a suspicious one:
+🔴 svchost32.exe (PID: 4832)
+
+This process name is VERY suspicious because:
+• Real Windows process is 'svchost.exe' (no number)
+• The '32' suffix is a common malware trick
+• It's using unusually high memory (12,844 K)
+
+🎯 NEXT STEP: GET MORE DETAILS
+
+We need verbose (detailed) information about all processes to understand what svchost32.exe is doing.
+
+Click 'Next Step' to continue...""",
+			"action": "none"
+		},
+		{
+			"title": "Using Command Flags",
+			"text": """📚 LEARNING: COMMAND FLAGS
+
+Most Windows commands accept 'flags' or 'switches' that modify their behavior.
+Flags start with a forward slash (/)
+
+For tasklist:
+• /v = verbose (detailed information)
+• /svc = show services
+• /fo = format output
+
+⌨️ TYPE THIS COMMAND:
+
+tasklist /v
+
+The /v flag will show:
+• Window titles
+• User accounts running each process
+• CPU time
+• Detailed status
+
+This helps identify malware that's hiding or running with suspicious privileges.
+
+Click 'Auto-Fill Command' or type it yourself, then click EXECUTE.""",
+			"action": "command",
+			"command": "tasklist /v"
+		}
+	],
+	2: [  # Stage 3: wmic process
+		{
+			"title": "Confirming the Threat",
+			"text": """🔍 ANALYSIS COMPLETE!
+
+The verbose output confirmed our suspicions:
+• Process: svchost32.exe
+• PID: 4832
+• User: SYSTEM (has high privileges!)
+• Making network connections to suspicious IP
+
+⚠️ CRITICAL FINDING:
+This malware is actively communicating with a Command & Control (C2) server at 45.142.212.61:443
+
+🎯 NEXT STEP: LOCATE THE MALWARE FILE
+
+Before we terminate the process, we need to find WHERE the malware executable file is stored on disk.
+
+Click 'Next Step' to learn how...""",
+			"action": "none"
+		},
+		{
+			"title": "Using WMIC to Query Processes",
+			"text": """📚 ADVANCED TOOL: WMIC
+
+WMIC (Windows Management Instrumentation Command) is a powerful tool for querying system information.
+
+⌨️ TYPE THIS COMMAND:
+
+wmic process where ProcessId=4832 get ExecutablePath
+
+COMMAND BREAKDOWN:
+• wmic process = Query process information
+• where ProcessId=4832 = Filter by our suspicious PID
+• get ExecutablePath = Show the file location
+
+🎯 WHY THIS MATTERS:
+Legitimate Windows processes run from:
+✅ C:\\Windows\\System32\\
+✅ C:\\Program Files\\
+
+Malware often hides in:
+❌ C:\\Windows\\Temp\\
+❌ C:\\Users\\...\\AppData\\
+❌ Random temporary folders
+
+Let's find out where svchost32.exe is hiding!
+
+Type the command or use Auto-Fill, then EXECUTE.""",
+			"action": "command",
+			"command": "wmic process where ProcessId=4832 get ExecutablePath"
+		}
+	],
+	3: [  # Stage 4: taskkill
+		{
+			"title": "Malware Location Confirmed!",
+			"text": """🚨 MALWARE DETECTED:
+
+ExecutablePath: C:\\Windows\\Temp\\svchost32.exe
+
+This CONFIRMS it's malware because:
+❌ Real svchost.exe is in C:\\Windows\\System32\\
+❌ The Temp folder is a common malware hiding spot
+❌ Legitimate system processes NEVER run from Temp
+
+🎯 CONTAINMENT PHASE
+
+Now we need to STOP the malware immediately before it:
+• Steals more data
+• Spreads to other systems
+• Downloads additional malware
+• Damages files
+
+Click 'Next Step' to learn how to terminate malicious processes...""",
+			"action": "none"
+		},
+		{
+			"title": "Terminating Malicious Processes",
+			"text": """⚡ CONTAINMENT: KILL THE PROCESS
+
+The 'taskkill' command terminates (stops) running processes.
+
+⌨️ TYPE THIS COMMAND:
+
+taskkill /im svchost32.exe /f
+
+COMMAND BREAKDOWN:
+• taskkill = Terminate process command
+• /im svchost32.exe = Identify by image name (process name)
+• /f = FORCE termination (don't ask for confirmation)
+
+⚠️ THE /f FLAG IS CRITICAL:
+• Normal termination might fail with malware
+• Malware often resists being stopped
+• /f overrides any resistance
+
+ALTERNATIVE SYNTAX:
+You could also use: taskkill /pid 4832 /f
+(Terminates by Process ID instead of name)
+
+🎯 IMMEDIATE ACTION REQUIRED:
+Every second counts! The malware is actively stealing data.
+
+Type the command or use Auto-Fill, then EXECUTE NOW!""",
+			"action": "command",
+			"command": "taskkill /im svchost32.exe /f"
+		}
+	],
+	4: [  # Stage 5: del
+		{
+			"title": "Process Terminated Successfully!",
+			"text": """✅ CONTAINMENT SUCCESSFUL!
+
+The malicious process has been stopped:
+• Process svchost32.exe (PID 4832) terminated
+• Network connections to C2 server severed
+• Data exfiltration halted
+
+🎯 ERADICATION PHASE
+
+But we're NOT done yet! The malware file still exists on disk.
+
+If we reboot or the malware has auto-restart mechanisms, it could:
+• Start running again
+• Re-establish C2 connections
+• Continue its malicious activity
+
+We need to DELETE the malware file permanently.
+
+Click 'Next Step' to continue...""",
+			"action": "none"
+		},
+		{
+			"title": "Deleting Malicious Files",
+			"text": """🗑️ FILE DELETION
+
+The 'del' command removes files from the file system.
+
+⌨️ TYPE THIS COMMAND:
+
+del C:\\Windows\\Temp\\svchost32.exe
+
+COMMAND BREAKDOWN:
+• del = Delete file command
+• C:\\Windows\\Temp\\svchost32.exe = Full path to malware
+
+⚠️ IMPORTANT NOTES:
+• Always use the FULL PATH when deleting critical files
+• Double-check you're deleting the RIGHT file
+• Deleting wrong system files can break Windows!
+
+ADVANCED OPTIONS:
+• /f = Force delete read-only files
+• /q = Quiet (no confirmation prompt)
+
+🔬 IN REAL INCIDENTS:
+Before deleting, you should:
+1. Create a copy for forensic analysis
+2. Calculate file hash (MD5/SHA256)
+3. Submit to VirusTotal
+4. Document everything
+5. THEN delete
+
+For this training, we'll proceed directly to deletion.
+
+Type the command or use Auto-Fill, then EXECUTE.""",
+			"action": "command",
+			"command": "del C:\\Windows\\Temp\\svchost32.exe"
+		}
+	],
+	5: [  # Stage 6: reg delete
+		{
+			"title": "Malware File Deleted!",
+			"text": """✅ FILE REMOVED!
+
+The malware executable has been deleted from disk:
+• File: C:\\Windows\\Temp\\svchost32.exe
+• Status: Permanently removed
+• Hash: d41d8cd98f00b204e9800998ecf8427e
+• Identified as: Emotet banking trojan variant
+
+🎯 PERSISTENCE REMOVAL PHASE
+
+There's one more critical step!
+
+Sophisticated malware creates PERSISTENCE MECHANISMS to survive reboots.
+
+Common persistence methods:
+• Registry Run keys (auto-start programs)
+• Scheduled tasks
+• Services
+• Startup folder shortcuts
+
+Our investigation revealed this malware created a registry entry.
+
+Click 'Next Step' to learn how to remove it...""",
+			"action": "none"
+		},
+		{
+			"title": "Understanding Registry Persistence",
+			"text": """📚 WINDOWS REGISTRY PERSISTENCE
+
+The Windows Registry contains settings that control what programs run automatically.
+
+COMMON PERSISTENCE LOCATIONS:
+HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
+HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
+
+HKCU = Current User (affects one user)
+HKLM = Local Machine (affects all users)
+
+⚠️ MALWARE FOUND IN REGISTRY:
+Key: HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
+Value: SecurityUpdate
+Data: C:\\Windows\\Temp\\svchost32.exe
+
+This means the malware would restart every time the user logs in!
+
+Click 'Next Step' to learn the deletion command...""",
+			"action": "none"
+		},
+		{
+			"title": "Removing Registry Persistence",
+			"text": """🔧 REGISTRY DELETION
+
+The 'reg delete' command removes registry keys and values.
+
+⌨️ TYPE THIS COMMAND:
+
+reg delete HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v SecurityUpdate /f
+
+COMMAND BREAKDOWN:
+• reg delete = Registry deletion command
+• HKCU\\...\\Run = Path to the Run key
+• /v SecurityUpdate = Value name to delete
+• /f = Force (no confirmation prompt)
+
+⚠️ BE EXTREMELY CAREFUL:
+• Wrong registry edits can break Windows
+• Always verify the path before deleting
+• The /f flag skips confirmation - use wisely
+
+OTHER USEFUL REGISTRY COMMANDS:
+• reg query [path] = View registry values
+• reg add [path] /v [name] /d [data] = Add value
+• reg export [path] [file] = Backup registry
+
+🎯 FINAL PERSISTENCE REMOVAL:
+This command will prevent the malware from auto-starting on reboot.
+
+Type the command or use Auto-Fill, then EXECUTE.""",
+			"action": "command",
+			"command": "reg delete HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v SecurityUpdate /f"
+		}
+	],
+	6: [  # Stage 7: verification
+		{
+			"title": "Persistence Removed!",
+			"text": """✅ REGISTRY CLEANED!
+
+The malware's persistence mechanism has been removed:
+• Registry key deleted successfully
+• Malware will NOT restart on reboot
+• System startup is now clean
+
+🎯 VERIFICATION & VALIDATION PHASE
+
+This is the MOST IMPORTANT step that many responders forget!
+
+You must VERIFY that:
+✓ No malicious processes are running
+✓ No malicious files remain
+✓ No persistence mechanisms are active
+✓ System is truly clean
+
+"Trust, but verify" is the golden rule of incident response.
+
+Click 'Next Step' to perform final verification...""",
+			"action": "none"
+		},
+		{
+			"title": "Final System Verification",
+			"text": """🔍 COMPREHENSIVE SYSTEM CHECK
+
+Let's verify the system is completely clean.
+
+⌨️ TYPE THIS COMMAND:
+
+tasklist
+
+Yes, we're running tasklist again! This time we're checking:
+• The malicious svchost32.exe is GONE
+• Only legitimate processes remain
+• No new suspicious processes appeared
+
+COMPLETE VERIFICATION CHECKLIST:
+✓ Process check (tasklist)
+✓ File system check (dir C:\\Windows\\Temp)
+✓ Registry check (reg query ...\\Run)
+✓ Network check (netstat -ano)
+✓ Scheduled tasks (schtasks /query)
+
+📊 POST-INCIDENT ACTIONS:
+After verification, you should:
+1. Document everything (timeline, IoCs)
+2. Update antivirus definitions
+3. Run full system scan
+4. Monitor for 24-48 hours
+5. Review security logs
+6. Patch vulnerabilities
+7. Create incident report
+
+For this training, we'll just verify processes.
+
+Type the command or use Auto-Fill, then EXECUTE.""",
+			"action": "command",
+			"command": "tasklist"
+		}
+	]
+}
+
+# Stage definitions
 var stages = [
 	{
 		"title": "Stage 1: Detection - Process Discovery",
 		"objective": "List all running processes to identify suspicious activity",
 		"command": "tasklist",
-		"hint": "Use 'tasklist' to view all running processes",
-		"auto_fill": true,
-		"tutorial": """DETECTION PHASE - Understanding Process Enumeration
-
-The 'tasklist' command is your first line of defense. It displays:
-- Process names (executable files)
-- Process IDs (PID) - unique identifiers
-- Memory usage - how much RAM each process uses
-- Session information
-
-WHY THIS MATTERS:
-Malware often disguises itself as legitimate processes but with slight variations.
-Look for:
-• Misspelled system processes (svchost32.exe vs svchost.exe)
-• Unusual memory usage patterns
-• Processes running from unexpected locations
-
-REAL-WORLD TIP:
-Legitimate svchost.exe runs from C:\\Windows\\System32, not from Temp folders!""",
-		"challenge": "Identify which process looks suspicious based on its name"
+		"hint": "Use 'tasklist' to view all running processes"
 	},
 	{
 		"title": "Stage 2: Detailed Analysis",
-		"objective": "Get verbose information about processes including window titles",
+		"objective": "Get verbose information about processes",
 		"command": "tasklist /v",
-		"hint": "Add the /v flag for verbose output with more details",
-		"auto_fill": true,
-		"tutorial": """ANALYSIS PHASE - Verbose Process Information
-
-The /v (verbose) flag provides critical additional information:
-- Window titles (what the process is displaying)
-- User accounts (who owns the process)
-- CPU time (how long it's been running)
-- Status information
-
-COMMAND FLAGS EXPLAINED:
-/v = verbose (detailed output)
-/svc = shows services for each process
-/fo = format output (TABLE, LIST, CSV)
-
-INVESTIGATION TECHNIQUE:
-Malware often runs with no window title or suspicious user accounts.
-System processes typically run under SYSTEM or LOCAL SERVICE.""",
-		"challenge": "Note the PID of any process that seems abnormal"
+		"hint": "Add the /v flag for verbose output"
 	},
 	{
 		"title": "Stage 3: Path Investigation",
 		"objective": "Locate the executable path of suspicious process (PID: 4832)",
 		"command": "wmic process where ProcessId=4832 get ExecutablePath",
-		"hint": "Use WMIC to query process 4832's executable location",
-		"auto_fill": false,
-		"tutorial": """INVESTIGATION PHASE - WMIC Process Querying
-
-WMIC (Windows Management Instrumentation Command) is powerful for:
-- Querying system information
-- Remote system management
-- Detailed process analysis
-
-COMMAND BREAKDOWN:
-wmic process           → Target process objects
-where ProcessId=4832   → Filter by specific PID
-get ExecutablePath     → Retrieve the file location
-
-OTHER USEFUL WMIC QUERIES:
-• wmic process get Name,ProcessId,ParentProcessId
-• wmic process where Name='malware.exe' get CommandLine
-• wmic startup list full (check startup programs)
-
-RED FLAGS:
-Legitimate Windows processes run from System32 or Program Files.
-Malware often hides in:
-- C:\\Windows\\Temp
-- C:\\Users\\[user]\\AppData
-- Random folders with system-sounding names""",
-		"challenge": "Determine if the process location is legitimate or malicious"
+		"hint": "Use WMIC to query process 4832's location"
 	},
 	{
 		"title": "Stage 4: Containment",
-		"objective": "Terminate the malicious process before it spreads",
+		"objective": "Terminate the malicious process",
 		"command": "taskkill /im svchost32.exe /f",
-		"hint": "Use taskkill with /f to force terminate the process",
-		"auto_fill": false,
-		"tutorial": """CONTAINMENT PHASE - Process Termination
-
-TASKKILL is critical for stopping malicious processes:
-
-SYNTAX OPTIONS:
-taskkill /im [imagename]   → Kill by process name
-taskkill /pid [number]     → Kill by Process ID
-taskkill /f                → Force termination
-taskkill /t                → Terminate child processes too
-
-WHEN TO USE /F (FORCE):
-- Process doesn't respond to normal termination
-- Malware is actively defending itself
-- Critical incident response situations
-
-WARNING:
-Killing system processes can crash Windows!
-Always verify the process is malicious before using /f.
-
-ADVANCED TECHNIQUE:
-Use /t flag to kill parent AND all child processes:
-taskkill /im malware.exe /f /t
-
-INCIDENT RESPONSE BEST PRACTICE:
-1. Document the PID and process name
-2. Capture memory dump if possible (procdump)
-3. Terminate the process
-4. Monitor for re-spawning""",
-		"challenge": "Stop the malware before it exfiltrates more data"
+		"hint": "Use taskkill with /f to force terminate"
 	},
 	{
 		"title": "Stage 5: Eradication",
-		"objective": "Delete the malicious executable from the file system",
+		"objective": "Delete the malicious executable",
 		"command": "del C:\\Windows\\Temp\\svchost32.exe",
-		"hint": "Use 'del' command to remove the malware file",
-		"auto_fill": false,
-		"tutorial": """ERADICATION PHASE - File Removal
-
-The DEL command removes files from the system:
-
-BASIC SYNTAX:
-del [filename]         → Delete file
-del /f [filename]      → Force delete read-only files
-del /q [filename]      → Quiet mode (no confirmation)
-
-FULL PATH REQUIRED:
-Always specify complete path for critical deletions:
-del C:\\Windows\\Temp\\malware.exe
-
-ADVANCED DELETION:
-For stubborn malware:
-1. Take ownership: takeown /f file.exe
-2. Grant permissions: icacls file.exe /grant administrators:F
-3. Delete: del /f /q file.exe
-
-FORENSICS NOTE:
-In real incidents, DON'T delete immediately!
-1. Create forensic copy (hash the file)
-2. Submit to VirusTotal or sandbox
-3. Document IoCs (Indicators of Compromise)
-4. Then safely remove
-
-ALTERNATIVE TOOLS:
-• SDelete (secure deletion, overwrites data)
-• PowerShell Remove-Item with -Force
-• Autoruns (find and disable persistence)""",
-		"challenge": "Remove the malware without damaging system files"
+		"hint": "Use 'del' to remove the malware file"
 	},
 	{
 		"title": "Stage 6: Persistence Removal",
-		"objective": "Remove malware from Windows startup registry",
+		"objective": "Remove malware from registry startup",
 		"command": "reg delete HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v SecurityUpdate /f",
-		"hint": "Use 'reg delete' to remove the malicious registry entry",
-		"auto_fill": false,
-		"tutorial": """PERSISTENCE REMOVAL - Registry Cleanup
-
-Malware achieves persistence through registry keys that auto-start programs.
-
-REGISTRY COMMAND BASICS:
-reg query [keypath]              → View registry values
-reg add [keypath] /v [name]      → Add new value
-reg delete [keypath] /v [name]   → Delete specific value
-/f flag                          → Force without confirmation
-
-COMMON PERSISTENCE LOCATIONS:
-HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
-HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run
-HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce
-HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce
-
-HKCU vs HKLM:
-HKCU (Current User) → Affects only current user
-HKLM (Local Machine) → Affects all users (requires admin)
-
-COMMAND BREAKDOWN:
-reg delete                                          → Delete command
-HKCU\\Software\\...\\Run                           → Registry path
-/v SecurityUpdate                                   → Value name to delete
-/f                                                  → Force (no prompt)
-
-OTHER PERSISTENCE MECHANISMS:
-• Scheduled Tasks (schtasks /query)
-• Services (sc query)
-• WMI Event Subscriptions
-• Startup Folder (shell:startup)
-
-REAL-WORLD EXAMPLE:
-Emotet malware creates Run keys like:
-HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\[random]
-
-BEST PRACTICE:
-Always check BOTH HKCU and HKLM locations!""",
-		"challenge": "Prevent malware from restarting on system reboot"
+		"hint": "Use 'reg delete' to remove the registry entry"
 	},
 	{
-		"title": "Stage 7: Verification & Validation",
-		"objective": "Confirm the system is clean and no traces remain",
+		"title": "Stage 7: Verification",
+		"objective": "Confirm the system is clean",
 		"command": "tasklist",
-		"hint": "Re-run tasklist to verify malicious process is gone",
-		"auto_fill": false,
-		"tutorial": """VERIFICATION PHASE - Final System Check
-
-The final and crucial step: VERIFY YOUR WORK!
-
-VERIFICATION CHECKLIST:
-✓ No malicious processes running (tasklist)
-✓ Malicious files deleted (dir C:\\Windows\\Temp)
-✓ Registry cleaned (reg query ...\\Run)
-✓ No unexpected network connections (netstat -ano)
-✓ No scheduled tasks (schtasks /query)
-
-ADDITIONAL VERIFICATION COMMANDS:
-netstat -ano              → Check active connections
-schtasks /query /fo LIST  → List all scheduled tasks
-sc query                  → Check services
-wmic startup get caption,command  → Startup items
-
-POST-INCIDENT ACTIONS:
-1. Document everything (timeline, commands, findings)
-2. Update antivirus definitions
-3. Run full system scan
-4. Monitor for re-infection (24-48 hours)
-5. Review logs (Event Viewer)
-6. Patch vulnerabilities
-
-INCIDENT REPORT SHOULD INCLUDE:
-• Initial indicators of compromise
-• Malware name/family
-• Persistence mechanisms used
-• Files and registry keys affected
-• Remediation steps taken
-• Recommendations to prevent recurrence
-
-FINAL CHECK:
-If system is clean, you've successfully completed incident response!
-If anything seems off, investigate further - malware often has multiple components.""",
-		"challenge": "Ensure complete eradication with no remaining threats"
+		"hint": "Re-run tasklist to verify"
 	}
 ]
 
 func _ready():
+	# Connect mode selection buttons
+	tutorial_mode_button.pressed.connect(_on_tutorial_mode_selected)
+	challenge_mode_button.pressed.connect(_on_challenge_mode_selected)
+	
+	execute_button.pressed.connect(_on_execute_pressed)
+	hint_button.pressed.connect(_on_hint_pressed)
+	next_step_button.pressed.connect(_on_next_step_pressed)
+	auto_fill_button.pressed.connect(_on_auto_fill_pressed)
+	command_input.text_submitted.connect(_on_command_submitted)
+	
+	# Show mode selection
+	show_mode_selection()
+
+func show_mode_selection():
+	mode_selection_panel.visible = true
+	$VBoxContainer.visible = false
+
+func _on_tutorial_mode_selected():
+	tutorial_mode = true
+	game_state = "tutorial"
+	mode_selection_panel.visible = false
+	$VBoxContainer.visible = true
+	
 	initialize_system()
 	update_ui()
 	command_input.grab_focus()
-	execute_button.pressed.connect(_on_execute_pressed)
-	hint_button.pressed.connect(_on_hint_pressed)
-	$TutorialPanel/VBoxContainer/CloseButton.pressed.connect(_on_tutorial_close)
-	command_input.text_submitted.connect(_on_command_submitted)
 	
-	# Show initial tutorial
-	show_tutorial()
+	# Show hint button in tutorial mode
+	hint_button.visible = true
+	mode_label.text = "MODE: Tutorial"
+	mode_label.modulate = Color.YELLOW
+	
+	# Start tutorial
+	start_tutorial()
 
-# Helper function to pad strings (replacement for pad_align)
+func _on_challenge_mode_selected():
+	tutorial_mode = false
+	game_state = "challenge"
+	mode_selection_panel.visible = false
+	$VBoxContainer.visible = true
+	
+	initialize_system()
+	update_ui()
+	command_input.grab_focus()
+	
+	# Hide hint button in challenge mode
+	hint_button.visible = false
+	mode_label.text = "MODE: Challenge"
+	mode_label.modulate = Color.RED
+	
+	add_terminal_line("🎯 CHALLENGE MODE - No hints available!", Color.RED)
+	add_terminal_line("Use your knowledge to complete the incident response!\n", Color.YELLOW)
+
+func start_tutorial():
+	tutorial_step = 0
+	current_tutorial_steps = tutorial_steps_data[current_stage]
+	show_current_tutorial_step()
+
+func show_current_tutorial_step():
+	if !tutorial_mode:
+		return
+		
+	if tutorial_step >= current_tutorial_steps.size():
+		tutorial_panel.visible = false
+		return
+	
+	var step = current_tutorial_steps[tutorial_step]
+	tutorial_text.text = "[b][color=cyan]" + step["title"] + "[/color][/b]\n\n" + step["text"]
+	tutorial_progress.text = "Tutorial Step %d/%d" % [tutorial_step + 1, current_tutorial_steps.size()]
+	
+	# Show/hide buttons based on step type
+	if step["action"] == "command":
+		next_step_button.text = "I understand, let me try the command →"
+		auto_fill_button.visible = true
+	else:
+		next_step_button.text = "Next Step →"
+		auto_fill_button.visible = false
+	
+	tutorial_panel.visible = true
+	tutorial_text.scroll_to_line(0)
+
+func _on_next_step_pressed():
+	var step = current_tutorial_steps[tutorial_step]
+	
+	if step["action"] == "command":
+		# Close tutorial and let player execute command
+		tutorial_panel.visible = false
+		command_input.grab_focus()
+	else:
+		# Move to next tutorial step
+		tutorial_step += 1
+		show_current_tutorial_step()
+
+func _on_auto_fill_pressed():
+	var step = current_tutorial_steps[tutorial_step]
+	if step["action"] == "command":
+		command_input.text = step["command"]
+		tutorial_panel.visible = false
+		command_input.grab_focus()
+
 func pad_string(text: String, length: int, align_right: bool = false) -> String:
 	var current_length = text.length()
 	if current_length >= length:
@@ -323,14 +653,6 @@ func update_ui():
 	score_label.text = "Score: %d | Accuracy: %d%%" % [score, get_accuracy()]
 	objective_label.text = "OBJECTIVE: " + stages[current_stage]["objective"]
 	
-	if stages[current_stage]["auto_fill"]:
-		command_input.text = stages[current_stage]["command"]
-		command_input.editable = true
-	else:
-		command_input.text = ""
-		command_input.editable = true
-	
-	# Update system status
 	update_system_status()
 
 func update_system_status():
@@ -384,8 +706,6 @@ func is_valid_variant(input: String, expected: String) -> bool:
 	return false
 
 func handle_correct_command(cmd: String):
-	var stage_data = stages[current_stage]
-	
 	match current_stage:
 		0:  # tasklist
 			add_terminal_line("Image Name                     PID Session Name     Mem Usage", Color.GRAY)
@@ -397,46 +717,38 @@ func handle_correct_command(cmd: String):
 				var color = Color.RED if p["malware"] else Color.WHITE
 				add_terminal_line(line, color)
 			add_terminal_line("\n✓ Process list retrieved successfully!", Color.GREEN)
-			add_terminal_line("📋 NOTICE: Process 'svchost32.exe' looks suspicious!", Color.YELLOW)
-			add_terminal_line("   Real svchost.exe has no number. This is likely malware.\n", Color.YELLOW)
+			if tutorial_mode:
+				add_terminal_line("📋 NOTICE: Process 'svchost32.exe' looks suspicious!", Color.YELLOW)
 		
 		1:  # tasklist /v
 			add_terminal_line("Image Name           PID  Status      User Name     Window Title", Color.GRAY)
 			add_terminal_line("svchost32.exe       4832  Running     SYSTEM        N/A", Color.RED)
 			add_terminal_line("explorer.exe        1456  Running     User          Program Manager", Color.WHITE)
 			add_terminal_line("...", Color.GRAY)
-			add_terminal_line("\n✓ Detailed process information retrieved!", Color.GREEN)
-			add_terminal_line("⚠️ CRITICAL: PID 4832 making connections to 45.142.212.61:443", Color.RED)
-			add_terminal_line("   Location: Unknown - requires investigation\n", Color.YELLOW)
+			add_terminal_line("\n✓ Detailed information retrieved!", Color.GREEN)
+			if tutorial_mode:
+				add_terminal_line("⚠️ PID 4832 making connections to 45.142.212.61:443", Color.RED)
 		
 		2:  # wmic query
 			add_terminal_line("ExecutablePath", Color.GRAY)
 			add_terminal_line("C:\\Windows\\Temp\\svchost32.exe", Color.RED)
 			add_terminal_line("\n✓ Malware location identified!", Color.GREEN)
-			add_terminal_line("⚠️ CONFIRMED MALWARE: This is NOT a legitimate Windows directory!", Color.RED)
-			add_terminal_line("   Real svchost.exe is always in C:\\Windows\\System32\\", Color.YELLOW)
-			add_terminal_line("   This is a TROJAN attempting to appear legitimate!\n", Color.RED)
+			if tutorial_mode:
+				add_terminal_line("⚠️ This is NOT a legitimate directory!", Color.RED)
 		
 		3:  # taskkill
 			processes = processes.filter(func(p): return !p["malware"])
-			add_terminal_line("SUCCESS: The process 'svchost32.exe' with PID 4832 has been terminated.", Color.WHITE)
-			add_terminal_line("\n✓ Malicious process TERMINATED!", Color.GREEN)
-			add_terminal_line("⚡ Quick containment prevented further data theft", Color.GREEN)
-			add_terminal_line("   Network connections to C2 server severed\n", Color.CYAN)
+			add_terminal_line("SUCCESS: Process terminated.", Color.WHITE)
+			add_terminal_line("\n✓ Malicious process STOPPED!", Color.GREEN)
 		
 		4:  # del
 			malicious_files.clear()
 			add_terminal_line("✓ File deleted successfully!", Color.GREEN)
-			add_terminal_line("   C:\\Windows\\Temp\\svchost32.exe has been removed from disk", Color.WHITE)
-			add_terminal_line("   MD5: d41d8cd98f00b204e9800998ecf8427e", Color.GRAY)
-			add_terminal_line("   File was a variant of Emotet banking trojan\n", Color.YELLOW)
 		
 		5:  # reg delete
 			registry_keys.clear()
 			add_terminal_line("The operation completed successfully.", Color.WHITE)
 			add_terminal_line("\n✓ Registry persistence REMOVED!", Color.GREEN)
-			add_terminal_line("🔒 Malware will NOT restart on system boot", Color.GREEN)
-			add_terminal_line("   Deleted: HKCU\\...\\Run\\SecurityUpdate\n", Color.CYAN)
 		
 		6:  # verification
 			var clean_procs = processes.filter(func(p): return !p["malware"]).slice(0, 5)
@@ -444,14 +756,9 @@ func handle_correct_command(cmd: String):
 				add_terminal_line("%s %s" % [pad_string(p["name"], 25), 
 											  pad_string(str(p["pid"]), 8, true)], Color.WHITE)
 			add_terminal_line("\n✓ System verification COMPLETE!", Color.GREEN)
-			add_terminal_line("🎯 No malicious processes detected", Color.GREEN)
-			add_terminal_line("🎯 No malicious files found", Color.GREEN)
-			add_terminal_line("🎯 No persistence mechanisms active", Color.GREEN)
-			add_terminal_line("\n🎉 INCIDENT RESOLVED - System is CLEAN!", Color.CYAN)
-			add_terminal_line("🏆 Incident Response completed successfully!\n", Color.YELLOW)
+			add_terminal_line("🎉 INCIDENT RESOLVED!", Color.CYAN)
 			game_state = "complete"
 	
-	# Award points
 	var points = max(100 - (attempts - current_stage - 1) * 20, 50)
 	score += points
 	add_terminal_line("+ %d points earned!\n" % points, Color.YELLOW)
@@ -464,44 +771,51 @@ func handle_correct_command(cmd: String):
 		add_terminal_line("=== %s ===" % stages[current_stage]["title"], Color.MAGENTA)
 		add_terminal_line("OBJECTIVE: %s\n" % stages[current_stage]["objective"], Color.CYAN)
 		update_ui()
-		show_tutorial()
+		
+		# Only show tutorial in tutorial mode
+		if tutorial_mode:
+			tutorial_step = 0
+			current_tutorial_steps = tutorial_steps_data[current_stage]
+			show_current_tutorial_step()
 	else:
 		show_completion_screen()
 
 func handle_incorrect_command(cmd: String):
-	add_terminal_line("'%s' is not recognized as an internal or external command." % cmd, Color.RED)
-	add_terminal_line("operable program or batch file.\n", Color.RED)
-	add_terminal_line("💡 HINT: %s" % stages[current_stage]["hint"], Color.CYAN)
-	add_terminal_line("   Try typing the exact command syntax\n", Color.GRAY)
-
-func show_tutorial():
-	var tutorial_content = stages[current_stage]["tutorial"]
-	# Format the text for better display
-	tutorial_text.text = tutorial_content
-	tutorial_text.scroll_to_line(0)  # Scroll to top
-	tutorial_panel.visible = true
-
-func _on_tutorial_close():
-	tutorial_panel.visible = false
-	command_input.grab_focus()
+	add_terminal_line("'%s' is not the expected command." % cmd, Color.RED)
+	
+	# Only show hints in tutorial mode
+	if tutorial_mode:
+		add_terminal_line("💡 HINT: %s" % stages[current_stage]["hint"], Color.CYAN)
+		add_terminal_line("   Press F1 to see the full tutorial again\n", Color.GRAY)
+	else:
+		add_terminal_line("⚠️ Incorrect command. Think carefully about what's needed.\n", Color.YELLOW)
 
 func _on_hint_pressed():
-	show_tutorial()
+	if tutorial_mode:
+		show_current_tutorial_step()
 
 func show_completion_screen():
 	add_terminal_line("\n" + "=".repeat(50), Color.CYAN)
-	add_terminal_line("INCIDENT RESPONSE MISSION COMPLETE", Color.GREEN)
-	add_terminal_line("=".repeat(50), Color.CYAN)
-	add_terminal_line("\nFINAL SCORE: %d points" % score, Color.YELLOW)
-	add_terminal_line("ACCURACY: %d%%" % get_accuracy(), Color.YELLOW)
-	add_terminal_line("ATTEMPTS: %d" % attempts, Color.WHITE)
-	add_terminal_line("\n📊 THREAT ANALYSIS REPORT:", Color.CYAN)
-	add_terminal_line("   Threat Type: Emotet Banking Trojan", Color.WHITE)
-	add_terminal_line("   Severity: CRITICAL", Color.RED)
-	add_terminal_line("   Vector: Phishing email attachment", Color.WHITE)
-	add_terminal_line("   Actions Taken: Process killed, file removed, persistence deleted", Color.GREEN)
-	add_terminal_line("\n✓ You've successfully completed incident response training!", Color.GREEN)
-	add_terminal_line("  You're now ready for real-world cybersecurity operations.\n", Color.CYAN)
+	
+	if tutorial_mode:
+		add_terminal_line("TUTORIAL COMPLETE!", Color.GREEN)
+		add_terminal_line("=".repeat(50), Color.CYAN)
+		add_terminal_line("\n✅ Congratulations! You've completed the tutorial!", Color.GREEN)
+		add_terminal_line("\nFINAL SCORE: %d points" % score, Color.YELLOW)
+		add_terminal_line("ACCURACY: %d%%" % get_accuracy(), Color.YELLOW)
+		add_terminal_line("\n🎓 You've learned all 7 stages of incident response!", Color.CYAN)
+		add_terminal_line("\n💡 NEXT STEP: Try Challenge Mode!", Color.MAGENTA)
+		add_terminal_line("   Press F5 to restart and select Challenge Mode", Color.WHITE)
+		add_terminal_line("   (No tutorials, no auto-fill, no hints!)\n", Color.GRAY)
+		tutorial_completed = true
+	else:
+		add_terminal_line("CHALLENGE COMPLETE!", Color.GREEN)
+		add_terminal_line("=".repeat(50), Color.CYAN)
+		add_terminal_line("\n🏆 EXCELLENT WORK!", Color.GREEN)
+		add_terminal_line("\nFINAL SCORE: %d points" % score, Color.YELLOW)
+		add_terminal_line("ACCURACY: %d%%" % get_accuracy(), Color.YELLOW)
+		add_terminal_line("\n✓ You've mastered incident response!", Color.CYAN)
+		add_terminal_line("  Press F5 to play again\n", Color.WHITE)
 
 func add_terminal_line(text: String, color: Color):
 	var label = Label.new()
@@ -510,7 +824,6 @@ func add_terminal_line(text: String, color: Color):
 	label.add_theme_font_size_override("font_size", 14)
 	terminal_output.add_child(label)
 	
-	# Auto-scroll to bottom
 	await get_tree().process_frame
 	var scroll = $VBoxContainer/TerminalPanel/ScrollContainer
 	scroll.scroll_vertical = scroll.get_v_scroll_bar().max_value
@@ -522,12 +835,13 @@ func get_accuracy() -> int:
 
 func _input(event):
 	if event is InputEventKey and event.pressed:
-		# F1 - Show help/tutorial
-		if event.keycode == KEY_F1:
-			show_tutorial()
-		# F5 - Restart game when complete
+		if event.keycode == KEY_F1 and tutorial_mode:
+			show_current_tutorial_step()
 		elif event.keycode == KEY_F5 and game_state == "complete":
 			get_tree().reload_current_scene()
-		# ESC - Close tutorial
-		elif event.keycode == KEY_ESCAPE and tutorial_panel.visible:
-			tutorial_panel.visible = false
+		elif event.keycode == KEY_ESCAPE:
+			if tutorial_panel.visible:
+				tutorial_panel.visible = false
+			elif mode_selection_panel.visible == false and game_state != "complete":
+				# Show mode selection again
+				get_tree().reload_current_scene()

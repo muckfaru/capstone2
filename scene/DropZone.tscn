@@ -1,7 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://dntkn8p81g4sv"]
+[gd_scene load_steps=7 format=3 uid="uid://dntkn8p81g4sv"]
 
 [ext_resource type="Script" uid="uid://d0tcxsehgtqou" path="res://script/DropZone.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://fftwv8neuwgb" path="res://asset/minigamesicon/newdtvst.png" id="2_2mwuo"]
+[ext_resource type="Texture2D" uid="uid://dfkdacwss3umv" path="res://asset/minigamesicon/dtvsnt.png" id="2_2mwuo"]
 [ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_2mwuo"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6yar1"]
@@ -12,6 +12,14 @@ expand_margin_left = 10.0
 expand_margin_top = 20.0
 expand_margin_right = 10.0
 expand_margin_bottom = 20.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_2mwuo"]
+font = ExtResource("3_2mwuo")
+font_size = 28
+outline_size = 5
+outline_color = Color(0.881562, 0.0904291, 0.864845, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
 
 [node name="DropZone" type="PanelContainer"]
 custom_minimum_size = Vector2(400, 200)
@@ -36,13 +44,13 @@ text = "📁"
 horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="VBox"]
-visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.815425, 0.582446, 0, 1)
 theme_override_colors/font_shadow_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_2mwuo")
 theme_override_font_sizes/font_size = 30
 text = "DATA SECURITY"
+label_settings = SubResource("LabelSettings_2mwuo")
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="VBox"]
