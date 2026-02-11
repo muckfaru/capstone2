@@ -422,3 +422,13 @@ func _on_solo_mode_selected():
 	_append_terminal_output("[color=red]SOLO MODE - No hints. Good luck, Analyst.[/color]")
 	_append_terminal_output("============================================================")
 	_append_terminal_output("")
+
+func _input(event):
+	# Press ESC to quit
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_on_exit_pressed()
+
+func _on_exit_pressed() -> void:
+	"""Return to mode selection from anywhere in the game"""
+	print("[Digital Forensics] Exit pressed, returning to mode selection...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")

@@ -1,96 +1,145 @@
-[gd_scene load_steps=9 format=3 uid="uid://5j8vu8bci2gk"]
+[gd_scene load_steps=11 format=3 uid="uid://5j8vu8bci2gk"]
 
 [ext_resource type="Script" uid="uid://digtide1vfk7u" path="res://script/SOCThreat.gd" id="1"]
-[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="3_o1x3q"]
-[ext_resource type="FontFile" uid="uid://gj4s1cvcj5il" path="res://asset/fonts/ChakraPetch-SemiBold.ttf" id="4_kgc4i"]
-[ext_resource type="Texture2D" uid="uid://b0d6fq7porl0u" path="res://asset/alien/mechhelath.png" id="5_o1x3q"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="2"]
+[ext_resource type="FontFile" uid="uid://gj4s1cvcj5il" path="res://asset/fonts/ChakraPetch-SemiBold.ttf" id="3"]
+[ext_resource type="Texture2D" uid="uid://b0d6fq7porl0u" path="res://asset/alien/mechhelath.png" id="4"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_o1x3q"]
-font_size = 20
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_collision"]
+size = Vector2(80, 80)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_default"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"attack",
+"speed": 8.0
+}, {
+"frames": [],
+"loop": false,
+"name": &"death",
+"speed": 10.0
+}, {
+"frames": [],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_px5ni"]
+bg_color = Color(0.183736, 0.00593308, 0.182045, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.771224, 0, 0.218489, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="LabelSettings" id="LabelSettings_px5ni"]
+font_color = Color(0.991837, 0, 0.189826, 1)
 outline_size = 10
-outline_color = Color(0.0687983, 0.0687983, 0.0687983, 1)
+outline_color = Color(0, 0, 0, 1)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_kgc4i"]
-texture = ExtResource("5_o1x3q")
-expand_margin_left = 48.0
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_progress_bg"]
+texture = ExtResource("4")
+expand_margin_left = 46.0
 expand_margin_top = 70.0
 expand_margin_right = 35.0
 expand_margin_bottom = 70.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_px5ni"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
 bg_color = Color(0, 0.7276, 0.101502, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
-[sub_resource type="LabelSettings" id="LabelSettings_time"]
-font_size = 20
-outline_size = 7
-outline_color = Color(0, 0, 0, 1)
-
-[node name="Threat" type="Node2D"]
+[node name="SOCThreat" type="CharacterBody2D"]
+motion_mode = 1
 script = ExtResource("1")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_collision")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_default")
+animation = &"idle"
+autoplay = "idle"
 
 [node name="VisualContainer" type="Node2D" parent="."]
 
-[node name="ThreatIcon" type="Sprite2D" parent="VisualContainer"]
-scale = Vector2(-0.5, 0.5)
-
 [node name="InfoPanel" type="Panel" parent="VisualContainer"]
-offset_left = -100.0
-offset_top = 40.0
-offset_right = 100.0
-offset_bottom = 120.0
+offset_left = -96.0
+offset_top = 46.0
+offset_right = 104.0
+offset_bottom = 138.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_px5ni")
 
 [node name="ThreatName" type="Label" parent="VisualContainer/InfoPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 5.0
-offset_right = 190.0
-offset_bottom = 25.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 2.0
+offset_top = 9.0
+offset_right = 2.0
+offset_bottom = 32.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("3_o1x3q")
+theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 14
 text = "Port Scanner"
-label_settings = SubResource("LabelSettings_o1x3q")
+label_settings = SubResource("LabelSettings_px5ni")
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Description" type="Label" parent="VisualContainer/InfoPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 30.0
-offset_right = 190.0
-offset_bottom = 50.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 5.0
+offset_top = 31.0
+offset_right = 5.0
+offset_bottom = 54.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("4_kgc4i")
+theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 11
 text = "Probing multiple ports"
 horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 2
 
 [node name="TutorialHint" type="RichTextLabel" parent="VisualContainer/InfoPanel"]
-layout_mode = 0
-offset_left = 10.0
+visible = false
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 5.0
 offset_top = 55.0
-offset_right = 231.0
-offset_bottom = 75.0
-theme_override_colors/default_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
-theme_override_fonts/normal_font = ExtResource("3_o1x3q")
+offset_right = -5.0
+offset_bottom = 85.0
+grow_horizontal = 2
+theme_override_colors/default_color = Color(0.4, 0.9, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/normal_font = ExtResource("3")
 theme_override_font_sizes/normal_font_size = 16
 bbcode_enabled = true
+text = "[center]Command: block-source[/center]"
 fit_content = true
+scroll_active = false
 
 [node name="ProgressBar" type="ProgressBar" parent="VisualContainer"]
-offset_left = -75.0
-offset_top = 153.0
-offset_right = 85.0
-offset_bottom = 163.0
-theme_override_styles/background = SubResource("StyleBoxTexture_kgc4i")
-theme_override_styles/fill = SubResource("StyleBoxFlat_px5ni")
+offset_left = -74.0
+offset_top = 167.0
+offset_right = 86.0
+offset_bottom = 182.0
+theme_override_styles/background = SubResource("StyleBoxTexture_progress_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
 max_value = 1.0
 value = 1.0
 show_percentage = false
@@ -102,22 +151,16 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -22.0
-offset_top = -16.0
-offset_right = 18.0
+offset_left = -20.0
+offset_top = -13.0
+offset_right = 20.0
 offset_bottom = 13.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.894922, 0.894922, 0.894922, 1)
-theme_override_fonts/font = ExtResource("3_o1x3q")
-theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 18
 text = "15s"
-label_settings = SubResource("LabelSettings_time")
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="AnimationTimer" type="Timer" parent="."]
-wait_time = 0.05
-autostart = true
-
-[connection signal="timeout" from="AnimationTimer" to="." method="_on_animation_timer_timeout"]

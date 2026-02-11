@@ -7,14 +7,14 @@ var current_panel: Node = null
 # Store the original dropzone texture
 var original_texture: Texture2D
 var original_style: StyleBoxTexture
-
+var game_manager
 @onready var placeholder_icon = $Content/PlaceholderIcon
 @onready var placeholder_text = $Content/PlaceholderText
 @onready var content_container = $Content
 
 func _ready():
 	add_to_group("drop_zones")
-	
+	game_manager = get_tree().get_first_node_in_group("game_manager")
 	# Store the PANELCONTAINER's own background texture
 	var panel_style = get_theme_stylebox("panel")
 	if panel_style is StyleBoxTexture:
@@ -30,7 +30,8 @@ func can_accept_drop() -> bool:
 func _on_panel_clicked(panel: Node):
 	"""Called when a decision panel is clicked"""
 	print("\n=== DropZone: Panel clicked = ", panel.action_name, " ===")
-	
+	if game_manager and game_manager.has_method("play_panel_drop_sound"):
+		game_manager.play_panel_drop_sound()
 	# Deselect previous panel if different
 	if current_panel and current_panel != panel:
 		print("DropZone: Deselecting previous panel: ", current_panel.action_name)

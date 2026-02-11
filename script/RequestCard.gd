@@ -22,6 +22,7 @@ var time_remaining: float = DECISION_TIME
 @onready var confirm_button = $VBox/ConfirmButton
 @onready var hint_label = $VBox/HintLabel
 @onready var decision_timer = $DecisionTimer
+var game_manager
 
 # Optional: If you have a separate label on the confirm button
 @onready var confirm_label = $VBox/ConfirmButton/Label  # Adjust path if different
@@ -32,6 +33,7 @@ func _ready():
 	
 	# Optional: Hide the button's built-in text since you have a label
 	confirm_button.text = ""
+	game_manager = get_tree().get_first_node_in_group("game_manager")
 
 func setup(scenario: Scenario):
 	print("\n" + "=".repeat(50))
@@ -200,6 +202,10 @@ func _on_drop_zone_decision_dropped(action: String):
 	tween.tween_property(confirm_button, "scale", Vector2(1.0, 1.0), 0.2)
 
 func _on_confirm_button_pressed():
+
+	if game_manager and game_manager.has_method("play_confirm_click_sound"):
+		game_manager.play_confirm_click_sound()
+		
 	var action = drop_zone.get_current_decision()
 	
 	if action.is_empty():

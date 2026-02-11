@@ -1,4 +1,4 @@
-[gd_scene load_steps=115 format=3 uid="uid://y8aua0l44ioi"]
+[gd_scene load_steps=133 format=3 uid="uid://y8aua0l44ioi"]
 
 [ext_resource type="Script" uid="uid://bgu66tgku68bx" path="res://script/PhoneEncryption.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://baaruvhlv8t2q" path="res://asset/minigamesicon/bgrrr.png" id="2_1jga8"]
@@ -23,6 +23,10 @@
 [ext_resource type="Texture2D" uid="uid://cwui0w87jjcna" path="res://asset/minigamesicon/timeer.png" id="15_23x8b"]
 [ext_resource type="Texture2D" uid="uid://b6gypchoo6ut0" path="res://asset/minigamesicon/westvectortrtl.png" id="17_vexkl"]
 [ext_resource type="Texture2D" uid="uid://bk1118jqbttm" path="res://asset/minigamesicon/westjail.jpg" id="22_so5vk"]
+[ext_resource type="Texture2D" uid="uid://coidh04bwjhfp" path="res://asset/minigamesicon/westvictorytop.png" id="24_2s3af"]
+[ext_resource type="Texture2D" uid="uid://cena34cxdw34o" path="res://asset/minigamesicon/wesleftvictory.png" id="25_p1c7e"]
+[ext_resource type="Texture2D" uid="uid://d2eoveqlggdc7" path="res://asset/minigamesicon/westbottomvictory.png" id="26_fgbas"]
+[ext_resource type="Texture2D" uid="uid://01k5lx00hv78" path="res://asset/minigamesicon/westfinish.png" id="27_x61mv"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_wey7g"]
 texture = ExtResource("2_vexkl")
@@ -148,8 +152,8 @@ outline_color = Color(0.622601, 0.379801, 9.62615e-08, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_hjf2c"]
 font_size = 11
-font_color = Color(0.336624, 0.806664, 0, 1)
 outline_size = 10
+outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ehf6c"]
 
@@ -388,6 +392,51 @@ outline_color = Color(0, 0, 0, 1)
 shadow_size = 10
 shadow_color = Color(0.490705, 0.138662, 0.0252144, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fgbas"]
+bg_color = Color(0, 0, 0, 0.492)
+
+[sub_resource type="LabelSettings" id="LabelSettings_5n6wa"]
+font = ExtResource("2_v6k45")
+font_size = 50
+font_color = Color(0, 0.893308, 0.275539, 1)
+outline_size = 10
+outline_color = Color(0.07693, 9.33737e-06, 0.351628, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_uqu3d"]
+font = ExtResource("13_u86fp")
+font_size = 20
+outline_size = 5
+outline_color = Color(0.163716, 2.88785e-06, 0.740409, 1)
+shadow_size = 10
+shadow_color = Color(1, 1, 1, 0.547)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u4re5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_psk3j"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2f06p"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qtqee"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tc7nu"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jnxai"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_iy7yr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exydj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xut6d"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7eekv"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hjf2c"]
+texture = ExtResource("27_x61mv")
+expand_margin_left = 30.0
+expand_margin_top = 40.0
+expand_margin_right = 30.0
+expand_margin_bottom = 40.0
+
 [node name="PhoneEncryptionGame" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -442,7 +491,7 @@ label_settings = SubResource("LabelSettings_qhpyf")
 libraries = {
 &"": SubResource("AnimationLibrary_m53c0")
 }
-autoplay = "swing"
+autoplay = "RESET"
 
 [node name="ScoreLabel" type="Label" parent="TopBar"]
 layout_mode = 1
@@ -1284,27 +1333,61 @@ label_settings = SubResource("LabelSettings_fgbas")
 [node name="VictoryPanel" type="Panel" parent="."]
 visible = false
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -350.0
-offset_top = -250.0
-offset_right = 350.0
-offset_bottom = 250.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fgbas")
+
+[node name="topvcty" type="TextureRect" parent="VictoryPanel"]
+layout_mode = 0
+offset_left = 258.0
+offset_top = 68.0
+offset_right = 931.0
+offset_bottom = 439.0
+texture = ExtResource("24_2s3af")
+
+[node name="left" type="TextureRect" parent="VictoryPanel"]
+layout_mode = 0
+offset_left = 364.0
+offset_top = 86.0
+offset_right = 1025.0
+offset_bottom = 457.0
+rotation = 1.57015
+texture = ExtResource("25_p1c7e")
+expand_mode = 1
+
+[node name="right" type="TextureRect" parent="VictoryPanel"]
+offset_left = 949.0
+offset_top = 82.0
+offset_right = 1610.0
+offset_bottom = 453.0
+rotation = 1.57015
+texture = ExtResource("25_p1c7e")
+expand_mode = 1
+
+[node name="bottom" type="TextureRect" parent="VictoryPanel"]
+layout_mode = 0
+offset_left = 264.0
+offset_top = 226.0
+offset_right = 935.0
+offset_bottom = 598.0
+texture = ExtResource("26_fgbas")
 
 [node name="VictoryTitle" type="Label" parent="VictoryPanel"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 70.0
+offset_left = 20.0
+offset_top = 7.0
+offset_right = 20.0
+offset_bottom = 77.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.3, 0.9, 0.3, 1)
 theme_override_font_sizes/font_size = 40
-text = "🎉 VICTORY!"
+text = "VICTORY!"
+label_settings = SubResource("LabelSettings_5n6wa")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -1315,14 +1398,15 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -140.0
-offset_right = 300.0
-offset_bottom = 120.0
+offset_left = -262.0
+offset_top = -136.0
+offset_right = 338.0
+offset_bottom = 124.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 15
 text = "Mission Complete!"
+label_settings = SubResource("LabelSettings_uqu3d")
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
@@ -1334,14 +1418,24 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -90.0
-offset_top = -60.0
-offset_right = 90.0
-offset_bottom = -20.0
+offset_left = -71.0
+offset_top = -128.0
+offset_right = 109.0
+offset_bottom = -88.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_font_sizes/font_size = 18
-text = "🏁 FINISH"
+theme_override_styles/focus = SubResource("StyleBoxEmpty_u4re5")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_psk3j")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_2f06p")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_qtqee")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_tc7nu")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_jnxai")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_iy7yr")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_exydj")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_xut6d")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_7eekv")
+theme_override_styles/normal = SubResource("StyleBoxTexture_hjf2c")
 
 [connection signal="pressed" from="PhoneContainer/PhoneScreen/KeyCreationPanel/CreateKeyButton" to="." method="_on_create_key_button_pressed"]
 [connection signal="pressed" from="PhoneContainer/PhoneScreen/IncomingMessagePanel/DecryptButton" to="." method="_on_decrypt_button_pressed"]

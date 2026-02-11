@@ -3,6 +3,40 @@ extends Control
 # Preload the ScenarioDatabase script
 const ScenarioDatabaseScript = preload("res://script/ScenarioDatabase.gd")
 
+# ============================================================================
+# AUDIO PLAYERS - Dynamically created
+# ============================================================================
+var audio_panel_select: AudioStreamPlayer
+var audio_panel_hover: AudioStreamPlayer
+var audio_panel_drop: AudioStreamPlayer
+var audio_confirm_click: AudioStreamPlayer
+var audio_decision_correct: AudioStreamPlayer
+var audio_decision_wrong: AudioStreamPlayer
+var audio_decision_timeout: AudioStreamPlayer
+var audio_trust_gain: AudioStreamPlayer
+var audio_trust_loss: AudioStreamPlayer
+var audio_trust_critical: AudioStreamPlayer
+var audio_breach_detected: AudioStreamPlayer
+var audio_timer_warning: AudioStreamPlayer
+var audio_timer_tick: AudioStreamPlayer
+var audio_wave_complete: AudioStreamPlayer
+var audio_game_over: AudioStreamPlayer
+var audio_victory: AudioStreamPlayer
+var audio_ui_click: AudioStreamPlayer
+var audio_start_game: AudioStreamPlayer
+
+# Background music
+var audio_bgm_intro: AudioStreamPlayer
+var audio_bgm_gameplay: AudioStreamPlayer
+var audio_bgm_tense: AudioStreamPlayer
+var current_bgm: AudioStreamPlayer
+var bgm_fade_tween: Tween
+
+# Audio control
+var audio_initialized = false
+var enable_audio_test = false
+var timer_warning_played = false
+
 # Game state
 enum GameState { INTRO, PLAYING, FEEDBACK, DEBRIEF }
 var current_state = GameState.INTRO
@@ -37,20 +71,34 @@ var false_denials: int = 0
 @onready var intro_panel = $IntroPanel
 @onready var start_button = $IntroPanel/MarginContainer/VBox/StartButton
 @onready var decision_bar = $DecisionBar
+@onready var exit_button = $ExitButton
+
+# ============================================================================
+# INITIALIZATION
+# ============================================================================
 
 func _ready():
-	# Seed random number generator for better randomization
+	print("🎮 Gatekeeper Protocol - Loading Audio System...")
+	
+	_check_audio_bus_setup()
+	_load_audio_files()
+	
+	audio_initialized = true
+	
+	if enable_audio_test:
+		call_deferred("_test_audio_playback")
+	
+	# Seed random number generator
 	randomize()
 	
-	# Initialize database using the preloaded script
+	# Initialize database
 	scenario_database = ScenarioDatabaseScript.new()
 	add_child(scenario_database)
 	
-	# Load all scenarios with randomization
-	# This maintains wave difficulty progression but randomizes order within waves
+	# Load scenarios
 	all_scenarios = scenario_database.get_randomized_scenarios_by_wave()
 	
-	# Count total attacks
+	# Count attacks
 	for scenario in all_scenarios:
 		if scenario.is_attacker:
 			total_attacks += 1
@@ -61,11 +109,300 @@ func _ready():
 	debrief_screen.continue_pressed.connect(_on_continue_pressed)
 	debrief_screen.replay_pressed.connect(_on_replay_pressed)
 	
+	# Connect button sounds
+	connect_button_sounds(start_button)
+	connect_button_sounds(exit_button)
+	
+	# Make sure exit button is always on top
+	if exit_button:
+		exit_button.z_index = 1000
+		exit_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	
 	# Start with intro
 	_show_intro()
 	
 	print("Game initialized with ", all_scenarios.size(), " randomized scenarios")
 	print("Total attacks in game: ", total_attacks)
+
+# ============================================================================
+# AUDIO SYSTEM
+# ============================================================================
+
+func _check_audio_bus_setup():
+	print("\n=== AUDIO BUS CHECK ===")
+	
+	for i in range(AudioServer.bus_count):
+		var bus_name = AudioServer.get_bus_name(i)
+		
+		if bus_name == "Master":
+			if AudioServer.is_bus_mute(i):
+				AudioServer.set_bus_mute(i, false)
+				print("✓ Unmuted Master bus")
+			
+			var bus_volume = AudioServer.get_bus_volume_db(i)
+			if bus_volume < -20:
+				AudioServer.set_bus_volume_db(i, 0.0)
+				print("✓ Reset Master bus volume")
+	
+	print("=== AUDIO BUS READY ===\n")
+
+func _load_audio_files() -> void:
+	print("=== LOADING AUDIO FILES ===")
+	
+	var sfx_path = "res://asset/minigamessoundsfx/"
+	
+	# PANEL INTERACTION SOUNDS
+	audio_panel_select = _create_audio_player([
+		sfx_path + "panel_select.wav",
+		sfx_path + "ui_clicksa.mp3",
+	], "Master", -10.0)
+	
+	audio_panel_hover = _create_audio_player([
+		sfx_path + "panel_hover.wav",
+		sfx_path + "ui_clicksa.mp3",
+	], "Master", -16.0)
+	
+	audio_panel_drop = _create_audio_player([
+		sfx_path + "panel_drop.wav",
+		sfx_path + "ui_clicksa.mp3",
+	], "Master", -8.0)
+	
+	# DECISION SOUNDS
+	audio_confirm_click = _create_audio_player([
+		sfx_path + "confirm_click.wav",
+		sfx_path + "ui_clicksa.mp3",
+	], "Master", -6.0)
+	
+	audio_decision_correct = _create_audio_player([
+		sfx_path + "decision_correct.wav",
+		sfx_path + "tama.mp3",
+		sfx_path + "chrisiex1-correct-156911.mp3",
+	], "Master", -5.0)
+	
+	audio_decision_wrong = _create_audio_player([
+		sfx_path + "decision_wrong.wav",
+		sfx_path + "error_buzz.wav",
+		sfx_path + "wrong.mp3",
+	], "Master", -4.0)
+	
+	audio_decision_timeout = _create_audio_player([
+		sfx_path + "timeout.wav",
+		sfx_path + "alarm_danger.wav",
+	], "Master", -3.0)
+	
+	# TRUST SCORE SOUNDS
+	audio_trust_gain = _create_audio_player([
+		sfx_path + "trust_gain.wav",
+		sfx_path + "tama.mp3",
+	], "Master", -8.0)
+	
+	audio_trust_loss = _create_audio_player([
+		sfx_path + "trust_loss.wav",
+		sfx_path + "heart_break.wav",
+	], "Master", -6.0)
+	
+	audio_trust_critical = _create_audio_player([
+		sfx_path + "trust_critical.wav",
+		sfx_path + "alarm_danger.wav",
+	], "Master", -4.0)
+	
+	audio_breach_detected = _create_audio_player([
+		sfx_path + "breach.wav",
+		sfx_path + "police_alert.wav",
+		sfx_path + "alarm_danger.wav",
+	], "Master", -3.0)
+	
+	# TIMER SOUNDS
+	audio_timer_warning = _create_audio_player([
+		sfx_path + "timer_warning.wav",
+		sfx_path + "notification_warning.wav",
+	], "Master", -8.0)
+	
+	audio_timer_tick = _create_audio_player([
+		sfx_path + "timer_tick.wav",
+		sfx_path + "scanner_beep.wav",
+	], "Master", -12.0)
+	
+	# GAME STATE SOUNDS
+	audio_wave_complete = _create_audio_player([
+		sfx_path + "wave_complete.wav",
+		sfx_path + "mission_complete.wav",
+	], "Master", -5.0)
+	
+	audio_game_over = _create_audio_player([
+		sfx_path + "game_over.wav",
+	], "Master", 0.0)
+	
+	audio_victory = _create_audio_player([
+		sfx_path + "victory_fanfare.wav",
+		sfx_path + "combo_low.mp3",
+	], "Master", -2.0)
+	
+	audio_ui_click = _create_audio_player([
+		sfx_path + "ui_clicksa.mp3",
+	], "Master", -12.0)
+	
+	audio_start_game = _create_audio_player([
+		sfx_path + "start_game.wav",
+		sfx_path + "ui_clicksa.mp3",
+	], "Master", -8.0)
+	
+	# BACKGROUND MUSIC
+	audio_bgm_intro = _create_music_player([
+		sfx_path + "auth_intro.ogg",
+		sfx_path + "tutorial_calm.ogg",
+	], "Master", -20.0)
+	
+	audio_bgm_gameplay = _create_music_player([
+		sfx_path + "auth_gameplay.ogg",
+		sfx_path + "dtvsntbgsfx.mp3",
+	], "Master", -18.0)
+	
+	audio_bgm_tense = _create_music_player([
+		sfx_path + "auth_tense.ogg",
+		sfx_path + "dtvsntbgsfx.mp3",
+	], "Master", -16.0)
+	
+	print("=== AUDIO LOADING COMPLETE ===\n")
+
+func _create_audio_player(file_paths: Array, bus: String, volume_db: float) -> AudioStreamPlayer:
+	var player = AudioStreamPlayer.new()
+	player.bus = bus
+	player.volume_db = volume_db
+	player.autoplay = false
+	add_child(player)
+	
+	for file_path in file_paths:
+		if FileAccess.file_exists(file_path):
+			var audio_stream = load(file_path)
+			if audio_stream:
+				player.stream = audio_stream
+				print("✅ " + file_path.get_file() + " (" + str(volume_db) + " dB)")
+				return player
+	
+	print("⚠️  " + file_paths[0].get_file() + " not found")
+	return player
+
+func _create_music_player(file_paths: Array, bus: String, volume_db: float) -> AudioStreamPlayer:
+	var player = AudioStreamPlayer.new()
+	player.bus = bus
+	player.volume_db = -80.0
+	player.autoplay = false
+	add_child(player)
+	
+	for file_path in file_paths:
+		if FileAccess.file_exists(file_path):
+			var audio_stream = load(file_path)
+			if audio_stream:
+				player.stream = audio_stream
+				print("🎵 " + file_path.get_file() + " (" + str(volume_db) + " dB target)")
+				
+				if audio_stream is AudioStreamMP3:
+					audio_stream.loop = true
+				elif audio_stream is AudioStreamOggVorbis:
+					audio_stream.loop = true
+				elif audio_stream is AudioStreamWAV:
+					audio_stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+				
+				player.set_meta("target_volume", volume_db)
+				return player
+	
+	print("⚠️  BGM not found")
+	return player
+
+func _test_audio_playback():
+	print("\n=== TESTING AUDIO ===")
+	await get_tree().create_timer(1.0).timeout
+	
+	if audio_ui_click and audio_ui_click.stream:
+		print("🔊 Playing test click...")
+		_play_sfx(audio_ui_click, 0, 1.0)
+	
+	print("=== TEST COMPLETE ===\n")
+
+func _play_sfx(sfx_player: AudioStreamPlayer, pitch_variation: float = 0.0, base_pitch: float = 1.0) -> void:
+	if not audio_initialized or not sfx_player or not sfx_player.stream:
+		return
+	
+	if sfx_player.playing:
+		sfx_player.stop()
+	
+	if pitch_variation > 0:
+		sfx_player.pitch_scale = base_pitch + randf_range(-pitch_variation, pitch_variation)
+	else:
+		sfx_player.pitch_scale = base_pitch
+	
+	sfx_player.play()
+
+func _play_bgm(bgm_player: AudioStreamPlayer, fade_in_duration: float = 2.0):
+	if not audio_initialized or not bgm_player or not bgm_player.stream:
+		return
+	
+	if current_bgm and current_bgm.playing and current_bgm != bgm_player:
+		await _fade_out_bgm(1.0)
+	
+	current_bgm = bgm_player
+	var target_volume = bgm_player.get_meta("target_volume", -18.0)
+	
+	bgm_player.volume_db = -80.0
+	bgm_player.play()
+	
+	if bgm_fade_tween:
+		bgm_fade_tween.kill()
+	
+	bgm_fade_tween = create_tween()
+	bgm_fade_tween.tween_property(bgm_player, "volume_db", target_volume, fade_in_duration).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+
+func _fade_out_bgm(duration: float = 1.5):
+	if not current_bgm or not current_bgm.playing:
+		return
+	
+	if bgm_fade_tween:
+		bgm_fade_tween.kill()
+	
+	bgm_fade_tween = create_tween()
+	bgm_fade_tween.tween_property(current_bgm, "volume_db", -80.0, duration).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	
+	await bgm_fade_tween.finished
+	current_bgm.stop()
+
+func connect_button_sounds(button: Button):
+	if not button:
+		return
+	
+	if button.mouse_entered.is_connected(_on_button_hover):
+		button.mouse_entered.disconnect(_on_button_hover)
+	if button.pressed.is_connected(_on_button_press):
+		button.pressed.disconnect(_on_button_press)
+	
+	button.mouse_entered.connect(_on_button_hover)
+	button.pressed.connect(_on_button_press)
+
+func _on_button_hover():
+	_play_sfx(audio_ui_click, 0.1, 0.7)
+
+func _on_button_press():
+	_play_sfx(audio_ui_click, 0.05, 1.0)
+
+# ============================================================================
+# PUBLIC METHODS FOR OTHER SCRIPTS TO CALL
+# ============================================================================
+
+func play_panel_select_sound():
+	_play_sfx(audio_panel_select, 0.05, 1.0)
+
+func play_panel_hover_sound():
+	_play_sfx(audio_panel_hover, 0.1, 1.0)
+
+func play_panel_drop_sound():
+	_play_sfx(audio_panel_drop, 0, 1.0)
+
+func play_confirm_click_sound():
+	_play_sfx(audio_confirm_click, 0, 1.0)
+
+# ============================================================================
+# GAME LOGIC
+# ============================================================================
 
 func _show_intro():
 	current_state = GameState.INTRO
@@ -76,12 +413,23 @@ func _show_intro():
 	hud.visible = false
 	decision_bar.visible = false
 	metrics_panel.visible = false
+	
+	# Play intro BGM
+	_play_bgm(audio_bgm_intro, 2.0)
 
 func _on_start_pressed():
+	_play_sfx(audio_start_game, 0, 1.0)
+	
 	intro_panel.visible = false
 	hud.visible = true
 	decision_bar.visible = true
 	metrics_panel.visible = true
+	
+	# Fade to gameplay music
+	await _fade_out_bgm(1.0)
+	await get_tree().create_timer(0.5).timeout
+	_play_bgm(audio_bgm_gameplay, 2.0)
+	
 	_start_game()
 
 func _start_game():
@@ -98,7 +446,7 @@ func _start_game():
 	# Re-randomize scenarios on each new game
 	all_scenarios = scenario_database.get_randomized_scenarios_by_wave()
 	
-	# Recount attacks (in case randomization changed anything)
+	# Recount attacks
 	total_attacks = 0
 	for scenario in all_scenarios:
 		if scenario.is_attacker:
@@ -118,14 +466,34 @@ func _show_next_scenario():
 		return
 	
 	current_state = GameState.PLAYING
+	timer_warning_played = false
 	
 	var scenario = all_scenarios[current_scenario_index]
 	current_wave = scenario.wave
+	
+	# Switch to tense music on higher waves
+	if current_wave >= 5 and current_bgm != audio_bgm_tense:
+		await _fade_out_bgm(1.0)
+		_play_bgm(audio_bgm_tense, 2.0)
 	
 	request_card.visible = true
 	request_card.setup(scenario)
 	
 	_update_hud()
+
+func _process(_delta):
+	# Play timer warning sound at 5 seconds
+	if current_state == GameState.PLAYING and not timer_warning_played:
+		if request_card and request_card.time_remaining <= 5.0 and request_card.time_remaining > 4.9:
+			_play_sfx(audio_timer_warning, 0, 1.0)
+			timer_warning_played = true
+	
+	# Play tick sound at 3 seconds and below
+	if current_state == GameState.PLAYING:
+		if request_card and request_card.time_remaining <= 3.0:
+			var time_int = int(request_card.time_remaining)
+			if time_int != int(request_card.time_remaining + _delta):
+				_play_sfx(audio_timer_tick, 0.1, 1.0)
 
 func _on_decision_made(action: String, scenario: Scenario):
 	current_state = GameState.FEEDBACK
@@ -137,33 +505,52 @@ func _on_decision_made(action: String, scenario: Scenario):
 	
 	# Handle timeout
 	if action == "timeout":
+		_play_sfx(audio_decision_timeout, 0, 1.0)
 		is_correct = false
 		trust_score -= 15
 		feedback_message = "Time expired! Auto-denied for safety. Be faster in real incidents."
+		_play_sfx(audio_trust_loss, 0, 1.0)
 	else:
 		# Check if decision was correct
 		is_correct = (action == scenario.correct_action)
 		
 		if is_correct:
+			# CORRECT DECISION
+			_play_sfx(audio_decision_correct, 0.1, 1.0)
+			
 			correct_decisions += 1
 			score_change = 15
 			trust_score += score_change
 			xp += 10
 			feedback_message = scenario.feedback_correct
 			
-			# Track blocked attacks
+			_play_sfx(audio_trust_gain, 0, 1.0)
+			
 			if scenario.is_attacker:
 				attacks_blocked += 1
 		else:
+			# WRONG DECISION
+			_play_sfx(audio_decision_wrong, 0, 1.0)
+			
 			trust_score -= scenario.threat_consequence
 			feedback_message = scenario.feedback_incorrect
 			
-			# Track false denials
+			_play_sfx(audio_trust_loss, 0, 1.0)
+			
+			# Breach detected sound
+			if scenario.is_attacker:
+				_play_sfx(audio_breach_detected, 0, 1.0)
+			
+			# False denial tracking
 			if not scenario.is_attacker and action == "deny":
 				false_denials += 1
 	
 	# Clamp trust score
 	trust_score = clampi(trust_score, 0, 100)
+	
+	# Critical trust warning
+	if trust_score < 30:
+		_play_sfx(audio_trust_critical, 0, 1.0)
 	
 	# Show feedback
 	request_card.visible = false
@@ -182,6 +569,9 @@ func _on_feedback_complete():
 	_show_next_scenario()
 
 func _show_game_over():
+	_play_sfx(audio_game_over, 0, 1.0)
+	await _fade_out_bgm(2.0)
+	
 	debrief_screen.visible = true
 	metrics_panel.visible = false
 	debrief_screen.show_debrief(
@@ -202,6 +592,10 @@ func _show_debrief():
 	metrics_panel.visible = false
 	debrief_screen.visible = true
 	
+	# Victory sound
+	_play_sfx(audio_victory, 0, 1.0)
+	await _fade_out_bgm(2.0)
+	
 	debrief_screen.show_debrief(
 		total_scenarios,
 		correct_decisions,
@@ -213,12 +607,18 @@ func _show_debrief():
 	)
 
 func _on_continue_pressed():
-	# Could load next level or return to menu
-	get_tree().quit()
+	_play_sfx(audio_ui_click, 0, 1.0)
+	await _fade_out_bgm(0.5)
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 func _on_replay_pressed():
+	_play_sfx(audio_ui_click, 0, 1.0)
 	debrief_screen.visible = false
 	metrics_panel.visible = true
+	
+	# Restart with intro music
+	_play_bgm(audio_bgm_intro, 2.0)
+	
 	_start_game()
 
 func _update_hud():
@@ -238,3 +638,26 @@ func _update_hud():
 	
 	xp_label.text = "XP: %d" % xp
 	wave_label.text = "Wave: %d/%d" % [current_wave, max_waves]
+
+# ============================================================================
+# EXIT FUNCTIONALITY
+# ============================================================================
+
+func _input(event):
+	# Press ESC to quit
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_on_exit_pressed()
+
+func _on_exit_pressed() -> void:
+	"""Return to mode selection from anywhere in the game"""
+	print("[Gatekeeper Protocol] Exit button pressed, returning to mode selection...")
+	
+	# Play exit sound
+	_play_sfx(audio_ui_click, 0, 1.0)
+	
+	# Fade out music
+	await _fade_out_bgm(0.5)
+	
+	print("[DEBUG] About to change scene...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	print("[DEBUG] Scene change called")

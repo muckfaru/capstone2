@@ -1,0 +1,62 @@
+[gd_scene load_steps=9 format=3 uid="uid://b3glca16ub68s"]
+
+[ext_resource type="Texture2D" uid="uid://da34m83gs6vho" path="res://asset/virusfolder/zmovments.png" id="1_upy31"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mik1c"]
+atlas = ExtResource("1_upy31")
+region = Rect2(0, 0, 224, 185)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xn6gn"]
+atlas = ExtResource("1_upy31")
+region = Rect2(224, 0, 224, 185)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8va7p"]
+atlas = ExtResource("1_upy31")
+region = Rect2(448, 0, 224, 185)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oxaee"]
+atlas = ExtResource("1_upy31")
+region = Rect2(0, 185, 224, 185)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u3saq"]
+atlas = ExtResource("1_upy31")
+region = Rect2(224, 185, 224, 185)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rup3r"]
+atlas = ExtResource("1_upy31")
+region = Rect2(448, 185, 224, 185)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_qoi48"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mik1c")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xn6gn")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8va7p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_oxaee")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u3saq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rup3r")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Testvirusmovment" type="CharacterBody2D"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_qoi48")
+autoplay = "default"
+frame_progress = 0.463934

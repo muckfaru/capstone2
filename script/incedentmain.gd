@@ -834,14 +834,18 @@ func get_accuracy() -> int:
 	return int((float(current_stage + 1) / float(attempts)) * 100)
 
 func _input(event):
+	# Press ESC to quit
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		_on_exit_pressed()
+	
+	# Keep existing F1 and F5 functionality
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_F1 and tutorial_mode:
 			show_current_tutorial_step()
 		elif event.keycode == KEY_F5 and game_state == "complete":
 			get_tree().reload_current_scene()
-		elif event.keycode == KEY_ESCAPE:
-			if tutorial_panel.visible:
-				tutorial_panel.visible = false
-			elif mode_selection_panel.visible == false and game_state != "complete":
-				# Show mode selection again
-				get_tree().reload_current_scene()
+
+func _on_exit_pressed() -> void:
+	"""Return to mode selection from anywhere in the game"""
+	print("[CMD Incident Response] Exit pressed, returning to mode selection...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")

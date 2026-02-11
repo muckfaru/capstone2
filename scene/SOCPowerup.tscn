@@ -1,0 +1,52 @@
+[gd_scene load_steps=3 format=3 uid="uid://egtv6ekuyy3i"]
+
+[ext_resource type="Script" uid="uid://3mn7rfkeogu1" path="res://script/SOCPowerup.gd" id="1"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_powerup"]
+radius = 40.0
+
+[node name="PowerUp" type="Area2D" groups=["powerups"]]
+collision_layer = 4
+script = ExtResource("1")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_powerup")
+
+[node name="GlowSprite" type="Sprite2D" parent="."]
+modulate = Color(0, 1, 0.2, 0.6)
+self_modulate = Color(1, 1, 1, 0.248)
+position = Vector2(2.5, -1.5)
+scale = Vector2(0.277344, 65)
+
+[node name="IconSprite" type="Sprite2D" parent="."]
+visible = false
+scale = Vector2(0.25, 0.25)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -30.0
+offset_top = -30.0
+offset_right = 30.0
+offset_bottom = 30.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 40
+text = "❤️"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+emitting = false
+amount = 20
+lifetime = 0.8
+one_shot = true
+explosiveness = 0.8
+randomness = 0.5
+emission_shape = 1
+emission_sphere_radius = 30.0
+spread = 180.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 100.0
+initial_velocity_max = 200.0
+scale_amount_min = 2.0
+scale_amount_max = 4.0
+color = Color(0, 1, 0.2, 1)

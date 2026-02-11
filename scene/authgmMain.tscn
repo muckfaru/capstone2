@@ -1,4 +1,4 @@
-[gd_scene load_steps=42 format=3 uid="uid://bmqvyprd3m38d"]
+[gd_scene load_steps=56 format=3 uid="uid://bmqvyprd3m38d"]
 
 [ext_resource type="Script" uid="uid://w2jp71qhpdi6" path="res://script/authgmMain.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://ybhntv0jnfp7" path="res://scene/RequestCard.tscn" id="2"]
@@ -12,6 +12,8 @@
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="4_vh6yr"]
 [ext_resource type="Texture2D" uid="uid://bl0ukj32b44ky" path="res://asset/minigamesicon/medibutton.png" id="5_frqhj"]
 [ext_resource type="Texture2D" uid="uid://cpatyt5qyrjvh" path="res://asset/minigamesicon/medihealthbar.png" id="5_vhexw"]
+[ext_resource type="Texture2D" uid="uid://celxa8te2wluy" path="res://asset/minigamesicon/quithome.png" id="6_exit"]
+[ext_resource type="FontFile" uid="uid://l0twhmllixdy" path="res://asset/minigamesicon/BruceForeverRegular-X3jd2.ttf" id="7_exit"]
 [ext_resource type="PackedScene" uid="uid://g6y8d2pke8ro" path="res://scene/DecisionPanel.tscn" id="9"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_mu0re"]
@@ -145,6 +147,43 @@ font = ExtResource("3_vh6yr")
 outline_size = 10
 outline_color = Color(0, 0, 0, 1)
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exit1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exit2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exit3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exit4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exit5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exit6"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_exit_hover"]
+texture = ExtResource("6_exit")
+expand_margin_left = 40.0
+expand_margin_top = 30.0
+expand_margin_right = 40.0
+expand_margin_bottom = 30.0
+modulate_color = Color(0.572, 0.71, 0.989, 0.835)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exit7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exit8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exit9"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_362xc"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_exit"]
+font = ExtResource("7_exit")
+font_size = 14
+font_color = Color(0, 0, 0, 1)
+outline_size = 10
+outline_color = Color(0.982343, 0.982342, 0.982342, 1)
+shadow_size = 10
+shadow_color = Color(0.61619, 0.083203, 0.484168, 0.967)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vhexw"]
 bg_color = Color(0.115065, 0.0664184, 0.00125705, 0.619)
 corner_radius_top_left = 10
@@ -152,7 +191,7 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[node name="Main" type="Control"]
+[node name="Main2" type="Control" groups=["game_manager"]]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -343,11 +382,12 @@ You are the Authentication Controller for CyberCorp.
 Your job: Verify user identities and grant appropriate access.
 
 [b]HOW TO PLAY:[/b]
-• Review each access request carefully
-• Check user role, authentication level, and context
-• DRAG a decision panel to the request card
-• Click CONFIRM to finalize your decision
-• Watch for red flags: unusual times, locations, requests
+- Review each access request carefully
+- Check user role, authentication level, and context
+- CLICK a decision panel to select it
+- The panel appears on the request card
+- Click CONFIRM to finalize your decision
+- Watch for red flags: unusual times, locations, requests
 
 [b]DECISION OPTIONS:[/b]
 ✅ GRANT ACCESS = Allow the request
@@ -441,6 +481,42 @@ decision_type = 1
 layout_mode = 2
 decision_type = 2
 
+[node name="ExitButton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 130.0
+offset_bottom = 43.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_exit")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_exit1")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_exit2")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_exit3")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_exit4")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_exit5")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_exit6")
+theme_override_styles/hover = SubResource("StyleBoxTexture_exit_hover")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_exit7")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_exit8")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_exit9")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_362xc")
+
+[node name="ExitLabel" type="Label" parent="ExitButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1023.0
+offset_top = 608.0
+offset_right = 1023.0
+offset_bottom = 608.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "ESC/EXIT"
+label_settings = SubResource("LabelSettings_exit")
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="RequestCard" parent="." instance=ExtResource("2")]
 layout_mode = 0
 anchors_preset = 0
@@ -477,3 +553,4 @@ visible = false
 layout_mode = 1
 
 [connection signal="pressed" from="IntroPanel/MarginContainer/VBox/StartButton" to="." method="_on_start_pressed"]
+[connection signal="pressed" from="ExitButton" to="." method="_on_exit_pressed"]
