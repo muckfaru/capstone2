@@ -1442,6 +1442,21 @@ func game_over():
 	
 	add_system_message("💀 GAME OVER - ALL LIVES LOST!")
 	
+	# ✅ AWARD PARTIAL XP ON LOSS (Based on performance)
+	var missions_xp = current_level * 8  # 8 XP per mission reached (vs 10 on win)
+	var score_xp = int((float(score) / 1000.0) * 15)  # Up to 15 XP from score (vs 30 on win)
+	var diversity_xp = int((used_keys.size() / 20.0) * 10)  # Up to 10 XP from key diversity (vs 20 on win)
+	var partial_xp = missions_xp + score_xp + diversity_xp
+	
+	print("[Crypt Contract] 💀 Game Over - Awarding partial XP:")
+	print("  Mission XP: %d (mission %d)" % [missions_xp, current_level])
+	print("  Score XP: %d (score %d)" % [score_xp, score])
+	print("  Diversity XP: %d (%d keys)" % [diversity_xp, used_keys.size()])
+	print("  Total Partial XP: %d" % partial_xp)
+	
+	# Award XP but DON'T mark as completed
+	TutorialManager.add_xp(partial_xp, "Crypt Contract (Attempt)")
+	
 	await get_tree().create_timer(2.0).timeout
 	
 	game_over_panel.visible = true
@@ -1457,6 +1472,7 @@ You've been arrested for conspiracy and murder.
 💰 Score: %d
 📨 Messages Sent: %d
 🎯 Mission Reached: %d / %d
+🏆 XP Earned: +%d
 
 The AI learned your patterns.
 You need to be more UNPREDICTABLE!
@@ -1465,7 +1481,7 @@ Tips:
 ✓ Never reuse keys
 ✓ Avoid patterns (ABC, 123, etc.)
 ✓ Mix letters & numbers creatively
-✓ Stay random and unpredictable""" % [final_score, messages_sent, current_level, max_levels]
+✓ Stay random and unpredictable""" % [final_score, messages_sent, current_level, max_levels, partial_xp]
 
 func victory():
 	if not victory_panel:
@@ -1473,6 +1489,24 @@ func victory():
 	
 	_play_sfx(audio_victory, 0, 1.0)
 	await _fade_out_bgm(2.0)
+	
+	# ✅ AWARD XP BASED ON PERFORMANCE (First-time only)
+	var base_xp = 50  # Base XP for completing all missions
+	var mission_xp = current_level * 10  # 10 XP per mission completed
+	var score_xp = int((score / 1000.0) * 30)  # Up to 30 XP from score
+	var key_diversity_xp = int((used_keys.size() / 20.0) * 20)  # Up to 20 XP for using diverse keys
+	var total_xp_earned = base_xp + mission_xp + score_xp + key_diversity_xp
+	
+	print("[Crypt Contract] 🎉 Victory! Awarding XP:")
+	print("  Base XP: %d" % base_xp)
+	print("  Mission XP: %d (missions %d)" % [mission_xp, current_level])
+	print("  Score XP: %d (score %d)" % [score_xp, score])
+	print("  Key Diversity XP: %d (%d keys)" % [key_diversity_xp, used_keys.size()])
+	print("  Total XP: %d" % total_xp_earned)
+	
+	var xp_awarded = TutorialManager.award_minigame_xp("crypt_contract", total_xp_earned, score)
+	if xp_awarded == 0:
+		print("  ⚠️ Replay - No XP awarded (game still playable!)")
 	
 	victory_panel.visible = true
 	

@@ -1,21 +1,30 @@
 #RewardPopup.gd
 
-extends CanvasLayer  # ✅ Changed from CanvasLayer to Control
+extends CanvasLayer
 
 # === Signals ===
 signal rewards_claimed
 signal popup_closed
 
-# === UI References ===
-var panel_container: PanelContainer
-var title_label: Label
-var reward_grid: GridContainer
-var claim_button: Button
+# === UI References (now linked from scene) ===
+@onready var panel_container: PanelContainer = $PanelContainer
+@onready var title_label: Label = $PanelContainer/VBoxContainer/TitleContainer/TitleLabel
+@onready var reward_grid: GridContainer = $PanelContainer/VBoxContainer/CenterContainer/RewardGrid
+@onready var claim_button: Button = $PanelContainer/VBoxContainer/ClaimButton
+@onready var xp_progress_bar: ProgressBar = $PanelContainer/VBoxContainer/ProgressContainer/ProgressVBox/XPProgressBar
+@onready var xp_label: Label = $PanelContainer/VBoxContainer/ProgressContainer/ProgressVBox/XPLabel
+@onready var instruction_label: Label = $PanelContainer/VBoxContainer/InstructionLabel
+@onready var save_status_label: Label = $PanelContainer/VBoxContainer/SaveStatusLabel
+
+# Starter layout references
+@onready var _starter_layout_root: VBoxContainer = $PanelContainer/VBoxContainer/CenterContainer/StarterLayoutRoot
+@onready var _starter_mid_row: HBoxContainer = $PanelContainer/VBoxContainer/CenterContainer/StarterLayoutRoot/MidCenter/StarterMidRow
+@onready var _starter_bottom_center: CenterContainer = $PanelContainer/VBoxContainer/CenterContainer/StarterLayoutRoot/StarterBottomCenter
+
+# Particle systems
 var particle_system: CPUParticles2D
-var glow_rect: ColorRect
-var xp_progress_bar: ProgressBar
-var xp_label: Label
-var instruction_label: Label
+
+# Sound players
 var sound_panel_appear: AudioStreamPlayer
 var sound_item_pop: AudioStreamPlayer
 var sound_item_bounce: AudioStreamPlayer
@@ -23,16 +32,12 @@ var sound_claim: AudioStreamPlayer
 var sound_item_fly: AudioStreamPlayer
 var sound_success: AudioStreamPlayer
 var sound_reveal: AudioStreamPlayer
-var save_status_label: Label = null
-var is_saving: bool = false
 
-# Starter layout (special arrangement for Starter Rewards)
-var _starter_layout_root: VBoxContainer = null
-var _starter_mid_row: HBoxContainer = null
-var _starter_bottom_center: CenterContainer = null
+var is_saving: bool = false
 var _reward_spawn_count: int = 0
 
 var save_to_inventory: bool = true
+
 # === Animation State ===
 var rewards: Array = []
 var is_animating: bool = false
@@ -51,9 +56,19 @@ var rarity_colors = {
 }
 
 func _ready() -> void:
-	# ✅ Removed layer = 99 (Control nodes don't have layer property)
-	_build_ui()
+	visible = false
 	_setup_sounds()
+	_setup_particle_reference()
+	_get_panel_style()
+	_start_animated_border()
+
+func _setup_particle_reference() -> void:
+	# Get reference to first confetti particle
+	particle_system = $PanelContainer/Confetti1
+
+func _get_panel_style() -> void:
+	# Get the panel style for border animation
+	panel_style = panel_container.get_theme_stylebox("panel")
 
 # === Sound Setup ===
 func _setup_sounds() -> void:
@@ -248,251 +263,6 @@ func show_rewards(reward_list: Array, popup_title: String = "🎉 Rewards!") -> 
 	visible = true
 	_animate_entrance()
 
-func _build_ui() -> void:
-	var overlay = ColorRect.new()
-	overlay.color = Color(0, 0, 0, 0.7)
-	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
-	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(overlay)
-	
-	panel_container = PanelContainer.new()
-	panel_container.custom_minimum_size = Vector2(650, 520)  # ✅ Increased from 500 to 520 for better spacing
-	panel_container.set_anchors_preset(Control.PRESET_CENTER)
-	panel_container.position = Vector2(-325, -260)  # ✅ Adjusted position for new height
-	
-	# ✅ NEW DESIGN: Cyan/Turquoise background with rounded corners
-	panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.2, 0.7, 0.85, 1)  # Cyan/Turquoise color
-	panel_style.border_width_left = 3
-	panel_style.border_width_top = 3
-	panel_style.border_width_right = 3
-	panel_style.border_width_bottom = 3
-	panel_style.border_color = Color(0.0, 0.2, 0.5, 1)  # ✅ Dark blue border
-	panel_style.corner_radius_top_left = 25
-	panel_style.corner_radius_top_right = 25
-	panel_style.corner_radius_bottom_left = 25
-	panel_style.corner_radius_bottom_right = 25
-	panel_style.shadow_color = Color(0.0, 0.2, 0.5, 0.6)  # ✅ Dark blue shadow with stronger opacity
-	panel_style.shadow_size = 25  # ✅ Increased shadow size for more glow
-	panel_container.add_theme_stylebox_override("panel", panel_style)
-	add_child(panel_container)
-	
-	# ✅ Keep animated border but with cyan colors
-	_start_animated_border()
-	
-	var vbox = VBoxContainer.new()
-	# Keep the popup usable on small resolutions: tighter vertical spacing.
-	vbox.add_theme_constant_override("separation", 8)
-	panel_container.add_child(vbox)
-	
-	# Remove glow rect (not in new design)
-	# glow_rect removed
-	
-	# ✅ NEW: Title with black text and top border accent
-	var title_container = PanelContainer.new()
-	title_container.custom_minimum_size = Vector2(650, 60)
-	
-	var title_style = StyleBoxFlat.new()
-	title_style.bg_color = Color(0.15, 0.55, 0.7, 1)  # Darker cyan
-	title_style.border_width_bottom = 3
-	title_style.border_color = Color(1, 1, 1, 0.3)
-	title_style.corner_radius_top_left = 22
-	title_style.corner_radius_top_right = 22
-	title_container.add_theme_stylebox_override("panel", title_style)
-	vbox.add_child(title_container)
-	
-	title_label = Label.new()
-	title_label.text = "NEW USER BONUS"
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title_label.add_theme_font_size_override("font_size", 36)
-	title_label.add_theme_color_override("font_color", Color(0, 0, 0, 1))  # Black text
-	title_container.add_child(title_label)
-	
-	# ✅ NEW: Remove subtitle (not in design)
-	# subtitle removed
-	
-	# ✅ XP Progress Bar (keep same position)
-	var progress_container = MarginContainer.new()
-	progress_container.add_theme_constant_override("margin_left", 50)
-	progress_container.add_theme_constant_override("margin_right", 50)
-	progress_container.add_theme_constant_override("margin_top", 6)
-	progress_container.add_theme_constant_override("margin_bottom", 3)
-	vbox.add_child(progress_container)
-	
-	var progress_vbox = VBoxContainer.new()
-	progress_vbox.add_theme_constant_override("separation", 5)
-	progress_container.add_child(progress_vbox)
-	
-	xp_label = Label.new()
-	xp_label.text = "xp 0/1000"
-	xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	xp_label.add_theme_font_size_override("font_size", 14)
-	xp_label.add_theme_color_override("font_color", Color(1, 1, 1, 1))  # White text
-	progress_vbox.add_child(xp_label)
-	
-	xp_progress_bar = ProgressBar.new()
-	xp_progress_bar.custom_minimum_size = Vector2(550, 25)
-	xp_progress_bar.max_value = 1000
-	xp_progress_bar.value = 0
-	xp_progress_bar.show_percentage = false
-	
-	# ✅ NEW: Orange/Yellow progress bar
-	var progress_style = StyleBoxFlat.new()
-	progress_style.bg_color = Color(0.15, 0.55, 0.7, 0.5)  # Darker cyan background
-	progress_style.corner_radius_top_left = 8
-	progress_style.corner_radius_top_right = 8
-	progress_style.corner_radius_bottom_left = 8
-	progress_style.corner_radius_bottom_right = 8
-	
-	var progress_fill = StyleBoxFlat.new()
-	progress_fill.bg_color = Color(1, 0.7, 0, 1)  # Orange/Yellow fill
-	progress_fill.corner_radius_top_left = 8
-	progress_fill.corner_radius_top_right = 8
-	progress_fill.corner_radius_bottom_left = 8
-	progress_fill.corner_radius_bottom_right = 8
-	
-	xp_progress_bar.add_theme_stylebox_override("background", progress_style)
-	xp_progress_bar.add_theme_stylebox_override("fill", progress_fill)
-	progress_vbox.add_child(xp_progress_bar)
-	
-	var spacer1 = Control.new()
-	spacer1.custom_minimum_size = Vector2(0, 10)
-	vbox.add_child(spacer1)
-	
-	var center_container = CenterContainer.new()
-	center_container.custom_minimum_size = Vector2(0, 240)
-	vbox.add_child(center_container)
-	
-	reward_grid = GridContainer.new()
-	reward_grid.columns = 2
-	reward_grid.add_theme_constant_override("h_separation", 20)
-	reward_grid.add_theme_constant_override("v_separation", 15)
-	center_container.add_child(reward_grid)
-
-	# Starter layout container (hidden by default)
-	_starter_layout_root = VBoxContainer.new()
-	_starter_layout_root.visible = false
-	_starter_layout_root.add_theme_constant_override("separation", 18)
-	center_container.add_child(_starter_layout_root)
-
-	var mid_center := CenterContainer.new()
-	_starter_layout_root.add_child(mid_center)
-
-	_starter_mid_row = HBoxContainer.new()
-	_starter_mid_row.add_theme_constant_override("separation", 20)
-	mid_center.add_child(_starter_mid_row)
-
-	_starter_bottom_center = CenterContainer.new()
-	_starter_layout_root.add_child(_starter_bottom_center)
-	
-	var spacer2 = Control.new()
-	spacer2.custom_minimum_size = Vector2(0, 8)
-	vbox.add_child(spacer2)
-	
-	# ✅ NEW: "Click to reveal your reward" label
-	instruction_label = Label.new()
-	instruction_label.text = "Click to reveal your reward"
-	instruction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	instruction_label.add_theme_font_size_override("font_size", 16)
-	instruction_label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-	vbox.add_child(instruction_label)
-	
-	save_status_label = Label.new()
-	save_status_label.text = "💾 Saving rewards..."
-	save_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	save_status_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))
-	save_status_label.add_theme_font_size_override("font_size", 14)
-	save_status_label.visible = false
-	vbox.add_child(save_status_label)
-
-
-
-	var spacer3 = Control.new()
-	spacer3.custom_minimum_size = Vector2(0, 8)
-	vbox.add_child(spacer3)
-	
-	claim_button = Button.new()
-	claim_button.text = " Claim All Rewards "
-	claim_button.custom_minimum_size = Vector2(300, 50)
-	claim_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	claim_button.disabled = true  # Disabled until all revealed
-	
-	# ✅ Updated button colors to match dark blue theme
-	var btn_normal = StyleBoxFlat.new()
-	btn_normal.bg_color = Color(0.0, 0.4, 0.7, 0.9)  # Dark blue
-	btn_normal.border_width_left = 2
-	btn_normal.border_width_top = 2
-	btn_normal.border_width_right = 2
-	btn_normal.border_width_bottom = 2
-	btn_normal.border_color = Color(0.0, 0.3, 0.6, 1)  # Darker blue border
-	btn_normal.corner_radius_top_left = 10
-	btn_normal.corner_radius_top_right = 10
-	btn_normal.corner_radius_bottom_left = 10
-	btn_normal.corner_radius_bottom_right = 10
-	
-	var btn_hover = btn_normal.duplicate()
-	btn_hover.bg_color = Color(0.0, 0.5, 0.8, 1)  # Lighter blue on hover
-	btn_hover.shadow_color = Color(0.0, 0.3, 0.7, 0.5)  # Dark blue glow
-	btn_hover.shadow_size = 12
-	
-	var btn_disabled = btn_normal.duplicate()
-	btn_disabled.bg_color = Color(0.3, 0.3, 0.4, 0.5)
-	btn_disabled.border_color = Color(0.5, 0.5, 0.5, 0.5)
-	
-	claim_button.add_theme_stylebox_override("normal", btn_normal)
-	claim_button.add_theme_stylebox_override("hover", btn_hover)
-	claim_button.add_theme_stylebox_override("pressed", btn_hover)
-	claim_button.add_theme_stylebox_override("disabled", btn_disabled)
-	claim_button.add_theme_font_size_override("font_size", 18)
-	claim_button.add_theme_color_override("font_color", Color.WHITE)
-	
-	claim_button.pressed.connect(_on_claim_pressed)
-	vbox.add_child(claim_button)
-	
-	# ✅ Add bottom padding
-	var spacer_bottom = Control.new()
-	spacer_bottom.custom_minimum_size = Vector2(0, 6)
-	vbox.add_child(spacer_bottom)
-	
-	# Multiple colored particle systems (confetti)
-	_create_confetti_particles()
-	
-	visible = false
-
-# ✅ Create colorful confetti particles
-func _create_confetti_particles() -> void:
-	var confetti_colors = [
-		Color(1, 0, 0, 1),     # Red
-		Color(0, 1, 0, 1),     # Green
-		Color(0, 0.5, 1, 1),   # Blue
-		Color(1, 0.84, 0, 1),  # Gold
-		Color(1, 0, 1, 1),     # Magenta
-	]
-	
-	for i in range(3):  # Create 3 particle systems for better effect
-		var particles = CPUParticles2D.new()
-		particles.position = Vector2(325, 50) + Vector2(randf_range(-50, 50), 0)
-		particles.amount = 40
-		particles.lifetime = 2.5
-		particles.explosiveness = 0.9
-		particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
-		particles.emission_sphere_radius = 30
-		particles.direction = Vector2(0, -1)
-		particles.spread = 60
-		particles.gravity = Vector2(0, 250)
-		particles.initial_velocity_min = 150
-		particles.initial_velocity_max = 300
-		particles.scale_amount_min = 3
-		particles.scale_amount_max = 6
-		particles.color = confetti_colors[i % confetti_colors.size()]
-		particles.emitting = false
-		panel_container.add_child(particles)
-		
-		if i == 0:
-			particle_system = particles  # Store first one for main reference
-
-# ✅ IMPROVED: Create reward item with rarity and click-to-reveal
 func _should_use_starter_layout(reward_list: Array, popup_title: String) -> bool:
 	# We only special-case the starter popup.
 	if str(popup_title).to_lower().find("starter") == -1:
@@ -509,10 +279,8 @@ func _should_use_starter_layout(reward_list: Array, popup_title: String) -> bool
 			has_chariot = true
 	return has_xp and has_guide and has_chariot
 
-
 func _create_reward_item(reward: RewardItem) -> void:
 	_create_reward_item_in(reward_grid, reward)
-
 
 func _create_reward_item_in(parent: Node, reward: RewardItem) -> void:
 	var item_panel = PanelContainer.new()
@@ -795,7 +563,6 @@ func _reveal_reward(panel: PanelContainer, content: Control, overlay: ColorRect,
 		await fade_tween.finished
 		instruction_label.visible = false
 
-
 	# Check if all revealed -> enable claim button
 	if revealed_rewards >= rewards.size():
 		claim_button.disabled = false
@@ -819,16 +586,11 @@ func _animate_xp_increment(xp_amount: int) -> void:
 	var fill_tween = create_tween()
 	fill_tween.tween_property(xp_progress_bar, "value", new_xp, 0.8).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	fill_tween.parallel().tween_method(
-		func(val): xp_label.text = "xp %d/%d" % [int(val), max_xp],  # ✅ Changed format to match design
+		func(val): xp_label.text = "xp %d/%d" % [int(val), max_xp],
 		float(current_xp), 
 		float(new_xp), 
 		0.8
 	)
-
-# ✅ Animate XP bar only after all rewards revealed (REMOVED - now using instant updates)
-# This function is no longer needed as we update XP immediately per card
-# func _animate_xp_bar_after_reveal() -> void:
-	# ... removed ...
 
 func _animate_entrance() -> void:
 	is_animating = true
@@ -843,28 +605,27 @@ func _animate_entrance() -> void:
 	tween.tween_property(panel_container, "modulate:a", 1.0, 0.4)
 	tween.tween_property(panel_container, "scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	
-	# Removed glow pulse (not in new design)
-	
 	await tween.finished
 	is_animating = false
 
-# Removed _start_glow_pulse() function (not needed in new design)
-
 func _start_animated_border() -> void:
+	if not panel_style:
+		return
+		
 	# ✅ Updated to use dark blue color scheme
 	var border_tween = create_tween().set_loops()
 	border_tween.set_ease(Tween.EASE_IN_OUT)
 	border_tween.set_trans(Tween.TRANS_SINE)
 	
-	border_tween.tween_property(panel_style, "border_color", Color(0.0, 0.3, 0.7, 1), 1.5)  # Lighter dark blue
-	border_tween.tween_property(panel_style, "border_color", Color(0.0, 0.2, 0.5, 1), 1.5)  # Darker blue
+	border_tween.tween_property(panel_style, "border_color", Color(0.0, 0.3, 0.7, 1), 1.5)
+	border_tween.tween_property(panel_style, "border_color", Color(0.0, 0.2, 0.5, 1), 1.5)
 	
 	var shadow_tween = create_tween().set_loops()
 	shadow_tween.set_ease(Tween.EASE_IN_OUT)
 	shadow_tween.set_trans(Tween.TRANS_SINE)
 	
-	shadow_tween.tween_property(panel_style, "shadow_color", Color(0.0, 0.3, 0.7, 0.7), 1.5)  # Lighter dark blue glow
-	shadow_tween.tween_property(panel_style, "shadow_color", Color(0.0, 0.2, 0.5, 0.6), 1.5)  # Darker blue glow
+	shadow_tween.tween_property(panel_style, "shadow_color", Color(0.0, 0.3, 0.7, 0.7), 1.5)
+	shadow_tween.tween_property(panel_style, "shadow_color", Color(0.0, 0.2, 0.5, 0.6), 1.5)
 
 func _animate_claim() -> void:
 	if is_saving:
@@ -1070,8 +831,6 @@ static func show_multiple_rewards(parent: Node, reward_data: Array, title: Strin
 		))
 	popup.show_rewards(reward_list, title)
 
-# ✅ NEW: Async version that waits for completion
-# ✅ FIXED: Now uses integer timestamps
 func _save_reward_to_inventory_async(reward: RewardItem, item_type: String) -> bool:
 	"""Save a reward item and return success status"""
 	print("\n========== SAVING TO FIRESTORE ==========")
@@ -1084,7 +843,6 @@ func _save_reward_to_inventory_async(reward: RewardItem, item_type: String) -> b
 		push_error("[RewardPopup] ❌ User not logged in")
 		return false
 	
-	# ✅ FIX: Convert timestamp to integer (remove decimals)
 	var timestamp = int(Time.get_unix_time_from_system())
 	var random_suffix = randi() % 10000
 	var item_id = "%d_%s_%d" % [timestamp, item_type, random_suffix]
@@ -1109,108 +867,6 @@ func _save_reward_to_inventory_async(reward: RewardItem, item_type: String) -> b
 	
 	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s/inventory/%s" % [user_id, item_id]
 	
-	# ✅ FIX: Ensure all integer fields use str(int(...))
-	var body = {
-		"fields": {
-			"name": {"stringValue": reward.name},
-			"type": {"stringValue": item_type},
-			"rarity": {"stringValue": rarity_string},
-			"description": {"stringValue": reward.description},
-			"icon_path": {"stringValue": icon_path},
-			"amount": {"integerValue": str(reward.amount)},
-			"date_acquired": {"integerValue": str(timestamp)},  # ← Now using integer!
-			"is_equipped": {"booleanValue": false},
-			"is_used": {"booleanValue": false}
-		}
-	}
-	
-	var headers = [
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % id_token
-	]
-	
-	# ✅ Create HTTPRequest as child of root, NOT RewardPopup
-	var http = HTTPRequest.new()
-	get_tree().root.add_child(http)
-	
-	print("[RewardPopup] Sending HTTP request...")
-	var err = http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
-	
-	if err != OK:
-		push_error("[RewardPopup] ❌ HTTP request failed: %s" % err)
-		http.queue_free()
-		return false
-	
-	# ✅ Wait for response
-	var response = await http.request_completed
-	var code = response[1]
-	var response_body = response[3]
-	
-	print("[RewardPopup] Response code: %d" % code)
-	
-	# Clean up
-	http.queue_free()
-	
-	if code == 200:
-		print("[RewardPopup] ✅ SUCCESS! Item saved: %s" % reward.name)
-		return true
-	else:
-		var error_msg = response_body.get_string_from_utf8() if response_body.size() > 0 else "No error message"
-		push_error("[RewardPopup] ❌ Save failed (Code %d): %s" % [code, error_msg])
-		return false
-
-# ✅ LEGACY: Keep old function for compatibility (but not used anymore)
-func _save_reward_to_inventory(reward: RewardItem, item_type: String) -> void:
-	"""Save a reward item to player's inventory in Firestore with detailed logging"""
-	print("\n========== SAVING REWARD TO INVENTORY ==========")
-	print("[RewardPopup] 🎁 Reward Name: %s" % reward.name)
-	print("[RewardPopup] 🎁 Reward Type: %s" % item_type)
-	print("[RewardPopup] 🎁 Reward Amount: %d" % reward.amount)
-	
-	var user_id = Auth.current_local_id
-	var id_token = Auth.current_id_token
-	
-	print("[RewardPopup] 🔑 User ID: %s" % user_id)
-	print("[RewardPopup] 🔑 Has Token: %s" % (id_token != ""))
-	
-	if user_id == "" or id_token == "":
-		push_error("[RewardPopup] ❌ CRITICAL: User not logged in - cannot save to inventory")
-		return
-	
-	# Generate unique item ID (timestamp + random)
-	var timestamp = Time.get_unix_time_from_system()
-	var random_suffix = randi() % 10000
-	var item_id = "%d_%s_%d" % [timestamp, item_type, random_suffix]
-	
-	print("[RewardPopup] 🆔 Generated Item ID: %s" % item_id)
-	
-	# Determine rarity
-	var rarity_value = _get_reward_rarity(reward)
-	var rarity_string = ""
-	match rarity_value:
-		Rarity.COMMON: rarity_string = "common"
-		Rarity.RARE: rarity_string = "rare"
-		Rarity.EPIC: rarity_string = "epic"
-		Rarity.LEGENDARY: rarity_string = "legendary"
-	
-	print("[RewardPopup] ⭐ Rarity: %s" % rarity_string)
-	
-	# Get icon path if available
-	var icon_path = ""
-	if reward.icon and reward.icon.resource_path:
-		icon_path = reward.icon.resource_path
-	else:
-		# Use default icon based on type
-		icon_path = "res://asset/icons/%s_icon.png" % item_type
-	
-	print("[RewardPopup] 🖼️ Icon Path: %s" % icon_path)
-	
-	# ✅ Firestore URL - will auto-create "inventory" subcollection
-	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s/inventory/%s" % [user_id, item_id]
-	
-	print("[RewardPopup] 🌐 Firestore URL: %s" % url)
-	
-	# Build Firestore document
 	var body = {
 		"fields": {
 			"name": {"stringValue": reward.name},
@@ -1225,44 +881,34 @@ func _save_reward_to_inventory(reward: RewardItem, item_type: String) -> void:
 		}
 	}
 	
-	print("[RewardPopup] 📦 Request Body: %s" % JSON.stringify(body))
-	
 	var headers = [
 		"Content-Type: application/json",
 		"Authorization: Bearer %s" % id_token
 	]
 	
 	var http = HTTPRequest.new()
-	add_child(http)
+	get_tree().root.add_child(http)
 	
-	http.request_completed.connect(func(_r, code, _h, response_body):
-		print("\n========== FIRESTORE RESPONSE ==========")
-		print("[RewardPopup] 📥 Response Code: %d" % code)
-		
-		http.queue_free()
-		
-		if code == 200:
-			print("[RewardPopup] ✅✅✅ SUCCESS! Item saved to inventory!")
-			print("[RewardPopup] ✅ Saved: %s (%s)" % [reward.name, item_type])
-			print("[RewardPopup] ✅ Item ID: %s" % item_id)
-		elif code == 403:
-			print("[RewardPopup] ❌ 403 PERMISSION DENIED!")
-			print("[RewardPopup] ❌ Check Firestore Security Rules!")
-			var error_msg = response_body.get_string_from_utf8() if response_body.size() > 0 else "No error message"
-			print("[RewardPopup] ❌ Error Details: %s" % error_msg)
-		else:
-			var error_msg = response_body.get_string_from_utf8() if response_body.size() > 0 else "Unknown error"
-			push_error("[RewardPopup] ❌ Failed to save to inventory (Code %d): %s" % [code, error_msg])
-			print("[RewardPopup] ❌ Full Response: %s" % error_msg)
-		
-		print("========================================\n")
-	)
-	
-	print("[RewardPopup] 📤 Sending HTTP request...")
+	print("[RewardPopup] Sending HTTP request...")
 	var err = http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
 	
 	if err != OK:
-		push_error("[RewardPopup] ❌ HTTP REQUEST FAILED TO START: %s" % err)
+		push_error("[RewardPopup] ❌ HTTP request failed: %s" % err)
 		http.queue_free()
+		return false
+	
+	var response = await http.request_completed
+	var code = response[1]
+	var response_body = response[3]
+	
+	print("[RewardPopup] Response code: %d" % code)
+	
+	http.queue_free()
+	
+	if code == 200:
+		print("[RewardPopup] ✅ SUCCESS! Item saved: %s" % reward.name)
+		return true
 	else:
-		print("[RewardPopup] ✅ HTTP request sent successfully, waiting for response...")
+		var error_msg = response_body.get_string_from_utf8() if response_body.size() > 0 else "No error message"
+		push_error("[RewardPopup] ❌ Save failed (Code %d): %s" % [code, error_msg])
+		return false

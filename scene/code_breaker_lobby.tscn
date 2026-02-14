@@ -1,30 +1,85 @@
-[gd_scene load_steps=7 format=3 uid="uid://b14mflwcapld1"]
+[gd_scene load_steps=29 format=3 uid="uid://b14mflwcapld1"]
 
 [ext_resource type="Script" uid="uid://elvke108a8gu" path="res://script/code_breaker_lobby.gd" id="1_p5ftw"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_0fvqx"]
+[ext_resource type="Texture2D" uid="uid://bsdt466q6oftp" path="res://asset/newUIlandingupdate/Group 115.png" id="3_r2bpr"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qydhr"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p5ftw"]
-bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
-border_color = Color(0.490196, 0.654902, 1, 0.545098)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+[sub_resource type="LabelSettings" id="LabelSettings_r2bpr"]
+font_size = 36
+font_color = Color(0.678431, 0.984314, 0.396078, 1)
 shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0lbcp"]
+texture = ExtResource("3_r2bpr")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_r2bpr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0lbcp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_umqa0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o4uvr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5eheq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_diy5w"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0rpjc"]
+bg_color = Color(0.0559269, 0.110655, 0.01039, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0rpjc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rmhmg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qd4bo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r2bpr"]
-bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
-border_color = Color(0.490196, 0.654902, 1, 0.545098)
-shadow_color = Color(1, 0.313726, 0.247059, 0.611765)
-shadow_size = 10
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gvyu6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6aen6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g8gja"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ng1gb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mlam7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_twwcm"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ci75w"]
+bg_color = Color(0.38, 0.078, 0.11, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jjdru"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jbe8s"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bhva5"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0lbcp"]
 bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
 border_color = Color(0.490196, 0.654902, 1, 0.545098)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 shadow_color = Color(1, 0.313726, 0.247059, 0.611765)
 shadow_size = 10
 
@@ -48,9 +103,11 @@ offset_left = -260.65
 offset_top = 14.88
 offset_right = -384.35
 offset_bottom = 64.88
+theme_override_colors/font_color = Color(0.678431, 0.984314, 0.396078, 1)
 theme_override_fonts/font = ExtResource("2_0fvqx")
 theme_override_font_sizes/font_size = 36
 text = "CODE BREAKER"
+label_settings = SubResource("LabelSettings_r2bpr")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -66,7 +123,7 @@ offset_left = 68.1
 offset_top = -4.25
 offset_right = -260.1
 offset_bottom = 5.10004
-theme_override_styles/panel = SubResource("StyleBoxFlat_p5ftw")
+theme_override_styles/panel = SubResource("StyleBoxTexture_0lbcp")
 
 [node name="HeaderRow" type="HBoxContainer" parent="LobbyPanel"]
 custom_minimum_size = Vector2(0, 30)
@@ -126,6 +183,16 @@ anchor_bottom = 0.9
 mouse_default_cursor_shape = 2
 theme_type_variation = &"PrimaryButton"
 theme_override_fonts/font = ExtResource("2_0fvqx")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_r2bpr")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_0lbcp")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_umqa0")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_o4uvr")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_5eheq")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_diy5w")
+theme_override_styles/hover = SubResource("StyleBoxFlat_0rpjc")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_0rpjc")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_rmhmg")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_qd4bo")
 theme_override_styles/normal = SubResource("StyleBoxFlat_r2bpr")
 text = "CREATE ROOM"
 
@@ -139,5 +206,15 @@ offset_bottom = 363.0
 mouse_default_cursor_shape = 2
 theme_type_variation = &"GhostButton"
 theme_override_fonts/font = ExtResource("2_0fvqx")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_gvyu6")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_6aen6")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_g8gja")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_ng1gb")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_mlam7")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_twwcm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ci75w")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_jjdru")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_jbe8s")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_bhva5")
 theme_override_styles/normal = SubResource("StyleBoxFlat_0lbcp")
 text = "Back"

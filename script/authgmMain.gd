@@ -153,113 +153,113 @@ func _load_audio_files() -> void:
 	
 	# PANEL INTERACTION SOUNDS
 	audio_panel_select = _create_audio_player([
-		sfx_path + "panel_select.wav",
+		sfx_path + "panel_hover.mp3",
 		sfx_path + "ui_clicksa.mp3",
 	], "Master", -10.0)
 	
 	audio_panel_hover = _create_audio_player([
-		sfx_path + "panel_hover.wav",
+		sfx_path + "panel_select.mp3",
 		sfx_path + "ui_clicksa.mp3",
 	], "Master", -16.0)
 	
 	audio_panel_drop = _create_audio_player([
-		sfx_path + "panel_drop.wav",
+		sfx_path + "panel_drop.mp3",
 		sfx_path + "ui_clicksa.mp3",
 	], "Master", -8.0)
 	
 	# DECISION SOUNDS
 	audio_confirm_click = _create_audio_player([
-		sfx_path + "confirm_click.wav",
+		sfx_path + "confirm_click.mp3",
 		sfx_path + "ui_clicksa.mp3",
 	], "Master", -6.0)
 	
 	audio_decision_correct = _create_audio_player([
-		sfx_path + "decision_correct.wav",
+		sfx_path + "decision_correct.mp3",
 		sfx_path + "tama.mp3",
 		sfx_path + "chrisiex1-correct-156911.mp3",
 	], "Master", -5.0)
 	
 	audio_decision_wrong = _create_audio_player([
-		sfx_path + "decision_wrong.wav",
+		sfx_path + "decision_wrong.mp3",
 		sfx_path + "error_buzz.wav",
 		sfx_path + "wrong.mp3",
 	], "Master", -4.0)
 	
 	audio_decision_timeout = _create_audio_player([
-		sfx_path + "timeout.wav",
+		sfx_path + "timeout.mp3",
 		sfx_path + "alarm_danger.wav",
 	], "Master", -3.0)
 	
 	# TRUST SCORE SOUNDS
 	audio_trust_gain = _create_audio_player([
-		sfx_path + "trust_gain.wav",
+		sfx_path + "trust_gain.mp3",
 		sfx_path + "tama.mp3",
 	], "Master", -8.0)
 	
 	audio_trust_loss = _create_audio_player([
-		sfx_path + "trust_loss.wav",
+		sfx_path + "trust_loss.mp3",
 		sfx_path + "heart_break.wav",
 	], "Master", -6.0)
 	
 	audio_trust_critical = _create_audio_player([
-		sfx_path + "trust_critical.wav",
+		sfx_path + "trust_critical.mp3",
 		sfx_path + "alarm_danger.wav",
 	], "Master", -4.0)
 	
 	audio_breach_detected = _create_audio_player([
-		sfx_path + "breach.wav",
-		sfx_path + "police_alert.wav",
+		sfx_path + "breach.mp3",
+		sfx_path + "police_alert.mp3",
 		sfx_path + "alarm_danger.wav",
 	], "Master", -3.0)
 	
 	# TIMER SOUNDS
 	audio_timer_warning = _create_audio_player([
-		sfx_path + "timer_warning.wav",
+		sfx_path + "timer_warning.mp3",
 		sfx_path + "notification_warning.wav",
 	], "Master", -8.0)
 	
 	audio_timer_tick = _create_audio_player([
-		sfx_path + "timer_tick.wav",
+		sfx_path + "timer_tick.mp3",
 		sfx_path + "scanner_beep.wav",
 	], "Master", -12.0)
 	
 	# GAME STATE SOUNDS
 	audio_wave_complete = _create_audio_player([
-		sfx_path + "wave_complete.wav",
+		sfx_path + "wave_complete.mp3",
 		sfx_path + "mission_complete.wav",
 	], "Master", -5.0)
 	
 	audio_game_over = _create_audio_player([
-		sfx_path + "game_over.wav",
+		sfx_path + "sgame_over.mp3",
 	], "Master", 0.0)
 	
 	audio_victory = _create_audio_player([
-		sfx_path + "victory_fanfare.wav",
+		sfx_path + "victory_fanfares.mp3",
 		sfx_path + "combo_low.mp3",
 	], "Master", -2.0)
 	
 	audio_ui_click = _create_audio_player([
-		sfx_path + "ui_clicksa.mp3",
+		sfx_path + "panel_select.mp3",
 	], "Master", -12.0)
 	
 	audio_start_game = _create_audio_player([
-		sfx_path + "start_game.wav",
+		sfx_path + "panel_select.mp3",
 		sfx_path + "ui_clicksa.mp3",
 	], "Master", -8.0)
 	
 	# BACKGROUND MUSIC
 	audio_bgm_intro = _create_music_player([
-		sfx_path + "auth_intro.ogg",
+		sfx_path + "auth_gameplay.mp3",
 		sfx_path + "tutorial_calm.ogg",
 	], "Master", -20.0)
 	
 	audio_bgm_gameplay = _create_music_player([
-		sfx_path + "auth_gameplay.ogg",
+		sfx_path + "auth_gameplay.mp3",
 		sfx_path + "dtvsntbgsfx.mp3",
 	], "Master", -18.0)
 	
 	audio_bgm_tense = _create_music_player([
-		sfx_path + "auth_tense.ogg",
+		sfx_path + "auth_gameplay.mp3",
 		sfx_path + "dtvsntbgsfx.mp3",
 	], "Master", -16.0)
 	
@@ -572,6 +572,25 @@ func _show_game_over():
 	_play_sfx(audio_game_over, 0, 1.0)
 	await _fade_out_bgm(2.0)
 	
+	# ✅ AWARD PARTIAL XP ON LOSS (Based on performance)
+	var accuracy = (float(correct_decisions) / float(total_scenarios)) * 100.0 if total_scenarios > 0 else 0.0
+	
+	var wave_xp = current_wave * 5  # 5 XP per wave reached (vs 6 on win)
+	var accuracy_xp = int((accuracy / 100.0) * 25)  # Up to 25 XP from accuracy (vs 40 on win)
+	var trust_xp = int((trust_score / 100.0) * 15)  # Up to 15 XP from trust (vs 30 on win)
+	var attack_xp = int((float(attacks_blocked) / float(total_attacks)) * 10) if total_attacks > 0 else 0  # Up to 10 XP (vs 20 on win)
+	var partial_xp = wave_xp + accuracy_xp + trust_xp + attack_xp
+	
+	print("[Security Guardian] 💀 Game Over - Awarding partial XP:")
+	print("  Wave XP: %d (wave %d)" % [wave_xp, current_wave])
+	print("  Accuracy XP: %d (%.1f%% accuracy)" % [accuracy_xp, accuracy])
+	print("  Trust XP: %d (trust %d)" % [trust_xp, trust_score])
+	print("  Attack XP: %d (%d/%d blocked)" % [attack_xp, attacks_blocked, total_attacks])
+	print("  Total Partial XP: %d" % partial_xp)
+	
+	# Award XP but DON'T mark as completed
+	TutorialManager.add_xp(partial_xp, "Security Guardian (Attempt)")
+	
 	debrief_screen.visible = true
 	metrics_panel.visible = false
 	debrief_screen.show_debrief(
@@ -581,7 +600,7 @@ func _show_game_over():
 		total_attacks,
 		false_denials,
 		trust_score,
-		xp
+		partial_xp  # Show partial XP instead of 0
 	)
 
 func _show_debrief():
@@ -591,6 +610,30 @@ func _show_debrief():
 	decision_bar.visible = false
 	metrics_panel.visible = false
 	debrief_screen.visible = true
+	
+	# ✅ AWARD XP BASED ON PERFORMANCE (First-time only)
+	var accuracy = 0.0
+	if total_scenarios > 0:
+		accuracy = (float(correct_decisions) / float(total_scenarios)) * 100.0
+	var base_xp = 70  # Base XP for completing the game
+	var wave_xp = current_wave * 6  # 6 XP per wave completed
+	var accuracy_xp = int((accuracy / 100.0) * 40)  # Up to 40 XP from accuracy
+	var trust_xp = int((trust_score / 100.0) * 30)  # Up to 30 XP from trust score
+	var attack_xp = int((float(attacks_blocked) / float(total_attacks)) * 20) if total_attacks > 0 else 0  # Up to 20 XP
+	var total_xp_earned = base_xp + wave_xp + accuracy_xp + trust_xp + attack_xp
+	
+	print("[Security Guardian] 🎯 Victory! Awarding XP:")
+	print("  Base XP: %d" % base_xp)
+	print("  Wave XP: %d (waves %d)" % [wave_xp, current_wave])
+	print("  Accuracy XP: %d (accuracy %.1f%%)" % [accuracy_xp, accuracy])
+	print("  Trust XP: %d (trust %d)" % [trust_xp, trust_score])
+	print("  Attack XP: %d (%d/%d blocked)" % [attack_xp, attacks_blocked, total_attacks])
+	print("  Total XP: %d" % total_xp_earned)
+	
+	var final_score = total_scenarios  # Use scenarios completed as score
+	var xp_awarded = TutorialManager.award_minigame_xp("security_guardian", total_xp_earned, final_score)
+	if xp_awarded == 0:
+		print("  ⚠️ Replay - No XP awarded (game still playable!)")
 	
 	# Victory sound
 	_play_sfx(audio_victory, 0, 1.0)

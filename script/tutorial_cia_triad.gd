@@ -284,7 +284,7 @@ func _setup_audio() -> void:
 	sfx_wrong.name = "SFX_Wrong_Dynamic"
 	
 	# Load the audio stream
-	var wrong_stream = load("res://asset/minigamessoundsfx/wrongs.mp3")
+	var wrong_stream = load("res://asset/minigamessoundsfx/wrong.mp3")
 	if wrong_stream:
 		sfx_wrong.stream = wrong_stream
 		sfx_wrong.volume_db = -9.397
@@ -607,7 +607,7 @@ func _show_results() -> void:
 	# Calculate percentage
 	var percentage = (float(score) / float(max_score)) * 100.0
 	
-	# Determine grade
+	# Determine grade and XP (always award some XP for effort)
 	var grade := ""
 	var xp_earned := 0
 	if percentage >= 90:
@@ -624,7 +624,7 @@ func _show_results() -> void:
 		xp_earned = 50
 	else:
 		grade = "F"
-		xp_earned = 0
+		xp_earned = max(int(percentage * 0.5), 10)  # At least 10 XP for trying, scales with performance
 	
 	# Display results
 	results_text.text = """[center][b]🎓 CIA TRIAD TRAINING COMPLETE 🎓[/b][/center]
@@ -644,7 +644,7 @@ func _show_results() -> void:
 """ % [score, max_score, percentage, grade, xp_earned]
 	
 	# Complete tutorial via TutorialManager
-	TutorialManager.complete_tutorial(TUTORIAL_ID, score, max_score)
+	TutorialManager.save_tutorial_result(TUTORIAL_ID, score, max_score)
 	
 	# Show results screen
 	results_screen.show()

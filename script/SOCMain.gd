@@ -1029,6 +1029,24 @@ func victory():
 	if total_threats > 0:
 		accuracy = (float(threats_neutralized) / float(total_threats)) * 100.0
 	
+	# ✅ AWARD XP BASED ON PERFORMANCE (First-time only)
+	var base_xp = 60  # Base XP for completing all waves
+	var wave_xp = VICTORY_WAVE * 5  # 5 XP per wave (50 XP for 10 waves)
+	var accuracy_xp = int((accuracy / 100.0) * 30)  # Up to 30 XP from accuracy
+	var health_xp = systems_health * 10  # 10 XP per remaining system health
+	var total_xp_earned = base_xp + wave_xp + accuracy_xp + health_xp
+	
+	print("[Incident Commander] 🏆 Victory! Awarding XP:")
+	print("  Base XP: %d" % base_xp)
+	print("  Wave XP: %d (waves %d)" % [wave_xp, VICTORY_WAVE])
+	print("  Accuracy XP: %d (accuracy %.1f%%)" % [accuracy_xp, accuracy])
+	print("  Health XP: %d (health %d)" % [health_xp, systems_health])
+	print("  Total XP: %d" % total_xp_earned)
+	
+	var xp_awarded = TutorialManager.award_minigame_xp("incident_commander", total_xp_earned, score)
+	if xp_awarded == 0:
+		print("  ⚠️ Replay - No XP awarded (game still playable!)")
+	
 	var victory_text = "[b][color=lime]🎉 MISSION ACCOMPLISHED! 🎉[/color][/b]\n\n"
 	victory_text += "[color=cyan]You completed all 10 waves and defeated the final assault![/color]\n\n"
 	victory_text += "[b]PERFORMANCE REPORT:[/b]\n\n"
@@ -1073,10 +1091,29 @@ func game_over():
 			powerup.queue_free()
 	active_powerups.clear()
 	
+	# ✅ AWARD PARTIAL XP ON LOSS (Based on performance)
+	var total_attempts = threats_neutralized + threats_missed
+	var accuracy = (float(threats_neutralized) / float(total_attempts) * 100.0) if total_attempts > 0 else 0.0
+	
+	var wave_xp = current_wave * 8  # 8 XP per wave reached (vs 10 on win)
+	var accuracy_xp = int((accuracy / 100.0) * 20)  # Up to 20 XP from accuracy (vs 30 on win)
+	var health_xp = systems_health * 5  # 5 XP per remaining system health (vs 10 on win)
+	var partial_xp = wave_xp + accuracy_xp + health_xp
+	
+	print("[Incident Commander] 💀 Game Over - Awarding partial XP:")
+	print("  Wave XP: %d (wave %d)" % [wave_xp, current_wave])
+	print("  Accuracy XP: %d (%.1f%% accuracy)" % [accuracy_xp, accuracy])
+	print("  Health XP: %d (%d health)" % [health_xp, systems_health])
+	print("  Total Partial XP: %d" % partial_xp)
+	
+	# Award XP but DON'T mark as completed
+	TutorialManager.add_xp(partial_xp, "Incident Commander (Attempt)")
+	
 	var debrief = "[b]SECURITY OPERATIONS FAILED[/b]\n\n"
 	debrief += "Threats Neutralized: [color=lime]" + str(threats_neutralized) + "[/color]\n"
 	debrief += "Threats Missed: [color=red]" + str(threats_missed) + "[/color]\n"
-	debrief += "Final Score: " + str(score) + "\n\n"
+	debrief += "Final Score: " + str(score) + "\n"
+	debrief += "[color=yellow]XP Earned: +" + str(partial_xp) + "[/color]\n\n"
 	
 	if missed_threats_data.size() > 0:
 		debrief += "[color=yellow]MISSED THREATS:[/color]\n\n"

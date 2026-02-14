@@ -1,9 +1,95 @@
-[gd_scene load_steps=5 format=3 uid="uid://c8eelnljv5mk1"]
+[gd_scene load_steps=9 format=3 uid="uid://c8eelnljv5mk1"]
 
 [ext_resource type="Script" uid="uid://d0odrjlqw4dm3" path="res://script/loading_ani.gd" id="1_rss3j"]
 [ext_resource type="Texture2D" uid="uid://tjwtf1qf35nl" path="res://asset/4e838cbb-ea7e-4663-a1a3-5e2937ba793d.jpg" id="2_5nuj8"]
-[ext_resource type="Texture2D" uid="uid://cxy5i70p5lc8q" path="res://asset/image.png" id="3_4rf3o"]
+[ext_resource type="Texture2D" uid="uid://delod07kgmc7s" path="res://asset/newUIlandingupdate/Main logo White_curve side 2.png" id="3_vul0j"]
+[ext_resource type="Texture2D" uid="uid://dog33u8n766i5" path="res://asset/newUIlandingupdate/Side 2D 1.png" id="4_3p3m0"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_vul0j"]
+
+[sub_resource type="Animation" id="Animation_3p3m0"]
+resource_name = "loading1st"
+length = 1.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Main logo White_curve side 2:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0.188), Color(1, 1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Side 2D 1:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.0333333, 0.5, 0.766667, 0.866667, 1),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [1.2723, 0.686238, 0.252497, 0.0803072, 0.00371481]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Side 2D 1:modulate")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.0333333, 0.5, 0.833333, 1.13333),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Color(0.169245, 0.169245, 0.169245, 1), Color(0.691357, 0.691357, 0.691357, 1), Color(0.894922, 0.894922, 0.894922, 1), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_he5nb"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Main logo White_curve side 2:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Side 2D 1:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1.2723]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Side 2D 1:modulate")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_16mm1"]
+_data = {
+&"RESET": SubResource("Animation_he5nb"),
+&"loading1st": SubResource("Animation_3p3m0")
+}
 
 [node name="LoadingAni" type="CanvasLayer"]
 script = ExtResource("1_rss3j")
@@ -41,9 +127,32 @@ offset_right = 172.0
 offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("3_4rf3o")
 expand_mode = 2
 stretch_mode = 3
+
+[node name="Main logo White_curve side 2" type="TextureRect" parent="Control/LogoContainer"]
+layout_mode = 0
+offset_top = -23.0
+offset_right = 310.0
+offset_bottom = 287.0
+texture = ExtResource("3_vul0j")
+expand_mode = 1
+
+[node name="Side 2D 1" type="TextureRect" parent="Control/LogoContainer"]
+layout_mode = 0
+offset_left = -12.0
+offset_top = -38.0
+offset_right = 326.0
+offset_bottom = 300.0
+rotation = 1.2723
+pivot_offset = Vector2(174, 1)
+texture = ExtResource("4_3p3m0")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Control/LogoContainer"]
+libraries = {
+&"": SubResource("AnimationLibrary_16mm1")
+}
+autoplay = "loading1st"
 
 [node name="Label" type="Label" parent="Control"]
 layout_mode = 1

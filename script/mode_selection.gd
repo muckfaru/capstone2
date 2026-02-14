@@ -761,7 +761,31 @@ func _add_corner_decorations(panel: Panel) -> void:
 func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Control) -> PanelContainer:
 	"""Create a styled tutorial card"""
 	var tutorial_id: String = tutorial["id"]
-	var is_completed: bool = TutorialManager.completed_tutorials.has(tutorial_id)
+	
+	# Determine if this is a minigame or tutorial
+	var minigame_ids = [
+		"beginner_drop_zone",
+		"intermediate_assetandthreat",
+		"intermediate_crypt_contract",
+		"intermediate_incident_commander",
+		"advanced_security_guardian",
+		"advanced_malware_defense",
+		"advanced_incident_response"
+	]
+	var is_minigame: bool = tutorial_id in minigame_ids
+	
+	# Check the appropriate completion dictionary
+	var is_completed: bool = false
+	var completion_data: Dictionary = {}
+	if is_minigame:
+		is_completed = TutorialManager.completed_minigames.has(tutorial_id)
+		if is_completed:
+			completion_data = TutorialManager.completed_minigames[tutorial_id]
+	else:
+		is_completed = TutorialManager.completed_tutorials.has(tutorial_id)
+		if is_completed:
+			completion_data = TutorialManager.completed_tutorials[tutorial_id]
+	
 	var metadata = TUTORIAL_METADATA.get(tutorial_id, {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3})
 	
 	# Card container
@@ -902,16 +926,69 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	
 	card_vbox.add_child(info_hbox)
 	
-	# Button or status
+	# Status and button (always show button, even for completed)
 	if is_completed:
-		var result = TutorialManager.completed_tutorials[tutorial_id]
-		var percentage: float = result.get("percentage", 0.0)
-		
+		# Completion status - different format for minigames vs tutorials
 		var status_label = Label.new()
-		status_label.text = "✅ COMPLETED - %.0f%% | 🏆 XP earned: %d" % [percentage, result.get("xp_earned", 0)]
+		if is_minigame:
+			# Minigames only show score and XP
+			status_label.text = "✅ COMPLETED | Best Score: %d | 🏆 XP earned: %d" % [completion_data.get("score", 0), completion_data.get("xp_earned", 0)]
+		else:
+			# Tutorials show percentage and XP
+			var percentage: float = completion_data.get("percentage", 0.0)
+			status_label.text = "✅ COMPLETED - %.0f%% | 🏆 XP earned: %d" % [percentage, completion_data.get("xp_earned", 0)]
+		
 		status_label.add_theme_font_size_override("font_size", 14)
 		status_label.add_theme_color_override("font_color", Color(0, 1, 0.5))
 		card_vbox.add_child(status_label)
+		
+		# Replay button container
+		var replay_hbox = HBoxContainer.new()
+		replay_hbox.add_theme_constant_override("separation", 10)
+		
+		var replay_btn = Button.new()
+		replay_btn.text = "PLAY AGAIN 🔄"
+		replay_btn.custom_minimum_size = Vector2(180, 35)
+		replay_btn.add_theme_color_override("font_color", Color(0.9, 0.9, 1))
+		replay_btn.add_theme_font_size_override("font_size", 14)
+		
+		# Different style for replay button (purple/magenta theme)
+		var replay_style = StyleBoxFlat.new()
+		replay_style.bg_color = Color(0.3, 0.15, 0.4, 0.6)
+		replay_style.border_width_left = 2
+		replay_style.border_width_top = 2
+		replay_style.border_width_right = 2
+		replay_style.border_width_bottom = 2
+		replay_style.border_color = Color(0.8, 0.4, 1, 0.7)
+		replay_style.corner_radius_top_left = 5
+		replay_style.corner_radius_top_right = 5
+		replay_style.corner_radius_bottom_left = 5
+		replay_style.corner_radius_bottom_right = 5
+		replay_btn.add_theme_stylebox_override("normal", replay_style)
+		
+		var replay_hover = replay_style.duplicate()
+		replay_hover.bg_color = Color(0.5, 0.25, 0.6, 0.8)
+		replay_hover.border_color = Color(1, 0.6, 1, 1)
+		replay_btn.add_theme_stylebox_override("hover", replay_hover)
+		
+		replay_btn.pressed.connect(func():
+			overlay.queue_free()
+			get_tree().set_meta("tutorial_id", tutorial_id)
+			get_tree().set_meta("tutorial_level", level_int)
+			_save_level_and_navigate(level_int, tutorial["scene"])
+		)
+		
+		replay_hbox.add_child(replay_btn)
+		
+		# "No XP" note
+		var no_xp_label = Label.new()
+		no_xp_label.text = "(No XP awarded)"
+		no_xp_label.add_theme_font_size_override("font_size", 12)
+		no_xp_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+		no_xp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		replay_hbox.add_child(no_xp_label)
+		
+		card_vbox.add_child(replay_hbox)
 	else:
 		var btn = Button.new()
 		btn.text = "START TUTORIAL →"

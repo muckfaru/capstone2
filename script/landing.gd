@@ -21,10 +21,27 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 @onready var avatar_picker: PopupPanel = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker
 @onready var avatar_grid: GridContainer = $VideoStreamPlayer/ProfilePanel/UserPanel/AvatarPicker/AvatarScroll/GridContainer
 @onready var menu_panel: Control = $MenuPanel
+var hover_sfx: AudioStreamPlayer
+var click_sfx: AudioStreamPlayer
+var card_textures := {
+    "DefuseTheTrojan": {
+        "normal": preload("res://asset/icons/defuse the trojan 22.png"),
+        "hover": preload("res://asset/icons/Defuse the trojan 33.png")  # Your hover texture
+    },
+    "AkashicTCG": {
+        "normal": preload("res://asset/icons/akashic tgc 2.png"),
+        "hover": preload("res://asset/icons/akashic tgc 444.png")
+    },
+    "CodeBreaker": {
+        "normal": preload("res://asset/icons/code breaker 3.png"),
+        "hover": preload("res://asset/icons/code breaker 33.png")
+    }
+}
 
+@onready var rank_icon_rect: TextureRect = $VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect
 # Match history (Profile)
 @onready var match_history_panel: Panel = $VideoStreamPlayer/ProfilePanel/MatchHistoyPanel
-
+@onready var winrate_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/winrateInput
 var _match_history_scroll: ScrollContainer = null
 var _match_history_vbox: VBoxContainer = null
 
@@ -36,10 +53,8 @@ var _current_leaderboard_game: String = "code_breaker"
 @onready var inventory_panel: Panel = null
 # Dynamic UI elements (created at runtime)
 var file_dialog: FileDialog
-var xp_progress: ProgressBar
-const RANK_ICON_POSITION := Vector2(90, 265)
-const RANK_ICON_SIZE := Vector2(60, 60)
-const RANK_LABEL_POSITION := Vector2(23, 330)
+@onready var xp_progress: TextureProgressBar = $VideoStreamPlayer/ProfilePanel/MatchHistoyPanel/XPProgressBar
+
 # === Avatars & User Data ===
 var original_username: String = ""
 var original_avatar: String = ""
@@ -83,11 +98,14 @@ func _ready() -> void:
 	add_child(http)
 	_setup_inventory_system()
 	# ✅ CRITICAL: Force UI positions IMMEDIATELY before anything else
-	call_deferred("_force_initial_ui_layout")
+	if not ui_initialized:
+		_initialize_profile_ui()
+		ui_initialized = true
+
 	_setup_video_and_music()
 	_load_avatars()
 	change_btn.pressed.connect(_on_change_avatar_pressed)
-
+	_setup_game_sfx()
 	# File dialog setup
 	file_dialog = FileDialog.new()
 	file_dialog.access = FileDialog.ACCESS_FILESYSTEM
@@ -147,111 +165,17 @@ func _ready() -> void:
 
 # Replace these functions in your landing.gd script
 
-func _force_initial_ui_layout() -> void:
-	"""Force UI layout IMMEDIATELY when scene loads"""
-	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
-	
-	if not user_panel:
-		return
-	
-	print("[Landing] ========== FORCING INITIAL UI LAYOUT ==========")
-	
-	# ✅ Profile picture - TOP position (80x80, ends at y=105)
-	if profile_pic:
-		profile_pic.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		profile_pic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		profile_pic.custom_minimum_size = Vector2(80, 80)
-		profile_pic.size = Vector2(80, 80)
-		profile_pic.position = Vector2(30, 25) # Ends at x=110, y=105
-		profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
-	# ✅ Username - next to profile pic
-	if username_input:
-		username_input.position = Vector2(120, 35)
-		username_input.size = Vector2(120, 30)
-		username_input.clip_text = true
-	
-	# ✅ Level labels - below username
-	var level_label = user_panel.get_node_or_null("levelLabel")
-	if level_label:
-		level_label.position = Vector2(120, 65)
-		level_label.size = Vector2(50, 23)
-	
-	if level_input:
-		level_input.position = Vector2(170, 65)
-		level_input.size = Vector2(50, 23)
-	
-	# ✅✅✅ STATS ROW - MOVED DOWN to y=115 (below profile pic at y=105)
-	var wins_label = user_panel.get_node_or_null("winsLabel")
-	if wins_label:
-		wins_label.position = Vector2(29, 115) # Changed from 95 to 115
-		wins_label.size = Vector2(30, 23)
-	
-	if wins_input:
-		wins_input.position = Vector2(56, 115) # Changed from 95 to 115
-		wins_input.size = Vector2(30, 23)
-	
-	var losses_label = user_panel.get_node_or_null("losesLabel")
-	if losses_label:
-		losses_label.position = Vector2(91, 115) # Changed from 95 to 115
-		losses_label.size = Vector2(25, 23)
-	
-	if losses_input:
-		losses_input.position = Vector2(114, 115) # Changed from 95 to 115
-		losses_input.size = Vector2(30, 23)
-	
-	var winrate_label = user_panel.get_node_or_null("WinrateLabel")
-	if winrate_label:
-		winrate_label.position = Vector2(146, 115) # Changed from 95 to 115
-		winrate_label.size = Vector2(40, 23)
-	
-	var winrate_input = user_panel.get_node_or_null("winrateInput")
-	if winrate_input:
-		winrate_input.position = Vector2(187, 115) # Changed from 95 to 115
-		winrate_input.size = Vector2(40, 23)
-	
-	# ✅ Match played - also moved down
-	var match_played_label = user_panel.get_node_or_null("MatchPlayedLabel")
-	if match_played_label:
-		match_played_label.position = Vector2(29, 141) # Changed from 121 to 141
-		match_played_label.size = Vector2(130, 23)
-	
-	if match_played_input:
-		match_played_input.position = Vector2(165, 141) # Changed from 121 to 141
-		match_played_input.size = Vector2(50, 23)
-	# ✅ Hide old elements
-	if save_btn:
-		save_btn.visible = false
-	if status_label:
-		status_label.visible = false
-	if change_btn:
-		change_btn.visible = false
-	
-	var username_label = user_panel.get_node_or_null("usernameLabel")
-	if username_label:
-		username_label.visible = false
-	
-	if xp_input:
-		xp_input.visible = false
-	var old_xp_label = user_panel.get_node_or_null("xpLabel")
-	if old_xp_label:
-		old_xp_label.visible = false
-	
-	# ✅ NOW create dynamic elements BELOW the stats
-	if not ui_initialized:
-		_initialize_profile_ui()
-		ui_initialized = true
-	
-	print("[Landing] ✅ Initial UI layout forced")
+
 
 
 func _ensure_match_history_ui() -> void:
 	if not match_history_panel:
 		return
+	# ↑ NO extra indent after this — everything below runs normally
 
-	# Create ScrollContainer/VBox only if missing (keeps scene unchanged)
+	# Setup tab buttons FIRST
+	_setup_match_history_tabs()
+
 	_match_history_scroll = match_history_panel.get_node_or_null("ScrollContainer")
 	if not _match_history_scroll:
 		_match_history_scroll = ScrollContainer.new()
@@ -260,9 +184,8 @@ func _ensure_match_history_ui() -> void:
 		_match_history_scroll.anchor_top = 0.0
 		_match_history_scroll.anchor_right = 1.0
 		_match_history_scroll.anchor_bottom = 1.0
-		# Leave space for the header (approx 70px)
 		_match_history_scroll.offset_left = 8.0
-		_match_history_scroll.offset_top = 72.0
+		_match_history_scroll.offset_top = 75.0
 		_match_history_scroll.offset_right = -8.0
 		_match_history_scroll.offset_bottom = -8.0
 		match_history_panel.add_child(_match_history_scroll)
@@ -276,10 +199,143 @@ func _ensure_match_history_ui() -> void:
 		_match_history_vbox.add_theme_constant_override("separation", 8)
 		_match_history_scroll.add_child(_match_history_vbox)
 
-	# Placeholder
 	_clear_match_history_rows()
 	_add_match_history_placeholder("Loading…")
 
+func _setup_match_history_tabs() -> void:
+	var tab_bar = match_history_panel.get_node_or_null("TabBar")
+	if not tab_bar:
+		return
+
+	var history_tab = tab_bar.get_node_or_null("MatchHistoryTab")
+	var stats_tab = tab_bar.get_node_or_null("StatsTab")
+	var inventory_tab = tab_bar.get_node_or_null("InventoryTab")
+
+	if not history_tab or not stats_tab or not inventory_tab:
+		return
+
+	if history_tab.pressed.is_connected(_on_tab_match_history):
+		return
+
+	history_tab.pressed.connect(_on_tab_match_history)
+	stats_tab.pressed.connect(_on_tab_stats)
+	inventory_tab.pressed.connect(_on_tab_inventory_panel)
+
+	# ✅ Hide XPProgressBar and StatsContent by default
+	if xp_progress:
+		xp_progress.visible = false
+	var stats_content = match_history_panel.get_node_or_null("StatsContent")
+	if stats_content:
+		stats_content.visible = false
+
+	_set_active_tab(history_tab, [history_tab, stats_tab, inventory_tab])
+
+
+func _set_active_tab(active: Button, all_tabs: Array) -> void:
+		var active_style = StyleBoxFlat.new()
+		active_style.bg_color = Color(0, 0.5, 0.6, 0.9)
+		active_style.border_width_bottom = 2
+		active_style.border_color = Color(0, 1, 1, 1)
+
+		var inactive_style = StyleBoxFlat.new()
+		inactive_style.bg_color = Color(0, 0, 0, 0.3)
+
+		for tab in all_tabs:
+			if tab == active:
+				tab.add_theme_stylebox_override("normal", active_style)
+				tab.add_theme_stylebox_override("hover", active_style)
+			else:
+				tab.add_theme_stylebox_override("normal", inactive_style)
+				tab.add_theme_stylebox_override("hover", inactive_style)
+
+
+func _on_tab_match_history() -> void:
+	var tab_bar = match_history_panel.get_node_or_null("TabBar")
+	if tab_bar:
+		_set_active_tab(tab_bar.get_node("MatchHistoryTab"),
+			[tab_bar.get_node("MatchHistoryTab"),
+			tab_bar.get_node("StatsTab"),
+			tab_bar.get_node("InventoryTab")])
+
+	if _match_history_scroll:
+		_match_history_scroll.visible = true
+	var stats_content = match_history_panel.get_node_or_null("StatsContent")
+	if stats_content:
+		stats_content.visible = false
+
+	# ✅ Hide XP bar on match history tab
+	if xp_progress:
+		xp_progress.visible = false
+
+	_load_match_history()
+
+
+func _on_tab_stats() -> void:
+	var tab_bar = match_history_panel.get_node_or_null("TabBar")
+	if tab_bar:
+		_set_active_tab(tab_bar.get_node("StatsTab"),
+			[tab_bar.get_node("MatchHistoryTab"),
+			tab_bar.get_node("StatsTab"),
+			tab_bar.get_node("InventoryTab")])
+
+	if _match_history_scroll:
+		_match_history_scroll.visible = false
+
+	if xp_progress:
+		xp_progress.visible = true
+
+	var stats_content = match_history_panel.get_node_or_null("StatsContent")
+	if not stats_content:
+		return
+	stats_content.visible = true
+
+	# ✅ Compute winrate
+	var w = int(wins_input.text) if wins_input and wins_input.text.is_valid_int() else 0
+	var l = int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else 0
+	var total = w + l
+	var wr_text = ("%.0f%%" % (float(w) / float(total) * 100.0)) if total > 0 else "0%"
+
+	# ✅ Just update the value labels — layout stays in .tscn
+	var wins_val = stats_content.get_node_or_null("WinsRow/WinsValue")
+	if wins_val:
+		wins_val.text = wins_input.text if wins_input else "0"
+
+	var losses_val = stats_content.get_node_or_null("LossesRow/LossesValue")
+	if losses_val:
+		losses_val.text = losses_input.text if losses_input else "0"
+
+	var wr_val = stats_content.get_node_or_null("WinRateRow/WinRateValue")
+	if wr_val:
+		wr_val.text = wr_text
+
+	var mp_val = stats_content.get_node_or_null("MatchPlayedRow/MatchPlayedValue")
+	if mp_val:
+		mp_val.text = str(total)
+
+	var lv_val = stats_content.get_node_or_null("LevelRow/LevelValue")
+	if lv_val:
+		lv_val.text = level_input.text if level_input else "0"
+
+
+func _on_tab_inventory_panel() -> void:
+	var tab_bar = match_history_panel.get_node_or_null("TabBar")
+	if tab_bar:
+		_set_active_tab(tab_bar.get_node("InventoryTab"),
+			[tab_bar.get_node("MatchHistoryTab"),
+			tab_bar.get_node("StatsTab"),
+			tab_bar.get_node("InventoryTab")])
+
+	if _match_history_scroll:
+		_match_history_scroll.visible = false
+	var stats_content = match_history_panel.get_node_or_null("StatsContent")
+	if stats_content:
+		stats_content.visible = false
+
+	# ✅ Hide XP bar on inventory tab
+	if xp_progress:
+		xp_progress.visible = false
+
+	open_inventory()
 
 func _clear_match_history_rows() -> void:
 	if not _match_history_vbox:
@@ -708,157 +764,46 @@ func _fs_int(fields: Dictionary, key: String, default_value: int) -> int:
 func _initialize_profile_ui() -> void:
 	"""Initialize all profile UI elements ONCE with proper spacing"""
 	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
-	
 	if not user_panel:
 		push_error("[Landing] UserPanel not found!")
 		return
-	
 	print("[Landing] ========== INITIALIZING PROFILE UI ==========")
 	
+	# EditProfileButton now lives in .tscn - just connect the signal
 	var edit_btn = user_panel.get_node_or_null("EditProfileButton")
-	if not edit_btn:
-		edit_btn = Button.new()
-		edit_btn.name = "EditProfileButton"
-		edit_btn.text = "Edit Profile"
-		edit_btn.custom_minimum_size = Vector2(200, 38)
-		edit_btn.position = Vector2(23, 175)
-		edit_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		
-		var edit_icon = load("res://asset/icons/edit_icon.png")
-		if edit_icon:
-			var img = edit_icon.get_image()
-			if img:
-				img.resize(24, 24, Image.INTERPOLATE_LANCZOS)
-				edit_icon = ImageTexture.create_from_image(img)
-			
-			edit_btn.icon = edit_icon
-			edit_btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-			edit_btn.expand_icon = false
-		
-		var btn_style_normal = StyleBoxFlat.new()
-		btn_style_normal.bg_color = Color(0, 0.4, 0.5, 0.8)
-		btn_style_normal.border_width_left = 2
-		btn_style_normal.border_width_top = 2
-		btn_style_normal.border_width_right = 2
-		btn_style_normal.border_width_bottom = 2
-		btn_style_normal.border_color = Color(0, 0.9, 1, 0.8)
-		btn_style_normal.corner_radius_top_left = 6
-		btn_style_normal.corner_radius_top_right = 6
-		btn_style_normal.corner_radius_bottom_left = 6
-		btn_style_normal.corner_radius_bottom_right = 6
-		
-		# ✅ UNEVEN MARGINS: Less left, more right = shifts content left
-		btn_style_normal.content_margin_left = 20 # Reduced from 10
-		btn_style_normal.content_margin_right = 65 # Increased from 10
-		btn_style_normal.content_margin_top = 8
-		btn_style_normal.content_margin_bottom = 8
-		
-		var btn_style_hover = btn_style_normal.duplicate()
-		btn_style_hover.bg_color = Color(0, 0.6, 0.7, 1)
-		btn_style_hover.shadow_color = Color(0, 1, 1, 0.5)
-		btn_style_hover.shadow_size = 10
-		
-		edit_btn.add_theme_stylebox_override("normal", btn_style_normal)
-		edit_btn.add_theme_stylebox_override("hover", btn_style_hover)
-		edit_btn.add_theme_stylebox_override("pressed", btn_style_hover)
-		edit_btn.add_theme_color_override("font_color", Color(0, 1, 1, 1))
-		edit_btn.add_theme_font_size_override("font_size", 15)
-		
-		edit_btn.add_theme_constant_override("h_separation", 20) # Space between icon and text
-		edit_btn.add_theme_constant_override("icon_max_width", 24)
-		
-		edit_btn.pressed.connect(_open_edit_profile_popup)
-		user_panel.add_child(edit_btn)
-		print("[Landing] ✅ Edit Profile button created")
+	if edit_btn:
+		if not edit_btn.pressed.is_connected(_open_edit_profile_popup):
+			edit_btn.pressed.connect(_open_edit_profile_popup)
 	else:
-		edit_btn.position = Vector2(23, 175)
+		push_error("[Landing] EditProfileButton node not found in scene!")
 	
 	_create_xp_progress_bar()
 	print("[Landing] ✅ Profile UI initialized")
 
 
 func _create_xp_progress_bar() -> void:
-	"""Create and style the XP progress bar at fixed position"""
-	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
-	
-	var existing_bar = user_panel.get_node_or_null("XPProgressBar")
-	if existing_bar:
-		xp_progress = existing_bar
-		xp_progress.position = Vector2(23, 225) # ✅ Changed from 205 to 225
-		xp_progress.size = Vector2(200, 28)
+	# Node now lives in .tscn - nothing to create
+	if not xp_progress:
+		push_error("[Landing] XPProgressBar node not found in scene!")
 		return
-	
-	xp_progress = ProgressBar.new()
-	xp_progress.name = "XPProgressBar"
-	xp_progress.position = Vector2(23, 225) # ✅ Changed from 205 to 225
-	xp_progress.size = Vector2(200, 28)
-	xp_progress.min_value = 0
-	xp_progress.max_value = 1000
-	xp_progress.value = 0
-	xp_progress.show_percentage = false
-	xp_progress.z_index = 10
-	
-	var style_bg = StyleBoxFlat.new()
-	style_bg.bg_color = Color(0.2, 0.2, 0.2, 0.8)
-	style_bg.corner_radius_top_left = 5
-	style_bg.corner_radius_top_right = 5
-	style_bg.corner_radius_bottom_left = 5
-	style_bg.corner_radius_bottom_right = 5
-	
-	var style_fg = StyleBoxFlat.new()
-	style_fg.bg_color = Color(0, 0.9, 1, 1)
-	style_fg.corner_radius_top_left = 5
-	style_fg.corner_radius_top_right = 5
-	style_fg.corner_radius_bottom_left = 5
-	style_fg.corner_radius_bottom_right = 5
-	
-	xp_progress.add_theme_stylebox_override("background", style_bg)
-	xp_progress.add_theme_stylebox_override("fill", style_fg)
-	
-	user_panel.add_child(xp_progress)
-	
-	var xp_label = Label.new()
-	xp_label.name = "XPLabel"
-	xp_label.size = Vector2(200, 28)
-	xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	xp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	xp_label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-	xp_label.add_theme_font_size_override("font_size", 13)
-	xp_label.text = "0 / 1000 XP"
-	xp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	xp_progress.add_child(xp_label)
-	
-	print("[Landing] ✅ XP Progress Bar created at (23, 225)")
+	var xp_label = xp_progress.get_node_or_null("XPLabel")
+	if not xp_label:
+		xp_label = Label.new()
+		xp_label.name = "XPLabel"
+		xp_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		xp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		xp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		xp_label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+		xp_label.add_theme_font_size_override("font_size", 13)
+		xp_label.text = "0 / 1000 XP"
+		xp_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		xp_progress.add_child(xp_label)
+	print("[Landing] ✅ XP Progress Bar ready")
 
 func _refresh_profile_ui_positions() -> void:
 	"""Ensure all profile UI elements are in their correct positions"""
-	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
-	if not user_panel:
-		return
-	
-	print("[Landing] ========== REFRESHING UI POSITIONS ==========")
-	
-	var edit_btn = user_panel.get_node_or_null("EditProfileButton")
-	if edit_btn:
-		edit_btn.position = Vector2(23, 175)
-		edit_btn.size = Vector2(200, 38)
-	
-	if xp_progress and is_instance_valid(xp_progress):
-		xp_progress.position = Vector2(23, 225)
-		xp_progress.size = Vector2(200, 28)
-	
-	# ✅ Use constant
-	var rank_icon_rect = user_panel.get_node_or_null("RankIconRect")
-	if rank_icon_rect:
-		rank_icon_rect.position = RANK_ICON_POSITION
-		rank_icon_rect.size = RANK_ICON_SIZE
-	
-	# ✅ Use constant
 	if rank_label:
-		rank_label.position = RANK_LABEL_POSITION
-		rank_label.size = Vector2(200, 30)
 		rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	
 	print("[Landing] ✅ Profile UI positions refreshed")
 	
 
@@ -883,38 +828,17 @@ func _update_xp_display() -> void:
 		var rank_name = rank.get("name", "Iron")
 		var color = rank.get("color", Color(0.5, 0.5, 0.5))
 		
-		var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
-		
 		if icon_path.begins_with("res://"):
 			var rank_texture = load(icon_path)
 			if rank_texture:
-				var rank_icon_rect = user_panel.get_node_or_null("RankIconRect")
-				
-				if not rank_icon_rect:
-					rank_icon_rect = TextureRect.new()
-					rank_icon_rect.name = "RankIconRect"
-					rank_icon_rect.custom_minimum_size = RANK_ICON_SIZE
-					rank_icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-					rank_icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-					user_panel.add_child(rank_icon_rect)
-				
 				rank_icon_rect.texture = rank_texture
-				# ✅ Use constant
-				rank_icon_rect.position = RANK_ICON_POSITION
-				rank_icon_rect.size = RANK_ICON_SIZE
 				_add_glow_to_rank_icon(rank_icon_rect, color)
-				
-				# ✅ Use constant
 				rank_label.text = rank_name
-				rank_label.position = RANK_LABEL_POSITION
-				rank_label.size = Vector2(200, 30)
 				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			else:
 				rank_label.text = rank_name
-				rank_label.position = RANK_LABEL_POSITION
 		else:
 			rank_label.text = "%s\n%s" % [icon_path, rank_name]
-			rank_label.position = RANK_LABEL_POSITION
 		
 		rank_label.add_theme_color_override("font_color", color)
 		
@@ -1544,57 +1468,37 @@ func _on_username_changed(_new_text: String) -> void:
 
 
 func _on_custom_avatar_selected(path: String) -> void:
-	"""Load custom avatar with fixed size"""
 	var img = Image.load_from_file(path)
 	if img:
-		# ✅ IMPORTANT: Resize to fixed size
 		img.resize(80, 80, Image.INTERPOLATE_LANCZOS)
 		var texture = ImageTexture.create_from_image(img)
-		
 		profile_pic.texture = texture
-		
-		# ✅ Re-enforce size constraints
-		profile_pic.custom_minimum_size = Vector2(80, 80)
-		profile_pic.size = Vector2(80, 80)
-		profile_pic.position = Vector2(30, 25)
-		profile_pic.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		
 		var user_avatar_path = "user://custom_avatar_%s.png" % Auth.current_local_id
 		img.save_png(user_avatar_path)
 		selected_avatar = user_avatar_path
 		
-		# Update preview in edit popup if open
 		if edit_profile_popup and is_instance_valid(edit_profile_popup):
 			var preview = edit_profile_popup.get_node_or_null("AvatarPreview")
 			if preview:
 				preview.texture = texture
 		
-		print("[Landing] ✅ Custom avatar loaded with fixed size 80x80")
+		print("[Landing] ✅ Custom avatar loaded")
 	else:
 		_show_error_message("Failed to load image")
 
 func _on_avatar_selected(file_name: String) -> void:
-	"""Load preset avatar with fixed size"""
 	if avatars.has(file_name):
 		profile_pic.texture = avatars[file_name]
 		selected_avatar = file_name
 		avatar_picker.hide()
 		
-		# ✅ Re-enforce size constraints
-		profile_pic.custom_minimum_size = Vector2(80, 80)
-		profile_pic.size = Vector2(80, 80)
-		profile_pic.position = Vector2(30, 25)
-		profile_pic.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		
-		# Update preview in edit popup if open
 		if edit_profile_popup and is_instance_valid(edit_profile_popup):
 			var preview = edit_profile_popup.get_node_or_null("AvatarPreview")
 			if preview:
 				preview.texture = avatars[file_name]
 		
-		print("[Landing] ✅ Preset avatar loaded with fixed size 80x80")
+		print("[Landing] ✅ Preset avatar loaded")
 
 func _check_for_changes() -> void:
 	"""Check if profile has unsaved changes"""
@@ -2473,7 +2377,7 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 			Auth.current_avatar = selected_avatar
 		
 		# ✅ Always enforce size after loading
-		_setup_profile_picture_constraints()
+
 	
 	if f.has("last_avatar_change"):
 		last_avatar_change = int(f["last_avatar_change"]["integerValue"])
@@ -2773,29 +2677,17 @@ func _on_xp_updated(new_xp: int) -> void:
 		var rank_name = rank.get("name", "Iron")
 		var color = rank.get("color", Color(0.5, 0.5, 0.5))
 		
-		var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
-		var rank_icon_rect = user_panel.get_node_or_null("RankIconRect")
-		
 		if icon_path.begins_with("res://") and rank_icon_rect:
 			var rank_texture = load(icon_path)
 			if rank_texture:
 				rank_icon_rect.texture = rank_texture
 				_add_glow_to_rank_icon(rank_icon_rect, color)
-				
-				# ✅ Use constant
-				rank_icon_rect.position = RANK_ICON_POSITION
-				rank_icon_rect.size = RANK_ICON_SIZE
-				
 				rank_label.text = rank_name
-				rank_label.position = RANK_LABEL_POSITION
-				rank_label.size = Vector2(200, 30)
 				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			else:
 				rank_label.text = rank_name
-				rank_label.position = RANK_LABEL_POSITION
 		else:
 			rank_label.text = "%s\n%s" % [icon_path, rank_name]
-			rank_label.position = RANK_LABEL_POSITION
 		
 		rank_label.add_theme_color_override("font_color", color)
 		
@@ -2966,8 +2858,7 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 			Auth.current_avatar = selected_avatar
 		
 		# ✅ IMPORTANT: Call this AFTER setting the texture
-		await get_tree().process_frame # Wait one frame for texture to apply
-		_setup_profile_picture_constraints()
+
 		
 	if f.has("last_avatar_change"):
 		last_avatar_change = int(f["last_avatar_change"]["integerValue"])
@@ -3038,6 +2929,8 @@ func _show_panel(panel_paths: Dictionary, panel_name: String) -> void:
 		friend_list.visible = (panel_name != "game")
 
 func _setup_navigation() -> void:
+
+	_setup_game_card_hovers()
 	var panel_paths := {
 		"home": "HomePanel",
 		"game": "GameSelectPanel",
@@ -3193,6 +3086,11 @@ func _on_defuse_trojan_gui_input(event: InputEvent) -> void:
 func _on_akashic_tcg_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("[Landing] Akashic TCG clicked")
+		
+		# ✅ Play click sound
+		if click_sfx and click_sfx.stream:
+			click_sfx.play()
+		
 		# Check if first-time player before showing lobby
 		_check_akashic_tutorial_status()
 
@@ -3342,13 +3240,16 @@ func _on_code_breaker_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("[Landing] Code Breaker clicked")
 		
+		# ✅ Play click sound
+		if click_sfx and click_sfx.stream:
+			click_sfx.play()
+		
 		if not TutorialManager.is_game_unlocked("code_breaker"):
 			_show_locked_game_dialog("Code Breaker", 500)
 			return
 		
 		# Check if first-time player before showing lobby
 		_check_code_breaker_tutorial_status()
-
 
 func _check_code_breaker_tutorial_status() -> void:
 	"""Check Firestore for code_breaker_tutorial_completed before going to lobby"""
@@ -3531,25 +3432,12 @@ func _show_locked_game_dialog(game_name: String, required_xp: int) -> void:
 
 
 func _setup_profile_picture_constraints() -> void:
-	"""Lock profile picture to specific size and position - FINAL VERSION"""
 	if not profile_pic:
 		return
-	
-	# ✅ CRITICAL: Set size_flags to NONE to prevent auto-resizing
-	profile_pic.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	profile_pic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	
-	# ✅ Lock to fixed size
-	profile_pic.custom_minimum_size = Vector2(80, 80)
-	profile_pic.size = Vector2(80, 80)
-	profile_pic.position = Vector2(30, 25)
-	
-	# ✅ Prevent texture from scaling beyond container
-	profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE # Changed from EXPAND_FIT_WIDTH_PROPORTIONAL
-	profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
-	print("[Landing] ✅ Profile picture locked: 80x80 at (30, 25)")
+		# ONLY set how the texture renders, NOT position or size
+		profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _setup_inventory_system() -> void:
 	"""Load and setup the inventory panel"""
@@ -3978,8 +3866,13 @@ func _on_defuse_trojan_card_input(event: InputEvent) -> void:
 	"""Handle click on DefuseTheTrojan game card to launch the typing game"""
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		print("[Landing] 🎮 DefuseTheTrojan card clicked - opening lobby!")
+		
+		# ✅ Play click sound
+		if click_sfx and click_sfx.stream:
+			click_sfx.play()
+			await click_sfx.finished  # Wait for sound to finish (optional)
+		
 		_go_to_defuse_trojan_lobby()
-
 
 # === LEADERBOARD SYSTEM (RTDB) ===
 const RTDB_LEADERBOARD_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
@@ -4308,3 +4201,80 @@ static func update_leaderboard_rtdb(game_type: String, uid: String, username: St
 	
 	var headers := PackedStringArray(["Content-Type: application/json"])
 	http.request(url, headers, HTTPClient.METHOD_PUT, JSON.stringify(entry))
+
+func _setup_game_card_hovers() -> void:
+		var defuse = $VideoStreamPlayer/GameSelectPanel/allgame/DefuseTheTrojan
+		var akashic = $VideoStreamPlayer/GameSelectPanel/allgame/AkashicTCG
+		var code_breaker = $VideoStreamPlayer/GameSelectPanel/allgame/CodeBreaker
+		
+		if defuse:
+			defuse.mouse_filter = Control.MOUSE_FILTER_STOP
+			defuse.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			defuse.mouse_entered.connect(_on_card_hover.bind(defuse, "DefuseTheTrojan"))
+			defuse.mouse_exited.connect(_on_card_hover_exit.bind(defuse, "DefuseTheTrojan"))
+		
+		if akashic:
+			akashic.mouse_filter = Control.MOUSE_FILTER_STOP
+			akashic.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			akashic.mouse_entered.connect(_on_card_hover.bind(akashic, "AkashicTCG"))
+			akashic.mouse_exited.connect(_on_card_hover_exit.bind(akashic, "AkashicTCG"))
+		
+		if code_breaker:
+			code_breaker.mouse_filter = Control.MOUSE_FILTER_STOP
+			code_breaker.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			code_breaker.mouse_entered.connect(_on_card_hover.bind(code_breaker, "CodeBreaker"))
+			code_breaker.mouse_exited.connect(_on_card_hover_exit.bind(code_breaker, "CodeBreaker"))
+
+func _on_card_hover(card: NinePatchRect, card_name: String) -> void:
+	if card_textures.has(card_name):
+		card.texture = card_textures[card_name]["hover"]
+		print("[Landing] 🎨 Hover: %s" % card_name)
+		
+		# ✅ Play hover sound with debugging
+		if hover_sfx:
+			if hover_sfx.stream:
+				print("[Landing] 🔊 Playing hover sound - Volume: %f dB" % hover_sfx.volume_db)
+				hover_sfx.play()
+				print("[Landing] 🔊 Is playing: ", hover_sfx.playing)
+			else:
+				push_error("[Landing] ❌ Hover sound stream is null!")
+		else:
+			push_error("[Landing] ❌ hover_sfx is null!")
+
+func _on_card_hover_exit(card: NinePatchRect, card_name: String) -> void:
+		if card_textures.has(card_name):
+			card.texture = card_textures[card_name]["normal"]
+			print("[Landing] 🎨 Unhover: %s" % card_name)
+
+func _setup_game_sfx() -> void:
+	"""Setup sound effects for game selection cards"""
+	
+	# Create hover sound player
+	hover_sfx = AudioStreamPlayer.new()
+	hover_sfx.name = "GameCardHoverSFX"
+	hover_sfx.volume_db = -2.0
+	hover_sfx.bus = "Master"  # ✅ Explicitly set the bus
+	add_child(hover_sfx)
+	
+	# Load hover sound
+	var hover_sound = load("res://asset/audio/GameSelectPanelhover.mp3")
+	if hover_sound:
+		hover_sfx.stream = hover_sound
+		print("[Landing] ✅ Hover sound loaded: ", hover_sound.resource_path)
+	else:
+		push_error("[Landing] ❌ Failed to load hover sound!")
+	
+	# Create click sound player
+	click_sfx = AudioStreamPlayer.new()
+	click_sfx.name = "GameCardClickSFX"
+	click_sfx.volume_db = -8.0
+	click_sfx.bus = "Master"  # ✅ Explicitly set the bus
+	add_child(click_sfx)
+	
+	# Load click sound
+	var click_sound = load("res://asset/audio/GameSelectPanelclick.mp3")
+	if click_sound:
+		click_sfx.stream = click_sound
+		print("[Landing] ✅ Click sound loaded: ", click_sound.resource_path)
+	else:
+		push_error("[Landing] ❌ Failed to load click sound!")

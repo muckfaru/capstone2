@@ -1,32 +1,84 @@
-[gd_scene load_steps=7 format=3 uid="uid://ddefuse_trojan_lobby"]
+[gd_scene load_steps=30 format=3 uid="uid://by8pxsiunowkt"]
 
-[ext_resource type="Script" path="res://script/defuse_trojan_lobby.gd" id="1_lobby"]
+[ext_resource type="Script" uid="uid://dxqb52ujbcmsp" path="res://script/defuse_trojan_lobby.gd" id="1_lobby"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
+[ext_resource type="FontFile" uid="uid://be2unc3ma8sna" path="res://asset/fonts/SpaceMission-rgyw9.otf" id="3_do1i8"]
+[ext_resource type="Texture2D" uid="uid://bsdt466q6oftp" path="res://asset/newUIlandingupdate/Group 115.png" id="3_qrx18"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
-border_color = Color(0.490196, 0.654902, 1, 0.545098)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+[sub_resource type="LabelSettings" id="LabelSettings_do1i8"]
+font = ExtResource("3_do1i8")
+font_size = 41
+font_color = Color(0.712014, 0.3188, 1, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
 shadow_size = 10
+shadow_color = Color(0.538, 0, 0.595, 0.729)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qq51c"]
+texture = ExtResource("3_qrx18")
+
+[sub_resource type="LabelSettings" id="LabelSettings_qq51c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qq51c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_d6jnq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4msnr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_48jld"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vl877"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wsguo"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3k2xw"]
+bg_color = Color(0.537, 0, 0.596, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bqww8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jg4v4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_06dj2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
-bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
+bg_color = Color(0.537, 0, 0.596, 0.303)
 border_color = Color(0.490196, 0.654902, 1, 0.545098)
-shadow_color = Color(1, 0.313726, 0.247059, 0.611765)
-shadow_size = 10
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn2"]
-bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
-border_color = Color(0.490196, 0.654902, 1, 0.545098)
-shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
-shadow_size = 10
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_do1i8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3k2xw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_urcxp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ut024"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2hilj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_k0rb3"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ii2pg"]
+bg_color = Color(0.928, 0.369, 1, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uwuvb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nd07i"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_la24p"]
 
 [node name="DefuseTrojanLobby" type="Panel"]
 offset_left = -99.0
@@ -51,6 +103,7 @@ offset_bottom = 64.88
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 36
 text = "DEFUSE THE TROJAN"
+label_settings = SubResource("LabelSettings_do1i8")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -66,7 +119,7 @@ offset_left = 68.1
 offset_top = -4.25
 offset_right = -260.1
 offset_bottom = 5.10004
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+theme_override_styles/panel = SubResource("StyleBoxTexture_qq51c")
 
 [node name="HeaderRow" type="HBoxContainer" parent="LobbyPanel"]
 custom_minimum_size = Vector2(0, 30)
@@ -81,7 +134,8 @@ custom_minimum_size = Vector2(50, 30)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 text = "No."
-horizontal_alignment = 1
+label_settings = SubResource("LabelSettings_qq51c")
+vertical_alignment = 1
 
 [node name="LabelUser" type="Label" parent="LobbyPanel/HeaderRow"]
 layout_mode = 2
@@ -126,6 +180,16 @@ anchor_bottom = 0.9
 mouse_default_cursor_shape = 2
 theme_type_variation = &"PrimaryButton"
 theme_override_fonts/font = ExtResource("2_font")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_qq51c")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_d6jnq")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_4msnr")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_48jld")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_vl877")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_wsguo")
+theme_override_styles/hover = SubResource("StyleBoxFlat_3k2xw")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_bqww8")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_jg4v4")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_06dj2")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "CREATE"
 
@@ -139,5 +203,15 @@ offset_bottom = 363.0
 mouse_default_cursor_shape = 2
 theme_type_variation = &"GhostButton"
 theme_override_fonts/font = ExtResource("2_font")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_do1i8")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_3k2xw")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_urcxp")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_ut024")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_2hilj")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_k0rb3")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ii2pg")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_uwuvb")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_nd07i")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_la24p")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "Back"

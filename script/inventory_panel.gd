@@ -41,6 +41,7 @@ func _ready() -> void:
 	
 	# Setup close button
 	if close_button:
+		close_button.mouse_filter = Control.MOUSE_FILTER_STOP
 		close_button.pressed.connect(_on_close_pressed)
 	
 	# Setup categories

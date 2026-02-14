@@ -239,6 +239,29 @@ func _show_feedback():
 	
 	result_text.text = score_manager.get_feedback()
 	
+	# ✅ AWARD XP BASED ON PERFORMANCE (First-time only)
+	var attack_correct = score_manager.attack_correct
+	var entry_correct = score_manager.entry_correct
+	var response_correct = score_manager.response_correct
+	var total_correct = (1 if attack_correct else 0) + (1 if entry_correct else 0) + (1 if response_correct else 0)
+	var accuracy = (float(total_correct) / 3.0) * 100
+	
+	var base_xp = 70  # Base XP for completing investigation
+	var accuracy_xp = int((accuracy / 100.0) * 50)  # Up to 50 XP from accuracy
+	var evidence_xp = min(evidence_manager.get_all_evidence().size() * 5, 30)  # Up to 30 XP from evidence
+	var total_xp_earned = base_xp + accuracy_xp + evidence_xp
+	
+	print("[Malware Defense] 🔍 Investigation Complete! Awarding XP:")
+	print("  Base XP: %d" % base_xp)
+	print("  Accuracy XP: %d (%.1f%% correct)" % [accuracy_xp, accuracy])
+	print("  Evidence XP: %d (%d evidence collected)" % [evidence_xp, evidence_manager.get_all_evidence().size()])
+	print("  Total XP: %d" % total_xp_earned)
+	
+	var final_score = total_correct  # Use correct answers as score
+	var xp_awarded = TutorialManager.award_minigame_xp("malware_defense", total_xp_earned, final_score)
+	if xp_awarded == 0:
+		print("  ⚠️ Replay - No XP awarded (game still playable!)")
+	
 	# If tutorial just completed for first time, prepare mode selection
 	if tutorial_mode and not tutorial_ever_completed:
 		tutorial_ever_completed = true

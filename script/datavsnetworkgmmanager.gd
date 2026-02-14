@@ -898,6 +898,23 @@ func show_victory():
 	print("🏆 VICTORY! Playing victory sound NOW")
 	_play_sfx(audio_victory, 0, 1.0)
 	
+	# ✅ AWARD XP BASED ON PERFORMANCE (First-time only)
+	var accuracy = int((float(correct_attacks) / float(total_attacks)) * 100) if total_attacks > 0 else 0
+	var base_xp = 40  # Base XP for completion
+	var performance_xp = int((score / 1000.0) * 40)  # Up to 40 XP from score
+	var accuracy_xp = int((accuracy / 100.0) * 20)  # Up to 20 XP from accuracy
+	var total_xp_earned = base_xp + performance_xp + accuracy_xp
+	
+	print("[Drop Zone Defender] 🎉 Victory! Awarding XP:")
+	print("  Base XP: %d" % base_xp)
+	print("  Performance XP: %d (from score %d)" % [performance_xp, score])
+	print("  Accuracy XP: %d (from accuracy %d%%)" % [accuracy_xp, accuracy])
+	print("  Total XP: %d" % total_xp_earned)
+	
+	var xp_awarded = TutorialManager.award_minigame_xp("drop_zone_defender", total_xp_earned, score)
+	if xp_awarded == 0:
+		print("  ⚠️ Replay - No XP awarded (game still playable!)")
+	
 	var victory = VICTORY_SCREEN.instantiate()
 	$CanvasLayer.add_child(victory)
 	
@@ -906,7 +923,6 @@ func show_victory():
 	
 	await victory.ready
 	
-	var accuracy = int((float(correct_attacks) / float(total_attacks)) * 100) if total_attacks > 0 else 0
 	victory.setup(score, accuracy, data_correct, data_total, network_correct, network_total)
 
 func game_over():
@@ -919,7 +935,20 @@ func game_over():
 	print("💀 GAME OVER! Playing game over sound NOW")
 	_play_sfx(audio_game_over, 0, 1.0)
 	
-	await show_feedback(false, "SYSTEM COMPROMISED!", "CIA Triad integrity lost. Mission failed.\n\nBetter luck next time!")
+	# ✅ AWARD PARTIAL XP ON LOSS (Based on performance)
+	var performance_xp = int((float(score) / 1000.0) * 20)  # Up to 20 XP from score
+	var attempts_xp = min(correct_attacks * 2, 15)  # Up to 15 XP from correct attempts
+	var partial_xp = performance_xp + attempts_xp
+	
+	print("[Drop Zone Defender] 💀 Game Over - Awarding partial XP:")
+	print("  Performance XP: %d (score %d)" % [performance_xp, score])
+	print("  Attempts XP: %d (%d correct)" % [attempts_xp, correct_attacks])
+	print("  Total Partial XP: %d" % partial_xp)
+	
+	# Award XP but DON'T mark as completed (score = 0 signals incomplete)
+	TutorialManager.add_xp(partial_xp, "Drop Zone Defender (Attempt)")
+	
+	await show_feedback(false, "SYSTEM COMPROMISED!", "CIA Triad integrity lost. Mission failed.\n\n+%d XP for effort!\n\nBetter luck next time!" % partial_xp)
 	await get_tree().create_timer(1.5).timeout
 	get_tree().reload_current_scene()
 

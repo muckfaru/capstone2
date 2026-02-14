@@ -369,6 +369,9 @@ func _on_quit_pressed() -> void:
 	# ✅ Stop BGM when quitting
 	stop_bgm()
 	
+	# ✅ Reset cursor to default
+	reset_cursor()
+	
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 func _process(delta):
@@ -593,6 +596,31 @@ func win_game():
 	stop_bgm()
 	
 	play_sfx("victory", -6.0)  # ✅ Quieter victory sound
+	
+	# ✅ AWARD XP BASED ON PERFORMANCE (First-time only)
+	var protected_count = 0
+	for health in assets_health.values():
+		if health > 0:
+			protected_count += 1
+	var protection_rate = float(protected_count) / float(assets_health.size())
+	
+	var base_xp = 50  # Base XP for winning
+	var wave_xp = current_wave * 8  # 8 XP per wave completed
+	var score_xp = int((score / 1000.0) * 30)  # Up to 30 XP from score
+	var protection_xp = int(protection_rate * 30)  # Up to 30 XP for protecting assets
+	var total_xp_earned = base_xp + wave_xp + score_xp + protection_xp
+	
+	print("[Asset vs Threats] 🏆 Victory! Awarding XP:")
+	print("  Base XP: %d" % base_xp)
+	print("  Wave XP: %d (waves %d)" % [wave_xp, current_wave])
+	print("  Score XP: %d (score %d)" % [score_xp, score])
+	print("  Protection XP: %d (%d/%d assets)" % [protection_xp, protected_count, assets_health.size()])
+	print("  Total XP: %d" % total_xp_earned)
+	
+	var xp_awarded = TutorialManager.award_minigame_xp("asset_vs_threats", total_xp_earned, score)
+	if xp_awarded == 0:
+		print("  ⚠️ Replay - No XP awarded (game still playable!)")
+	
 	show_victory()
 
 func show_victory():
@@ -637,11 +665,26 @@ func show_game_over():
 		elif protection_rate >= 75:
 			rating = "Silver ⭐⭐"
 		
+		# ✅ AWARD PARTIAL XP ON LOSS (Based on performance)
+		var wave_xp = current_wave * 5  # 5 XP per wave reached (vs 8 XP on win)
+		var score_xp = int((float(score) / 1000.0) * 15)  # Up to 15 XP from score (vs 30 on win)
+		var protection_xp = int((protection_rate / 100.0) * 15)  # Up to 15 XP from protection (vs 30 on win)
+		var partial_xp = wave_xp + score_xp + protection_xp
+		
+		print("[Asset vs Threats] 💀 Game Over - Awarding partial XP:")
+		print("  Wave XP: %d (wave %d)" % [wave_xp, current_wave])
+		print("  Score XP: %d (score %d)" % [score_xp, score])
+		print("  Protection XP: %d (%.1f%% protected)" % [protection_xp, protection_rate])
+		print("  Total Partial XP: %d" % partial_xp)
+		
+		# Award XP but DON'T mark as completed
+		TutorialManager.add_xp(partial_xp, "Asset vs Threats (Attempt)")
+		
 		if result_label:
 			if protection_rate >= 50:
-				result_label.text = "MISSION FAILED\nWave " + str(current_wave) + " Reached\nRating: " + rating
+				result_label.text = "MISSION FAILED\nWave " + str(current_wave) + " Reached\nRating: " + rating + "\n+" + str(partial_xp) + " XP"
 			else:
-				result_label.text = "NETWORK COMPROMISED\nWave " + str(current_wave) + "\nRating: Failed"
+				result_label.text = "NETWORK COMPROMISED\nWave " + str(current_wave) + "\nRating: Failed\n+" + str(partial_xp) + " XP"
 		
 		if stats_label:
 			stats_label.text = "Score: " + str(score) + "\n"
@@ -694,3 +737,9 @@ func _on_StartButton_pressed():
 
 func _on_RestartButton_pressed():
 	restart_game()
+
+func _input(event):
+		# Handle ESC key to quit/return to mode selection
+		if event.is_action_pressed("ui_cancel"):  # ESC key
+			print("[Network Defense] ESC key pressed")
+			_on_quit_pressed()

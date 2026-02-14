@@ -17,19 +17,20 @@ const XP_THRESHOLDS := {
 
 # Rank system (like League of Legends)
 const RANK_THRESHOLDS := [
-	{"name": "Iron", "min_xp": 0, "max_xp": 199, "color": Color(0.5, 0.5, 0.5), "icon": "res://asset/icons/IRON.png"},
-	{"name": "Bronze", "min_xp": 200, "max_xp": 399, "color": Color(0.8, 0.5, 0.2), "icon": "res://asset/icons/BRONZE.png"},
-	{"name": "Silver", "min_xp": 400, "max_xp": 699, "color": Color(0.75, 0.75, 0.75), "icon": "res://asset/icons/SILVER.png"},
-	{"name": "Gold", "min_xp": 700, "max_xp": 1099, "color": Color(1, 0.843, 0), "icon": "res://asset/icons/GOLD.png"},
-	{"name": "Platinum", "min_xp": 1100, "max_xp": 1599, "color": Color(0.4, 0.8, 0.7), "icon": "res://asset/icons/PLATINUM.png"},
-	{"name": "Diamond", "min_xp": 1600, "max_xp": 2299, "color": Color(0.5, 0.7, 1), "icon": "res://asset/icons/DIAMOND.png"},
-	{"name": "Master", "min_xp": 2300, "max_xp": 3199, "color": Color(0.8, 0.3, 0.8), "icon": "res://asset/icons/MASTER.png"},
-	{"name": "Grandmaster", "min_xp": 3200, "max_xp": 4499, "color": Color(1, 0.2, 0.2), "icon": "res://asset/icons/GRAND MASTER.png"},
-	{"name": "Challenger", "min_xp": 4500, "max_xp": 999999, "color": Color(0, 1, 1), "icon": "res://asset/icons/CHALLENGER.png"}
+	{"name": "Iron", "min_xp": 0, "max_xp": 199, "color": Color(0.5, 0.5, 0.5), "icon": "res://asset/rankicon/IRON.png"},
+	{"name": "Bronze", "min_xp": 200, "max_xp": 399, "color": Color(0.8, 0.5, 0.2), "icon": "res://asset/rankicon/BRONZE.png"},
+	{"name": "Silver", "min_xp": 400, "max_xp": 699, "color": Color(0.75, 0.75, 0.75), "icon": "res://asset/rankicon/SILVER.png"},
+	{"name": "Gold", "min_xp": 700, "max_xp": 1099, "color": Color(1, 0.843, 0), "icon": "res://asset/rankicon/GOLD.png"},
+	{"name": "Platinum", "min_xp": 1100, "max_xp": 1599, "color": Color(0.4, 0.8, 0.7), "icon": "res://asset/rankicon/PLATINUM.png"},
+	{"name": "Diamond", "min_xp": 1600, "max_xp": 2299, "color": Color(0.5, 0.7, 1), "icon": "res://asset/rankicon/DIAMOND.png"},
+	{"name": "Master", "min_xp": 2300, "max_xp": 3199, "color": Color(0.8, 0.3, 0.8), "icon": "res://asset/rankicon/MASTER.png"},
+	{"name": "Grandmaster", "min_xp": 3200, "max_xp": 4499, "color": Color(1, 0.2, 0.2), "icon": "res://asset/rankicon/GRAND MASTER.png"},
+	{"name": "Challenger", "min_xp": 4500, "max_xp": 999999, "color": Color(0, 1, 1), "icon": "res://asset/rankicon/CHALLENGER.png"}
 ]
 
 # Tutorial completion data (loaded from Firestore)
 var completed_tutorials: Dictionary = {}
+var completed_minigames: Dictionary = {}  # Track minigame first-time completions
 var total_xp: int = 0
 var unlocked_games: Array[String] = ["akashic_tcg"]  # TCG always unlocked
 var data_has_loaded: bool = false  # Track if Firestore data has been loaded
@@ -47,6 +48,7 @@ signal save_completed()  # Emitted when Firestore save finishes
 func reset_data() -> void:
 	print("[TutorialManager] 🔄 Resetting all data...")
 	completed_tutorials.clear()
+	completed_minigames.clear()
 	total_xp = 0
 	unlocked_games = ["akashic_tcg"]  # Reset to default
 	data_has_loaded = false  # Reset loaded flag
@@ -360,6 +362,9 @@ func load_user_data() -> void:
 				}
 			print("[TutorialManager] 📚 Loaded %d completed tutorials" % completed_tutorials.size())
 		
+		# Load minigame data
+		_load_minigame_data(fields)
+		
 		print("[TutorialManager] ========== LOAD COMPLETE ==========")
 		print("[TutorialManager] Final total_xp: %d" % total_xp)
 		
@@ -374,6 +379,47 @@ func load_user_data() -> void:
 	if err != OK:
 		push_error("Failed to load user data: %s" % err)
 		http.queue_free()
+
+
+# -------------------------
+# AWARD MINIGAME XP (First-time completion only)
+# -------------------------
+func award_minigame_xp(minigame_id: String, xp_amount: int, score: int = 0) -> int:
+	"""Award XP for minigame completion - only on first completion. Returns actual XP awarded."""
+	print("[TutorialManager] ========== AWARD MINIGAME XP ==========")
+	print("[TutorialManager] Minigame: %s | Score: %d | Potential XP: %d" % [minigame_id, score, xp_amount])
+	
+	# Check if already completed
+	if completed_minigames.has(minigame_id):
+		print("[TutorialManager] ⚠️ Minigame already completed! No XP awarded (replay).")
+		print("[TutorialManager] Previous best score: %d | This score: %d" % [completed_minigames[minigame_id]["score"], score])
+		
+		# Update best score if better
+		if score > completed_minigames[minigame_id]["score"]:
+			completed_minigames[minigame_id]["score"] = score
+			completed_minigames[minigame_id]["timestamp"] = Time.get_unix_time_from_system()
+			print("[TutorialManager] 🎯 New best score! Saving to Firestore...")
+			_save_minigame_data()
+		
+		return 0  # No XP awarded
+	
+	# First time completion - award XP
+	print("[TutorialManager] ✅ First completion! Awarding %d XP..." % xp_amount)
+	
+	# Record completion
+	completed_minigames[minigame_id] = {
+		"score": score,
+		"xp_earned": xp_amount,
+		"timestamp": Time.get_unix_time_from_system()
+	}
+	
+	# Award XP using existing system
+	add_xp(xp_amount, minigame_id)
+	
+	# Save to Firestore
+	_save_minigame_data()
+	
+	return xp_amount
 
 
 # -------------------------
@@ -407,14 +453,102 @@ func add_xp(amount: int, reason: String = "Bonus") -> void:
 	# Get new rank and check for rank up
 	var new_rank := get_rank(total_xp)
 	if new_rank["name"] != old_rank["name"]:
-		call_deferred("_emit_rank_up", new_rank)
 		print("🎉 RANK UP! %s → %s %s" % [old_rank["name"], new_rank["icon"], new_rank["name"]])
+		
+		# ✅ STORE the rank-up to show later on mode selection screen
+		pending_rank_up = {
+			"old_rank": old_rank,
+			"new_rank": new_rank,
+			"timestamp": Time.get_unix_time_from_system()
+		}
+		print("[TutorialManager] ✅ Rank-up stored in pending_rank_up (will show on mode selection)")
+		
+		call_deferred("_emit_rank_up", new_rank)
 	
 	# Check for game unlocks
 	_check_game_unlocks()
 	
 	# Save to Firestore (update total_xp only, don't touch tutorials)
 	_save_xp_only()
+
+
+# -------------------------
+# SAVE ONLY XP TO F
+
+
+# -------------------------
+# SAVE MINIGAME DATA TO FIRESTORE
+# -------------------------
+func _save_minigame_data() -> void:
+	print("[TutorialManager] 💾 Saving minigame data to Firestore...")
+	
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		push_error("❌ Cannot save minigame data: No auth state")
+		return
+	
+	# Build minigame fields
+	var minigame_fields := {}
+	for mid in completed_minigames.keys():
+		var mg = completed_minigames[mid]
+		minigame_fields[mid] = {
+			"mapValue": {
+				"fields": {
+					"score": {"integerValue": mg["score"]},
+					"xp_earned": {"integerValue": mg["xp_earned"]},
+					"timestamp": {"integerValue": int(mg["timestamp"])}
+				}
+			}
+		}
+	
+	var url: String = "%s/users/%s?updateMask.fieldPaths=minigames" % [FIRESTORE_URL, Auth.current_local_id]
+	var headers: Array = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % Auth.current_id_token
+	]
+	
+	var body := {
+		"fields": {
+			"minigames": {
+				"mapValue": {
+					"fields": minigame_fields
+				}
+			}
+		}
+	}
+	
+	var http := HTTPRequest.new()
+	add_child(http)
+	
+	http.request_completed.connect(func(_r, code, _h, body_response):
+		http.queue_free()
+		if code == 200:
+			print("[TutorialManager] ✅ Minigame data saved to Firestore")
+		else:
+			var text: String = body_response.get_string_from_utf8()
+			push_error("[TutorialManager] ❌ Failed to save minigame data (%s): %s" % [code, text])
+	)
+	
+	var err := http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+	if err != OK:
+		push_error("Failed to start minigame save request: %s" % err)
+		http.queue_free()
+
+
+# -------------------------
+# LOAD MINIGAME DATA FROM FIRESTORE
+# -------------------------
+func _load_minigame_data(fields: Dictionary) -> void:
+	"""Load minigame completion data from Firestore fields"""
+	if fields.has("minigames") and fields["minigames"].has("mapValue"):
+		var minigames_map = fields["minigames"]["mapValue"].get("fields", {})
+		for minigame_id in minigames_map.keys():
+			var minigame_fields = minigames_map[minigame_id].get("mapValue", {}).get("fields", {})
+			completed_minigames[minigame_id] = {
+				"score": int(minigame_fields.get("score", {}).get("integerValue", 0)),
+				"xp_earned": int(minigame_fields.get("xp_earned", {}).get("integerValue", 0)),
+				"timestamp": int(minigame_fields.get("timestamp", {}).get("integerValue", 0))
+			}
+		print("[TutorialManager] 🎮 Loaded %d completed minigames" % completed_minigames.size())
 
 
 # -------------------------

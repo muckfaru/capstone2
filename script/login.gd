@@ -3,11 +3,11 @@ extends Control
 const _SessionStore = preload("res://script/CodeBreakerSessionStore.gd")
 const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 
-@onready var email_input: LineEdit = $VideoStreamPlayer/EmailLineEdit
-@onready var password_input: LineEdit = $VideoStreamPlayer/PasswordLineEdit
-@onready var message_label: Label = $VideoStreamPlayer/MessageLabel
-@onready var login_button: Button = $VideoStreamPlayer/LoginButton
-@onready var google_login_btn: TextureButton = $VideoStreamPlayer/GoogleLoginButton
+@onready var email_input: LineEdit = $VideoStreamPlayer/FillUpForm/EmailLineEdit
+@onready var password_input: LineEdit = $VideoStreamPlayer/FillUpForm/PasswordLineEdit
+@onready var message_label: Label = $VideoStreamPlayer/FillUpForm/MessageLabel
+@onready var login_button: Button = $VideoStreamPlayer/FillUpForm/LoginButton
+@onready var google_login_btn: TextureButton = $VideoStreamPlayer/FillUpForm/GoogleLoginButton
 
 @onready var oauth_helper = preload("res://script/auth_helper.gd").new()
 

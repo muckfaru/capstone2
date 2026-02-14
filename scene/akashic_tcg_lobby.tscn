@@ -1,32 +1,88 @@
-[gd_scene load_steps=7 format=3 uid="uid://clvghcukrtua8"]
+[gd_scene load_steps=30 format=3 uid="uid://clvghcukrtua8"]
 
 [ext_resource type="Script" uid="uid://cd7kr0oyf5nsp" path="res://script/akashic_tcg_lobby.gd" id="1_tgc"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_35hl6"]
+[ext_resource type="Texture2D" uid="uid://bsdt466q6oftp" path="res://asset/newUIlandingupdate/Group 115.png" id="3_4lqk3"]
+[ext_resource type="FontFile" uid="uid://c1y55nmycr726" path="res://asset/fonts/Orbitron-VariableFont_wght.ttf" id="3_mo5l5"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
-border_color = Color(0.490196, 0.654902, 1, 0.545098)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-shadow_color = Color(1, 0.313726, 0.247059, 0.611765)
+[sub_resource type="LabelSettings" id="LabelSettings_mo5l5"]
+font = ExtResource("3_mo5l5")
+font_size = 36
+font_color = Color(0.741176, 0, 0.0117647, 1)
+outline_size = 4
+outline_color = Color(0.741176, 0, 0.0117647, 1)
 shadow_size = 10
+shadow_color = Color(0.741, 0, 0.012, 0.425)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5wrv7"]
+texture = ExtResource("3_4lqk3")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mo5l5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5wrv7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hvlue"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u4whb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t8nl1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0koc6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_crh5r"]
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_crh5r"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xh7tw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7o6ll"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_35hl6"]
-bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
-border_color = Color(0.490196, 0.654902, 1, 0.545098)
-shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
-shadow_size = 10
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_icfe6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o6x82"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1lbvw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_up8q3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4lbay"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_i2ppg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3kp1k"]
+bg_color = Color(0.49, 0.655, 1, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b6gj4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qvfde"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ppmma"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4lqk3"]
-bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
-border_color = Color(0.490196, 0.654902, 1, 0.545098)
-shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
-shadow_size = 10
+bg_color = Color(0.490196, 0.654902, 1, 0.545098)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [node name="AkashicLobby" type="Panel"]
 offset_left = -99.0
@@ -51,6 +107,7 @@ offset_bottom = 64.88
 theme_override_fonts/font = ExtResource("2_35hl6")
 theme_override_font_sizes/font_size = 36
 text = "AKASHIC TGC"
+label_settings = SubResource("LabelSettings_mo5l5")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -66,15 +123,19 @@ offset_left = 68.1
 offset_top = -4.25
 offset_right = -260.1
 offset_bottom = 5.10004
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+theme_override_styles/panel = SubResource("StyleBoxTexture_5wrv7")
 
 [node name="HeaderRow" type="HBoxContainer" parent="LobbyPanel"]
 custom_minimum_size = Vector2(0, 30)
-layout_mode = 0
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.05
 anchor_top = 0.05
 anchor_right = 0.95
 anchor_bottom = 0.05
+offset_left = 0.0499992
+offset_right = -0.0499878
+offset_bottom = 30.0
 
 [node name="LabelNo" type="Label" parent="LobbyPanel/HeaderRow"]
 custom_minimum_size = Vector2(50, 30)
@@ -125,6 +186,16 @@ anchor_bottom = 0.9
 mouse_default_cursor_shape = 2
 theme_type_variation = &"PrimaryButton"
 theme_override_fonts/font = ExtResource("2_35hl6")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_mo5l5")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_5wrv7")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_hvlue")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_u4whb")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_t8nl1")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_0koc6")
+theme_override_styles/hover = SubResource("StyleBoxFlat_crh5r")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_crh5r")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_xh7tw")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_7o6ll")
 theme_override_styles/normal = SubResource("StyleBoxFlat_35hl6")
 text = "CREATE ROOM"
 
@@ -132,10 +203,20 @@ text = "CREATE ROOM"
 layout_mode = 0
 offset_left = 33.0
 offset_top = 334.0
-offset_right = 96.0
+offset_right = 125.0
 offset_bottom = 365.0
 mouse_default_cursor_shape = 2
 theme_type_variation = &"GhostButton"
 theme_override_fonts/font = ExtResource("2_35hl6")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_icfe6")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_o6x82")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_1lbvw")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_up8q3")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_4lbay")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_i2ppg")
+theme_override_styles/hover = SubResource("StyleBoxFlat_3kp1k")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_b6gj4")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_qvfde")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_ppmma")
 theme_override_styles/normal = SubResource("StyleBoxFlat_4lqk3")
 text = "Back"

@@ -1,25 +1,92 @@
-[gd_scene load_steps=17 format=3 uid="uid://bhgomehtb5guv"]
+[gd_scene load_steps=27 format=3 uid="uid://bhgomehtb5guv"]
 
 [ext_resource type="Script" uid="uid://b2q0proc6qek6" path="res://script/login.gd" id="1_u7yg4"]
 [ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="2_ayshr"]
 [ext_resource type="Texture2D" uid="uid://blqoxvny7npuf" path="res://asset/icons/logo.png" id="2_xhhai"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_i5fi3"]
+[ext_resource type="Texture2D" uid="uid://ch6d4tc4msk8v" path="res://asset/newUIlandingupdate/Rectangle 15.png" id="3_m7twt"]
 [ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="4_7yur4"]
 [ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="4_ayshr"]
 [ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="5_u7yg4"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vd3ky"]
-bg_color = Color(0.14902, 0.878431, 0.988235, 0.192157)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
+[sub_resource type="Animation" id="Animation_7qh2k"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(785, 57)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_76uxg"]
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
+[sub_resource type="Animation" id="Animation_m7twt"]
+resource_name = "fade-in"
+length = 1.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.0333333, 0.5, 0.966667, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(785, 57), Vector2(563, 57), Vector2(409, 57), Vector2(202, 57)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.5, 0.966667, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0.072), Color(1, 1, 1, 0.448), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_vd3ky"]
+_data = {
+&"RESET": SubResource("Animation_7qh2k"),
+&"fade-in": SubResource("Animation_m7twt")
+}
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7qh2k"]
+texture = ExtResource("3_m7twt")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ayshr"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7yur4"]
+bg_color = Color(0.941176, 0.941176, 0.941176, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+expand_margin_left = 20.0
+expand_margin_right = 20.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i5fi3"]
+draw_center = false
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m7twt"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -38,22 +105,85 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ayshr"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7yur4"]
-bg_color = Color(0.941176, 0.941176, 0.941176, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
-expand_margin_left = 20.0
-expand_margin_right = 20.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i5fi3"]
-draw_center = false
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u7yg4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_76uxg"]
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="Animation" id="Animation_8skgh"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:size")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(231, 450)]
+}
+
+[sub_resource type="Animation" id="Animation_vd3ky"]
+resource_name = "new_animation"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:size")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(849, 450), Vector2(248, 450)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_utpg3"]
+_data = {
+&"RESET": SubResource("Animation_8skgh"),
+&"new_animation": SubResource("Animation_vd3ky")
+}
+
+[sub_resource type="Animation" id="Animation_g33sf"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(608, 277)]
+}
+
+[sub_resource type="Animation" id="Animation_utpg3"]
+resource_name = "fadeee"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(608, 277), Vector2(895, 276)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_5qrdj"]
+_data = {
+&"RESET": SubResource("Animation_g33sf"),
+&"fadeee": SubResource("Animation_utpg3")
+}
 
 [node name="login" type="Control"]
 layout_mode = 3
@@ -76,57 +206,55 @@ autoplay = true
 expand = true
 loop = true
 
-[node name="FillUpForm" type="PanelContainer" parent="VideoStreamPlayer"]
-self_modulate = Color(0.1485, 0.8778, 0.99, 0.588235)
+[node name="FillUpForm" type="Control" parent="VideoStreamPlayer"]
 clip_children = 2
-visibility_layer = 512
 layout_mode = 2
-offset_left = 201.0
+anchors_preset = 0
+offset_left = 785.0
 offset_top = 57.0
-offset_right = 807.0
+offset_right = 1391.0
 offset_bottom = 504.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_vd3ky")
 
-[node name="logo" type="PanelContainer" parent="VideoStreamPlayer"]
-modulate = Color(0, 0, 0, 1)
-self_modulate = Color(0, 0, 0, 1)
-layout_mode = 2
-offset_left = 784.0
-offset_top = 55.0
-offset_right = 1015.0
-offset_bottom = 505.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_76uxg")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="VideoStreamPlayer/FillUpForm"]
+libraries = {
+&"": SubResource("AnimationLibrary_vd3ky")
+}
+autoplay = "fade-in"
 
-[node name="LoginButton" type="Button" parent="VideoStreamPlayer"]
+[node name="Background" type="PanelContainer" parent="VideoStreamPlayer/FillUpForm"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_7qh2k")
+
+[node name="logintxt" type="Label" parent="VideoStreamPlayer/FillUpForm"]
 layout_mode = 0
-offset_left = 374.0
-offset_top = 357.0
-offset_right = 606.0
-offset_bottom = 401.0
-mouse_default_cursor_shape = 2
+offset_left = 248.0
+offset_top = 32.0
+offset_right = 315.0
+offset_bottom = 58.0
 theme_override_fonts/font = ExtResource("3_i5fi3")
 theme_override_font_sizes/font_size = 20
-theme_override_styles/focus = SubResource("StyleBoxFlat_m7twt")
-theme_override_styles/hover = SubResource("StyleBoxFlat_7qh2k")
-theme_override_styles/normal = SubResource("StyleBoxFlat_xhhai")
-text = "Log in
-"
+text = "Login"
 
-[node name="PasswordLabel" type="Label" parent="VideoStreamPlayer"]
+[node name="EmailLabel" type="Label" parent="VideoStreamPlayer/FillUpForm"]
 layout_mode = 0
-offset_left = 247.0
-offset_top = 254.0
-offset_right = 347.0
-offset_bottom = 278.0
+offset_left = 53.0
+offset_top = 99.0
+offset_right = 150.0
+offset_bottom = 125.0
 theme_override_fonts/font = ExtResource("3_i5fi3")
-text = "Password"
+text = "Email"
 
-[node name="EmailLineEdit" type="LineEdit" parent="VideoStreamPlayer"]
-layout_mode = 2
-offset_left = 260.0
-offset_top = 179.0
-offset_right = 708.0
-offset_bottom = 225.0
+[node name="EmailLineEdit" type="LineEdit" parent="VideoStreamPlayer/FillUpForm"]
+layout_mode = 0
+offset_left = 59.0
+offset_top = 122.0
+offset_right = 507.0
+offset_bottom = 168.0
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
@@ -138,12 +266,21 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_7yur4")
 max_length = 50
 caret_blink = true
 
-[node name="PasswordLineEdit" type="LineEdit" parent="VideoStreamPlayer"]
+[node name="PasswordLabel" type="Label" parent="VideoStreamPlayer/FillUpForm"]
 layout_mode = 0
-offset_left = 263.0
-offset_top = 279.0
-offset_right = 711.0
-offset_bottom = 322.0
+offset_left = 46.0
+offset_top = 197.0
+offset_right = 146.0
+offset_bottom = 221.0
+theme_override_fonts/font = ExtResource("3_i5fi3")
+text = "Password"
+
+[node name="PasswordLineEdit" type="LineEdit" parent="VideoStreamPlayer/FillUpForm"]
+layout_mode = 0
+offset_left = 62.0
+offset_top = 222.0
+offset_right = 510.0
+offset_bottom = 265.0
 theme_override_colors/caret_color = Color(0, 0, 0, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_selected_color = Color(0, 0, 0, 1)
@@ -156,7 +293,7 @@ max_length = 15
 caret_blink = true
 secret = true
 
-[node name="EmailLabel" type="Label" parent="VideoStreamPlayer/PasswordLineEdit"]
+[node name="EmailLabel" type="Label" parent="VideoStreamPlayer/FillUpForm/PasswordLineEdit"]
 visible = false
 layout_mode = 0
 offset_left = 328.0
@@ -167,74 +304,95 @@ theme_override_fonts/font = ExtResource("4_ayshr")
 theme_override_font_sizes/font_size = 15
 text = "forgot password"
 
-[node name="DontHaveAccLabel" type="Label" parent="VideoStreamPlayer"]
+[node name="MessageLabel" type="Label" parent="VideoStreamPlayer/FillUpForm"]
 layout_mode = 0
-offset_left = 376.0
-offset_top = 470.0
-offset_right = 585.0
-offset_bottom = 519.0
+offset_left = 47.0
+offset_top = 268.0
+offset_right = 157.0
+offset_bottom = 294.0
+
+[node name="LoginButton" type="Button" parent="VideoStreamPlayer/FillUpForm"]
+layout_mode = 0
+offset_left = 173.0
+offset_top = 300.0
+offset_right = 405.0
+offset_bottom = 344.0
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("3_i5fi3")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("StyleBoxFlat_m7twt")
+theme_override_styles/hover = SubResource("StyleBoxFlat_7qh2k")
+theme_override_styles/normal = SubResource("StyleBoxFlat_xhhai")
+text = "Log in
+"
+
+[node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer/FillUpForm"]
+layout_mode = 0
+offset_left = 235.0
+offset_top = 350.0
+offset_right = 283.0
+offset_bottom = 398.0
+mouse_default_cursor_shape = 2
+texture_normal = ExtResource("4_7yur4")
+
+[node name="FacebookLoginButton" type="TextureButton" parent="VideoStreamPlayer/FillUpForm"]
+layout_mode = 0
+offset_left = 292.0
+offset_top = 350.0
+offset_right = 340.0
+offset_bottom = 398.0
+mouse_default_cursor_shape = 2
+texture_normal = ExtResource("5_u7yg4")
+
+[node name="DontHaveAccLabel" type="Label" parent="VideoStreamPlayer/FillUpForm"]
+layout_mode = 0
+offset_left = 175.0
+offset_top = 413.0
+offset_right = 384.0
+offset_bottom = 462.0
 theme_override_fonts/font = ExtResource("4_ayshr")
 text = "Dont Have Account?
 "
 
-[node name="MessageLabel" type="Label" parent="VideoStreamPlayer"]
+[node name="SignUpButton" type="LinkButton" parent="VideoStreamPlayer/FillUpForm"]
 layout_mode = 0
-offset_left = 248.0
-offset_top = 325.0
-offset_right = 358.0
-offset_bottom = 351.0
-
-[node name="logintxt" type="Label" parent="VideoStreamPlayer"]
-layout_mode = 0
-offset_left = 449.0
-offset_top = 89.0
-offset_right = 516.0
-offset_bottom = 115.0
-theme_override_fonts/font = ExtResource("3_i5fi3")
-theme_override_font_sizes/font_size = 20
-text = "Login"
-
-[node name="EmailLabel" type="Label" parent="VideoStreamPlayer"]
-layout_mode = 0
-offset_left = 254.0
-offset_top = 156.0
-offset_right = 351.0
-offset_bottom = 182.0
-theme_override_fonts/font = ExtResource("3_i5fi3")
-text = "Email"
-
-[node name="SignUpButton" type="LinkButton" parent="VideoStreamPlayer"]
-layout_mode = 0
-offset_left = 532.0
-offset_top = 469.0
-offset_right = 606.0
-offset_bottom = 509.0
+offset_left = 331.0
+offset_top = 412.0
+offset_right = 405.0
+offset_bottom = 452.0
 theme_override_colors/font_color = Color(0.961518, 4.45209e-06, 9.62615e-07, 1)
 theme_override_fonts/font = ExtResource("4_ayshr")
 theme_override_styles/focus = SubResource("StyleBoxFlat_u7yg4")
 text = "Sign up"
 
+[node name="logo" type="PanelContainer" parent="VideoStreamPlayer"]
+modulate = Color(0, 0, 0, 1)
+self_modulate = Color(0, 0, 0, 1)
+layout_direction = 3
+layout_mode = 2
+offset_left = 601.0
+offset_top = 23.0
+offset_right = 831.0
+offset_bottom = 473.0
+rotation = 3.14159
+pivot_offset = Vector2(250, 241)
+theme_override_styles/panel = SubResource("StyleBoxFlat_76uxg")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="VideoStreamPlayer/logo"]
+libraries = {
+&"": SubResource("AnimationLibrary_utpg3")
+}
+autoplay = "new_animation"
+
 [node name="Logo" type="Sprite2D" parent="VideoStreamPlayer"]
-position = Vector2(902, 296)
+position = Vector2(608, 277)
 scale = Vector2(0.592831, 0.589275)
 texture = ExtResource("2_xhhai")
 
-[node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
-layout_mode = 0
-offset_left = 436.0
-offset_top = 407.0
-offset_right = 484.0
-offset_bottom = 455.0
-mouse_default_cursor_shape = 2
-texture_normal = ExtResource("4_7yur4")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="VideoStreamPlayer/Logo"]
+libraries = {
+&"": SubResource("AnimationLibrary_5qrdj")
+}
+autoplay = "fadeee"
 
-[node name="FacebookLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
-layout_mode = 2
-offset_left = 493.0
-offset_top = 407.0
-offset_right = 541.0
-offset_bottom = 455.0
-mouse_default_cursor_shape = 2
-texture_normal = ExtResource("5_u7yg4")
-
-[connection signal="pressed" from="VideoStreamPlayer/SignUpButton" to="." method="_on_sign_up_button_pressed"]
+[connection signal="pressed" from="VideoStreamPlayer/FillUpForm/SignUpButton" to="." method="_on_sign_up_button_pressed"]

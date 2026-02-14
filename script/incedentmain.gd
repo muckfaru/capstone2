@@ -797,6 +797,26 @@ func _on_hint_pressed():
 func show_completion_screen():
 	add_terminal_line("\n" + "=".repeat(50), Color.CYAN)
 	
+	var accuracy = get_accuracy()
+	
+	# ✅ AWARD XP BASED ON PERFORMANCE (First-time only)
+	var base_xp = 80  # Base XP for completing all stages
+	var stage_xp = (current_stage + 1) * 10  # 10 XP per stage completed
+	var accuracy_xp = int((accuracy / 100.0) * 50)  # Up to 50 XP from accuracy
+	var score_xp = int((score / 1000.0) * 20)  # Up to 20 XP from score
+	var total_xp_earned = base_xp + stage_xp + accuracy_xp + score_xp
+	
+	print("[CMD Defender] 🏆 Completion! Awarding XP:")
+	print("  Base XP: %d" % base_xp)
+	print("  Stage XP: %d (stages %d)" % [stage_xp, current_stage + 1])
+	print("  Accuracy XP: %d (accuracy %d%%)" % [accuracy_xp, accuracy])
+	print("  Score XP: %d (score %d)" % [score_xp, score])
+	print("  Total XP: %d" % total_xp_earned)
+	
+	var xp_awarded = TutorialManager.award_minigame_xp("cmd_defender", total_xp_earned, score)
+	if xp_awarded == 0:
+		print("  ⚠️ Replay - No XP awarded (game still playable!)")
+	
 	if tutorial_mode:
 		add_terminal_line("TUTORIAL COMPLETE!", Color.GREEN)
 		add_terminal_line("=".repeat(50), Color.CYAN)

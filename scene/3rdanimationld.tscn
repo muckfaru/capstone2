@@ -122,9 +122,9 @@ stretch_mode = 6
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Control"]
 texture_filter = 1
 texture_repeat = 2
-position = Vector2(573.5, 325.75)
-scale = Vector2(0.673446, 0.589964)
+position = Vector2(583.75, 336)
+scale = Vector2(0.691168, 0.589964)
 sprite_frames = SubResource("SpriteFrames_y5hd7")
 animation = &"new_animation"
 autoplay = "new_animation"
-frame_progress = 0.515103
+frame_progress = 0.84225
