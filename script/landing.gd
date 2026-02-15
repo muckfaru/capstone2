@@ -24,18 +24,18 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 var hover_sfx: AudioStreamPlayer
 var click_sfx: AudioStreamPlayer
 var card_textures := {
-    "DefuseTheTrojan": {
-        "normal": preload("res://asset/icons/defuse the trojan 22.png"),
-        "hover": preload("res://asset/icons/Defuse the trojan 33.png")  # Your hover texture
-    },
-    "AkashicTCG": {
-        "normal": preload("res://asset/icons/akashic tgc 2.png"),
-        "hover": preload("res://asset/icons/akashic tgc 444.png")
-    },
-    "CodeBreaker": {
-        "normal": preload("res://asset/icons/code breaker 3.png"),
-        "hover": preload("res://asset/icons/code breaker 33.png")
-    }
+	"DefuseTheTrojan": {
+		"normal": preload("res://asset/icons/defuse the trojan 22.png"),
+		"hover": preload("res://asset/icons/Defuse the trojan 33.png")  # Your hover texture
+	},
+	"AkashicTCG": {
+		"normal": preload("res://asset/icons/akashic tgc 2.png"),
+		"hover": preload("res://asset/icons/akashic tgc 444.png")
+	},
+	"CodeBreaker": {
+		"normal": preload("res://asset/icons/code breaker 3.png"),
+		"hover": preload("res://asset/icons/code breaker 33.png")
+	}
 }
 
 @onready var rank_icon_rect: TextureRect = $VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect
@@ -221,33 +221,12 @@ func _setup_match_history_tabs() -> void:
 	stats_tab.pressed.connect(_on_tab_stats)
 	inventory_tab.pressed.connect(_on_tab_inventory_panel)
 
-	# ✅ Hide XPProgressBar and StatsContent by default
-	if xp_progress:
-		xp_progress.visible = false
-	var stats_content = match_history_panel.get_node_or_null("StatsContent")
-	if stats_content:
-		stats_content.visible = false
-
-	_set_active_tab(history_tab, [history_tab, stats_tab, inventory_tab])
+	# ✅ Start on Stats tab instead of Match History
+	_on_tab_stats()
 
 
 func _set_active_tab(active: Button, all_tabs: Array) -> void:
-		var active_style = StyleBoxFlat.new()
-		active_style.bg_color = Color(0, 0.5, 0.6, 0.9)
-		active_style.border_width_bottom = 2
-		active_style.border_color = Color(0, 1, 1, 1)
-
-		var inactive_style = StyleBoxFlat.new()
-		inactive_style.bg_color = Color(0, 0, 0, 0.3)
-
-		for tab in all_tabs:
-			if tab == active:
-				tab.add_theme_stylebox_override("normal", active_style)
-				tab.add_theme_stylebox_override("hover", active_style)
-			else:
-				tab.add_theme_stylebox_override("normal", inactive_style)
-				tab.add_theme_stylebox_override("hover", inactive_style)
-
+	pass # All styling is handled in the .tscn file
 
 func _on_tab_match_history() -> void:
 	var tab_bar = match_history_panel.get_node_or_null("TabBar")
@@ -293,29 +272,23 @@ func _on_tab_stats() -> void:
 	var w = int(wins_input.text) if wins_input and wins_input.text.is_valid_int() else 0
 	var l = int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else 0
 	var total = w + l
-	var wr_text = ("%.0f%%" % (float(w) / float(total) * 100.0)) if total > 0 else "0%"
+	var wr_text = ("%.1f%%" % (float(w) / float(total) * 100.0)) if total > 0 else "0%"
 
-	# ✅ Just update the value labels — layout stays in .tscn
-	var wins_val = stats_content.get_node_or_null("WinsRow/WinsValue")
-	if wins_val:
-		wins_val.text = wins_input.text if wins_input else "0"
+	# ✅ Update free-floating value labels
+	var wins_val = stats_content.get_node_or_null("WinsPanel/WinsValue")
+	if wins_val: wins_val.text = str(w)
 
-	var losses_val = stats_content.get_node_or_null("LossesRow/LossesValue")
-	if losses_val:
-		losses_val.text = losses_input.text if losses_input else "0"
+	var losses_val = stats_content.get_node_or_null("LossesPanel/LossesValue")
+	if losses_val: losses_val.text = str(l)
 
-	var wr_val = stats_content.get_node_or_null("WinRateRow/WinRateValue")
-	if wr_val:
-		wr_val.text = wr_text
+	var wr_val = stats_content.get_node_or_null("WinRatePanel/WinRateValue")
+	if wr_val: wr_val.text = wr_text
 
-	var mp_val = stats_content.get_node_or_null("MatchPlayedRow/MatchPlayedValue")
-	if mp_val:
-		mp_val.text = str(total)
+	var mp_val = stats_content.get_node_or_null("MatchPlayedPanel/MatchPlayedValue")
+	if mp_val: mp_val.text = str(total)
 
-	var lv_val = stats_content.get_node_or_null("LevelRow/LevelValue")
-	if lv_val:
-		lv_val.text = level_input.text if level_input else "0"
-
+	var lv_val = stats_content.get_node_or_null("LevelPanel/LevelValue")
+	if lv_val: lv_val.text = level_input.text if level_input else "0"
 
 func _on_tab_inventory_panel() -> void:
 	var tab_bar = match_history_panel.get_node_or_null("TabBar")
@@ -832,7 +805,6 @@ func _update_xp_display() -> void:
 			var rank_texture = load(icon_path)
 			if rank_texture:
 				rank_icon_rect.texture = rank_texture
-				_add_glow_to_rank_icon(rank_icon_rect, color)
 				rank_label.text = rank_name
 				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			else:
@@ -1693,67 +1665,7 @@ func _discard_changes() -> void:
 		profile_pic.texture = avatars[selected_avatar]
 		
 
-func _add_glow_to_rank_icon(icon: TextureRect, glow_color: Color) -> void:
-	"""Add glowing effect to rank icon using improved shader"""
-	
-	var shader_code = """
-shader_type canvas_item;
 
-uniform vec4 glow_color : source_color = vec4(0.0, 0.9, 1.0, 1.0);
-uniform float glow_strength : hint_range(0.0, 5.0) = 2.0;
-uniform float glow_size : hint_range(0.0, 0.1) = 0.05;
-
-void fragment() {
-	vec4 tex = texture(TEXTURE, UV);
-	
-	// Only add glow if the original pixel has transparency
-	if (tex.a > 0.5) {
-		// Just render the original texture
-		COLOR = tex;
-	} else {
-		// Sample neighboring pixels for glow effect
-		float glow = 0.0;
-		int samples = 16;
-		
-		for(int i = 0; i < samples; i++) {
-			float angle = float(i) * 6.28318 / float(samples);
-			vec2 offset = vec2(cos(angle), sin(angle)) * glow_size;
-			
-			// Sample texture at offset position
-			vec4 sample_tex = texture(TEXTURE, UV + offset);
-			
-			// Only accumulate glow from opaque parts of the texture
-			if (sample_tex.a > 0.5) {
-				glow += 1.0;
-			}
-		}
-		
-		// Normalize glow
-		glow = glow / float(samples);
-		
-		// Apply glow only if there's something nearby
-		if (glow > 0.1) {
-			COLOR = vec4(glow_color.rgb, glow * glow_strength * glow_color.a);
-		} else {
-			// Fully transparent
-			COLOR = vec4(0.0, 0.0, 0.0, 0.0);
-		}
-	}
-}
-"""
-	
-	var shader = Shader.new()
-	shader.code = shader_code
-	
-	var shader_material = ShaderMaterial.new()
-	shader_material.shader = shader
-	shader_material.set_shader_parameter("glow_color", glow_color)
-	shader_material.set_shader_parameter("glow_strength", 1.5) # Reduced for subtlety
-	shader_material.set_shader_parameter("glow_size", 0.05) # Reduced for tighter glow
-	
-	icon.material = shader_material
-	
-	print("[Landing] ✅ Glow effect applied to rank icon with color:", glow_color)
 
 
 func _try_resume_code_breaker_session() -> void:
@@ -2681,7 +2593,6 @@ func _on_xp_updated(new_xp: int) -> void:
 			var rank_texture = load(icon_path)
 			if rank_texture:
 				rank_icon_rect.texture = rank_texture
-				_add_glow_to_rank_icon(rank_icon_rect, color)
 				rank_label.text = rank_name
 				rank_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			else:

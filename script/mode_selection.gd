@@ -1,38 +1,43 @@
 extends Control
 
+# ── Buttons (pre-existing in scene) ──────────────────────────────────────
 @onready var beginner_btn: Button = $CanvasLayer/ButtonContainer/BeginnerButton
 @onready var intermediate_btn: Button = $CanvasLayer/ButtonContainer/IntermediateButton
 @onready var advanced_btn: Button = $CanvasLayer/ButtonContainer/AdvancedButton
-@onready var xp_label: Label = $CanvasLayer/XPLabel
-@onready var rank_icon: TextureRect = $CanvasLayer/RankIcon
-@onready var rank_label: Label = $CanvasLayer/RankLabel
 @onready var back_btn: Button = $CanvasLayer/BackButton
 
-# Dynamically created nodes (set in _setup_ui_elements)
-var xp_progress_bar: ProgressBar = null
-var unlock_panel: Panel = null
-var beginner_desc: Label = null
-var intermediate_desc: Label = null
-var advanced_desc: Label = null
-var fade_overlay: ColorRect = null  # ADD THIS LINE
+# ── XP / Rank display (now scene nodes) ──────────────────────────────────
+@onready var xp_label: Label = $CanvasLayer/XPLabel
+@onready var xp_progress_bar: ProgressBar = $CanvasLayer/XPProgressBar
+@onready var rank_icon: TextureRect = $CanvasLayer/RankIcon
+@onready var rank_label: Label = $CanvasLayer/RankLabel
+
+# ── Unlock panel (now a scene node) ──────────────────────────────────────
+@onready var unlock_panel: Panel = $CanvasLayer/UnlockProgressPanel
+@onready var code_breaker_label: Label = $CanvasLayer/UnlockProgressPanel/UnlockVBox/CodeBreakerVBox/CodeBreakerLabel
+@onready var code_breaker_progress: ProgressBar = $CanvasLayer/UnlockProgressPanel/UnlockVBox/CodeBreakerVBox/CodeBreakerProgress
+@onready var code_breaker_progress_label: Label = $CanvasLayer/UnlockProgressPanel/UnlockVBox/CodeBreakerVBox/CodeBreakerProgressLabel
+@onready var game3_label: Label = $CanvasLayer/UnlockProgressPanel/UnlockVBox/Game3Label
+
+# ── Video fade overlay (created at runtime, small helper) ─────────────────
+var fade_overlay: ColorRect = null
 
 const PROJECT_ID := "capstone-823dc"
 const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents" % PROJECT_ID
 
 # Icon resources (24x24 or 32x32 recommended)
-# TODO: Replace placeholder icons with custom designed ones
-const ICON_TIME := preload("res://asset/icons/time_icon1.png")  # Clock/timer icon
+const ICON_TIME := preload("res://asset/icons/time_icon1.png")
 const ICON_XP := preload("res://asset/icons/xp icon.png")
-const ICON_STAR_FILLED := preload("res://asset/icons/star_filled2.png")  # Filled star
-const ICON_STAR_EMPTY := preload("res://asset/icons/star_empty.png")  # Empty star outline
-const ICON_DIFFICULTY := preload("res://asset/icons/difficulty.png")  # Bar chart icon
+const ICON_STAR_FILLED := preload("res://asset/icons/star_filled2.png")
+const ICON_STAR_EMPTY := preload("res://asset/icons/star_empty.png")
+const ICON_DIFFICULTY := preload("res://asset/icons/difficulty.png")
 
-# Tutorial category icons (48x48 or 64x64 recommended)
+# Tutorial category icons
 const ICON_FUNDAMENTALS := preload("res://asset/icons/cyfunda.png")
 const ICON_NETWORK := preload("res://asset/icons/NBfun.png")
 const ICON_PASSWORD := preload("res://asset/icons/passwordfticon.png")
 const ICON_MALWARE := preload("res://asset/icons/malwaretpicon.png")
-const ICON_CIA_TRIAD := preload("res://asset/icons/cyfunda.png")  # Shield icon for CIA Triad
+const ICON_CIA_TRIAD := preload("res://asset/icons/cyfunda.png")
 const ICON_PHISHING := preload("res://asset/icons/phishinglbicon.png")
 const ICON_TROJAN := preload("res://asset/icons/Defuse the trojan 1.png")
 const ICON_DEFENSE := preload("res://asset/icons/firewall shield icon.png")
@@ -40,7 +45,7 @@ const ICON_LAB := preload("res://asset/icons/code breaker.png")
 const ICON_ENCRYPTION := preload("res://asset/icons/encryicon.png")
 const ICON_ADVANCED := preload("res://asset/icons/hacker.png")
 
-# Tutorial metadata with time estimates and XP ranges
+# Tutorial metadata
 const TUTORIAL_METADATA := {
 	"beginner_fundamentals": {"time": "10-15 min", "xp_range": "100-200 XP", "difficulty": 2},
 	"beginner_cia_triad": {"time": "5-8 min", "xp_range": "100-200 XP", "difficulty": 1},
@@ -56,46 +61,39 @@ const TUTORIAL_METADATA := {
 	"advanced_lab": {"time": "25-40 min", "xp_range": "100-200 XP", "difficulty": 5}
 }
 
+
 func _ready() -> void:
-		# Verify auth state
-		if Auth.current_local_id == "" or Auth.current_id_token == "":
-			push_error("❌ No auth state! Redirecting to login...")
-			get_tree().change_scene_to_file.call_deferred("res://scene/login.tscn")
-			return
-		
-		print("[ModeSelection] ========== MODE SELECTION READY ==========")
-		print("[ModeSelection] ✅ Mode Selection Ready | UID:", Auth.current_local_id)
-		
-		# Setup UI elements first
-		_setup_ui_elements()
-		_setup_smooth_video_loop()
-		
-		# Connect signals
-		if not TutorialManager.data_loaded.is_connected(_update_xp_display):
-			TutorialManager.data_loaded.connect(_update_xp_display)
-		
-		# Load TutorialManager data if not already loaded
-		if not TutorialManager.data_has_loaded:
-			print("[ModeSelection] TutorialManager data not loaded yet, loading now...")
-			TutorialManager.load_user_data()
-		else:
-			print("[ModeSelection] TutorialManager already has data (XP: %d)" % TutorialManager.total_xp)
-			call_deferred("_update_xp_display")
-		
-		# Note: back_btn.pressed signal is connected in mode_selection.tscn
-		
-		# Animate entrance
-		_animate_entrance()
-		
-		# Background music
-		var bgm = $BackgroundMusic
-		if bgm:
-			bgm.volume_db = -80
-			var tween = create_tween()
-			tween.tween_property(bgm, "volume_db", -10, 2.0)
-		
-		# ✅ CHECK FOR PENDING RANK-UP (after scene is loaded)
-		call_deferred("_check_and_show_rank_up")
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		push_error("❌ No auth state! Redirecting to login...")
+		get_tree().change_scene_to_file.call_deferred("res://scene/login.tscn")
+		return
+
+	print("[ModeSelection] ========== MODE SELECTION READY ==========")
+	print("[ModeSelection] ✅ Mode Selection Ready | UID:", Auth.current_local_id)
+
+	_setup_smooth_video_loop()
+
+	# Connect TutorialManager signal
+	if not TutorialManager.data_loaded.is_connected(_update_xp_display):
+		TutorialManager.data_loaded.connect(_update_xp_display)
+
+	if not TutorialManager.data_has_loaded:
+		print("[ModeSelection] TutorialManager data not loaded yet, loading now...")
+		TutorialManager.load_user_data()
+	else:
+		print("[ModeSelection] TutorialManager already has data (XP: %d)" % TutorialManager.total_xp)
+		call_deferred("_update_xp_display")
+
+	_animate_entrance()
+
+	var bgm = $BackgroundMusic
+	if bgm:
+		bgm.volume_db = -80
+		var tween = create_tween()
+		tween.tween_property(bgm, "volume_db", -10, 2.0)
+
+	call_deferred("_check_and_show_rank_up")
+
 
 func _fade_out_music_and_transition(scene_path: String) -> void:
 	var bgm = $BackgroundMusic
@@ -103,272 +101,128 @@ func _fade_out_music_and_transition(scene_path: String) -> void:
 		var tween = create_tween()
 		tween.tween_property(bgm, "volume_db", -80, 0.5)
 		await tween.finished
-	
 	get_tree().change_scene_to_file(scene_path)
+
 
 func _setup_smooth_video_loop() -> void:
 	var video_player = $VideoStreamPlayer
-	
-	# Create fade overlay
 	fade_overlay = ColorRect.new()
 	fade_overlay.color = Color.BLACK
 	fade_overlay.modulate.a = 0
 	fade_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(fade_overlay)
-	move_child(fade_overlay, get_child_count() - 2)  # Just above video
-	
-	# Disable built-in loop, handle manually
+	move_child(fade_overlay, get_child_count() - 2)
 	video_player.loop = false
 	video_player.finished.connect(_on_video_finished)
+
 
 func _on_video_finished() -> void:
 	var video_player = $VideoStreamPlayer
 	var tween = create_tween()
-	
-	# Fade out
 	tween.tween_property(fade_overlay, "modulate:a", 1.0, 0.4)
 	await tween.finished
-	
-	# Restart
 	video_player.play()
 	await get_tree().create_timer(0.1).timeout
-	
-	# Fade in
 	var tween2 = create_tween()
 	tween2.tween_property(fade_overlay, "modulate:a", 0.0, 0.6)
-# -------------------------
-# UI SETUP
-# -------------------------
-func _setup_ui_elements() -> void:
-	"""Setup progress bars, unlock panels, and level descriptions"""
-	# Create XP Progress Bar if not in scene
-	if not xp_progress_bar:
-		xp_progress_bar = ProgressBar.new()
-		xp_progress_bar.name = "XPProgressBar"
-		xp_progress_bar.anchors_preset = Control.PRESET_TOP_WIDE
-		xp_progress_bar.offset_left = 20
-		xp_progress_bar.offset_top = 20
-		xp_progress_bar.offset_right = -20
-		xp_progress_bar.offset_bottom = 50
-		xp_progress_bar.show_percentage = false
-		$CanvasLayer.add_child(xp_progress_bar)
-	
-	# Create Unlock Progress Panel
-	if not unlock_panel:
-		unlock_panel = Panel.new()
-		unlock_panel.name = "UnlockProgressPanel"
-		unlock_panel.custom_minimum_size = Vector2(400, 200)
-		unlock_panel.anchors_preset = Control.PRESET_TOP_RIGHT
-		unlock_panel.offset_left = -420
-		unlock_panel.offset_top = 80
-		unlock_panel.offset_right = -20
-		unlock_panel.offset_bottom = 280
-		unlock_panel.visible = false  # Hide by default until populated
-		
-		# Add stylebox for glassmorphism effect
-		var style = StyleBoxFlat.new()
-		style.bg_color = Color(0, 0, 0, 0.6)
-		style.border_width_left = 2
-		style.border_width_top = 2
-		style.border_width_right = 2
-		style.border_width_bottom = 2
-		style.border_color = Color(0, 1, 1, 0.5)
-		style.corner_radius_top_left = 10
-		style.corner_radius_top_right = 10
-		style.corner_radius_bottom_left = 10
-		style.corner_radius_bottom_right = 10
-		unlock_panel.add_theme_stylebox_override("panel", style)
-		
-		$CanvasLayer.add_child(unlock_panel)
-		_populate_unlock_panel()
-		unlock_panel.visible = true  # Show after population
-	
-	# Add level descriptions and icons if buttons exist
-	if beginner_btn and not beginner_desc:
-		# Add icon to beginner button
-		var icon_texture = load("res://asset/icons/Beginner Icon.png")
-		if icon_texture and not beginner_btn.has_node("IconRect"):
-			var icon_rect = TextureRect.new()
-			icon_rect.name = "IconRect"
-			icon_rect.texture = icon_texture
-			icon_rect.custom_minimum_size = Vector2(48, 48)
-			icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon_rect.position = Vector2(20, 16)  # Left side, vertically centered
-			icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			beginner_btn.add_child(icon_rect)
-		
-		var desc = Label.new()
-		desc.name = "Description"
-		desc.text = "Cybersecurity Fundamentals - Start here if new!"
-		desc.add_theme_font_size_override("font_size", 13)
-		desc.add_theme_color_override("font_color", Color(0.7, 0.9, 0.9))
-		desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		desc.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		desc.position = Vector2(0, 50)
-		desc.size = Vector2(500, 25)
-		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		beginner_btn.add_child(desc)
-	
-	if intermediate_btn and not intermediate_desc:
-		# Add intermediate icon
-		var icon_texture = load("res://asset/icons/intermediate.png")
-		if icon_texture and not intermediate_btn.has_node("IconRect"):
-			var icon_rect = TextureRect.new()
-			icon_rect.name = "IconRect"
-			icon_rect.texture = icon_texture
-			icon_rect.custom_minimum_size = Vector2(48, 48)
-			icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon_rect.position = Vector2(20, 16)  # Left side, vertically centered
-			icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			intermediate_btn.add_child(icon_rect)
-		
-		var desc = Label.new()
-		desc.name = "Description"
-		desc.text = "Real-world Threats & Defense"
-		desc.add_theme_font_size_override("font_size", 13)
-		desc.add_theme_color_override("font_color", Color(0.7, 0.9, 0.9))
-		desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		desc.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		desc.position = Vector2(0, 50)
-		desc.size = Vector2(500, 25)
-		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		intermediate_btn.add_child(desc)
-	
-	if advanced_btn and not advanced_desc:
-		# Add advanced icon
-		var icon_texture = load("res://asset/icons/Advance.png")
-		if icon_texture and not advanced_btn.has_node("IconRect"):
-			var icon_rect = TextureRect.new()
-			icon_rect.name = "IconRect"
-			icon_rect.texture = icon_texture
-			icon_rect.custom_minimum_size = Vector2(48, 48)
-			icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon_rect.position = Vector2(20, 16)  # Left side, vertically centered
-			icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			advanced_btn.add_child(icon_rect)
-		
-		var desc = Label.new()
-		desc.name = "Description"
-		desc.text = "Red Team Tactics & Forensics"
-		desc.add_theme_font_size_override("font_size", 13)
-		desc.add_theme_color_override("font_color", Color(0.7, 0.9, 0.9))
-		desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		desc.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		desc.position = Vector2(0, 50)
-		desc.size = Vector2(500, 25)
-		desc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		advanced_btn.add_child(desc)
 
 
-func _populate_unlock_panel() -> void:
-	"""Populate unlock panel with game unlock progress"""
-	if not unlock_panel:
-		return
-	
-	# Clear existing children
-	for child in unlock_panel.get_children():
-		child.queue_free()
-	
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 15)
-	vbox.position = Vector2(10, 10)
-	vbox.size = Vector2(380, 180)
-	
-	# Title
-	var title = Label.new()
-	title.text = "🎮 UNLOCKABLE GAMES"
-	title.add_theme_font_size_override("font_size", 16)
-	title.add_theme_color_override("font_color", Color(0, 1, 1))
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
-	
-	# Akashic TCG (always unlocked)
-	var akashic_label = Label.new()
-	akashic_label.text = "✅ Akashic TCG (Always Available)"
-	akashic_label.add_theme_font_size_override("font_size", 14)
-	akashic_label.add_theme_color_override("font_color", Color(0, 1, 0.5))
-	vbox.add_child(akashic_label)
-	
-	# Code Breaker progress
-	var code_breaker_vbox = VBoxContainer.new()
-	code_breaker_vbox.add_theme_constant_override("separation", 5)
-	
-	var cb_label = Label.new()
+# ─────────────────────────────────────────────────────────────────────────────
+# XP / RANK DISPLAY  (reads from scene nodes, no node creation)
+# ─────────────────────────────────────────────────────────────────────────────
+func _update_xp_display() -> void:
+	print("[ModeSelection] ========== UPDATING XP DISPLAY ==========")
+	var rank: Dictionary = TutorialManager.get_rank()
+	var current_xp = TutorialManager.total_xp
+
+	if xp_label:
+		xp_label.text = ": %d" % current_xp
+
+	if rank_icon:
+		var icon_texture = load(rank["icon"])
+		if icon_texture:
+			rank_icon.texture = icon_texture
+
+	if rank_label:
+		rank_label.text = rank["name"]
+		rank_label.add_theme_color_override("font_color", rank["color"])
+		rank_label.tooltip_text = "Progress: %.0f%% | XP to next rank: %d" % [rank["progress"], rank["xp_to_next"]]
+
+	if xp_progress_bar:
+		var next_rank_xp = rank["max_xp"] if rank["max_xp"] != 999999 else rank["min_xp"] + 1000
+		xp_progress_bar.max_value = next_rank_xp
+		var tween = create_tween()
+		tween.tween_property(xp_progress_bar, "value", current_xp, 1.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+	_update_unlock_panel()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# UNLOCK PANEL  (updates text on scene nodes, no node creation)
+# ─────────────────────────────────────────────────────────────────────────────
+func _update_unlock_panel() -> void:
 	var current_xp = TutorialManager.total_xp
 	var required_xp = TutorialManager.XP_THRESHOLDS["code_breaker"]
-	var is_unlocked = TutorialManager.is_game_unlocked("code_breaker")
-	
-	if is_unlocked:
-		cb_label.text = "✅ Code Breaker (Unlocked!)"
-		cb_label.add_theme_color_override("font_color", Color(0, 1, 0.5))
-	else:
-		cb_label.text = "🔒 Code Breaker (Unlock at 500 XP)"
-		cb_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
-	
-	cb_label.add_theme_font_size_override("font_size", 14)
-	code_breaker_vbox.add_child(cb_label)
-	
-	if not is_unlocked:
-		var cb_progress = ProgressBar.new()
-		cb_progress.max_value = required_xp
-		cb_progress.value = current_xp
-		cb_progress.custom_minimum_size = Vector2(360, 20)
-		cb_progress.show_percentage = false
-		code_breaker_vbox.add_child(cb_progress)
-		
-		var cb_progress_label = Label.new()
-		cb_progress_label.text = "Progress: %d/%d XP (%.0f%%)" % [current_xp, required_xp, (float(current_xp) / required_xp) * 100.0]
-		cb_progress_label.add_theme_font_size_override("font_size", 12)
-		cb_progress_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-		code_breaker_vbox.add_child(cb_progress_label)
-	
-	vbox.add_child(code_breaker_vbox)
-	
-	# Game 3 placeholder
-	var game3_label = Label.new()
+	var cb_unlocked = TutorialManager.is_game_unlocked("code_breaker")
 	var game3_unlocked = TutorialManager.is_game_unlocked("game_3")
-	if game3_unlocked:
-		game3_label.text = "✅ Mystery Game (Unlocked!)"
-		game3_label.add_theme_color_override("font_color", Color(0, 1, 0.5))
-	else:
-		game3_label.text = "🔒 Mystery Game (Unlock at 1500 XP)"
-		game3_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-	game3_label.add_theme_font_size_override("font_size", 14)
-	vbox.add_child(game3_label)
-	
-	unlock_panel.add_child(vbox)
+
+	# Code Breaker label
+	if code_breaker_label:
+		if cb_unlocked:
+			code_breaker_label.text = "✅ Code Breaker (Unlocked!)"
+			code_breaker_label.add_theme_color_override("font_color", Color(0, 1, 0.5))
+		else:
+			code_breaker_label.text = "🔒 Code Breaker (Unlock at 500 XP)"
+			code_breaker_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+
+	# Code Breaker progress bar + label
+	if code_breaker_progress:
+		code_breaker_progress.visible = not cb_unlocked
+		code_breaker_progress.max_value = required_xp
+		code_breaker_progress.value = current_xp
+
+	if code_breaker_progress_label:
+		code_breaker_progress_label.visible = not cb_unlocked
+		code_breaker_progress_label.text = "Progress: %d/%d XP (%.0f%%)" % [current_xp, required_xp, (float(current_xp) / required_xp) * 100.0]
+
+	# Game 3 label
+	if game3_label:
+		if game3_unlocked:
+			game3_label.text = "✅ Mystery Game (Unlocked!)"
+			game3_label.add_theme_color_override("font_color", Color(0, 1, 0.5))
+		else:
+			game3_label.text = "🔒 Mystery Game (Unlock at 1500 XP)"
+			game3_label.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ENTRANCE ANIMATION
+# ─────────────────────────────────────────────────────────────────────────────
 func _animate_entrance() -> void:
-	"""Animate UI elements on entrance"""
-	# Fade in and slide buttons
 	for btn in [beginner_btn, intermediate_btn, advanced_btn]:
 		if btn:
 			btn.modulate.a = 0
 			btn.position.x -= 50
-	
+
 	if beginner_btn:
 		var tween = create_tween()
 		tween.tween_property(beginner_btn, "modulate:a", 1.0, 0.5).set_delay(0.1)
 		tween.parallel().tween_property(beginner_btn, "position:x", beginner_btn.position.x + 50, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	
+
 	if intermediate_btn:
 		var tween = create_tween()
 		tween.tween_property(intermediate_btn, "modulate:a", 1.0, 0.5).set_delay(0.2)
 		tween.parallel().tween_property(intermediate_btn, "position:x", intermediate_btn.position.x + 50, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	
+
 	if advanced_btn:
 		var tween = create_tween()
 		tween.tween_property(advanced_btn, "modulate:a", 1.0, 0.5).set_delay(0.3)
 		tween.parallel().tween_property(advanced_btn, "position:x", advanced_btn.position.x + 50, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
-# -------------------------
-# BUTTON HOVER EFFECT (Scale animation)
-# -------------------------
+# ─────────────────────────────────────────────────────────────────────────────
+# BUTTON HOVER
+# ─────────────────────────────────────────────────────────────────────────────
 func _on_button_hover(level: String) -> void:
 	var btn: Button
 	match level:
@@ -376,50 +230,45 @@ func _on_button_hover(level: String) -> void:
 		"intermediate": btn = intermediate_btn
 		"advanced": btn = advanced_btn
 		_: return
-		
+
 	var hover_sfx = $HoverSound
 	if hover_sfx and not hover_sfx.playing:
 		hover_sfx.play()
-	# Bounce scale animation
 	var tween = create_tween()
 	tween.set_trans(Tween.TRANS_ELASTIC)
 	tween.set_ease(Tween.EASE_OUT)
 	tween.tween_property(btn, "scale", Vector2(1.05, 1.05), 0.3)
 
 
-# -------------------------
-# LEVEL SELECTION (Main logic)
-# -------------------------
+# ─────────────────────────────────────────────────────────────────────────────
+# LEVEL SELECTION
+# ─────────────────────────────────────────────────────────────────────────────
 func _on_level_selected(level: String) -> void:
 	print("🎯 Level selected:", level)
-	
 	var btn: Button
 	match level:
 		"beginner": btn = beginner_btn
 		"intermediate": btn = intermediate_btn
 		"advanced": btn = advanced_btn
 		_: return
-	
-	# Click animation (press down → bounce back)
+
 	var tween = create_tween()
 	tween.set_trans(Tween.TRANS_BACK)
 	tween.set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(btn, "scale", Vector2(0.95, 0.95), 0.1)
 	tween.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.2)
-	
 	await tween.finished
-	
-	# Show tutorial selection menu for this level
+
 	_show_tutorial_menu(level)
 
 
-# -------------------------
-# SHOW TUTORIAL MENU (Selection Dialog)
-# -------------------------
+# ─────────────────────────────────────────────────────────────────────────────
+# TUTORIAL MENU  (instantiates tutorial_menu_overlay.tscn)
+# ─────────────────────────────────────────────────────────────────────────────
 func _show_tutorial_menu(level: String) -> void:
 	var tutorials: Array = []
 	var level_int: int = 1
-	
+
 	match level:
 		"beginner":
 			level_int = 1
@@ -429,7 +278,6 @@ func _show_tutorial_menu(level: String) -> void:
 				{"name": "Encryption", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "advanced_encryption"},
 				{"name": "Password Fortress Defender", "scene": "res://scene/tutorial_password_basics.tscn", "id": "beginner_password"},
 				{"name": "Malware Types Overview", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware"},
-				
 			]
 		"intermediate":
 			level_int = 2
@@ -438,246 +286,51 @@ func _show_tutorial_menu(level: String) -> void:
 				{"name": "Phishing Detection Lab", "scene": "res://scene/phishing_intro.tscn", "id": "intermediate_phishing"},
 				{"name": "Asset vs Threats", "scene": "res://scene/Assetandthreat.tscn", "id": "intermediate_assetandthreat"},
 				{"name": "Crypt Contract", "scene": "res://scene/PhoneEncryption.tscn", "id": "intermediate_crypt_contract"},
-				{"name": "Incident Commander", "scene": "res://scene/SOCMain.tscn", "id": "intermediate_incident_commander"}
-
+				{"name": "Incident Commander", "scene": "res://scene/SOCMain.tscn", "id": "intermediate_incident_commander"},
 			]
 		"advanced":
 			level_int = 3
-			tutorials = [ 
+			tutorials = [
 				{"name": "Security Guardian", "scene": "res://scene/authgmMain.tscn", "id": "advanced_security_guardian"},
 				{"name": "Malware Defense & Removal", "scene": "res://scene/DigitalForensicsScene.tscn", "id": "advanced_malware_defense"},
 				{"name": "CMD Defender: Incident Response Training", "scene": "res://scene/incedentmain.tscn", "id": "advanced_incident_response"},
 			]
-	
-	# Update Auth level
+
 	Auth.current_level = level_int
-	
-	# Wait for TutorialManager data if not loaded
+
 	if not TutorialManager.data_has_loaded:
 		print("[Dialog] Waiting for TutorialManager data...")
 		await TutorialManager.data_loaded
-		print("[Dialog] TutorialManager data loaded, showing dialog...")
-	
-	# Create a custom Control instead of ConfirmationDialog for full styling control
-	var overlay = Control.new()
-	overlay.name = "TutorialMenuOverlay"
-	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	overlay.z_index = 99
-	
-	# Semi-transparent black background
-	var bg = ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.7)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	overlay.add_child(bg)
-	
-	# Main dialog panel
-	var dialog_panel = Panel.new()
-	dialog_panel.custom_minimum_size = Vector2(720, 580)
-	dialog_panel.anchor_left = 0.5
-	dialog_panel.anchor_top = 0.5
-	dialog_panel.anchor_right = 0.5
-	dialog_panel.anchor_bottom = 0.5
-	dialog_panel.offset_left = -360
-	dialog_panel.offset_top = -290
-	dialog_panel.offset_right = 360
-	dialog_panel.offset_bottom = 290
-	dialog_panel.z_index = 100
-	
-	# Custom StyleBox for the main panel (dark with cyan border)
-	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.05, 0.1, 0.15, 0.95)  # Dark blue-ish background
-	panel_style.border_width_left = 2
-	panel_style.border_width_top = 2
-	panel_style.border_width_right = 2
-	panel_style.border_width_bottom = 2
-	panel_style.border_color = Color(0, 0.9, 1, 0.8)  # Cyan border
-	panel_style.corner_radius_top_left = 8
-	panel_style.corner_radius_top_right = 8
-	panel_style.corner_radius_bottom_left = 8
-	panel_style.corner_radius_bottom_right = 8
-	panel_style.shadow_color = Color(0, 1, 1, 0.3)
-	panel_style.shadow_size = 15
-	dialog_panel.add_theme_stylebox_override("panel", panel_style)
-	
-	overlay.add_child(dialog_panel)
-	
-	# Add cyberpunk corner decorations
-	_add_corner_decorations(dialog_panel)
-	
-	# Close button (X)
-# Close button (X)
-	var close_btn = Button.new()
-	close_btn.text = "✕"
-	close_btn.custom_minimum_size = Vector2(40, 40)
-	close_btn.add_theme_font_size_override("font_size", 28)
-	close_btn.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
-	close_btn.add_theme_color_override("font_hover_color", Color(1, 0, 0))
 
-	# Position it in the top-right corner using anchors instead of absolute position
-	close_btn.anchor_left = 1.0
-	close_btn.anchor_right = 1.0
-	close_btn.offset_left = -60  # 50 pixels from right edge (40px button + 10px margin)
-	close_btn.offset_right = -20  # 10px margin from right
-	close_btn.offset_top = 18
-	close_btn.offset_bottom = 48
+	# Load the overlay scene
+	var overlay_scene = load("res://scene/tutorial_menu_overlay.tscn")
+	if not overlay_scene:
+		push_error("❌ Could not load tutorial_menu_overlay.tscn")
+		return
 
-	close_btn.z_index = 200
+	var overlay = overlay_scene.instantiate()
 
-	# Create custom style for button
-	var close_style = StyleBoxFlat.new()
-	close_style.bg_color = Color(0.2, 0, 0, 0.3)
-	close_style.border_width_left = 1
-	close_style.border_width_top = 1
-	close_style.border_width_right = 1
-	close_style.border_width_bottom = 1
-	close_style.border_color = Color(1, 0, 0, 0.5)
-	close_style.corner_radius_top_left = 5
-	close_style.corner_radius_top_right = 5
-	close_style.corner_radius_bottom_left = 5
-	close_style.corner_radius_bottom_right = 5
-	close_btn.add_theme_stylebox_override("normal", close_style)
+	# Set title
+	var title_lbl = overlay.get_node("DialogPanel/ContentMargin/MainVBox/TitleLabel")
+	if title_lbl:
+		title_lbl.text = "Choose Tutorial - Level %d Assessment" % level_int
 
-	var close_hover = close_style.duplicate()
-	close_hover.bg_color = Color(0.4, 0, 0, 0.6)
-	close_btn.add_theme_stylebox_override("hover", close_hover)
+	# Connect close button (signal is already wired in .tscn)
+	var close_btn = overlay.get_node("DialogPanel/CloseButton")
+	if close_btn and not close_btn.pressed.is_connected(overlay.queue_free):
+		close_btn.pressed.connect(overlay.queue_free)
 
-	close_btn.pressed.connect(func(): 
-		print("🔴 Close button pressed!")
-		overlay.queue_free()
-	)
-	
-	dialog_panel.add_child(close_btn)
-	
-	# Content container
-	var margin_container = MarginContainer.new()
-	margin_container.add_theme_constant_override("margin_left", 30)
-	margin_container.add_theme_constant_override("margin_top", 55)
-	margin_container.add_theme_constant_override("margin_right", 25)  # Changed from 30 to 25
-	margin_container.add_theme_constant_override("margin_bottom", 20)
-	margin_container.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	dialog_panel.add_child(margin_container)
-	
-	# Main VBox
-	var main_vbox = VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 12)
-	main_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin_container.add_child(main_vbox)
-	
-	# Title
-	var title_label = Label.new()
-	title_label.text = "Choose Tutorial - Level %d Assessment" % level_int
-	title_label.add_theme_font_size_override("font_size", 24)
-	title_label.add_theme_color_override("font_color", Color(0, 1, 1))
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	main_vbox.add_child(title_label)
-	
-	# Subtitle
-	var subtitle = Label.new()
-	subtitle.text = "Complete tutorials to earn XP and unlock games!\nPassing score: 70% or higher"
-	subtitle.add_theme_font_size_override("font_size", 12)
-	subtitle.add_theme_color_override("font_color", Color(0.7, 0.9, 0.9))
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	subtitle.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	main_vbox.add_child(subtitle)
-	
-	# Separator line
-	var separator = HSeparator.new()
-	var sep_style = StyleBoxFlat.new()
-	sep_style.bg_color = Color(0, 1, 1, 0.3)
-	separator.add_theme_stylebox_override("separator", sep_style)
-	separator.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	main_vbox.add_child(separator)
-	
-# Scrollable container for tutorials
-	var scroll = ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 380)
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	main_vbox.add_child(scroll)
+	# Populate tutorial cards
+	var tutorials_vbox = overlay.get_node("DialogPanel/ContentMargin/MainVBox/ScrollContainer/ScrollContentMargin/TutorialsVBox")
+	if tutorials_vbox:
+		for tutorial in tutorials:
+			var card = _create_tutorial_card(tutorial, level_int, overlay)
+			tutorials_vbox.add_child(card)
 
-	# CYBERPUNK SCROLLBAR STYLING
-	var scrollbar = scroll.get_v_scroll_bar()
-
-	# Scrollbar background (track)
-	var scrollbar_bg = StyleBoxFlat.new()
-	scrollbar_bg.bg_color = Color(0.05, 0.1, 0.15, 0.8)  # Dark background
-	scrollbar_bg.border_width_left = 1
-	scrollbar_bg.border_width_right = 1
-	scrollbar_bg.border_color = Color(0, 1, 1, 0.3)  # Cyan border
-	scrollbar_bg.corner_radius_top_left = 4
-	scrollbar_bg.corner_radius_top_right = 4
-	scrollbar_bg.corner_radius_bottom_left = 4
-	scrollbar_bg.corner_radius_bottom_right = 4
-	scrollbar.add_theme_stylebox_override("scroll", scrollbar_bg)
-
-	# Scrollbar grabber (the draggable part) - Normal state
-	var scrollbar_grabber = StyleBoxFlat.new()
-	scrollbar_grabber.bg_color = Color(0, 0.8, 1, 0.6)  # Cyan
-	scrollbar_grabber.border_width_left = 2
-	scrollbar_grabber.border_width_right = 2
-	scrollbar_grabber.border_color = Color(0, 1, 1, 1)  # Bright cyan border
-	scrollbar_grabber.corner_radius_top_left = 4
-	scrollbar_grabber.corner_radius_top_right = 4
-	scrollbar_grabber.corner_radius_bottom_left = 4
-	scrollbar_grabber.corner_radius_bottom_right = 4
-	scrollbar_grabber.shadow_color = Color(0, 1, 1, 0.5)  # Cyan glow
-	scrollbar_grabber.shadow_size = 5
-	scrollbar.add_theme_stylebox_override("grabber", scrollbar_grabber)
-
-	# Scrollbar grabber - Hover state
-	var scrollbar_grabber_hover = StyleBoxFlat.new()
-	scrollbar_grabber_hover.bg_color = Color(0, 1, 1, 0.8)  # Brighter cyan
-	scrollbar_grabber_hover.border_width_left = 2
-	scrollbar_grabber_hover.border_width_right = 2
-	scrollbar_grabber_hover.border_color = Color(0.5, 1, 1, 1)  # Lighter cyan border
-	scrollbar_grabber_hover.corner_radius_top_left = 4
-	scrollbar_grabber_hover.corner_radius_top_right = 4
-	scrollbar_grabber_hover.corner_radius_bottom_left = 4
-	scrollbar_grabber_hover.corner_radius_bottom_right = 4
-	scrollbar_grabber_hover.shadow_color = Color(0, 1, 1, 0.8)  # Stronger glow
-	scrollbar_grabber_hover.shadow_size = 8
-	scrollbar.add_theme_stylebox_override("grabber_highlight", scrollbar_grabber_hover)
-
-	# Scrollbar grabber - Pressed state
-	var scrollbar_grabber_pressed = StyleBoxFlat.new()
-	scrollbar_grabber_pressed.bg_color = Color(0, 1, 1, 1)  # Full bright cyan
-	scrollbar_grabber_pressed.border_width_left = 2
-	scrollbar_grabber_pressed.border_width_right = 2
-	scrollbar_grabber_pressed.border_color = Color(1, 1, 1, 1)  # White border
-	scrollbar_grabber_pressed.corner_radius_top_left = 4
-	scrollbar_grabber_pressed.corner_radius_top_right = 4
-	scrollbar_grabber_pressed.corner_radius_bottom_left = 4
-	scrollbar_grabber_pressed.corner_radius_bottom_right = 4
-	scrollbar_grabber_pressed.shadow_color = Color(0, 1, 1, 1)  # Maximum glow
-	scrollbar_grabber_pressed.shadow_size = 10
-	scrollbar.add_theme_stylebox_override("grabber_pressed", scrollbar_grabber_pressed)
-
-	# Customize scrollbar width
-	scrollbar.custom_minimum_size.x = 12  # Width of scrollbar
-
-	# Add margin container INSIDE scroll to create padding for scrollbar
-	var scroll_content_margin = MarginContainer.new()
-	scroll_content_margin.add_theme_constant_override("margin_right", 15)  # Space for scrollbar
-	scroll_content_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(scroll_content_margin)
-
-	var tutorials_vbox = VBoxContainer.new()
-	tutorials_vbox.add_theme_constant_override("separation", 12)
-	tutorials_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll_content_margin.add_child(tutorials_vbox)
-		# Add tutorial cards
-	for tutorial in tutorials:
-		var card = _create_tutorial_card(tutorial, level_int, overlay)
-		tutorials_vbox.add_child(card)
-	
-	# Add overlay to CanvasLayer to ensure it appears on top
 	$CanvasLayer.add_child(overlay)
-	
-	# Animate entrance
+
+	# Entrance animation on the panel
+	var dialog_panel = overlay.get_node("DialogPanel")
 	dialog_panel.modulate.a = 0
 	dialog_panel.scale = Vector2(0.8, 0.8)
 	var tween = create_tween()
@@ -686,83 +339,12 @@ func _show_tutorial_menu(level: String) -> void:
 	tween.tween_property(dialog_panel, "scale", Vector2(1.0, 1.0), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
-func _add_corner_decorations(panel: Panel) -> void:
-	"""Add cyberpunk corner decorations to the panel"""
-	var corner_size = 40
-	var corner_thickness = 3
-	var corner_color = Color(0, 1, 1, 1)  # Cyan
-	var corner_length = 50
-	
-	# Function to create a corner decoration
-	var create_corner = func(pos: Vector2, h_flip: bool, v_flip: bool):
-		var corner = Control.new()
-		corner.custom_minimum_size = Vector2(corner_length, corner_length)
-		corner.position = pos
-		corner.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		
-		# Horizontal line
-		var h_line = ColorRect.new()
-		h_line.color = corner_color
-		h_line.size = Vector2(corner_length, corner_thickness)
-		h_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		if v_flip:
-			h_line.position.y = corner_length - corner_thickness
-		corner.add_child(h_line)
-		
-		# Vertical line
-		var v_line = ColorRect.new()
-		v_line.color = corner_color
-		v_line.size = Vector2(corner_thickness, corner_length)
-		v_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		if h_flip:
-			v_line.position.x = corner_length - corner_thickness
-		corner.add_child(v_line)
-		
-		# Add glow effect with additional lines
-		var glow_color = Color(0, 1, 1, 0.3)
-		
-		var h_glow = ColorRect.new()
-		h_glow.color = glow_color
-		h_glow.size = Vector2(corner_length, corner_thickness + 4)
-		h_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		if v_flip:
-			h_glow.position.y = corner_length - corner_thickness - 2
-		else:
-			h_glow.position.y = -2
-		h_glow.z_index = -1
-		corner.add_child(h_glow)
-		
-		var v_glow = ColorRect.new()
-		v_glow.color = glow_color
-		v_glow.size = Vector2(corner_thickness + 4, corner_length)
-		v_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		if h_flip:
-			v_glow.position.x = corner_length - corner_thickness - 2
-		else:
-			v_glow.position.x = -2
-		v_glow.z_index = -1
-		corner.add_child(v_glow)
-		
-		return corner
-	
-	# Top-left corner
-	panel.add_child(create_corner.call(Vector2(5, 5), false, false))
-	
-	# Top-right corner
-	panel.add_child(create_corner.call(Vector2(panel.custom_minimum_size.x - corner_length - 5, 5), true, false))
-	
-	# Bottom-left corner
-	panel.add_child(create_corner.call(Vector2(5, panel.custom_minimum_size.y - corner_length - 5), false, true))
-	
-	# Bottom-right corner
-	panel.add_child(create_corner.call(Vector2(panel.custom_minimum_size.x - corner_length - 5, panel.custom_minimum_size.y - corner_length - 5), true, true))
-
-
+# ─────────────────────────────────────────────────────────────────────────────
+# TUTORIAL CARD  (instantiates tutorial_card.tscn, fills in data)
+# ─────────────────────────────────────────────────────────────────────────────
 func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Control) -> PanelContainer:
-	"""Create a styled tutorial card"""
 	var tutorial_id: String = tutorial["id"]
-	
-	# Determine if this is a minigame or tutorial
+
 	var minigame_ids = [
 		"beginner_drop_zone",
 		"intermediate_assetandthreat",
@@ -773,8 +355,7 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 		"advanced_incident_response"
 	]
 	var is_minigame: bool = tutorial_id in minigame_ids
-	
-	# Check the appropriate completion dictionary
+
 	var is_completed: bool = false
 	var completion_data: Dictionary = {}
 	if is_minigame:
@@ -785,24 +366,27 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 		is_completed = TutorialManager.completed_tutorials.has(tutorial_id)
 		if is_completed:
 			completion_data = TutorialManager.completed_tutorials[tutorial_id]
-	
+
 	var metadata = TUTORIAL_METADATA.get(tutorial_id, {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3})
-	
-	# Card container
-	var card = PanelContainer.new()
-	card.custom_minimum_size = Vector2(600, 95)
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	
+
+	# Load card scene
+	var card_scene = load("res://scene/tutorial_card.tscn")
+	if not card_scene:
+		push_error("❌ Could not load tutorial_card.tscn — falling back to inline card")
+		return _create_tutorial_card_inline(tutorial, level_int, overlay)
+
+	var card = card_scene.instantiate()
+
+	# ── Colour the card panel based on completion ──────────────────────────
 	var card_style = StyleBoxFlat.new()
 	if is_completed:
-		card_style.bg_color = Color(0.05, 0.2, 0.1, 0.9)  # Darker green background
-		card_style.border_color = Color(0, 1, 0.5, 1.0)  # Bright green border
-		card_style.shadow_color = Color(0, 1, 0.5, 0.4)  # Green glow
+		card_style.bg_color = Color(0.05, 0.2, 0.1, 0.9)
+		card_style.border_color = Color(0, 1, 0.5, 1.0)
+		card_style.shadow_color = Color(0, 1, 0.5, 0.4)
 		card_style.shadow_size = 8
 	else:
 		card_style.bg_color = Color(0.08, 0.08, 0.12, 0.9)
 		card_style.border_color = Color(0, 1, 1, 0.6)
-	
 	card_style.border_width_left = 2
 	card_style.border_width_top = 2
 	card_style.border_width_right = 2
@@ -812,27 +396,8 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	card_style.corner_radius_bottom_left = 8
 	card_style.corner_radius_bottom_right = 8
 	card.add_theme_stylebox_override("panel", card_style)
-	
-	# Card content with margin
-	var card_margin = MarginContainer.new()
-	card_margin.add_theme_constant_override("margin_left", 15)
-	card_margin.add_theme_constant_override("margin_top", 10)
-	card_margin.add_theme_constant_override("margin_right", 15)
-	card_margin.add_theme_constant_override("margin_bottom", 10)
-	card.add_child(card_margin)
-	
-	# Main horizontal layout (icon + content)
-	var main_hbox = HBoxContainer.new()
-	main_hbox.add_theme_constant_override("separation", 15)
-	card_margin.add_child(main_hbox)
-	
-	# Tutorial category icon (left side)
-	var category_icon = TextureRect.new()
-	category_icon.custom_minimum_size = Vector2(48, 48)
-	category_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	category_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	
-	# Map tutorial ID to appropriate icon
+
+	# ── Category icon ─────────────────────────────────────────────────────
 	var icon_map = {
 		"beginner_fundamentals": ICON_FUNDAMENTALS,
 		"beginner_cia_triad": ICON_CIA_TRIAD,
@@ -847,218 +412,144 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 		"advanced_encryption": ICON_ENCRYPTION,
 		"advanced_lab": ICON_LAB
 	}
-	category_icon.texture = icon_map.get(tutorial_id, ICON_FUNDAMENTALS)
-	main_hbox.add_child(category_icon)
-	
-	var card_vbox = VBoxContainer.new()
-	card_vbox.add_theme_constant_override("separation", 8)
-	card_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	main_hbox.add_child(card_vbox)
-	
-	# Title
-	var title_label = Label.new()
-	title_label.text = tutorial["name"]
-	title_label.add_theme_font_size_override("font_size", 18)
-	title_label.add_theme_color_override("font_color", Color.WHITE)
-	card_vbox.add_child(title_label)
-	
-	# Info row with icons
-	var info_hbox = HBoxContainer.new()
-	info_hbox.add_theme_constant_override("separation", 20)
-	
-	# Time info with icon
-	var time_container = HBoxContainer.new()
-	time_container.add_theme_constant_override("separation", 5)
-	var time_icon = TextureRect.new()
-	time_icon.texture = ICON_TIME
-	time_icon.custom_minimum_size = Vector2(20, 20)
-	time_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	time_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	time_container.add_child(time_icon)
-	var time_label = Label.new()
-	time_label.text = metadata["time"]
-	time_label.add_theme_font_size_override("font_size", 13)
-	time_label.add_theme_color_override("font_color", Color(0.7, 0.85, 1))
-	time_container.add_child(time_label)
-	info_hbox.add_child(time_container)
-	
-	# XP info with icon
-	var xp_container = HBoxContainer.new()
-	xp_container.add_theme_constant_override("separation", 5)
-	var xp_icon = TextureRect.new()
-	xp_icon.texture = ICON_XP
-	xp_icon.custom_minimum_size = Vector2(20, 20)
-	xp_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	xp_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	xp_container.add_child(xp_icon)
-	var xp_label = Label.new()
-	xp_label.text = metadata["xp_range"]
-	xp_label.add_theme_font_size_override("font_size", 13)
-	xp_label.add_theme_color_override("font_color", Color(1, 0.843, 0))
-	xp_container.add_child(xp_label)
-	info_hbox.add_child(xp_container)
-	
-	# Difficulty with REAL star rating
-	var difficulty_container = HBoxContainer.new()
-	difficulty_container.add_theme_constant_override("separation", 3)
-	var difficulty_icon = TextureRect.new()
-	difficulty_icon.texture = ICON_DIFFICULTY
-	difficulty_icon.custom_minimum_size = Vector2(18, 18)
-	difficulty_icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	difficulty_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	difficulty_container.add_child(difficulty_icon)
-	
-	# Add actual star textures
-	for i in 5:
-		var star = TextureRect.new()
-		if i < metadata["difficulty"]:
-			star.texture = ICON_STAR_FILLED
-			star.modulate = Color(1, 0.8, 0.2)  # Gold color for filled stars
-		else:
-			star.texture = ICON_STAR_EMPTY
-			star.modulate = Color(0.4, 0.4, 0.4)  # Gray for empty stars
-		star.custom_minimum_size = Vector2(16, 16)
-		star.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		star.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		difficulty_container.add_child(star)
-	
-	info_hbox.add_child(difficulty_container)
-	
-	card_vbox.add_child(info_hbox)
-	
-	# Status and button (always show button, even for completed)
+	var category_icon = card.get_node("CardMargin/MainHBox/CategoryIcon")
+	if category_icon:
+		category_icon.texture = icon_map.get(tutorial_id, ICON_FUNDAMENTALS)
+
+	# ── Title ─────────────────────────────────────────────────────────────
+	var title_lbl = card.get_node("CardMargin/MainHBox/CardVBox/TitleLabel")
+	if title_lbl:
+		title_lbl.text = tutorial["name"]
+
+	# ── Time / XP labels ──────────────────────────────────────────────────
+	var time_lbl = card.get_node("CardMargin/MainHBox/CardVBox/InfoHBox/TimeContainer/TimeLabel")
+	if time_lbl:
+		time_lbl.text = metadata["time"]
+
+	var xp_lbl = card.get_node("CardMargin/MainHBox/CardVBox/InfoHBox/XPContainer/XPLabel")
+	if xp_lbl:
+		xp_lbl.text = metadata["xp_range"]
+
+	# ── Star difficulty ───────────────────────────────────────────────────
+	var diff = metadata["difficulty"]
+	var diff_container = card.get_node("CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer")
+	if diff_container:
+		for i in range(1, 6):
+			var star = diff_container.get_node("Star%d" % i)
+			if star:
+				if i <= diff:
+					star.texture = ICON_STAR_FILLED
+					star.modulate = Color(1, 0.8, 0.2)
+				else:
+					star.texture = ICON_STAR_EMPTY
+					star.modulate = Color(0.4, 0.4, 0.4)
+
+	# ── Status row ────────────────────────────────────────────────────────
+	var status_lbl = card.get_node("CardMargin/MainHBox/CardVBox/StatusRow/StatusLabel")
+	var action_btn = card.get_node("CardMargin/MainHBox/CardVBox/StatusRow/ActionButton")
+	var no_xp_lbl = card.get_node("CardMargin/MainHBox/CardVBox/StatusRow/NoXPLabel")
+
 	if is_completed:
-		# Completion status - different format for minigames vs tutorials
-		var status_label = Label.new()
-		if is_minigame:
-			# Minigames only show score and XP
-			status_label.text = "✅ COMPLETED | Best Score: %d | 🏆 XP earned: %d" % [completion_data.get("score", 0), completion_data.get("xp_earned", 0)]
-		else:
-			# Tutorials show percentage and XP
-			var percentage: float = completion_data.get("percentage", 0.0)
-			status_label.text = "✅ COMPLETED - %.0f%% | 🏆 XP earned: %d" % [percentage, completion_data.get("xp_earned", 0)]
-		
-		status_label.add_theme_font_size_override("font_size", 14)
-		status_label.add_theme_color_override("font_color", Color(0, 1, 0.5))
-		card_vbox.add_child(status_label)
-		
-		# Replay button container
-		var replay_hbox = HBoxContainer.new()
-		replay_hbox.add_theme_constant_override("separation", 10)
-		
-		var replay_btn = Button.new()
-		replay_btn.text = "PLAY AGAIN 🔄"
-		replay_btn.custom_minimum_size = Vector2(180, 35)
-		replay_btn.add_theme_color_override("font_color", Color(0.9, 0.9, 1))
-		replay_btn.add_theme_font_size_override("font_size", 14)
-		
-		# Different style for replay button (purple/magenta theme)
-		var replay_style = StyleBoxFlat.new()
-		replay_style.bg_color = Color(0.3, 0.15, 0.4, 0.6)
-		replay_style.border_width_left = 2
-		replay_style.border_width_top = 2
-		replay_style.border_width_right = 2
-		replay_style.border_width_bottom = 2
-		replay_style.border_color = Color(0.8, 0.4, 1, 0.7)
-		replay_style.corner_radius_top_left = 5
-		replay_style.corner_radius_top_right = 5
-		replay_style.corner_radius_bottom_left = 5
-		replay_style.corner_radius_bottom_right = 5
-		replay_btn.add_theme_stylebox_override("normal", replay_style)
-		
-		var replay_hover = replay_style.duplicate()
-		replay_hover.bg_color = Color(0.5, 0.25, 0.6, 0.8)
-		replay_hover.border_color = Color(1, 0.6, 1, 1)
-		replay_btn.add_theme_stylebox_override("hover", replay_hover)
-		
-		replay_btn.pressed.connect(func():
-			overlay.queue_free()
-			get_tree().set_meta("tutorial_id", tutorial_id)
-			get_tree().set_meta("tutorial_level", level_int)
-			_save_level_and_navigate(level_int, tutorial["scene"])
-		)
-		
-		replay_hbox.add_child(replay_btn)
-		
-		# "No XP" note
-		var no_xp_label = Label.new()
-		no_xp_label.text = "(No XP awarded)"
-		no_xp_label.add_theme_font_size_override("font_size", 12)
-		no_xp_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
-		no_xp_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		replay_hbox.add_child(no_xp_label)
-		
-		card_vbox.add_child(replay_hbox)
+		if status_lbl:
+			if is_minigame:
+				status_lbl.text = "✅ COMPLETED | Best Score: %d | 🏆 XP earned: %d" % [completion_data.get("score", 0), completion_data.get("xp_earned", 0)]
+			else:
+				status_lbl.text = "✅ COMPLETED - %.0f%% | 🏆 XP earned: %d" % [completion_data.get("percentage", 0.0), completion_data.get("xp_earned", 0)]
+			status_lbl.visible = true
+
+		# Style action button as replay
+		if action_btn:
+			action_btn.text = "PLAY AGAIN 🔄"
+			action_btn.add_theme_color_override("font_color", Color(0.9, 0.9, 1))
+			var replay_style = StyleBoxFlat.new()
+			replay_style.bg_color = Color(0.3, 0.15, 0.4, 0.6)
+			replay_style.border_width_left = 2; replay_style.border_width_top = 2
+			replay_style.border_width_right = 2; replay_style.border_width_bottom = 2
+			replay_style.border_color = Color(0.8, 0.4, 1, 0.7)
+			replay_style.corner_radius_top_left = 5; replay_style.corner_radius_top_right = 5
+			replay_style.corner_radius_bottom_left = 5; replay_style.corner_radius_bottom_right = 5
+			action_btn.add_theme_stylebox_override("normal", replay_style)
+			var replay_hover = replay_style.duplicate()
+			replay_hover.bg_color = Color(0.5, 0.25, 0.6, 0.8)
+			replay_hover.border_color = Color(1, 0.6, 1, 1)
+			action_btn.add_theme_stylebox_override("hover", replay_hover)
+
+		if no_xp_lbl:
+			no_xp_lbl.visible = true
 	else:
-		var btn = Button.new()
-		btn.text = "START TUTORIAL →"
-		btn.custom_minimum_size = Vector2(200, 35)
-		btn.add_theme_color_override("font_color", Color(0, 1, 1))
-		btn.add_theme_font_size_override("font_size", 14)
-		
-		var btn_style = StyleBoxFlat.new()
-		btn_style.bg_color = Color(0, 0.3, 0.4, 0.5)
-		btn_style.border_width_left = 2
-		btn_style.border_width_top = 2
-		btn_style.border_width_right = 2
-		btn_style.border_width_bottom = 2
-		btn_style.border_color = Color(0, 1, 1, 0.8)
-		btn_style.corner_radius_top_left = 5
-		btn_style.corner_radius_top_right = 5
-		btn_style.corner_radius_bottom_left = 5
-		btn_style.corner_radius_bottom_right = 5
-		btn.add_theme_stylebox_override("normal", btn_style)
-		
-		var btn_hover = btn_style.duplicate()
-		btn_hover.bg_color = Color(0, 0.5, 0.6, 0.7)
-		btn.add_theme_stylebox_override("hover", btn_hover)
-		
-		btn.pressed.connect(func():
+		if status_lbl:
+			status_lbl.visible = false
+		if no_xp_lbl:
+			no_xp_lbl.visible = false
+		# Style action button as start
+		if action_btn:
+			action_btn.text = "START TUTORIAL →"
+			action_btn.add_theme_color_override("font_color", Color(0, 1, 1))
+			var btn_style = StyleBoxFlat.new()
+			btn_style.bg_color = Color(0, 0.3, 0.4, 0.5)
+			btn_style.border_width_left = 2; btn_style.border_width_top = 2
+			btn_style.border_width_right = 2; btn_style.border_width_bottom = 2
+			btn_style.border_color = Color(0, 1, 1, 0.8)
+			btn_style.corner_radius_top_left = 5; btn_style.corner_radius_top_right = 5
+			btn_style.corner_radius_bottom_left = 5; btn_style.corner_radius_bottom_right = 5
+			action_btn.add_theme_stylebox_override("normal", btn_style)
+			var btn_hover = btn_style.duplicate()
+			btn_hover.bg_color = Color(0, 0.5, 0.6, 0.7)
+			action_btn.add_theme_stylebox_override("hover", btn_hover)
+
+	# ── Wire up the button ────────────────────────────────────────────────
+	if action_btn:
+		action_btn.pressed.connect(func():
 			overlay.queue_free()
 			get_tree().set_meta("tutorial_id", tutorial_id)
 			get_tree().set_meta("tutorial_level", level_int)
 			_save_level_and_navigate(level_int, tutorial["scene"])
 		)
-		
-		card_vbox.add_child(btn)
-	
+
 	return card
 
 
-# -------------------------
-# SAVE LEVEL TO FIRESTORE + NAVIGATE TO TUTORIAL
-# -------------------------
+# Fallback: build card inline if the scene file is missing
+func _create_tutorial_card_inline(tutorial: Dictionary, level_int: int, overlay: Control) -> PanelContainer:
+	var card = PanelContainer.new()
+	card.custom_minimum_size = Vector2(600, 95)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var lbl = Label.new()
+	lbl.text = tutorial["name"]
+	card.add_child(lbl)
+	var btn = Button.new()
+	btn.text = "START →"
+	btn.pressed.connect(func():
+		overlay.queue_free()
+		get_tree().set_meta("tutorial_id", tutorial["id"])
+		get_tree().set_meta("tutorial_level", level_int)
+		_save_level_and_navigate(level_int, tutorial["scene"])
+	)
+	card.add_child(btn)
+	return card
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SAVE LEVEL TO FIRESTORE + NAVIGATE
+# ─────────────────────────────────────────────────────────────────────────────
 func _save_level_and_navigate(level_int: int, tutorial_scene: String) -> void:
 	print("💾 Saving level to Firestore...")
-	
-	# Build Firestore PATCH request (only update 'level' field)
 	var url: String = "%s/users/%s?updateMask.fieldPaths=level" % [FIRESTORE_URL, Auth.current_local_id]
 	var headers: Array = [
 		"Content-Type: application/json",
 		"Authorization: Bearer %s" % Auth.current_id_token
 	]
-	var body := {
-		"fields": {
-			"level": {"integerValue": level_int}
-		}
-	}
-	
+	var body := {"fields": {"level": {"integerValue": level_int}}}
 	var http := HTTPRequest.new()
 	add_child(http)
-	
 	http.request_completed.connect(func(_r, code, _h, body_response):
 		http.queue_free()
-		var text: String = body_response.get_string_from_utf8()
-		
 		if code == 200:
 			print("✅ Level saved successfully:", level_int)
 		else:
-			push_error("❌ Failed to save level (%s): %s" % [code, text])
-		
-		# Navigate to tutorial scene (even if save fails)
+			push_error("❌ Failed to save level (%s): %s" % [code, body_response.get_string_from_utf8()])
 		_transition_to_tutorial(tutorial_scene)
 	)
-	
 	var err := http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
 	if err != OK:
 		push_error("Failed to start Firestore PATCH: %s" % err)
@@ -1066,203 +557,96 @@ func _save_level_and_navigate(level_int: int, tutorial_scene: String) -> void:
 		_transition_to_tutorial(tutorial_scene)
 
 
-# -------------------------
-# TRANSITION TO TUTORIAL (Zoom + Fade animation)
-# -------------------------
+# ─────────────────────────────────────────────────────────────────────────────
+# TRANSITION ANIMATION
+# ─────────────────────────────────────────────────────────────────────────────
 func _transition_to_tutorial(scene_path: String) -> void:
 	var tween = create_tween()
 	tween.set_parallel(true)
 	tween.set_trans(Tween.TRANS_QUAD)
 	tween.set_ease(Tween.EASE_IN)
-	
-	# Zoom in + fade out
 	tween.tween_property(self, "scale", Vector2(1.2, 1.2), 0.4)
 	tween.tween_property(self, "modulate:a", 0.0, 0.3)
-
 	var bgm = $BackgroundMusic
 	if bgm:
 		tween.tween_property(bgm, "volume_db", -80, 0.3)
 	await tween.finished
-	
-	# Navigate to tutorial scene
 	get_tree().change_scene_to_file(scene_path)
 
 
-# -------------------------
-# MENU BUTTON (Placeholder)
-# -------------------------
-# -------------------------
-# MENU BUTTON (Opens Settings)
-# -------------------------
+# ─────────────────────────────────────────────────────────────────────────────
+# MENU / SETTINGS BUTTON
+# ─────────────────────────────────────────────────────────────────────────────
 func _on_menu_pressed() -> void:
 	print("🍔 Menu button pressed - Opening settings...")
-	
-	# Load the settings panel scene
 	var settings_scene = load("res://scene/SettingsPanel.tscn")
 	if not settings_scene:
 		push_error("❌ Failed to load settings_panel.tscn")
 		return
-	
 	var settings_panel = settings_scene.instantiate()
-	
-	# Set the background music as the target for volume control
 	var bgm = $BackgroundMusic
 	if bgm and settings_panel.has_method("set_target_music"):
 		settings_panel.set_target_music(bgm)
-	
-	# Add settings panel to the scene
 	$CanvasLayer.add_child(settings_panel)
-	
-	# Center the settings panel on screen
-	# Center the settings panel on screen
 	if settings_panel.has_node("Window"):
 		var window = settings_panel.get_node("Window")
 		var viewport_size = get_viewport_rect().size
 		window.position = (viewport_size - window.size) / 2
 
-# -------------------------
-# XP AND RANK DISPLAY
-# -------------------------
-func _update_xp_display() -> void:
-	print("[ModeSelection] ========== UPDATING XP DISPLAY ==========")
-	print("[ModeSelection] TutorialManager.total_xp: %d" % TutorialManager.total_xp)
-	print("[ModeSelection] TutorialManager.data_has_loaded: %s" % TutorialManager.data_has_loaded)
-	
-	var rank: Dictionary = TutorialManager.get_rank()
-	var current_xp = TutorialManager.total_xp
-	
-	if xp_label:
-		xp_label.text = ": %d" % current_xp
-		xp_label.add_theme_color_override("font_color", Color(0.984, 0.992, 0.910, 1))  # #fbfde8
-		print("[ModeSelection] ✅ XP Label updated to: %s" % xp_label.text)
-	else:
-		print("[ModeSelection] ⚠️ xp_label not found!")
-	
-	if rank_icon:
-		var icon_texture = load(rank["icon"])
-		if icon_texture:
-			rank_icon.texture = icon_texture
-			print("[ModeSelection] ✅ Rank Icon loaded: %s" % rank["icon"])
-		else:
-			print("[ModeSelection] ⚠️ Failed to load rank icon: %s" % rank["icon"])
-	else:
-		print("[ModeSelection] ⚠️ rank_icon not found!")
-	
-	if rank_label:
-		rank_label.text = rank["name"]
-		rank_label.add_theme_color_override("font_color", rank["color"])
-		rank_label.tooltip_text = "Progress: %.0f%% | XP to next rank: %d" % [rank["progress"], rank["xp_to_next"]]
-		print("[ModeSelection] ✅ Rank Label updated to: %s" % rank_label.text)
-	else:
-		print("[ModeSelection] ⚠️ rank_label not found!")
-	
-	# Update XP Progress Bar
-	if xp_progress_bar:
-		var next_rank_xp = rank["max_xp"] if rank["max_xp"] != 999999 else rank["min_xp"] + 1000
-		xp_progress_bar.max_value = next_rank_xp
-		xp_progress_bar.value = current_xp
-		
-		# Animate progress bar fill
-		var tween = create_tween()
-		tween.tween_property(xp_progress_bar, "value", current_xp, 1.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	
-	# Update unlock panel
-	_populate_unlock_panel()
 
-
-# -------------------------
-# PROFILE BUTTON
-# -------------------------
+# ─────────────────────────────────────────────────────────────────────────────
+# PROFILE / BACK
+# ─────────────────────────────────────────────────────────────────────────────
 func _on_profile_pressed() -> void:
-	print("👤 Opening profile...")
+	_fade_out_music_and_transition("res://scene/landing.tscn")
+
+func _on_back_pressed() -> void:
 	_fade_out_music_and_transition("res://scene/landing.tscn")
 
 
-# -------------------------
-# BACK BUTTON
-# -------------------------
-func _on_back_pressed() -> void:
-		_fade_out_music_and_transition("res://scene/landing.tscn")
-
+# ─────────────────────────────────────────────────────────────────────────────
+# RANK-UP NOTIFICATION
+# ─────────────────────────────────────────────────────────────────────────────
 func _on_rank_up(new_rank: Dictionary) -> void:
 	print("[ModeSelection] 🏆 RANK UP SIGNAL RECEIVED! %s %s" % [new_rank["icon"], new_rank["name"]])
-	
-	# Find old rank
 	var old_rank: Dictionary = TutorialManager.RANK_THRESHOLDS[0]
 	for i in range(TutorialManager.RANK_THRESHOLDS.size()):
 		if TutorialManager.RANK_THRESHOLDS[i]["name"] == new_rank["name"] and i > 0:
 			old_rank = TutorialManager.RANK_THRESHOLDS[i - 1]
 			break
-	
-	print("[ModeSelection] Old rank: %s, New rank: %s" % [old_rank["name"], new_rank["name"]])
-	
-	# Wait a frame to ensure scene is fully loaded
 	await get_tree().process_frame
-	
 	var notification_scene = load("res://scene/rank_up_notification.tscn")
 	if not notification_scene:
 		push_error("[ModeSelection] ❌ Failed to load rank_up_notification.tscn")
 		return
-	
 	var notification = notification_scene.instantiate()
-	
-	# ✅ Simply add to scene tree - CanvasLayer handles everything
 	add_child(notification)
-	
-	print("[ModeSelection] ✅ Notification instantiated and added to tree")
-	
-	# Show the notification
 	notification.show_rank_up(old_rank, new_rank)
-	
-	# Wait for it to close
 	await notification.notification_closed
 	print("[ModeSelection] ✅ Rank-up notification closed")
 
 
+func _check_and_show_rank_up() -> void:
+	var rank_up_data = TutorialManager.check_pending_rank_up()
+	if rank_up_data.is_empty():
+		return
+	var old_rank: Dictionary = rank_up_data["old_rank"]
+	var new_rank: Dictionary = rank_up_data["new_rank"]
+	print("[ModeSelection] 🎉 SHOWING RANK-UP: %s → %s" % [old_rank["name"], new_rank["name"]])
+	await get_tree().create_timer(0.5).timeout
+	var notification_scene = load("res://scene/rank_up_notification.tscn")
+	if not notification_scene:
+		push_error("[ModeSelection] ❌ Failed to load rank_up_notification.tscn")
+		return
+	var notification = notification_scene.instantiate()
+	add_child(notification)
+	notification.show_rank_up(old_rank, new_rank)
+	await notification.notification_closed
+	print("[ModeSelection] ✅ Rank-up notification closed")
 
-	# ✅ TEST FUNCTION - Press F9 to test rank-up notification
+
+# F9 test shortcut
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F9:
 		print("[TEST] Manually triggering rank-up notification...")
-		var test_old_rank = TutorialManager.RANK_THRESHOLDS[0]  # Iron
-		var test_new_rank = TutorialManager.RANK_THRESHOLDS[1]  # Bronze
-		_on_rank_up(test_new_rank)
-
-
-# ✅ NEW: Check for pending rank-up and show notification
-func _check_and_show_rank_up() -> void:
-	print("[ModeSelection] ========== CHECKING FOR PENDING RANK-UP ==========")
-	
-	var rank_up_data = TutorialManager.check_pending_rank_up()
-	
-	if rank_up_data.is_empty():
-		print("[ModeSelection] No pending rank-up to show")
-		return
-	
-	var old_rank: Dictionary = rank_up_data["old_rank"]
-	var new_rank: Dictionary = rank_up_data["new_rank"]
-	
-	print("[ModeSelection] 🎉 SHOWING RANK-UP: %s → %s" % [old_rank["name"], new_rank["name"]])
-	
-	# Wait a moment for scene to fully settle
-	await get_tree().create_timer(0.5).timeout
-	
-	# Load and show notification
-	var notification_scene = load("res://scene/rank_up_notification.tscn")
-	if not notification_scene:
-		push_error("[ModeSelection] ❌ Failed to load rank_up_notification.tscn")
-		return
-	
-	var notification = notification_scene.instantiate()
-	
-	# ✅ Simply add to scene tree - CanvasLayer handles everything
-	add_child(notification)
-	
-	print("[ModeSelection] ✅ Notification added to tree, calling show_rank_up()")
-	
-	# Show the notification
-	notification.show_rank_up(old_rank, new_rank)
-	
-	# Wait for it to close
-	await notification.notification_closed
-	print("[ModeSelection] ✅ Rank-up notification closed")
+		_on_rank_up(TutorialManager.RANK_THRESHOLDS[1])

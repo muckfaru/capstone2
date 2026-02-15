@@ -1,0 +1,169 @@
+[gd_scene load_steps=8 format=3 uid="uid://ln08eihg34hi"]
+
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="1_font"]
+[ext_resource type="Texture2D" uid="uid://dri7g0isxowjd" path="res://asset/background/arena toturial.jpg" id="2_time"]
+[ext_resource type="Texture2D" uid="uid://dg2mhp8h0wmco" path="res://asset/icons/xp icon.png" id="3_xp"]
+[ext_resource type="Texture2D" uid="uid://duu113m4ri5fl" path="res://asset/icons/difficulty.png" id="4_diff"]
+[ext_resource type="Texture2D" uid="uid://c8lj4tejpypfd" path="res://asset/icons/star_filled2.png" id="5_star_on"]
+[ext_resource type="Texture2D" uid="uid://b1hgwhpvmj6np" path="res://asset/icons/star_empty.png" id="6_star_off"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_normal"]
+bg_color = Color(0.08, 0.08, 0.12, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 1, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="TutorialCard" type="PanelContainer"]
+custom_minimum_size = Vector2(600, 95)
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_normal")
+
+[node name="CardMargin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 10
+
+[node name="MainHBox" type="HBoxContainer" parent="CardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="CategoryIcon" type="TextureRect" parent="CardMargin/MainHBox"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CardVBox" type="VBoxContainer" parent="CardMargin/MainHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="CardMargin/MainHBox/CardVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 18
+text = "Tutorial Name"
+
+[node name="InfoHBox" type="HBoxContainer" parent="CardMargin/MainHBox/CardVBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TimeContainer" type="HBoxContainer" parent="CardMargin/MainHBox/CardVBox/InfoHBox"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="TimeIcon" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/TimeContainer"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+texture = ExtResource("2_time")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TimeLabel" type="Label" parent="CardMargin/MainHBox/CardVBox/InfoHBox/TimeContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "10-15 min"
+
+[node name="XPContainer" type="HBoxContainer" parent="CardMargin/MainHBox/CardVBox/InfoHBox"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="XPIcon" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/XPContainer"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+texture = ExtResource("3_xp")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="XPLabel" type="Label" parent="CardMargin/MainHBox/CardVBox/InfoHBox/XPContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843, 0, 1)
+theme_override_font_sizes/font_size = 13
+text = "100-200 XP"
+
+[node name="DifficultyContainer" type="HBoxContainer" parent="CardMargin/MainHBox/CardVBox/InfoHBox"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="DifficultyIcon" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+texture = ExtResource("4_diff")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star1" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
+modulate = Color(1, 0.8, 0.2, 1)
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+texture = ExtResource("5_star_on")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star2" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
+modulate = Color(1, 0.8, 0.2, 1)
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+texture = ExtResource("5_star_on")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star3" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
+modulate = Color(0.4, 0.4, 0.4, 1)
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+texture = ExtResource("6_star_off")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star4" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
+modulate = Color(0.4, 0.4, 0.4, 1)
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+texture = ExtResource("6_star_off")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Star5" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
+modulate = Color(0.4, 0.4, 0.4, 1)
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+texture = ExtResource("6_star_off")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatusRow" type="HBoxContainer" parent="CardMargin/MainHBox/CardVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="StatusLabel" type="Label" parent="CardMargin/MainHBox/CardVBox/StatusRow"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="ActionButton" type="Button" parent="CardMargin/MainHBox/CardVBox/StatusRow"]
+custom_minimum_size = Vector2(200, 35)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "START TUTORIAL →"
+
+[node name="NoXPLabel" type="Label" parent="CardMargin/MainHBox/CardVBox/StatusRow"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 12
+text = "(No XP awarded)"
+vertical_alignment = 1

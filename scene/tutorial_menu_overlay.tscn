@@ -1,0 +1,249 @@
+[gd_scene load_steps=6 format=3 uid="uid://utqrlj7k5ilu"]
+
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="1_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog"]
+bg_color = Color(0.05, 0.1, 0.15, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 1, 1, 0.3)
+shadow_size = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_hover"]
+bg_color = Color(0.4, 0, 0, 0.6)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0, 0, 0.8)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_normal"]
+bg_color = Color(0.2, 0, 0, 0.3)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0, 0, 0.5)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_separator"]
+bg_color = Color(0, 1, 1, 0.3)
+
+[node name="TutorialMenuOverlay" type="Control"]
+z_index = 99
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DimBackground" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="DialogPanel" type="Panel" parent="."]
+z_index = 100
+custom_minimum_size = Vector2(720, 580)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -290.0
+offset_right = 360.0
+offset_bottom = 290.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="CloseButton" type="Button" parent="DialogPanel"]
+z_index = 200
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -60.0
+offset_top = 18.0
+offset_right = -20.0
+offset_bottom = 48.0
+theme_override_colors/font_hover_color = Color(1, 0, 0, 1)
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 28
+theme_override_styles/hover = SubResource("StyleBoxFlat_close_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_close_normal")
+text = "✕"
+
+[node name="ContentMargin" type="MarginContainer" parent="DialogPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 55
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 20
+
+[node name="MainVBox" type="VBoxContainer" parent="DialogPanel/ContentMargin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="DialogPanel/ContentMargin/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 24
+text = "Choose Tutorial - Level 1 Assessment"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="DialogPanel/ContentMargin/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 12
+text = "Complete tutorials to earn XP and unlock games!
+Passing score: 70% or higher"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Separator" type="HSeparator" parent="DialogPanel/ContentMargin/MainVBox"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/separator = SubResource("StyleBoxFlat_separator")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="DialogPanel/ContentMargin/MainVBox"]
+custom_minimum_size = Vector2(0, 380)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ScrollContentMargin" type="MarginContainer" parent="DialogPanel/ContentMargin/MainVBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 15
+
+[node name="TutorialsVBox" type="VBoxContainer" parent="DialogPanel/ContentMargin/MainVBox/ScrollContainer/ScrollContentMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="CornerTL" type="Control" parent="DialogPanel"]
+custom_minimum_size = Vector2(50, 50)
+anchors_preset = 0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 55.0
+offset_bottom = 55.0
+mouse_filter = 2
+
+[node name="HTL" type="ColorRect" parent="DialogPanel/CornerTL"]
+layout_mode = 0
+offset_right = 50.0
+offset_bottom = 3.0
+mouse_filter = 2
+color = Color(0, 1, 1, 1)
+
+[node name="VTL" type="ColorRect" parent="DialogPanel/CornerTL"]
+layout_mode = 0
+offset_right = 3.0
+offset_bottom = 50.0
+mouse_filter = 2
+color = Color(0, 1, 1, 1)
+
+[node name="CornerTR" type="Control" parent="DialogPanel"]
+custom_minimum_size = Vector2(50, 50)
+anchors_preset = 0
+offset_left = 665.0
+offset_top = 5.0
+offset_right = 715.0
+offset_bottom = 55.0
+mouse_filter = 2
+
+[node name="HTR" type="ColorRect" parent="DialogPanel/CornerTR"]
+layout_mode = 0
+offset_right = 50.0
+offset_bottom = 3.0
+mouse_filter = 2
+color = Color(0, 1, 1, 1)
+
+[node name="VTR" type="ColorRect" parent="DialogPanel/CornerTR"]
+layout_mode = 0
+offset_left = 47.0
+offset_right = 50.0
+offset_bottom = 50.0
+mouse_filter = 2
+color = Color(0, 1, 1, 1)
+
+[node name="CornerBL" type="Control" parent="DialogPanel"]
+custom_minimum_size = Vector2(50, 50)
+anchors_preset = 0
+offset_left = 5.0
+offset_top = 525.0
+offset_right = 55.0
+offset_bottom = 575.0
+mouse_filter = 2
+
+[node name="HBL" type="ColorRect" parent="DialogPanel/CornerBL"]
+layout_mode = 0
+offset_top = 47.0
+offset_right = 50.0
+offset_bottom = 50.0
+mouse_filter = 2
+color = Color(0, 1, 1, 1)
+
+[node name="VBL" type="ColorRect" parent="DialogPanel/CornerBL"]
+layout_mode = 0
+offset_right = 3.0
+offset_bottom = 50.0
+mouse_filter = 2
+color = Color(0, 1, 1, 1)
+
+[node name="CornerBR" type="Control" parent="DialogPanel"]
+custom_minimum_size = Vector2(50, 50)
+anchors_preset = 0
+offset_left = 665.0
+offset_top = 525.0
+offset_right = 715.0
+offset_bottom = 575.0
+mouse_filter = 2
+
+[node name="HBR" type="ColorRect" parent="DialogPanel/CornerBR"]
+layout_mode = 0
+offset_top = 47.0
+offset_right = 50.0
+offset_bottom = 50.0
+mouse_filter = 2
+color = Color(0, 1, 1, 1)
+
+[node name="VBR" type="ColorRect" parent="DialogPanel/CornerBR"]
+layout_mode = 0
+offset_left = 47.0
+offset_right = 50.0
+offset_bottom = 50.0
+mouse_filter = 2
+color = Color(0, 1, 1, 1)
+
+[connection signal="pressed" from="DialogPanel/CloseButton" to="." method="_on_close_pressed"]
