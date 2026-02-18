@@ -1,4 +1,4 @@
-[gd_scene load_steps=134 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=140 format=3 uid="uid://5o3qtaqdnl8s"]
 
 [ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_86hhj"]
 [ext_resource type="PackedScene" uid="uid://bohnaxmk78jfw" path="res://scene/friend_list.tscn" id="3_hlv06"]
@@ -36,6 +36,7 @@
 [ext_resource type="Texture2D" uid="uid://dqpteeogcm5ea" path="res://asset/newUIlandingupdate/matchplayedicon.png" id="19_70c5x"]
 [ext_resource type="Texture2D" uid="uid://ycciu3vdwj7p" path="res://asset/newUIlandingupdate/hover.png" id="19_cknn0"]
 [ext_resource type="Texture2D" uid="uid://dstuddkqal8we" path="res://asset/newUIlandingupdate/buttonframs.png" id="19_cmdxx"]
+[ext_resource type="Texture2D" uid="uid://ybq3hho0fr8s" path="res://asset/newUIlandingupdate/Group 53 (1).png" id="31_6jpks"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_irntn"]
 bg_color = Color(0.164706, 0.164706, 0.164706, 0)
@@ -414,7 +415,7 @@ shadow_color = Color(1, 0.839216, 0, 0.4)
 shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_matches"]
-bg_color = Color(0, 0.1, 0.15, 0.9)
+bg_color = Color(0.0666667, 0.0745098, 0.203922, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -469,7 +470,7 @@ shadow_color = Color(0.6, 0.4, 1, 0.4)
 shadow_size = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q33pn"]
-bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+bg_color = Color(0, 0, 0, 0.764706)
 shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 
 [sub_resource type="Theme" id="Theme_qdyf0"]
@@ -495,29 +496,21 @@ content_margin_bottom = 4.0
 bg_color = Color(0, 0, 0, 0)
 border_color = Color(0, 0, 0, 0)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jpfeh"]
-content_margin_left = 16.0
-content_margin_top = 4.0
-content_margin_right = 16.0
-content_margin_bottom = 4.0
-bg_color = Color(0.749127, 0.00681796, 0.289058, 0.3)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.43, 0.559, 1, 0.823)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7oonc"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 25.0
+expand_margin_top = 4.0
+expand_margin_right = 20.0
+expand_margin_bottom = 4.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uxtpd"]
-content_margin_left = 16.0
-content_margin_top = 4.0
-content_margin_right = 16.0
-content_margin_bottom = 4.0
-bg_color = Color(0, 0, 0, 0)
-border_color = Color(0, 0, 0, 0)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a4nn5"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_01m1f"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bafi2"]
 content_margin_left = 16.0
@@ -527,6 +520,13 @@ content_margin_bottom = 4.0
 bg_color = Color(0, 0, 0, 0)
 border_color = Color(0, 0, 0, 0)
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_fth8t"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7xp6e"]
 content_margin_left = 16.0
 content_margin_top = 4.0
@@ -534,6 +534,27 @@ content_margin_right = 16.0
 content_margin_bottom = 4.0
 bg_color = Color(0, 0, 0, 0)
 border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3jmaa"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_76yyg"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_y0g3t"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_focus"]
 content_margin_left = 8.0
@@ -1539,7 +1560,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="LogoSpacer" type="Control" parent="NavigationPanel/HBoxContainer"]
-custom_minimum_size = Vector2(32, 0)
+custom_minimum_size = Vector2(55, 0)
 layout_mode = 2
 
 [node name="HomeNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
@@ -1549,8 +1570,8 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
-theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
-theme_override_styles/normal = SubResource("StyleBoxFlat_uxtpd")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7oonc")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_a4nn5")
 text = "Home"
 
 [node name="GameNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
@@ -1560,7 +1581,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
-theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
+theme_override_styles/hover = SubResource("StyleBoxTexture_01m1f")
 theme_override_styles/normal = SubResource("StyleBoxFlat_bafi2")
 text = "Game"
 
@@ -1571,7 +1592,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
-theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
+theme_override_styles/hover = SubResource("StyleBoxTexture_fth8t")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Ranking"
 
@@ -1582,7 +1603,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
-theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
+theme_override_styles/hover = SubResource("StyleBoxTexture_3jmaa")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Profile"
 
@@ -1593,7 +1614,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
-theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
+theme_override_styles/hover = SubResource("StyleBoxTexture_76yyg")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "MINI GAMES"
 
@@ -1604,7 +1625,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
-theme_override_styles/hover = SubResource("StyleBoxFlat_jpfeh")
+theme_override_styles/hover = SubResource("StyleBoxTexture_y0g3t")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Bag"
 

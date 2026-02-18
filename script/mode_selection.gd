@@ -1,9 +1,9 @@
 extends Control
 
-# ── Buttons (pre-existing in scene) ──────────────────────────────────────
-@onready var beginner_btn: Button = $CanvasLayer/ButtonContainer/BeginnerButton
-@onready var intermediate_btn: Button = $CanvasLayer/ButtonContainer/IntermediateButton
-@onready var advanced_btn: Button = $CanvasLayer/ButtonContainer/AdvancedButton
+# ── Buttons (direct children of CanvasLayer, no container parent) ─────────
+@onready var beginner_btn: Button = $CanvasLayer/BeginnerButton
+@onready var intermediate_btn: Button = $CanvasLayer/IntermediateButton
+@onready var advanced_btn: Button = $CanvasLayer/AdvancedButton
 @onready var back_btn: Button = $CanvasLayer/BackButton
 
 # ── XP / Rank display (now scene nodes) ──────────────────────────────────
@@ -45,6 +45,16 @@ const ICON_LAB := preload("res://asset/icons/code breaker.png")
 const ICON_ENCRYPTION := preload("res://asset/icons/encryicon.png")
 const ICON_ADVANCED := preload("res://asset/icons/hacker.png")
 
+# Intermediate minigame icons
+const ICON_DROP_ZONE := preload("res://asset/icons/drop_zone_icon.png")
+const ICON_ASSET_THREAT := preload("res://asset/icons/asset_threat_icon.png")
+const ICON_CRYPT_CONTRACT := preload("res://asset/icons/crypt_contract_icon.png")
+const ICON_INCIDENT_COMMANDER := preload("res://asset/icons/incident_commander_icon.png")
+
+# Advanced minigame icons
+const ICON_SECURITY_GUARDIAN := preload("res://asset/icons/security_guardian_icon.png")
+const ICON_MALWARE_DEFENSE := preload("res://asset/icons/malware_defense_icon.png")
+const ICON_INCIDENT_RESPONSE := preload("res://asset/icons/incident_response_icon.png")
 # Tutorial metadata
 const TUTORIAL_METADATA := {
 	"beginner_fundamentals": {"time": "10-15 min", "xp_range": "100-200 XP", "difficulty": 2},
@@ -399,12 +409,23 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 
 	# ── Category icon ─────────────────────────────────────────────────────
 	var icon_map = {
+		# Beginner tutorials
 		"beginner_fundamentals": ICON_FUNDAMENTALS,
 		"beginner_cia_triad": ICON_CIA_TRIAD,
 		"beginner_network": ICON_NETWORK,
 		"beginner_password": ICON_PASSWORD,
 		"beginner_malware": ICON_MALWARE,
+		# Intermediate minigames
+		"beginner_drop_zone": ICON_DROP_ZONE,
 		"intermediate_phishing": ICON_PHISHING,
+		"intermediate_assetandthreat": ICON_ASSET_THREAT,
+		"intermediate_crypt_contract": ICON_CRYPT_CONTRACT,
+		"intermediate_incident_commander": ICON_INCIDENT_COMMANDER,
+		# Advanced minigames
+		"advanced_security_guardian": ICON_SECURITY_GUARDIAN,
+		"advanced_malware_defense": ICON_MALWARE_DEFENSE,
+		"advanced_incident_response": ICON_INCIDENT_RESPONSE,
+		# Old tutorial IDs (kept for safety)
 		"intermediate_trojan": ICON_TROJAN,
 		"intermediate_defense": ICON_DEFENSE,
 		"intermediate_lab": ICON_LAB,

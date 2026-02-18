@@ -200,7 +200,7 @@ func _ensure_match_history_ui() -> void:
 		_match_history_scroll.add_child(_match_history_vbox)
 
 	_clear_match_history_rows()
-	_add_match_history_placeholder("Loading…")
+	
 
 func _setup_match_history_tabs() -> void:
 	var tab_bar = match_history_panel.get_node_or_null("TabBar")
@@ -221,7 +221,8 @@ func _setup_match_history_tabs() -> void:
 	stats_tab.pressed.connect(_on_tab_stats)
 	inventory_tab.pressed.connect(_on_tab_inventory_panel)
 
-	# ✅ Start on Stats tab instead of Match History
+	if _match_history_scroll:
+		_match_history_scroll.visible = false
 	_on_tab_stats()
 
 
@@ -2366,8 +2367,8 @@ func _show_starter_reward_popup(welcome_completed: bool) -> void:
 	_apply_font_to_children(popup, custom_font, 20)
 
 	var guide_icon: Texture2D = null
-	if ResourceLoader.exists("res://asset/icons/hologram_guide.png"):
-		guide_icon = load("res://asset/icons/hologram_guide.png")
+	if ResourceLoader.exists("res://asset/newUIlandingupdate/example trophu.png"):
+		guide_icon = load("res://asset/newUIlandingupdate/example trophu.png")
 
 	var chariot_path := "res://asset/reward_background_cards/the chariot 7 card.jpeg"
 	var chariot_icon: Texture2D = null
@@ -2829,11 +2830,16 @@ func _show_panel(panel_paths: Dictionary, panel_name: String) -> void:
 		node_to_show.visible = true
 		
 		# ✅ If showing profile panel, ensure UI is properly positioned
+# ✅ If showing profile panel, ensure UI is properly positioned
 		if panel_name == "profile":
 			_refresh_profile_ui_positions()
-			# Refresh match history when opening profile
+			# Re-initialise the UI structure only (no data load yet).
+			# Data is loaded on demand when the user clicks a tab.
 			_ensure_match_history_ui()
-			_load_match_history()
+			# Default to Stats tab so match history scroll stays hidden.
+			if _match_history_scroll:
+				_match_history_scroll.visible = false
+			_on_tab_stats()
 
 	var friend_list = $VideoStreamPlayer.get_node_or_null("FriendListPanel")
 	if friend_list:

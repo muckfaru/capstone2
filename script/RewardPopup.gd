@@ -1,189 +1,465 @@
-#RewardPopup.gd
-
+# RewardPopup.gd
 extends CanvasLayer
 
-# === Signals ===
+# =============================================================================
+# SIGNALS
+# =============================================================================
 signal rewards_claimed
 signal popup_closed
 
-# === UI References (now linked from scene) ===
-@onready var panel_container: PanelContainer = $PanelContainer
-@onready var title_label: Label = $PanelContainer/VBoxContainer/TitleContainer/TitleLabel
-@onready var reward_grid: GridContainer = $PanelContainer/VBoxContainer/CenterContainer/RewardGrid
-@onready var claim_button: Button = $PanelContainer/VBoxContainer/ClaimButton
-@onready var xp_progress_bar: ProgressBar = $PanelContainer/VBoxContainer/ProgressContainer/ProgressVBox/XPProgressBar
-@onready var xp_label: Label = $PanelContainer/VBoxContainer/ProgressContainer/ProgressVBox/XPLabel
-@onready var instruction_label: Label = $PanelContainer/VBoxContainer/InstructionLabel
-@onready var save_status_label: Label = $PanelContainer/VBoxContainer/SaveStatusLabel
+# =============================================================================
+# SCENE NODES
+# =============================================================================
+@onready var panel_container: PanelContainer = $PanelCenter/PanelContainer
 
-# Starter layout references
-@onready var _starter_layout_root: VBoxContainer = $PanelContainer/VBoxContainer/CenterContainer/StarterLayoutRoot
-@onready var _starter_mid_row: HBoxContainer = $PanelContainer/VBoxContainer/CenterContainer/StarterLayoutRoot/MidCenter/StarterMidRow
-@onready var _starter_bottom_center: CenterContainer = $PanelContainer/VBoxContainer/CenterContainer/StarterLayoutRoot/StarterBottomCenter
+# Main layout
+@onready var title_label: Label = $PanelCenter/PanelContainer/MarginContainer/MainVBox/TitleLabel
+@onready var chest_container: Control = $PanelCenter/PanelContainer/MarginContainer/MainVBox/ChestArea/ChestContainer
+@onready var chest_icon: TextureRect = $PanelCenter/PanelContainer/MarginContainer/MainVBox/ChestArea/ChestContainer/ChestIcon
+@onready var chest_glow: ColorRect = $PanelCenter/PanelContainer/MarginContainer/MainVBox/ChestArea/ChestContainer/ChestGlow
+@onready var burst_ring: ColorRect = $PanelCenter/PanelContainer/MarginContainer/MainVBox/ChestArea/ChestContainer/BurstRing
 
-# Particle systems
-var particle_system: CPUParticles2D
+# Reward overlay — direct child of CanvasLayer, NOT inside the panel VBox
+@onready var reward_overlay: Control = $RewardOverlay
+@onready var items_row: HBoxContainer = $RewardOverlay/OverlayCenter/OverlayVBox/ItemsRow
+@onready var xp_area: VBoxContainer = $RewardOverlay/OverlayCenter/OverlayVBox/XPArea
+@onready var xp_progress_bar: ProgressBar = $RewardOverlay/OverlayCenter/OverlayVBox/XPArea/XPProgressBar
+@onready var xp_label: Label = $RewardOverlay/OverlayCenter/OverlayVBox/XPArea/XPLabel
 
-# Sound players
-var sound_panel_appear: AudioStreamPlayer
-var sound_item_pop: AudioStreamPlayer
-var sound_item_bounce: AudioStreamPlayer
-var sound_claim: AudioStreamPlayer
-var sound_item_fly: AudioStreamPlayer
-var sound_success: AudioStreamPlayer
-var sound_reveal: AudioStreamPlayer
+# Buttons
+@onready var claim_button: Button = $PanelCenter/PanelContainer/MarginContainer/MainVBox/ButtonArea/ClaimButton
+@onready var close_button: Button = $PanelCenter/PanelContainer/MarginContainer/MainVBox/ButtonArea/CloseButton
+@onready var save_status_label: Label = $PanelCenter/PanelContainer/MarginContainer/MainVBox/ButtonArea/SaveStatusLabel
 
-var is_saving: bool = false
-var _reward_spawn_count: int = 0
+# Audio
+@onready var sound_panel_appear: AudioStreamPlayer = $SFX_PanelAppear
+@onready var sound_chest_open: AudioStreamPlayer = $SFX_ChestOpen
+@onready var sound_item_reveal: AudioStreamPlayer = $SFX_ItemReveal
+@onready var sound_claim: AudioStreamPlayer = $SFX_Claim
+@onready var sound_success: AudioStreamPlayer = $SFX_Success
 
-var save_to_inventory: bool = true
+# Confetti
+@onready var confetti: CPUParticles2D = $PanelCenter/PanelContainer/Confetti
 
-# === Animation State ===
+# ── Chest textures ──
+const CHEST_CLOSED_PATH = "res://asset/icons/chest_closed.png"
+const CHEST_OPEN_PATH   = "res://asset/icons/newopen_chest-Photoroom.png"
+
+# ── Preload RewardItem scene ──
+const REWARD_ITEM_SCENE = preload("res://scene/reward_item.tscn")
+
+# =============================================================================
+# STATE
+# =============================================================================
 var rewards: Array = []
 var is_animating: bool = false
-var revealed_rewards: int = 0
-
-# Store the panel style for border animation
+var is_saving: bool = false
+var save_to_inventory: bool = true
 var panel_style: StyleBoxFlat
+var _glow_tween: Tween = null
+var _chest_bob_tween: Tween = null
 
-# === Rarity System ===
+# Rarity system
 enum Rarity { COMMON, RARE, EPIC, LEGENDARY }
+
+# Rarity colors — still used for hover tinting in reward_item.gd
 var rarity_colors = {
-	Rarity.COMMON: Color(0.7, 0.7, 0.7, 1),      # Gray
-	Rarity.RARE: Color(0.2, 0.6, 1, 1),          # Blue
-	Rarity.EPIC: Color(0.7, 0.2, 1, 1),          # Purple
-	Rarity.LEGENDARY: Color(1, 0.84, 0, 1)       # Gold
+	Rarity.COMMON:    Color(0.7, 0.7, 0.7, 1),
+	Rarity.RARE:      Color(0.2, 1.0, 0.3, 1),
+	Rarity.EPIC:      Color(0.7, 0.3, 1.0, 1),
+	Rarity.LEGENDARY: Color(1.0, 0.9, 0.2, 1)
 }
 
+# =============================================================================
+# RARITY BORDER TEXTURES
+# =============================================================================
+const RARITY_BORDER_PATHS = {
+	# Rarity.COMMON    -> your existing green border
+	# Rarity.RARE      -> blue/cyan border PNG
+	# Rarity.EPIC      -> purple/violet border PNG
+	# Rarity.LEGENDARY -> gold/yellow border PNG
+}
+
+# Expand margins per rarity
+const RARITY_BORDER_MARGINS = {
+	0: [200.0, 60.0, 200.0, 60.0],   # COMMON
+	1: [200.0, 60.0, 200.0, 60.0],   # RARE
+	2: [200.0, 60.0, 200.0, 60.0],   # EPIC
+	3: [200.0, 60.0, 200.0, 60.0],   # LEGENDARY
+}
+
+# Region rect per rarity
+const RARITY_BORDER_REGIONS = {
+	0: Rect2(0, 0, 1280, 706),   # COMMON
+	1: Rect2(0, 0, 1280, 706),   # RARE
+	2: Rect2(0, 0, 1280, 706),   # EPIC
+	3: Rect2(0, 0, 1280, 706),   # LEGENDARY
+}
+
+# =============================================================================
+# READY
+# =============================================================================
 func _ready() -> void:
 	visible = false
-	_setup_sounds()
-	_setup_particle_reference()
-	_get_panel_style()
-	_start_animated_border()
+	burst_ring.visible = false
+	chest_glow.visible = false  # Removed: was causing cyan glow pulse
+	reward_overlay.visible = false
+	reward_overlay.modulate.a = 0.0
 
-func _setup_particle_reference() -> void:
-	# Get reference to first confetti particle
-	particle_system = $PanelContainer/Confetti1
+	var overlay_center: CenterContainer = $RewardOverlay/OverlayCenter
+	overlay_center.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
-func _get_panel_style() -> void:
-	# Get the panel style for border animation
-	panel_style = panel_container.get_theme_stylebox("panel")
+	_load_all_sounds()
+	panel_style = panel_container.get_theme_stylebox("panel") as StyleBoxFlat
+	# _start_animated_border() — Removed: was causing cyan/purple border flash
 
-# === Sound Setup ===
-func _setup_sounds() -> void:
-	sound_panel_appear = AudioStreamPlayer.new()
-	sound_panel_appear.volume_db = -5
-	sound_panel_appear.bus = "Master"
-	add_child(sound_panel_appear)
-	
-	sound_item_pop = AudioStreamPlayer.new()
-	sound_item_pop.volume_db = -10
-	sound_item_pop.bus = "Master"
-	add_child(sound_item_pop)
-	
-	sound_item_bounce = AudioStreamPlayer.new()
-	sound_item_bounce.volume_db = -15
-	sound_item_bounce.bus = "Master"
-	add_child(sound_item_bounce)
-	
-	sound_claim = AudioStreamPlayer.new()
-	sound_claim.volume_db = 0
-	sound_claim.bus = "Master"
-	add_child(sound_claim)
-	
-	sound_item_fly = AudioStreamPlayer.new()
-	sound_item_fly.volume_db = -8
-	sound_item_fly.bus = "Master"
-	add_child(sound_item_fly)
-	
-	sound_success = AudioStreamPlayer.new()
-	sound_success.volume_db = -3
-	sound_success.bus = "Master"
-	add_child(sound_success)
-	
-	sound_reveal = AudioStreamPlayer.new()
-	sound_reveal.volume_db = -8
-	sound_reveal.bus = "Master"
-	add_child(sound_reveal)
-	
-	_load_sound(sound_panel_appear, "res://asset/audio/sfx/ui_whoosh.mp3")
-	_load_sound(sound_item_pop, "res://asset/audio/sfx/ui_pop.mp3")
-	_load_sound(sound_item_bounce, "res://asset/audio/sfx/ui_bounce.mp3")
-	_load_sound(sound_claim, "res://asset/audio/sfx/ui_confirm.mp3")
-	_load_sound(sound_item_fly, "res://asset/audio/sfx/ui_swoosh.mp3")
-	_load_sound(sound_success, "res://asset/audio/sfx/success_jingle.mp3")
-	_load_sound(sound_reveal, "res://asset/audio/sfx/ui_pop.mp3")
-	
-	if not sound_panel_appear.stream:
-		sound_panel_appear.stream = _generate_beep(440, 0.2)
-	if not sound_item_pop.stream:
-		sound_item_pop.stream = _generate_beep(880, 0.1)
-	if not sound_item_bounce.stream:
-		sound_item_bounce.stream = _generate_beep(660, 0.08)
-	if not sound_claim.stream:
-		sound_claim.stream = _generate_beep(523, 0.3)
-	if not sound_item_fly.stream:
-		sound_item_fly.stream = _generate_beep(740, 0.15)
-	if not sound_success.stream:
-		sound_success.stream = _generate_beep(1046, 0.4)
-	if not sound_reveal.stream:
-		sound_reveal.stream = _generate_beep(1200, 0.12)
+# =============================================================================
+# PUBLIC ENTRY POINT
+# =============================================================================
+func show_rewards(reward_list: Array, popup_title: String = "REWARD UNLOCKED!") -> void:
+	if is_animating:
+		return
 
-func _load_sound(player: AudioStreamPlayer, path: String) -> void:
+	rewards = reward_list
+	title_label.text = popup_title
+
+	# RESET TO PHASE 1 STATE
+	claim_button.disabled = false
+	claim_button.text = ""
+	reward_overlay.visible = false
+	reward_overlay.modulate.a = 0.0
+	burst_ring.visible = false
+	save_status_label.visible = false
+
+	_set_chest_texture(CHEST_CLOSED_PATH)
+
+	if xp_progress_bar and TutorialManager:
+		xp_progress_bar.max_value = 1000
+		xp_progress_bar.value    = TutorialManager.total_xp
+		xp_label.text            = "XP: %d / 1000" % TutorialManager.total_xp
+
+	visible = true
+	_play_sound(sound_panel_appear)
+	_animate_entrance()
+	_start_chest_idle_animation()
+
+# =============================================================================
+# PHASE 1 — ENTRANCE (Closed Chest)
+# =============================================================================
+func _animate_entrance() -> void:
+	is_animating = true
+	panel_container.modulate.a = 0
+
+	var fade = create_tween()
+	fade.set_trans(Tween.TRANS_CUBIC)
+	fade.set_ease(Tween.EASE_OUT)
+	fade.tween_property(panel_container, "modulate:a", 1.0, 0.4)
+	await fade.finished
+
+	is_animating = false
+
+func _start_chest_idle_animation() -> void:
+	# Only chest bob remains — cyan glow pulse removed
+	if _chest_bob_tween:
+		_chest_bob_tween.kill()
+	_chest_bob_tween = create_tween().set_loops()
+	_chest_bob_tween.set_trans(Tween.TRANS_SINE)
+	_chest_bob_tween.set_ease(Tween.EASE_IN_OUT)
+	_chest_bob_tween.tween_property(chest_icon, "position:y", chest_icon.position.y - 10, 1.3)
+	_chest_bob_tween.tween_property(chest_icon, "position:y", chest_icon.position.y, 1.3)
+
+	# Removed: _glow_tween cycling chest_glow alpha — was the cyan pulse
+
+# =============================================================================
+# BUTTON HANDLERS
+# =============================================================================
+func _on_claim_pressed() -> void:
+	if is_saving or is_animating:
+		return
+
+	claim_button.disabled = true
+
+	if _chest_bob_tween:
+		_chest_bob_tween.kill()
+	if _glow_tween:
+		_glow_tween.kill()
+
+	await _phase2_chest_burst()
+	await _phase3_reveal_rewards()
+
+func _on_close_pressed() -> void:
+	_close_popup()
+
+# =============================================================================
+# PHASE 2 — CHEST BURST OPEN (burst ring + glow flash removed)
+# =============================================================================
+func _phase2_chest_burst() -> void:
+	is_animating = true
+	_play_sound(sound_chest_open)
+
+	# Removed: burst_ring show/scale/fade — was the cyan ring flash
+	# Removed: chest_glow alpha flash — was the cyan glow burst
+
+	var original_pos = chest_icon.position
+	var shake = create_tween()
+	for i in range(8):
+		var offset = 12 if i % 2 == 0 else -12
+		shake.tween_property(chest_icon, "position:y", original_pos.y + offset, 0.06)
+	shake.tween_property(chest_icon, "position", original_pos, 0.08)
+
+	var burst = create_tween().set_parallel(true)
+	burst.set_trans(Tween.TRANS_CUBIC)
+	burst.set_ease(Tween.EASE_OUT)
+	burst.tween_property(chest_icon, "scale", Vector2(1.2, 1.2), 0.25)
+
+	await get_tree().create_timer(0.2).timeout
+
+	_set_chest_texture(CHEST_OPEN_PATH)
+
+	var fade = create_tween().set_parallel(true)
+	fade.set_trans(Tween.TRANS_QUAD)
+	fade.set_ease(Tween.EASE_IN)
+	fade.tween_property(chest_icon, "scale", Vector2.ONE, 0.4)
+
+	await fade.finished
+	is_animating = false
+
+# =============================================================================
+# PHASE 3 — REVEAL REWARD ITEMS
+# =============================================================================
+func _phase3_reveal_rewards() -> void:
+	_play_sound(sound_item_reveal)
+
+	if confetti:
+		confetti.emitting = true
+
+	for child in items_row.get_children():
+		child.queue_free()
+
+	for reward in rewards:
+		_create_reward_item_card(reward)
+
+	# Stay hidden at zero alpha until tween fires — prevents background bleed
+	reward_overlay.modulate.a = 0.0
+	reward_overlay.visible = false
+	await get_tree().create_timer(0.05).timeout
+	reward_overlay.visible = true
+
+	var fade = create_tween()
+	fade.set_trans(Tween.TRANS_CUBIC)
+	fade.set_ease(Tween.EASE_OUT)
+	fade.tween_property(reward_overlay, "modulate:a", 1.0, 0.5)
+	await fade.finished
+
+	for reward in rewards:
+		if reward.type == "xp" and reward.amount > 0:
+			await _animate_xp_increment(reward.amount)
+
+	await get_tree().create_timer(0.5).timeout
+	claim_button.text     = ""
+	claim_button.disabled = false
+	_play_sound(sound_success)
+
+	var pulse = create_tween()
+	pulse.tween_property(claim_button, "scale", Vector2(1.08, 1.08), 0.2)
+	pulse.tween_property(claim_button, "scale", Vector2.ONE,         0.2)
+
+	if not claim_button.pressed.is_connected(_on_claim_all_pressed):
+		claim_button.pressed.connect(_on_claim_all_pressed, CONNECT_ONE_SHOT)
+
+# =============================================================================
+# CREATE REWARD ITEM CARD
+# =============================================================================
+func _create_reward_item_card(reward: RewardItem) -> void:
+	var card = REWARD_ITEM_SCENE.instantiate()
+
+	var rarity       = _get_reward_rarity(reward)
+	var rarity_color = rarity_colors[rarity]
+
+	# Pass rarity color to the card script for hover tinting
+	card.rarity_color = rarity_color
+
+	# ── Rarity border: swap the Panel's StyleBox to a texture PNG ──
+	var panel_node = card.get_node("Panel")
+	var rarity_tex = _get_rarity_border_texture(rarity)
+
+	if rarity_tex:
+		var tex_style          = StyleBoxTexture.new()
+		tex_style.texture      = rarity_tex
+
+		var margins = RARITY_BORDER_MARGINS.get(rarity, [200.0, 60.0, 200.0, 60.0])
+		tex_style.expand_margin_left   = margins[0]
+		tex_style.expand_margin_top    = margins[1]
+		tex_style.expand_margin_right  = margins[2]
+		tex_style.expand_margin_bottom = margins[3]
+
+		var region = RARITY_BORDER_REGIONS.get(rarity, Rect2(0, 0, 1280, 706))
+		tex_style.region_rect = region
+
+		panel_node.add_theme_stylebox_override("panel", tex_style)
+	else:
+		# Fallback: no texture found — tint the existing StyleBoxFlat border color
+		push_warning("[RewardPopup] No border texture found for rarity %d, falling back to color tint." % rarity)
+		var card_style = panel_node.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
+		if card_style:
+			card_style.border_color = rarity_color
+			card_style.shadow_color = Color(rarity_color.r, rarity_color.g, rarity_color.b, 0.5)
+			panel_node.add_theme_stylebox_override("panel", card_style)
+
+	var reveal_overlay = card.get_node("Panel/RevealOverlay")
+	var content        = card.get_node("Panel/Content")
+	var icon_rect      = content.get_node("IconRect")
+	var icon_fallback  = content.get_node("IconFallback")
+	var hover_vbox     = content.get_node("HoverOverlay/HoverMargin/HoverVBox")
+	var name_label     = hover_vbox.get_node("NameLabel")
+	var amount_label   = hover_vbox.get_node("AmountLabel")
+	var desc_label     = hover_vbox.get_node("DescLabel")
+
+	reveal_overlay.visible = false
+	content.visible = true
+
+	var icon_tex = _get_reward_icon(reward)
+	if icon_tex:
+		icon_rect.texture     = icon_tex
+		icon_rect.visible     = true
+		icon_fallback.visible = false
+	else:
+		icon_rect.visible     = false
+		icon_fallback.visible = true
+		match reward.type:
+			"xp":       icon_fallback.text = "⭐"
+			"badge":    icon_fallback.text = "🏆"
+			"currency": icon_fallback.text = "💰"
+			"item":     icon_fallback.text = "🎁"
+			_:          icon_fallback.text = "✨"
+
+	name_label.text = reward.name.to_upper()
+	name_label.add_theme_color_override("font_color", Color.WHITE)
+
+	if reward.amount > 0:
+		amount_label.text    = "+%d" % reward.amount
+		amount_label.visible = true
+	else:
+		amount_label.visible = false
+
+	desc_label.text    = reward.description if reward.description else ""
+	desc_label.visible = desc_label.text != ""
+
+	items_row.add_child(card)
+
+	card.modulate.a = 0.0
+	var anim = create_tween()
+	anim.set_trans(Tween.TRANS_CUBIC)
+	anim.set_ease(Tween.EASE_OUT)
+	anim.tween_property(card, "modulate:a", 1.0, 0.5)
+
+func _get_reward_icon(reward: RewardItem) -> Texture2D:
+	if reward.icon:
+		return reward.icon
+	var paths = {
+		"xp":       "res://asset/minigamesuite/rewardxpicon.png",
+		"badge":    "res://asset/icons/badge_icon.png",
+		"currency": "res://asset/icons/currency_icon.png",
+		"item":     "res://asset/icons/item_icon.png",
+	}
+	return _load_icon(paths.get(reward.type, "res://asset/icons/default_icon.png"))
+
+# =============================================================================
+# RARITY BORDER TEXTURE LOOKUP
+# =============================================================================
+func _get_rarity_border_texture(rarity: Rarity) -> Texture2D:
+	var paths = {
+		Rarity.COMMON:    "res://asset/minigamesuite/rewardcommonborder.png",
+		Rarity.RARE:      "res://asset/minigamesuite/rewardrareborder.png",
+		Rarity.EPIC:      "res://asset/minigamesuite/rewardepicborder.png",
+		Rarity.LEGENDARY: "res://asset/minigamesuite/rewardlegendaryborder.png",
+	}
+	var path = paths.get(rarity, "")
+	if path == "":
+		return null
+	return _load_icon(path)
+
+# =============================================================================
+# CLAIM ALL — save to Firestore then close
+# =============================================================================
+func _on_claim_all_pressed() -> void:
+	if is_saving:
+		return
+
+	is_saving = true
+	claim_button.disabled = true
+	_play_sound(sound_claim)
+
+	save_status_label.visible = true
+	save_status_label.text    = "💾 Saving rewards to inventory..."
+
+	await _apply_rewards()
+
+	save_status_label.text = "✅ All rewards saved!"
+	_play_sound(sound_success)
+
+	await get_tree().create_timer(1.2).timeout
+
+	var exit = create_tween().set_parallel(true)
+	exit.set_ease(Tween.EASE_IN)
+	exit.set_trans(Tween.TRANS_CUBIC)
+	exit.tween_property(panel_container, "modulate:a", 0.0,        0.4)
+	exit.tween_property(panel_container, "scale",      Vector2(0.9, 0.9), 0.4)
+	exit.tween_property(reward_overlay,  "modulate:a", 0.0,        0.3)
+	await exit.finished
+
+	rewards_claimed.emit()
+	popup_closed.emit()
+	queue_free()
+
+func _close_popup() -> void:
+	var t = create_tween().set_parallel(true)
+	t.set_ease(Tween.EASE_IN)
+	t.set_trans(Tween.TRANS_CUBIC)
+	t.tween_property(panel_container, "modulate:a", 0.0,        0.35)
+	t.tween_property(panel_container, "scale",      Vector2(0.9, 0.9), 0.35)
+	t.tween_property(reward_overlay,  "modulate:a", 0.0,        0.25)
+	await t.finished
+	popup_closed.emit()
+	queue_free()
+
+# =============================================================================
+# XP BAR ANIMATION
+# =============================================================================
+func _animate_xp_increment(xp_amount: int) -> void:
+	if not xp_progress_bar or xp_amount <= 0:
+		return
+
+	var current_xp = int(xp_progress_bar.value)
+	var new_xp     = min(current_xp + xp_amount, 1000)
+
+	var t = create_tween()
+	t.set_trans(Tween.TRANS_CUBIC)
+	t.set_ease(Tween.EASE_OUT)
+	t.tween_property(xp_progress_bar, "value", new_xp, 1.0)
+	t.parallel().tween_method(
+		func(v): xp_label.text = "XP: %d / 1000" % int(v),
+		float(current_xp),
+		float(new_xp),
+		1.0
+	)
+	await t.finished
+
+# =============================================================================
+# ANIMATED BORDER — Removed (was causing cyan/purple flashing on panel edge)
+# =============================================================================
+func _start_animated_border() -> void:
+	pass  # Intentionally disabled
+
+# =============================================================================
+# HELPERS
+# =============================================================================
+func _set_chest_texture(path: String) -> void:
 	if ResourceLoader.exists(path):
-		var stream = load(path)
-		if stream:
-			player.stream = stream
-			print("[RewardPopup] ✅ Loaded: %s" % path)
-		else:
-			push_warning("[RewardPopup] ⚠️ Failed to load: %s" % path)
-	else:
-		push_warning("[RewardPopup] ⚠️ File not found: %s" % path)
+		var tex = load(path)
+		if tex:
+			chest_icon.texture = tex
 
-func _generate_beep(_frequency: float, duration: float) -> AudioStreamGenerator:
-	var generator = AudioStreamGenerator.new()
-	generator.mix_rate = 44100
-	generator.buffer_length = duration
-	return generator
-
-func _play_sound(player: AudioStreamPlayer, pitch: float = 1.0) -> void:
-	if player and player.stream:
-		player.pitch_scale = pitch
-		player.play()
-	else:
-		push_warning("[RewardPopup] ⚠️ Cannot play sound - no stream")
-
-func _load_icon(path: String) -> Texture2D:
-	if ResourceLoader.exists(path):
-		var texture = load(path)
-		if texture:
-			print("[RewardPopup] ✅ Loaded icon: %s" % path)
-			return texture
-		else:
-			push_warning("[RewardPopup] ⚠️ Failed to load icon: %s" % path)
-	else:
-		push_warning("[RewardPopup] ⚠️ Icon not found: %s" % path)
-	return null
-
-# ✅ Screen Shake Effect
-func _screen_shake(intensity: float = 10.0, duration: float = 0.3) -> void:
-	var camera = get_viewport().get_camera_2d()
-	if camera:
-		var original_offset = camera.offset
-		var shake_tween = create_tween()
-		var steps = int(duration * 60)  # 60 FPS
-		
-		for i in range(steps):
-			var shake_offset = Vector2(
-				randf_range(-intensity, intensity),
-				randf_range(-intensity, intensity)
-			)
-			shake_tween.tween_property(camera, "offset", original_offset + shake_offset, 0.016)
-		
-		shake_tween.tween_property(camera, "offset", original_offset, 0.1)
-
-# ✅ Get rarity based on reward amount/type
 func _get_reward_rarity(reward: RewardItem) -> Rarity:
 	if reward.type == "badge":
 		return Rarity.LEGENDARY
@@ -194,630 +470,99 @@ func _get_reward_rarity(reward: RewardItem) -> Rarity:
 	else:
 		return Rarity.COMMON
 
-func show_rewards(reward_list: Array, popup_title: String = "🎉 Rewards!") -> void:
-	if is_animating:
+func _screen_shake(intensity: float = 10.0, duration: float = 0.3) -> void:
+	var camera = get_viewport().get_camera_2d()
+	if not camera:
 		return
-	
-	rewards = reward_list
-	revealed_rewards = 0
-	_reward_spawn_count = 0
-	title_label.text = popup_title
+	var original_offset = camera.offset
+	var t = create_tween()
+	for _i in range(int(duration * 60)):
+		var shake_offset = Vector2(
+			randf_range(-intensity, intensity),
+			randf_range(-intensity, intensity)
+		)
+		t.tween_property(camera, "offset", original_offset + shake_offset, 0.016)
+	t.tween_property(camera, "offset", original_offset, 0.1)
 
-	# Clear existing reward UI
-	for child in reward_grid.get_children():
-		child.queue_free()
-	if _starter_mid_row:
-		for child in _starter_mid_row.get_children():
-			child.queue_free()
-	if _starter_bottom_center:
-		for child in _starter_bottom_center.get_children():
-			child.queue_free()
+func _load_icon(path: String) -> Texture2D:
+	if ResourceLoader.exists(path):
+		var texture = load(path)
+		if texture:
+			return texture
+	return null
 
-	var use_starter_layout := _should_use_starter_layout(rewards, popup_title)
-	if _starter_layout_root:
-		_starter_layout_root.visible = use_starter_layout
-	if reward_grid:
-		reward_grid.visible = not use_starter_layout
-	
-	# ✅ FIX: Only initialize progress bar, don't animate yet
-	if xp_progress_bar:
-		var current_xp = TutorialManager.total_xp
-		var max_xp = 1000
-		
-		xp_progress_bar.max_value = max_xp
-		xp_progress_bar.value = current_xp
-		xp_label.text = "XP: %d / %d" % [current_xp, max_xp]
-	
-	# Create reward items (with "?" overlay)
-	if use_starter_layout:
-		var xp_reward: RewardItem = null
-		var guide_reward: RewardItem = null
-		var chariot_reward: RewardItem = null
-		for reward in rewards:
-			if reward.type == "xp" and xp_reward == null:
-				xp_reward = reward
-			elif str(reward.name).to_lower() == "beginner guide" and guide_reward == null:
-				guide_reward = reward
-			elif str(reward.name).to_lower() == "the chariot" and chariot_reward == null:
-				chariot_reward = reward
+# =============================================================================
+# SOUND LOADING
+# =============================================================================
+func _load_all_sounds() -> void:
+	_load_sound(sound_panel_appear, "res://asset/audio/sfx/ui_whoosh.mp3")
+	_load_sound(sound_chest_open,   "res://asset/audio/sfx/chest_open.mp3")
+	_load_sound(sound_item_reveal,  "res://asset/audio/sfx/ui_pop.mp3")
+	_load_sound(sound_claim,        "res://asset/audio/sfx/ui_confirm.mp3")
+	_load_sound(sound_success,      "res://asset/audio/sfx/success_jingle.mp3")
 
-		# Middle row: XP + Beginner Guide (centered)
-		if xp_reward:
-			_create_reward_item_in(_starter_mid_row, xp_reward)
-		if guide_reward:
-			_create_reward_item_in(_starter_mid_row, guide_reward)
+	if not sound_panel_appear.stream: sound_panel_appear.stream = _generate_beep(440,  0.2)
+	if not sound_chest_open.stream:   sound_chest_open.stream   = _generate_beep(880,  0.3)
+	if not sound_item_reveal.stream:  sound_item_reveal.stream  = _generate_beep(1046, 0.15)
+	if not sound_claim.stream:        sound_claim.stream        = _generate_beep(523,  0.25)
+	if not sound_success.stream:      sound_success.stream      = _generate_beep(1200, 0.4)
 
-		# Bottom row: The Chariot centered
-		if chariot_reward:
-			_create_reward_item_in(_starter_bottom_center, chariot_reward)
+func _load_sound(player: AudioStreamPlayer, path: String) -> void:
+	if ResourceLoader.exists(path):
+		var stream = load(path)
+		if stream:
+			player.stream = stream
 
-		# Any extras (fallback): put into middle row
-		for reward in rewards:
-			if reward == xp_reward or reward == guide_reward or reward == chariot_reward:
-				continue
-			_create_reward_item_in(_starter_mid_row, reward)
-	else:
-		for reward in rewards:
-			_create_reward_item(reward)
-	
-	visible = true
-	_animate_entrance()
+func _generate_beep(_frequency: float, duration: float) -> AudioStreamGenerator:
+	var generator = AudioStreamGenerator.new()
+	generator.mix_rate      = 44100
+	generator.buffer_length = duration
+	return generator
 
-func _should_use_starter_layout(reward_list: Array, popup_title: String) -> bool:
-	# We only special-case the starter popup.
-	if str(popup_title).to_lower().find("starter") == -1:
-		return false
-	var has_xp := false
-	var has_guide := false
-	var has_chariot := false
-	for reward in reward_list:
-		if reward.type == "xp":
-			has_xp = true
-		elif str(reward.name).to_lower() == "beginner guide":
-			has_guide = true
-		elif str(reward.name).to_lower() == "the chariot":
-			has_chariot = true
-	return has_xp and has_guide and has_chariot
+func _play_sound(player: AudioStreamPlayer, pitch: float = 1.0) -> void:
+	if player and player.stream:
+		player.pitch_scale = pitch
+		player.play()
 
-func _create_reward_item(reward: RewardItem) -> void:
-	_create_reward_item_in(reward_grid, reward)
-
-func _create_reward_item_in(parent: Node, reward: RewardItem) -> void:
-	var item_panel = PanelContainer.new()
-	item_panel.custom_minimum_size = Vector2(280, 110)
-	item_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	
-	var rarity = _get_reward_rarity(reward)
-	var rarity_color = rarity_colors[rarity]
-	
-	var item_style = StyleBoxFlat.new()
-	item_style.bg_color = Color(0.1, 0.15, 0.2, 0.8)
-	item_style.border_width_left = 3
-	item_style.border_width_top = 3
-	item_style.border_width_right = 3
-	item_style.border_width_bottom = 3
-	item_style.border_color = rarity_color
-	item_style.corner_radius_top_left = 6
-	item_style.corner_radius_top_right = 6
-	item_style.corner_radius_bottom_left = 6
-	item_style.corner_radius_bottom_right = 6
-	item_style.shadow_color = rarity_color * Color(1, 1, 1, 0.6)
-	item_style.shadow_size = 8
-	item_panel.add_theme_stylebox_override("panel", item_style)
-	
-	# ✅ Click-to-reveal overlay
-	var reveal_overlay = ColorRect.new()
-	reveal_overlay.color = Color(0.1, 0.1, 0.15, 0.95)
-	reveal_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
-	reveal_overlay.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND  # Show hand cursor
-	reveal_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	item_panel.add_child(reveal_overlay)
-	
-	# ✅ Load chest icon instead of "?"
-	var chest_texture = _load_icon("res://asset/icons/chest_icon.png")
-	
-	if chest_texture:
-		# Use chest image
-		var chest_rect = TextureRect.new()
-		chest_rect.texture = chest_texture
-		chest_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		chest_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		chest_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-		
-		# Add margin to center the icon better
-		var chest_margin = MarginContainer.new()
-		chest_margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-		chest_margin.add_theme_constant_override("margin_left", 30)
-		chest_margin.add_theme_constant_override("margin_right", 30)
-		chest_margin.add_theme_constant_override("margin_top", 30)
-		chest_margin.add_theme_constant_override("margin_bottom", 30)
-		chest_margin.add_child(chest_rect)
-		reveal_overlay.add_child(chest_margin)
-		
-		# Add glow effect to chest
-		var glow_tween = create_tween().set_loops()
-		glow_tween.tween_property(chest_rect, "modulate", Color(1, 1, 1, 0.7), 0.8)
-		glow_tween.tween_property(chest_rect, "modulate", Color(1, 1, 1, 1), 0.8)
-	else:
-		# Fallback to "?" if chest icon not found
-		var reveal_icon = Label.new()
-		reveal_icon.text = "?"
-		reveal_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		reveal_icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		reveal_icon.add_theme_font_size_override("font_size", 72)
-		reveal_icon.add_theme_color_override("font_color", rarity_color)
-		reveal_icon.set_anchors_preset(Control.PRESET_FULL_RECT)
-		reveal_overlay.add_child(reveal_icon)
-	
-	# Content container (hidden initially)
-	var content_container = Control.new()
-	content_container.set_anchors_preset(Control.PRESET_FULL_RECT)
-	content_container.visible = false
-	item_panel.add_child(content_container)
-	
-	var margin = MarginContainer.new()
-	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 15)
-	margin.add_theme_constant_override("margin_right", 15)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_bottom", 12)
-	content_container.add_child(margin)
-	
-	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
-	margin.add_child(hbox)
-	
-	# Icon
-	var icon_texture: Texture2D = null
-	
-	if reward.icon:
-		icon_texture = reward.icon
-	else:
-		match reward.type:
-			"xp":
-				icon_texture = _load_icon("res://asset/icons/xp icon.png")
-			"badge":
-				icon_texture = _load_icon("res://asset/icons/badge_icon.png")
-			"currency":
-				icon_texture = _load_icon("res://asset/icons/currency_icon.png")
-			"item":
-				icon_texture = _load_icon("res://asset/icons/item_icon.png")
-			_:
-				icon_texture = _load_icon("res://asset/icons/default_icon.png")
-	
-	var icon_container = CenterContainer.new()
-	icon_container.custom_minimum_size = Vector2(50, 50)
-	
-	if icon_texture:
-		var icon_rect = TextureRect.new()
-		icon_rect.texture = icon_texture
-		icon_rect.custom_minimum_size = Vector2(50, 50)
-		icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon_container.add_child(icon_rect)
-	else:
-		var icon_label = Label.new()
-		icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		icon_label.add_theme_font_size_override("font_size", 32)
-		
-		match reward.type:
-			"xp":
-				icon_label.text = "⭐"
-			"badge":
-				icon_label.text = "🏆"
-			"currency":
-				icon_label.text = "💰"
-			"item":
-				icon_label.text = "🎁"
-			_:
-				icon_label.text = "✨"
-		
-		icon_container.add_child(icon_label)
-	
-	hbox.add_child(icon_container)
-	
-	var text_vbox = VBoxContainer.new()
-	text_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text_vbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	text_vbox.add_theme_constant_override("separation", 5)
-	hbox.add_child(text_vbox)
-	
-	var name_label = Label.new()
-	name_label.text = reward.name
-	name_label.add_theme_font_size_override("font_size", 16)
-	name_label.add_theme_color_override("font_color", rarity_color)
-	text_vbox.add_child(name_label)
-	
-	var amount_label = Label.new()
-	if reward.amount > 0:
-		amount_label.text = "+%d" % reward.amount
-		amount_label.add_theme_font_size_override("font_size", 20)
-		amount_label.add_theme_color_override("font_color", Color(0.2, 1, 0.2, 1))
-	else:
-		amount_label.text = "Unlocked!"
-		amount_label.add_theme_font_size_override("font_size", 14)
-		amount_label.add_theme_color_override("font_color", Color(1, 0.8, 0, 1))
-	text_vbox.add_child(amount_label)
-	
-	if reward.description != "":
-		var desc_label = Label.new()
-		desc_label.text = reward.description
-		desc_label.add_theme_font_size_override("font_size", 10)
-		desc_label.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9, 0.8))
-		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		desc_label.custom_minimum_size.x = 180
-		text_vbox.add_child(desc_label)
-	
-	if parent:
-		parent.add_child(item_panel)
-	
-	item_panel.modulate.a = 0
-	item_panel.position.y = 150
-	item_panel.scale = Vector2(0.85, 0.85)
-	
-	var item_index = _reward_spawn_count
-	_reward_spawn_count += 1
-	var delay = item_index * 0.12
-	await get_tree().create_timer(delay).timeout
-	
-	_play_sound(sound_item_pop, 1.0 + (item_index * 0.08))
-	
-	var tween = create_tween()
-	tween.set_parallel(true)
-	
-	tween.tween_property(item_panel, "modulate:a", 1.0, 0.5)
-	tween.tween_property(item_panel, "position:y", 0, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(item_panel, "scale", Vector2.ONE, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	
-	await tween.finished
-	
-	_play_sound(sound_item_bounce, 1.2 + (item_index * 0.05))
-	
-	var bounce = create_tween()
-	bounce.tween_property(item_panel, "scale", Vector2(1.05, 1.05), 0.15)
-	bounce.tween_property(item_panel, "scale", Vector2.ONE, 0.15)
-	
-	# ✅ Connect click handler for reveal (on the overlay, not the panel)
-	reveal_overlay.gui_input.connect(_on_reward_clicked.bind(item_panel, content_container, reveal_overlay, reward, rarity))
-	
-	# ✅ Enhanced hover effect with 3D hint
-	reveal_overlay.mouse_entered.connect(func():
-		var hover_tween = create_tween()
-		hover_tween.set_parallel(true)
-		hover_tween.tween_property(item_panel, "scale", Vector2(1.05, 1.05), 0.2).set_trans(Tween.TRANS_ELASTIC)
-		hover_tween.tween_property(item_style, "shadow_size", 12, 0.2)
-		# Slight X-axis tilt to hint at flip
-		hover_tween.tween_property(item_panel, "rotation_degrees", 3, 0.2)
-	)
-	
-	reveal_overlay.mouse_exited.connect(func():
-		var exit_tween = create_tween()
-		exit_tween.set_parallel(true)
-		exit_tween.tween_property(item_panel, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_ELASTIC)
-		exit_tween.tween_property(item_style, "shadow_size", 8, 0.2)
-		exit_tween.tween_property(item_panel, "rotation_degrees", 0, 0.2)
-	)
-
-# ✅ Handle reward reveal click
-func _on_reward_clicked(event: InputEvent, panel: PanelContainer, content: Control, overlay: ColorRect, reward: RewardItem, rarity: Rarity) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if overlay.visible:
-			_reveal_reward(panel, content, overlay, reward, rarity)
-
-# ✅ Reveal reward with 3D card flip animation
-func _reveal_reward(panel: PanelContainer, content: Control, overlay: ColorRect, reward: RewardItem, rarity: Rarity) -> void:
-	revealed_rewards += 1
-	
-	_play_sound(sound_reveal, 1.0 + (revealed_rewards * 0.1))
-	_screen_shake(5.0, 0.2)
-	
-	# Legendary rewards get extra effect
-	if rarity == Rarity.LEGENDARY:
-		_screen_shake(15.0, 0.4)
-		_play_sound(sound_success)
-	
-	# ✅ FIX: Update XP bar immediately if this is an XP reward
-	if reward.type == "xp" and reward.amount > 0:
-		_animate_xp_increment(reward.amount)
-	
-	# ✅ 3D CARD FLIP ANIMATION
-	var flip_duration := 0.6
-	
-	# Phase 1: Flip to 90° (hide front)
-	var flip_tween1 = create_tween()
-	flip_tween1.set_parallel(true)
-	flip_tween1.set_ease(Tween.EASE_IN)
-	flip_tween1.set_trans(Tween.TRANS_CUBIC)
-	
-	# Simulate 3D rotation by scaling X to 0 (looks like rotating on Y-axis)
-	flip_tween1.tween_property(panel, "scale:x", 0.0, flip_duration / 2.0)
-	flip_tween1.tween_property(overlay, "modulate:a", 0.0, flip_duration / 2.0)
-	
-	await flip_tween1.finished
-	
-	# Switch content at 90° (when card is edge-on)
-	overlay.visible = false
-	content.visible = true
-	content.modulate.a = 1.0
-	content.scale = Vector2.ONE
-	
-	# Phase 2: Flip from 90° to 0° (show back)
-	var flip_tween2 = create_tween()
-	flip_tween2.set_ease(Tween.EASE_OUT)
-	flip_tween2.set_trans(Tween.TRANS_CUBIC)
-	
-	flip_tween2.tween_property(panel, "scale:x", 1.0, flip_duration / 2.0)
-	
-	await flip_tween2.finished
-	
-	# Bounce effect after flip
-	var bounce_tween = create_tween()
-	bounce_tween.tween_property(panel, "scale", Vector2(1.1, 1.1), 0.1)
-	bounce_tween.tween_property(panel, "scale", Vector2.ONE, 0.1)
-
-	
-	if instruction_label:
-		var fade_tween = create_tween()
-		fade_tween.tween_property(instruction_label, "modulate:a", 0.0, 0.3)
-		await fade_tween.finished
-		instruction_label.visible = false
-
-	# Check if all revealed -> enable claim button
-	if revealed_rewards >= rewards.size():
-		claim_button.disabled = false
-		_play_sound(sound_success)
-		
-		# Animate button
-		var button_tween = create_tween()
-		button_tween.tween_property(claim_button, "scale", Vector2(1.1, 1.1), 0.3).set_trans(Tween.TRANS_ELASTIC)
-		button_tween.tween_property(claim_button, "scale", Vector2.ONE, 0.3)
-
-# ✅ NEW: Animate XP bar increment for each XP card revealed
-func _animate_xp_increment(xp_amount: int) -> void:
-	if not xp_progress_bar or xp_amount <= 0:
-		return
-	
-	var current_xp = int(xp_progress_bar.value)
-	var max_xp = 1000
-	var new_xp = min(current_xp + xp_amount, max_xp)
-	
-	# Animate the progress bar filling
-	var fill_tween = create_tween()
-	fill_tween.tween_property(xp_progress_bar, "value", new_xp, 0.8).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	fill_tween.parallel().tween_method(
-		func(val): xp_label.text = "xp %d/%d" % [int(val), max_xp],
-		float(current_xp), 
-		float(new_xp), 
-		0.8
-	)
-
-func _animate_entrance() -> void:
-	is_animating = true
-	
-	_play_sound(sound_panel_appear)
-	_screen_shake(8.0, 0.25)
-	
-	panel_container.modulate.a = 0
-	panel_container.scale = Vector2(0.8, 0.8)
-	
-	var tween = create_tween().set_parallel(true)
-	tween.tween_property(panel_container, "modulate:a", 1.0, 0.4)
-	tween.tween_property(panel_container, "scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	
-	await tween.finished
-	is_animating = false
-
-func _start_animated_border() -> void:
-	if not panel_style:
-		return
-		
-	# ✅ Updated to use dark blue color scheme
-	var border_tween = create_tween().set_loops()
-	border_tween.set_ease(Tween.EASE_IN_OUT)
-	border_tween.set_trans(Tween.TRANS_SINE)
-	
-	border_tween.tween_property(panel_style, "border_color", Color(0.0, 0.3, 0.7, 1), 1.5)
-	border_tween.tween_property(panel_style, "border_color", Color(0.0, 0.2, 0.5, 1), 1.5)
-	
-	var shadow_tween = create_tween().set_loops()
-	shadow_tween.set_ease(Tween.EASE_IN_OUT)
-	shadow_tween.set_trans(Tween.TRANS_SINE)
-	
-	shadow_tween.tween_property(panel_style, "shadow_color", Color(0.0, 0.3, 0.7, 0.7), 1.5)
-	shadow_tween.tween_property(panel_style, "shadow_color", Color(0.0, 0.2, 0.5, 0.6), 1.5)
-
-func _animate_claim() -> void:
-	if is_saving:
-		return
-	
-	is_saving = true
-	claim_button.disabled = true
-	
-	_play_sound(sound_claim)
-	_screen_shake(12.0, 0.4)
-	
-	# Trigger confetti
-	for child in panel_container.get_children():
-		if child is CPUParticles2D:
-			child.emitting = true
-	
-	# Flash effect
-	var flash_overlay = ColorRect.new()
-	flash_overlay.color = Color(1, 1, 1, 0)
-	flash_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
-	flash_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel_container.add_child(flash_overlay)
-	
-	var flash_tween = create_tween()
-	flash_tween.tween_property(flash_overlay, "color", Color(1, 1, 1, 0.3), 0.1)
-	flash_tween.tween_property(flash_overlay, "color", Color(1, 1, 1, 0), 0.3)
-	
-	# Animate items flying away
-	var item_index = 0
-	for item in reward_grid.get_children():
-		if item_index < rewards.size():
-			var current_reward = rewards[item_index]
-			if current_reward.amount > 0:
-				_create_floating_number(item, current_reward.amount, current_reward.type)
-		
-		if item_index == 0:
-			_play_sound(sound_item_fly)
-		
-		var exit_tween = create_tween()
-		exit_tween.set_parallel(true)
-		exit_tween.set_ease(Tween.EASE_IN)
-		exit_tween.set_trans(Tween.TRANS_CUBIC)
-		
-		exit_tween.tween_property(item, "position:y", -80, 0.6)
-		exit_tween.tween_property(item, "modulate:a", 0.0, 0.6)
-		exit_tween.tween_property(item, "scale", Vector2(0.7, 0.7), 0.6)
-		
-		item_index += 1
-		await get_tree().create_timer(0.12).timeout
-	
-	await get_tree().create_timer(0.5).timeout
-	
-	# ✅ CRITICAL: Show "Saving..." and hide claim button
-	claim_button.visible = false
-	if instruction_label:
-		instruction_label.visible = false
-	if save_status_label:
-		save_status_label.visible = true
-		save_status_label.text = "💾 Saving rewards to inventory..."
-	
-	# ✅ Apply rewards and WAIT for completion
-	await _apply_rewards()
-	
-	# ✅ Update status
-	if save_status_label:
-		save_status_label.text = "✅ All rewards saved!"
-	
-	_play_sound(sound_success)
-	
-	# Wait a moment to show success message
-	await get_tree().create_timer(1.0).timeout
-	
-	# NOW close the popup
-	var panel_exit = create_tween()
-	panel_exit.set_parallel(true)
-	panel_exit.set_ease(Tween.EASE_IN)
-	panel_exit.set_trans(Tween.TRANS_CUBIC)
-	
-	panel_exit.tween_property(panel_container, "modulate:a", 0.0, 0.4)
-	panel_exit.tween_property(panel_container, "scale", Vector2(0.9, 0.9), 0.4)
-	
-	await panel_exit.finished
-	
-	rewards_claimed.emit()
-	popup_closed.emit()
-	queue_free()
-
-func _create_floating_number(parent_item: Control, amount: int, reward_type: String) -> void:
-	var float_label = Label.new()
-	
-	var item_pos = parent_item.global_position
-	var item_size = parent_item.size
-	float_label.global_position = Vector2(item_pos.x + item_size.x / 2, item_pos.y + item_size.y / 2)
-	
-	match reward_type:
-		"xp":
-			float_label.text = "+%d XP" % amount
-			float_label.add_theme_color_override("font_color", Color(1, 1, 0, 1))
-		"currency":
-			float_label.text = "+%d" % amount
-			float_label.add_theme_color_override("font_color", Color(0, 1, 0, 1))
-		"badge":
-			float_label.text = "✓"
-			float_label.add_theme_color_override("font_color", Color(1, 0.8, 0, 1))
-		_:
-			float_label.text = "+%d" % amount
-			float_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))
-	
-	float_label.add_theme_font_size_override("font_size", 32)
-	float_label.modulate.a = 0
-	float_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
-	float_label.add_theme_constant_override("outline_size", 3)
-	
-	add_child(float_label)
-	
-	var tween = create_tween().set_parallel(true)
-	tween.tween_property(float_label, "modulate:a", 1.0, 0.2)
-	tween.tween_property(float_label, "global_position:y", float_label.global_position.y - 100, 1.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(float_label, "modulate:a", 0.0, 0.5).set_delay(0.5)
-	tween.tween_property(float_label, "scale", Vector2(1.5, 1.5), 0.3)
-	
-	await tween.finished
-	float_label.queue_free()
-
+# =============================================================================
+# APPLY REWARDS (Firestore save)
+# =============================================================================
 func _apply_rewards() -> void:
 	print("\n========== APPLYING REWARDS ==========")
-	print("[RewardPopup] Total rewards: %d" % rewards.size())
-	
-	var total_items_to_save := 0
-	var items_saved := 0
-	
-	# Count items that need saving
+	var total_to_save := 0
+	var saved         := 0
+
 	for reward in rewards:
 		if save_to_inventory and reward.type in ["badge", "item", "card", "avatar", "powerup"]:
-			total_items_to_save += 1
-	
-	print("[RewardPopup] Items to save to inventory: %d" % total_items_to_save)
-	
-	for i in range(rewards.size()):
-		var reward = rewards[i]
-		print("\n--- Reward %d/%d ---" % [i + 1, rewards.size()])
-		print("Type: %s | Name: %s | Amount: %d" % [reward.type, reward.name, reward.amount])
-		
+			total_to_save += 1
+
+	for reward in rewards:
 		match reward.type:
 			"xp":
-				print("[RewardPopup] → Processing XP reward")
 				if TutorialManager:
 					TutorialManager.add_xp(reward.amount, reward.name)
-					print("[RewardPopup] ✅ XP added")
-			
 			"badge", "item", "card", "avatar", "powerup":
 				if save_to_inventory:
-					items_saved += 1
-					
-					# ✅ Update status label during save
+					saved += 1
 					if save_status_label:
-						save_status_label.text = "💾 Saving %s (%d/%d)..." % [reward.name, items_saved, total_items_to_save]
-					
-					print("[RewardPopup] → Saving %s to inventory..." % reward.type)
+						save_status_label.text = "💾 Saving %s (%d/%d)..." % [reward.name, saved, total_to_save]
 					var success := await _save_reward_to_inventory_async(reward, reward.type)
-					
-					if success:
-						print("[RewardPopup] ✅ %s saved!" % reward.type.capitalize())
-					else:
+					if not success:
 						push_error("[RewardPopup] ❌ Failed to save %s" % reward.type)
-				else:
-					print("[RewardPopup] ⚠️ save_to_inventory is FALSE")
-			
 			"currency":
-				print("[RewardPopup] → Currency reward (not saved)")
-			
+				pass
 			_:
-				print("[RewardPopup] ⚠️ Unknown type: %s" % reward.type)
-	
-	print("\n========== REWARDS APPLIED (%d/%d saved) ==========" % [items_saved, total_items_to_save])
+				print("[RewardPopup] ⚠️ Unknown reward type: %s" % reward.type)
 
-func _on_claim_pressed() -> void:
-	if is_saving:
-		print("[RewardPopup] ⚠️ Already saving, ignoring click")
-		return
-	
-	_animate_claim()
-
-static func show_xp_reward(parent: Node, xp_amount: int, title: String = "🎉 Reward!") -> void:
+# =============================================================================
+# STATIC HELPER METHODS
+# =============================================================================
+static func show_xp_reward(parent: Node, xp_amount: int, title: String = "REWARD UNLOCKED!") -> void:
 	var popup = preload("res://scene/reward_popup.tscn").instantiate()
 	parent.add_child(popup)
-	var reward_list = [
-		RewardItem.new("xp", xp_amount, "Experience Points", null, "Level up!")
-	]
-	popup.show_rewards(reward_list, title)
+	popup.show_rewards([RewardItem.new("xp", xp_amount, "Experience Points", null, "Level up!")], title)
 
-static func show_multiple_rewards(parent: Node, reward_data: Array, title: String = "🎉 Rewards!") -> void:
+static func show_multiple_rewards(parent: Node, reward_data: Array, title: String = "REWARD UNLOCKED!") -> void:
 	var popup = preload("res://scene/reward_popup.tscn").instantiate()
 	parent.add_child(popup)
 	var reward_list: Array = []
@@ -831,84 +576,75 @@ static func show_multiple_rewards(parent: Node, reward_data: Array, title: Strin
 		))
 	popup.show_rewards(reward_list, title)
 
+# =============================================================================
+# FIRESTORE SAVE
+# =============================================================================
 func _save_reward_to_inventory_async(reward: RewardItem, item_type: String) -> bool:
-	"""Save a reward item and return success status"""
-	print("\n========== SAVING TO FIRESTORE ==========")
-	print("[RewardPopup] Item: %s | Type: %s" % [reward.name, item_type])
-	
-	var user_id = Auth.current_local_id
+	var user_id  = Auth.current_local_id
 	var id_token = Auth.current_id_token
-	
+
 	if user_id == "" or id_token == "":
 		push_error("[RewardPopup] ❌ User not logged in")
 		return false
-	
+
 	var timestamp = int(Time.get_unix_time_from_system())
-	var random_suffix = randi() % 10000
-	var item_id = "%d_%s_%d" % [timestamp, item_type, random_suffix]
-	
-	print("[RewardPopup] Item ID: %s" % item_id)
-	
-	# Determine rarity
-	var rarity_value = _get_reward_rarity(reward)
-	var rarity_string = ""
-	match rarity_value:
-		Rarity.COMMON: rarity_string = "common"
-		Rarity.RARE: rarity_string = "rare"
-		Rarity.EPIC: rarity_string = "epic"
-		Rarity.LEGENDARY: rarity_string = "legendary"
-	
-	# Get icon path
+	var item_id   = "%d_%s_%d" % [timestamp, item_type, randi() % 10000]
+
+	var rarity_val = _get_reward_rarity(reward)
+	var rarity_str = ""
+	match rarity_val:
+		Rarity.COMMON:    rarity_str = "common"
+		Rarity.RARE:      rarity_str = "rare"
+		Rarity.EPIC:      rarity_str = "epic"
+		Rarity.LEGENDARY: rarity_str = "legendary"
+
 	var icon_path = ""
 	if reward.icon and reward.icon.resource_path:
 		icon_path = reward.icon.resource_path
 	else:
 		icon_path = "res://asset/icons/%s_icon.png" % item_type
-	
+
 	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s/inventory/%s" % [user_id, item_id]
-	
+
 	var body = {
 		"fields": {
-			"name": {"stringValue": reward.name},
-			"type": {"stringValue": item_type},
-			"rarity": {"stringValue": rarity_string},
-			"description": {"stringValue": reward.description},
-			"icon_path": {"stringValue": icon_path},
-			"amount": {"integerValue": str(reward.amount)},
+			"name":          {"stringValue":  reward.name},
+			"type":          {"stringValue":  item_type},
+			"rarity":        {"stringValue":  rarity_str},
+			"description":   {"stringValue":  reward.description},
+			"icon_path":     {"stringValue":  icon_path},
+			"amount":        {"integerValue": str(reward.amount)},
 			"date_acquired": {"integerValue": str(timestamp)},
-			"is_equipped": {"booleanValue": false},
-			"is_used": {"booleanValue": false}
+			"is_equipped":   {"booleanValue": false},
+			"is_used":       {"booleanValue": false}
 		}
 	}
-	
+
 	var headers = [
 		"Content-Type: application/json",
 		"Authorization: Bearer %s" % id_token
 	]
-	
+
 	var http = HTTPRequest.new()
 	get_tree().root.add_child(http)
-	
-	print("[RewardPopup] Sending HTTP request...")
+
 	var err = http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
-	
 	if err != OK:
-		push_error("[RewardPopup] ❌ HTTP request failed: %s" % err)
+		push_error("[RewardPopup] ❌ HTTP request failed: %d" % err)
 		http.queue_free()
 		return false
-	
-	var response = await http.request_completed
-	var code = response[1]
+
+	var response      = await http.request_completed
+	var response_code = response[1]
 	var response_body = response[3]
-	
-	print("[RewardPopup] Response code: %d" % code)
-	
+
 	http.queue_free()
-	
-	if code == 200:
-		print("[RewardPopup] ✅ SUCCESS! Item saved: %s" % reward.name)
+
+	if response_code == 200:
 		return true
-	else:
-		var error_msg = response_body.get_string_from_utf8() if response_body.size() > 0 else "No error message"
-		push_error("[RewardPopup] ❌ Save failed (Code %d): %s" % [code, error_msg])
-		return false
+
+	push_error("[RewardPopup] ❌ Save failed (Code %d): %s" % [
+		response_code,
+		response_body.get_string_from_utf8() if response_body.size() > 0 else "no body"
+	])
+	return false

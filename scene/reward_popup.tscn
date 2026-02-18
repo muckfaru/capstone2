@@ -1,81 +1,113 @@
-[gd_scene load_steps=9 format=3 uid="uid://biu4sdomdbsfb"]
+[gd_scene load_steps=36 format=3 uid="uid://biu4sdomdbsfb"]
 
 [ext_resource type="Script" uid="uid://cpanarqthaw0" path="res://script/RewardPopup.gd" id="1_cnpy5"]
+[ext_resource type="Texture2D" uid="uid://f0a6nu4ytmql" path="res://asset/icons/chest_closed.png" id="2_chest_closed"]
+[ext_resource type="Texture2D" uid="uid://bj5880mei7al7" path="res://asset/minigamesuite/final.png" id="2_hf4tg"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_font"]
+[ext_resource type="Texture2D" uid="uid://ckhlokr4b5abs" path="res://asset/minigamesuite/Gemini_Generated_Image_7uvvbb7uvvbb7uvv-Photoroom.png" id="5_0itvs"]
+[ext_resource type="Texture2D" uid="uid://chq8fwes5jj0u" path="res://asset/minigamesuite/Gemini_Generated_Image_whoacgwhoacgwhoa-Photoroom.png" id="5_6ywj8"]
+[ext_resource type="Texture2D" uid="uid://s46ug3r77k8i" path="res://asset/minigamesuite/Gemini_Generated_Image_cskjl1cskjl1cskj-Photoroom.png" id="7_535or"]
+[ext_resource type="Texture2D" uid="uid://du7yho8icn6iq" path="res://asset/minigamesuite/Gemini_Generated_Image_fziz4nfziz4nfziz-Photoroom.png" id="7_k0wq4"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.2, 0.7, 0.85, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0, 0.2, 0.5, 1)
-corner_radius_top_left = 25
-corner_radius_top_right = 25
-corner_radius_bottom_right = 25
-corner_radius_bottom_left = 25
-shadow_color = Color(0, 0.2, 0.5, 0.6)
-shadow_size = 25
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_6ywj8"]
+texture = ExtResource("2_hf4tg")
+expand_margin_left = 300.0
+expand_margin_top = 40.0
+expand_margin_right = 300.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title"]
-bg_color = Color(0.15, 0.55, 0.7, 1)
-border_width_bottom = 3
-border_color = Color(1, 1, 1, 0.3)
-corner_radius_top_left = 22
-corner_radius_top_right = 22
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4qcy1"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
-bg_color = Color(0.15, 0.55, 0.7, 0.5)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hf4tg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ojmw3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6ywj8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_75ijf"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0itvs"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_267vh"]
+texture = ExtResource("5_0itvs")
+expand_margin_left = 150.0
+expand_margin_top = 115.0
+expand_margin_right = 150.0
+expand_margin_bottom = 130.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_535or"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2w2ap"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_k0wq4"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_75ijf"]
+texture = ExtResource("5_6ywj8")
+expand_margin_left = 150.0
+expand_margin_top = 115.0
+expand_margin_right = 150.0
+expand_margin_bottom = 130.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_267vh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qxxd7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ed367"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_secp5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yu6ol"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sme7x"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4nbde"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ojmw3"]
+texture = ExtResource("7_k0wq4")
+expand_margin_left = 100.0
+expand_margin_top = 90.0
+expand_margin_right = 100.0
+expand_margin_bottom = 90.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rvooo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5ga6a"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7cmrx"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_101q2"]
+texture = ExtResource("7_535or")
+expand_margin_left = 100.0
+expand_margin_top = 90.0
+expand_margin_right = 100.0
+expand_margin_bottom = 90.0
+
+[sub_resource type="Gradient" id="Gradient_confetti"]
+offsets = PackedFloat32Array(0, 0.3, 0.6, 1)
+colors = PackedColorArray(0.2, 0.8, 1, 1, 0.6, 0.3, 1, 1, 1, 0.8, 0, 1, 1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xp_bg"]
+bg_color = Color(0.07, 0.07, 0.18, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.18, 0.6, 0.6)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
-bg_color = Color(1, 0.7, 0, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_disabled"]
-bg_color = Color(0.3, 0.3, 0.4, 0.5)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.5, 0.5, 0.5, 0.5)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
-bg_color = Color(0, 0.5, 0.8, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 0.3, 0.6, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-shadow_color = Color(0, 0.3, 0.7, 0.5)
-shadow_size = 12
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_normal"]
-bg_color = Color(0, 0.4, 0.7, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 0.3, 0.6, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xp_fill"]
+bg_color = Color(0.2, 1, 1, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+shadow_color = Color(0.4, 1, 1, 0.6)
+shadow_size = 8
 
 [node name="RewardPopup" type="CanvasLayer"]
+layer = 128
 script = ExtResource("1_cnpy5")
 
 [node name="Overlay" type="ColorRect" parent="."]
@@ -84,181 +116,260 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.7)
+color = Color(0, 0, 0, 0.75)
 
-[node name="PanelContainer" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(650, 520)
+[node name="PanelCenter" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -7.0
+offset_top = 5.0
+offset_right = -7.0
+offset_bottom = 5.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="PanelCenter"]
+custom_minimum_size = Vector2(700, 620)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_6ywj8")
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelCenter/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 25
+
+[node name="MainVBox" type="VBoxContainer" parent="PanelCenter/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 25
+
+[node name="TitleLabel" type="Label" parent="PanelCenter/PanelContainer/MarginContainer/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.15, 0.4, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 36
+text = "
+REWARD UNLOCKED!"
+horizontal_alignment = 1
+
+[node name="ChestArea" type="CenterContainer" parent="PanelCenter/PanelContainer/MarginContainer/MainVBox"]
+custom_minimum_size = Vector2(0, 280)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ChestContainer" type="Control" parent="PanelCenter/PanelContainer/MarginContainer/MainVBox/ChestArea"]
+custom_minimum_size = Vector2(280, 280)
+layout_mode = 2
+
+[node name="ChestGlow" type="ColorRect" parent="PanelCenter/PanelContainer/MarginContainer/MainVBox/ChestArea/ChestContainer"]
+visible = false
+z_index = -1
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -325.0
-offset_top = -260.0
-offset_right = 325.0
-offset_bottom = 260.0
+offset_left = -160.0
+offset_top = -160.0
+offset_right = 160.0
+offset_bottom = 160.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+mouse_filter = 2
+color = Color(0.3, 0.7, 1, 0.15)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer"]
+[node name="BurstRing" type="ColorRect" parent="PanelCenter/PanelContainer/MarginContainer/MainVBox/ChestArea/ChestContainer"]
+visible = false
+z_index = 5
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -100.0
+offset_right = 100.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.5, 0.9, 1, 0)
+
+[node name="ChestIcon" type="TextureRect" parent="PanelCenter/PanelContainer/MarginContainer/MainVBox/ChestArea/ChestContainer"]
+z_index = 10
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -574.0
+offset_top = -360.0
+offset_right = 572.0
+offset_bottom = 287.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_chest_closed")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ButtonArea" type="VBoxContainer" parent="PanelCenter/PanelContainer/MarginContainer/MainVBox"]
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
 theme_override_constants/separation = 8
 
-[node name="TitleContainer" type="PanelContainer" parent="PanelContainer/VBoxContainer"]
-custom_minimum_size = Vector2(650, 60)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_title")
-
-[node name="TitleLabel" type="Label" parent="PanelContainer/VBoxContainer/TitleContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 36
-text = "NEW USER BONUS"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="ProgressContainer" type="MarginContainer" parent="PanelContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 50
-theme_override_constants/margin_top = 6
-theme_override_constants/margin_right = 50
-theme_override_constants/margin_bottom = 3
-
-[node name="ProgressVBox" type="VBoxContainer" parent="PanelContainer/VBoxContainer/ProgressContainer"]
-layout_mode = 2
-theme_override_constants/separation = 5
-
-[node name="XPLabel" type="Label" parent="PanelContainer/VBoxContainer/ProgressContainer/ProgressVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 14
-text = "xp 0/1000"
-horizontal_alignment = 1
-
-[node name="XPProgressBar" type="ProgressBar" parent="PanelContainer/VBoxContainer/ProgressContainer/ProgressVBox"]
-custom_minimum_size = Vector2(550, 25)
-layout_mode = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
-max_value = 1000.0
-show_percentage = false
-
-[node name="Spacer1" type="Control" parent="PanelContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-
-[node name="CenterContainer" type="CenterContainer" parent="PanelContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 240)
-layout_mode = 2
-
-[node name="RewardGrid" type="GridContainer" parent="PanelContainer/VBoxContainer/CenterContainer"]
-layout_mode = 2
-theme_override_constants/h_separation = 20
-theme_override_constants/v_separation = 15
-columns = 2
-
-[node name="StarterLayoutRoot" type="VBoxContainer" parent="PanelContainer/VBoxContainer/CenterContainer"]
+[node name="SaveStatusLabel" type="Label" parent="PanelCenter/PanelContainer/MarginContainer/MainVBox/ButtonArea"]
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 18
-
-[node name="MidCenter" type="CenterContainer" parent="PanelContainer/VBoxContainer/CenterContainer/StarterLayoutRoot"]
-layout_mode = 2
-
-[node name="StarterMidRow" type="HBoxContainer" parent="PanelContainer/VBoxContainer/CenterContainer/StarterLayoutRoot/MidCenter"]
-layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="StarterBottomCenter" type="CenterContainer" parent="PanelContainer/VBoxContainer/CenterContainer/StarterLayoutRoot"]
-layout_mode = 2
-
-[node name="Spacer2" type="Control" parent="PanelContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 8)
-layout_mode = 2
-
-[node name="InstructionLabel" type="Label" parent="PanelContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "Click to reveal your reward"
-horizontal_alignment = 1
-
-[node name="SaveStatusLabel" type="Label" parent="PanelContainer/VBoxContainer"]
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 1, 1, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.2, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
 text = "💾 Saving rewards..."
 horizontal_alignment = 1
 
-[node name="Spacer3" type="Control" parent="PanelContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 8)
-layout_mode = 2
-
-[node name="ClaimButton" type="Button" parent="PanelContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 50)
+[node name="ClaimButton" type="Button" parent="PanelCenter/PanelContainer/MarginContainer/MainVBox/ButtonArea"]
+custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
 size_flags_horizontal = 4
+mouse_default_cursor_shape = 2
+theme_override_colors/font_outline_color = Color(0, 0.1, 0.3, 1)
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 18
-theme_override_styles/disabled = SubResource("StyleBoxFlat_button_disabled")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_button_hover")
-theme_override_styles/normal = SubResource("StyleBoxFlat_button_normal")
-disabled = true
-text = " Claim All Rewards "
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4qcy1")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_hf4tg")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_ojmw3")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_6ywj8")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_75ijf")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_0itvs")
+theme_override_styles/hover = SubResource("StyleBoxTexture_267vh")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_535or")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_2w2ap")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_k0wq4")
+theme_override_styles/normal = SubResource("StyleBoxTexture_75ijf")
 
-[node name="SpacerBottom" type="Control" parent="PanelContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 6)
+[node name="HSeparator" type="HSeparator" parent="PanelCenter/PanelContainer/MarginContainer/MainVBox/ButtonArea"]
 layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_267vh")
 
-[node name="Confetti1" type="CPUParticles2D" parent="PanelContainer"]
-position = Vector2(315, 2)
-amount = 40
-lifetime = 2.5
+[node name="CloseButton" type="Button" parent="PanelCenter/PanelContainer/MarginContainer/MainVBox/ButtonArea"]
+custom_minimum_size = Vector2(140, 45)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.85, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/focus = SubResource("StyleBoxEmpty_qxxd7")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_ed367")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_secp5")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_yu6ol")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_sme7x")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_4nbde")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ojmw3")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_rvooo")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_5ga6a")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_7cmrx")
+theme_override_styles/normal = SubResource("StyleBoxTexture_101q2")
+
+[node name="Confetti" type="CPUParticles2D" parent="PanelCenter/PanelContainer"]
+z_index = 150
+position = Vector2(359, 2)
+emitting = false
+amount = 80
+lifetime = 2.8
+one_shot = true
 explosiveness = 0.9
 emission_shape = 1
-emission_sphere_radius = 30.0
-direction = Vector2(0, -1)
-spread = 60.0
-gravity = Vector2(0, 250)
-initial_velocity_min = 150.0
-initial_velocity_max = 300.0
-scale_amount_min = 3.0
-scale_amount_max = 6.0
-color = Color(1, 0, 0, 1)
+emission_sphere_radius = 20.0
+direction = Vector2(0, 1)
+gravity = Vector2(0, 300)
+initial_velocity_min = 200.0
+initial_velocity_max = 500.0
+angular_velocity_min = -450.0
+angular_velocity_max = 450.0
+scale_amount_min = 4.0
+scale_amount_max = 12.0
+color_ramp = SubResource("Gradient_confetti")
 
-[node name="Confetti2" type="CPUParticles2D" parent="PanelContainer"]
-position = Vector2(641, 4)
-amount = 40
-lifetime = 2.5
-explosiveness = 0.9
-emission_shape = 1
-emission_sphere_radius = 30.0
-direction = Vector2(0, -1)
-spread = 60.0
-gravity = Vector2(0, 250)
-initial_velocity_min = 150.0
-initial_velocity_max = 300.0
-scale_amount_min = 3.0
-scale_amount_max = 6.0
-color = Color(0, 1, 0, 1)
+[node name="RewardOverlay" type="Control" parent="."]
+visible = false
+z_index = 100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = -38.0
+offset_right = 2.0
+offset_bottom = -38.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="Confetti3" type="CPUParticles2D" parent="PanelContainer"]
-position = Vector2(15, 9)
-amount = 40
-lifetime = 2.5
-explosiveness = 0.9
-emission_shape = 1
-emission_sphere_radius = 30.0
-direction = Vector2(0, -1)
-spread = 60.0
-gravity = Vector2(0, 250)
-initial_velocity_min = 150.0
-initial_velocity_max = 300.0
-scale_amount_min = 3.0
-scale_amount_max = 6.0
-color = Color(0, 0.5, 1, 1)
+[node name="OverlayCenter" type="CenterContainer" parent="RewardOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[connection signal="pressed" from="PanelContainer/VBoxContainer/ClaimButton" to="." method="_on_claim_pressed"]
+[node name="OverlayVBox" type="VBoxContainer" parent="RewardOverlay/OverlayCenter"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="ItemsRow" type="HBoxContainer" parent="RewardOverlay/OverlayCenter/OverlayVBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="XPArea" type="VBoxContainer" parent="RewardOverlay/OverlayCenter/OverlayVBox"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 6
+
+[node name="XPLabel" type="Label" parent="RewardOverlay/OverlayCenter/OverlayVBox/XPArea"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "XP: 0 / 1000"
+horizontal_alignment = 1
+
+[node name="XPProgressBar" type="ProgressBar" parent="RewardOverlay/OverlayCenter/OverlayVBox/XPArea"]
+custom_minimum_size = Vector2(450, 20)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_xp_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_xp_fill")
+max_value = 1000.0
+show_percentage = false
+
+[node name="SFX_PanelAppear" type="AudioStreamPlayer" parent="."]
+volume_db = -5.0
+
+[node name="SFX_ChestOpen" type="AudioStreamPlayer" parent="."]
+volume_db = -3.0
+
+[node name="SFX_ItemReveal" type="AudioStreamPlayer" parent="."]
+volume_db = -8.0
+
+[node name="SFX_Claim" type="AudioStreamPlayer" parent="."]
+
+[node name="SFX_Success" type="AudioStreamPlayer" parent="."]
+volume_db = -3.0
+
+[connection signal="pressed" from="PanelCenter/PanelContainer/MarginContainer/MainVBox/ButtonArea/ClaimButton" to="." method="_on_claim_pressed"]
+[connection signal="pressed" from="PanelCenter/PanelContainer/MarginContainer/MainVBox/ButtonArea/CloseButton" to="." method="_on_close_pressed"]

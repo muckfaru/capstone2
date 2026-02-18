@@ -1,19 +1,89 @@
-[gd_scene load_steps=20 format=3 uid="uid://iskq8vfxcwm1"]
+[gd_scene load_steps=71 format=3 uid="uid://iskq8vfxcwm1"]
 
 [ext_resource type="Script" uid="uid://dpn2fg7mjjx55" path="res://script/mode_selection.gd" id="1_mode"]
-[ext_resource type="Texture2D" uid="uid://dri7g0isxowjd" path="res://asset/background/arena toturial.jpg" id="2_bg"]
-[ext_resource type="VideoStream" uid="uid://ddnfvg4xyja6" path="res://asset/background/Arena_Stadium_Video_Generation.ogv" id="2_ka30l"]
+[ext_resource type="VideoStream" uid="uid://dtdwmmtpj8uia" path="res://asset/minigamesuite/7e0f9999-9b44-4b49-b3f5-8bde4a5a8aee (1).ogv" id="2_rqr7f"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_font"]
-[ext_resource type="Texture2D" uid="uid://dg2mhp8h0wmco" path="res://asset/icons/xp icon.png" id="4_xp_icon"]
 [ext_resource type="AudioStream" uid="uid://dwpnu2nrh8q7q" path="res://asset/audio/modeselectiongbm.mp3" id="5_bgm"]
 [ext_resource type="AudioStream" uid="uid://crc05j5mnymh4" path="res://asset/audio/buttonhoverf.mp3" id="6_hover_sfx"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="8_4hln6"]
+[ext_resource type="Texture2D" uid="uid://sw5fw4codm06" path="res://asset/minigamesuite/framesmode.png" id="9_mkyru"]
+[ext_resource type="Texture2D" uid="uid://utsmkxcphxcu" path="res://asset/minigamesuite/new xpicon.png" id="9_xk8xl"]
+[ext_resource type="Texture2D" uid="uid://dptq7fi40lg4j" path="res://asset/minigamesuite/easyivon.png" id="10_6604u"]
+[ext_resource type="Texture2D" uid="uid://dcomdn805fecs" path="res://asset/minigamesuite/frameranks.png" id="10_t1w3r"]
+[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="11_c5of4"]
+[ext_resource type="Texture2D" uid="uid://7k3hs2aywx4f" path="res://asset/rankicon/IRON.png" id="11_g0rrd"]
+[ext_resource type="Texture2D" uid="uid://capt6j4v323wx" path="res://asset/minigamesuite/hardmodeicon.png" id="12_rqr7f"]
+[ext_resource type="Texture2D" uid="uid://camqiws0agh4t" path="res://asset/minigamesuite/advancebuttonicon.png" id="13_xk8xl"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g0rrd"]
+bg_color = Color(0.067, 0.075, 0.204, 0.237)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6604u"]
+bg_color = Color(0.0666667, 0.0745098, 0.203922, 1)
+corner_radius_top_left = 21
+corner_radius_top_right = 21
+corner_radius_bottom_right = 21
+corner_radius_bottom_left = 21
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_an838"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mfesm"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e3y5h"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5ry8m"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1lb30"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_184wi"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_au2cq"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_du7lb"]
+bg_color = Color(0.0666667, 0.0745098, 0.203922, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0.901961, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0.901961, 1, 0.513726)
+shadow_size = 16
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jqb01"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8tsw3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_c51dm"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ka30l"]
-draw_center = false
+bg_color = Color(0.0666667, 0.0745098, 0.203922, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0.902, 1, 1)
+border_blend = true
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0.902, 1, 0.513)
+shadow_size = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4hln6"]
 draw_center = false
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_usa3j"]
+texture = ExtResource("10_t1w3r")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_usa3j"]
+draw_center = false
+border_width_left = 44
+border_color = Color(0.0666667, 0.0745098, 0.203922, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xp_bar_bg"]
 bg_color = Color(0, 0.1, 0.15, 0.7)
@@ -46,81 +116,181 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_beginner"]
-bg_color = Color(0, 0, 0, 0.4)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0, 0.9, 1, 1)
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-shadow_color = Color(1, 0.2, 0.8, 0.6)
-shadow_size = 8
+[sub_resource type="LabelSettings" id="LabelSettings_xk8xl"]
+font = ExtResource("8_4hln6")
+font_size = 32
+font_color = Color(0.0666667, 0.0745098, 0.203922, 1)
+outline_size = 12
+outline_color = Color(0, 0.902, 1, 1)
+shadow_size = 3
+shadow_color = Color(0, 0.901961, 1, 0.513726)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t1w3r"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rqr7f"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xk8xl"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_usa3j"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g0rrd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_du7lb"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_beginner_hover"]
 bg_color = Color(0, 0, 0, 0.6)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0, 0.9, 1, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.368627, 0.945098, 0, 1)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
-shadow_color = Color(0.8, 0.2, 1, 0.8)
+shadow_color = Color(0.368627, 0.945098, 0, 0.65098)
 shadow_size = 12
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_advance"]
-bg_color = Color(0, 0, 0, 0.4)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0, 0.9, 1, 1)
-shadow_color = Color(1, 0.2, 0.8, 0.6)
-shadow_size = 8
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_anre4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0pgn8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7tmbu"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mkyru"]
+bg_color = Color(0.0666667, 0.0745098, 0.203922, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.368936, 0.946906, 7.70092e-07, 1)
+border_blend = true
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+shadow_color = Color(0.369, 0.947, 0, 0.652)
+shadow_size = 3
+
+[sub_resource type="LabelSettings" id="LabelSettings_rqr7f"]
+font = ExtResource("11_c5of4")
+font_size = 30
+font_color = Color(0.962977, 0.968121, 0.992543, 1)
+outline_size = 2
+outline_color = Color(2.88785e-06, 0.983681, 0.0563161, 1)
+shadow_size = 5
+shadow_color = Color(0.133, 0.382, 0, 1)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ems8w"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hogkg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7irdh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_awpmb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3mw58"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jfect"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_advance_hover"]
 bg_color = Color(0, 0, 0, 0.6)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0, 0.9, 1, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.972549, 0.772549, 0, 1)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
-shadow_color = Color(0.8, 0.2, 1, 0.8)
+shadow_color = Color(0.972549, 0.772549, 0, 1)
 shadow_size = 12
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_intermediate"]
-bg_color = Color(0, 0, 0, 0.4)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0, 0.9, 1, 1)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1o4ra"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0in21"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2vkw8"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xk8xl"]
+bg_color = Color(0.0666667, 0.0745098, 0.203922, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.974439, 0.772892, 1.54018e-06, 1)
+border_blend = true
+corner_radius_top_left = 15
+corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
-shadow_color = Color(1, 0.2, 0.8, 0.6)
-shadow_size = 8
+shadow_color = Color(0.973, 0.773, 0, 0.58)
+shadow_size = 3
+
+[sub_resource type="LabelSettings" id="LabelSettings_t1w3r"]
+font = ExtResource("11_c5of4")
+font_size = 24
+outline_size = 2
+outline_color = Color(0.972549, 0.772549, 0, 1)
+shadow_size = 5
+shadow_color = Color(0.973, 0.773, 0, 0.414)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_c2i61"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bl245"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gb7ob"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_00uvd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ysmm6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lw0w0"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_intermediate_hover"]
 bg_color = Color(0, 0, 0, 0.6)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0, 0.9, 1, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.764706, 0, 0.0588235, 1)
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
-shadow_color = Color(0.8, 0.2, 1, 0.8)
+shadow_color = Color(0.764706, 0, 0.0588235, 0.619608)
 shadow_size = 12
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2hvob"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qixsk"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t1w3r"]
+bg_color = Color(0.0666667, 0.0745098, 0.203922, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.765973, 0, 0.0602738, 1)
+border_blend = true
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+shadow_color = Color(0.765, 0, 0.059, 0.619)
+shadow_size = 3
+
+[sub_resource type="LabelSettings" id="LabelSettings_g0rrd"]
+font = ExtResource("11_c5of4")
+font_size = 30
+outline_size = 2
+outline_color = Color(0.764706, 0, 0.0588235, 1)
+shadow_size = 5
+shadow_color = Color(0.764706, 0, 0.0588235, 0.619608)
+shadow_offset = Vector2(2, 2)
 
 [node name="ModeSelection" type="Control"]
 layout_mode = 3
@@ -133,25 +303,22 @@ script = ExtResource("1_mode")
 
 [node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="."]
 layout_mode = 0
-offset_right = 1215.0
-offset_bottom = 648.0
-stream = ExtResource("2_ka30l")
+offset_right = 1153.0
+offset_bottom = 658.0
+stream = ExtResource("2_rqr7f")
 volume_db = -80.0
 autoplay = true
 expand = true
 loop = true
 
-[node name="Background" type="TextureRect" parent="."]
-visible = false
+[node name="Panel" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_bg")
-expand_mode = 1
-stretch_mode = 5
+theme_override_styles/panel = SubResource("StyleBoxFlat_g0rrd")
 
 [node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_bgm")
@@ -163,16 +330,47 @@ volume_db = -5.0
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
+[node name="backs" type="Panel" parent="CanvasLayer"]
+offset_left = 196.0
+offset_top = 103.0
+offset_right = 966.0
+offset_bottom = 547.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_6604u")
+
+[node name="frames" type="PanelContainer" parent="CanvasLayer"]
+clip_children = 1
+offset_left = 6.0
+offset_top = 19.0
+offset_right = 1159.0
+offset_bottom = 632.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_an838")
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/frames"]
+layout_mode = 2
+texture = ExtResource("9_mkyru")
+expand_mode = 1
+
 [node name="BackButton" type="Button" parent="CanvasLayer"]
-offset_left = 25.0
-offset_top = 21.0
-offset_right = 143.0
-offset_bottom = 63.0
+offset_left = 519.0
+offset_top = 521.0
+offset_right = 658.0
+offset_bottom = 563.0
+mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("3_font")
+theme_override_fonts/font = ExtResource("8_4hln6")
 theme_override_font_sizes/font_size = 25
+theme_override_styles/focus = SubResource("StyleBoxEmpty_mfesm")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_e3y5h")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_5ry8m")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_1lb30")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_184wi")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_au2cq")
+theme_override_styles/hover = SubResource("StyleBoxFlat_du7lb")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_jqb01")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_8tsw3")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_c51dm")
 theme_override_styles/normal = SubResource("StyleBoxFlat_ka30l")
-text = "← Back"
+text = "Back"
 
 [node name="MenuButton" type="Button" parent="CanvasLayer"]
 anchors_preset = 1
@@ -189,16 +387,23 @@ theme_override_font_sizes/font_size = 32
 theme_override_styles/normal = SubResource("StyleBoxFlat_4hln6")
 text = "≡"
 
+[node name="rankframe2" type="PanelContainer" parent="CanvasLayer"]
+offset_left = 856.0
+offset_top = 481.0
+offset_right = 1078.0
+offset_bottom = 602.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_usa3j")
+
 [node name="XPIcon" type="TextureRect" parent="CanvasLayer"]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = -45.0
-offset_right = 50.0
-offset_bottom = -15.0
+offset_left = 857.0
+offset_top = -168.0
+offset_right = 1079.0
+offset_bottom = -47.0
 grow_vertical = 0
-texture = ExtResource("4_xp_icon")
+texture = ExtResource("9_xk8xl")
 expand_mode = 1
 stretch_mode = 5
 
@@ -206,16 +411,17 @@ stretch_mode = 5
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 54.0
-offset_top = -44.0
-offset_right = 204.0
-offset_bottom = -14.0
+offset_left = 745.0
+offset_top = -167.0
+offset_right = 895.0
+offset_bottom = -133.0
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.984475, 0.991507, 0.908535, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 25
+theme_override_styles/normal = SubResource("StyleBoxFlat_usa3j")
 text = ": 0"
 vertical_alignment = 1
 
@@ -223,25 +429,33 @@ vertical_alignment = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = -60.0
-offset_right = 420.0
-offset_bottom = -48.0
+offset_left = 386.0
+offset_top = -154.0
+offset_right = 786.0
+offset_bottom = -142.0
 grow_vertical = 0
 theme_override_styles/background = SubResource("StyleBoxFlat_xp_bar_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_xp_bar_fill")
 max_value = 500.0
 show_percentage = false
 
+[node name="rankframe" type="PanelContainer" parent="CanvasLayer"]
+offset_left = 98.0
+offset_top = 488.0
+offset_right = 320.0
+offset_bottom = 609.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_usa3j")
+
 [node name="RankIcon" type="TextureRect" parent="CanvasLayer"]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 19.0
-offset_top = -261.0
-offset_right = 350.0
-offset_bottom = -65.0
+offset_left = 66.0
+offset_top = -184.0
+offset_right = 351.0
+offset_bottom = 12.0
 grow_vertical = 0
+texture = ExtResource("11_g0rrd")
 expand_mode = 1
 stretch_mode = 6
 
@@ -249,27 +463,28 @@ stretch_mode = 6
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 249.0
-offset_top = -38.0
-offset_right = 419.0
-offset_bottom = -8.0
+offset_left = 296.0
+offset_top = -167.0
+offset_right = 466.0
+offset_bottom = -137.0
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.984475, 0.991507, 0.908535, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 25
-text = "🔩 Iron"
+text = "Iron"
 vertical_alignment = 1
 
 [node name="UnlockProgressPanel" type="Panel" parent="CanvasLayer"]
+visible = false
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -1111.0
-offset_top = 84.0
-offset_right = -711.0
-offset_bottom = 284.0
+offset_left = -420.0
+offset_top = 80.0
+offset_right = -20.0
+offset_bottom = 280.0
 grow_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_unlock_panel")
 
@@ -329,82 +544,165 @@ text = "🔒 Mystery Game (Unlock at 1500 XP)"
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -403.0
-offset_top = 113.0
-offset_right = 454.0
-offset_bottom = 153.0
+offset_left = -421.0
+offset_top = 118.0
+offset_right = 436.0
+offset_bottom = 164.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 8
 theme_override_fonts/font = ExtResource("8_4hln6")
 theme_override_font_sizes/font_size = 20
-text = "Begin Your Journey Here In Cybersecurity"
+text = "SELECT DIFFICULTY"
+label_settings = SubResource("LabelSettings_xk8xl")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ButtonContainer" type="VBoxContainer" parent="CanvasLayer"]
+[node name="BeginnerButton" type="Button" parent="CanvasLayer"]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -217.0
-offset_top = -152.0
-offset_right = 283.0
-offset_bottom = 148.0
+offset_left = -352.0
+offset_top = -137.0
+offset_right = -128.0
+offset_bottom = 138.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 30
-alignment = 1
-
-[node name="BeginnerButton" type="Button" parent="CanvasLayer/ButtonContainer"]
-custom_minimum_size = Vector2(500, 80)
-layout_mode = 2
-size_flags_horizontal = 4
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 32
-theme_override_styles/focus = SubResource("StyleBoxFlat_beginner")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_t1w3r")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_rqr7f")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_xk8xl")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_usa3j")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_g0rrd")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_du7lb")
 theme_override_styles/hover = SubResource("StyleBoxFlat_beginner_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_beginner_hover")
-theme_override_styles/normal = SubResource("StyleBoxFlat_beginner")
-text = "BEGINNER"
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_anre4")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_0pgn8")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_7tmbu")
+theme_override_styles/normal = SubResource("StyleBoxFlat_mkyru")
 
-[node name="IntermediateButton" type="Button" parent="CanvasLayer/ButtonContainer"]
-custom_minimum_size = Vector2(500, 80)
-layout_mode = 2
-size_flags_horizontal = 4
+[node name="easyicon" type="TextureRect" parent="CanvasLayer/BeginnerButton"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 68.0
+offset_right = 215.0
+offset_bottom = 182.0
+texture = ExtResource("10_6604u")
+expand_mode = 1
+
+[node name="easylabel" type="Label" parent="CanvasLayer/BeginnerButton"]
+layout_mode = 0
+offset_left = 62.0
+offset_top = 228.0
+offset_right = 160.0
+offset_bottom = 259.0
+text = "EASY"
+label_settings = SubResource("LabelSettings_rqr7f")
+horizontal_alignment = 1
+
+[node name="IntermediateButton" type="Button" parent="CanvasLayer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -108.0
+offset_top = -138.0
+offset_right = 116.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 0.843, 0, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 32
-theme_override_styles/focus = SubResource("StyleBoxFlat_advance")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ems8w")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_hogkg")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_7irdh")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_awpmb")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_3mw58")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_jfect")
 theme_override_styles/hover = SubResource("StyleBoxFlat_advance_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_advance_hover")
-theme_override_styles/normal = SubResource("StyleBoxFlat_advance")
-text = "INTERMEDIATE"
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_1o4ra")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_0in21")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_2vkw8")
+theme_override_styles/normal = SubResource("StyleBoxFlat_xk8xl")
 
-[node name="AdvancedButton" type="Button" parent="CanvasLayer/ButtonContainer"]
-custom_minimum_size = Vector2(500, 80)
-layout_mode = 2
-size_flags_horizontal = 4
+[node name="intericon" type="TextureRect" parent="CanvasLayer/IntermediateButton"]
+layout_mode = 0
+offset_left = -39.0
+offset_top = 52.0
+offset_right = 260.0
+offset_bottom = 193.0
+texture = ExtResource("12_rqr7f")
+expand_mode = 1
+
+[node name="interilabel" type="Label" parent="CanvasLayer/IntermediateButton"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 233.0
+offset_right = 231.0
+offset_bottom = 275.0
+text = "INTERMEDIATE"
+label_settings = SubResource("LabelSettings_t1w3r")
+
+[node name="AdvancedButton" type="Button" parent="CanvasLayer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 134.0
+offset_top = -138.0
+offset_right = 358.0
+offset_bottom = 142.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 32
-theme_override_styles/focus = SubResource("StyleBoxFlat_intermediate")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_c2i61")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_bl245")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_gb7ob")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_00uvd")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_ysmm6")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_lw0w0")
 theme_override_styles/hover = SubResource("StyleBoxFlat_intermediate_hover")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_2hvob")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_intermediate_hover")
-theme_override_styles/normal = SubResource("StyleBoxFlat_intermediate")
-text = "ADVANCED"
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_qixsk")
+theme_override_styles/normal = SubResource("StyleBoxFlat_t1w3r")
+
+[node name="advanceicon" type="TextureRect" parent="CanvasLayer/AdvancedButton"]
+layout_mode = 0
+offset_left = -35.0
+offset_top = 54.0
+offset_right = 264.0
+offset_bottom = 195.0
+texture = ExtResource("13_xk8xl")
+expand_mode = 1
+
+[node name="advancelabel" type="Label" parent="CanvasLayer/AdvancedButton"]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 232.0
+offset_right = 207.0
+offset_bottom = 263.0
+text = "ADVANCE"
+label_settings = SubResource("LabelSettings_g0rrd")
 
 [connection signal="pressed" from="CanvasLayer/BackButton" to="." method="_on_back_pressed"]
 [connection signal="pressed" from="CanvasLayer/MenuButton" to="." method="_on_menu_pressed"]
-[connection signal="mouse_entered" from="CanvasLayer/ButtonContainer/BeginnerButton" to="." method="_on_button_hover" binds= ["beginner"]]
-[connection signal="pressed" from="CanvasLayer/ButtonContainer/BeginnerButton" to="." method="_on_level_selected" binds= ["beginner"]]
-[connection signal="mouse_entered" from="CanvasLayer/ButtonContainer/IntermediateButton" to="." method="_on_button_hover" binds= ["intermediate"]]
-[connection signal="pressed" from="CanvasLayer/ButtonContainer/IntermediateButton" to="." method="_on_level_selected" binds= ["intermediate"]]
-[connection signal="mouse_entered" from="CanvasLayer/ButtonContainer/AdvancedButton" to="." method="_on_button_hover" binds= ["advanced"]]
-[connection signal="pressed" from="CanvasLayer/ButtonContainer/AdvancedButton" to="." method="_on_level_selected" binds= ["advanced"]]
+[connection signal="mouse_entered" from="CanvasLayer/BeginnerButton" to="." method="_on_button_hover" binds= ["beginner"]]
+[connection signal="pressed" from="CanvasLayer/BeginnerButton" to="." method="_on_level_selected" binds= ["beginner"]]
+[connection signal="mouse_entered" from="CanvasLayer/IntermediateButton" to="." method="_on_button_hover" binds= ["intermediate"]]
+[connection signal="pressed" from="CanvasLayer/IntermediateButton" to="." method="_on_level_selected" binds= ["intermediate"]]
+[connection signal="mouse_entered" from="CanvasLayer/AdvancedButton" to="." method="_on_button_hover" binds= ["advanced"]]
+[connection signal="pressed" from="CanvasLayer/AdvancedButton" to="." method="_on_level_selected" binds= ["advanced"]]

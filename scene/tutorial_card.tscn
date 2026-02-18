@@ -1,14 +1,17 @@
-[gd_scene load_steps=8 format=3 uid="uid://ln08eihg34hi"]
+[gd_scene load_steps=12 format=3 uid="uid://ln08eihg34hi"]
 
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="1_font"]
-[ext_resource type="Texture2D" uid="uid://dri7g0isxowjd" path="res://asset/background/arena toturial.jpg" id="2_time"]
+[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="2_hwus5"]
+[ext_resource type="Texture2D" uid="uid://c0tibe2pdm2o3" path="res://asset/icons/hourglass.png" id="3_bvrrq"]
 [ext_resource type="Texture2D" uid="uid://dg2mhp8h0wmco" path="res://asset/icons/xp icon.png" id="3_xp"]
 [ext_resource type="Texture2D" uid="uid://duu113m4ri5fl" path="res://asset/icons/difficulty.png" id="4_diff"]
+[ext_resource type="FontFile" uid="uid://c1y55nmycr726" path="res://asset/fonts/Orbitron-VariableFont_wght.ttf" id="4_qw2li"]
 [ext_resource type="Texture2D" uid="uid://c8lj4tejpypfd" path="res://asset/icons/star_filled2.png" id="5_star_on"]
 [ext_resource type="Texture2D" uid="uid://b1hgwhpvmj6np" path="res://asset/icons/star_empty.png" id="6_star_off"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="9_as0hk"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_normal"]
-bg_color = Color(0.08, 0.08, 0.12, 0.9)
+bg_color = Color(0.0666667, 0.0745098, 0.203922, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -18,6 +21,12 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+
+[sub_resource type="LabelSettings" id="LabelSettings_eyfsv"]
+font = ExtResource("2_hwus5")
+font_size = 18
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
 
 [node name="TutorialCard" type="PanelContainer"]
 custom_minimum_size = Vector2(600, 95)
@@ -36,7 +45,7 @@ layout_mode = 2
 theme_override_constants/separation = 15
 
 [node name="CategoryIcon" type="TextureRect" parent="CardMargin/MainHBox"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
@@ -53,6 +62,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 18
 text = "Tutorial Name"
+label_settings = SubResource("LabelSettings_eyfsv")
 
 [node name="InfoHBox" type="HBoxContainer" parent="CardMargin/MainHBox/CardVBox"]
 layout_mode = 2
@@ -65,13 +75,14 @@ theme_override_constants/separation = 5
 [node name="TimeIcon" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/TimeContainer"]
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
-texture = ExtResource("2_time")
+texture = ExtResource("3_bvrrq")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="TimeLabel" type="Label" parent="CardMargin/MainHBox/CardVBox/InfoHBox/TimeContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+theme_override_fonts/font = ExtResource("4_qw2li")
 theme_override_font_sizes/font_size = 13
 text = "10-15 min"
 
@@ -89,6 +100,7 @@ stretch_mode = 5
 [node name="XPLabel" type="Label" parent="CardMargin/MainHBox/CardVBox/InfoHBox/XPContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.843, 0, 1)
+theme_override_fonts/font = ExtResource("4_qw2li")
 theme_override_font_sizes/font_size = 13
 text = "100-200 XP"
 
@@ -157,6 +169,7 @@ theme_override_font_sizes/font_size = 14
 custom_minimum_size = Vector2(200, 35)
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("9_as0hk")
 theme_override_font_sizes/font_size = 14
 text = "START TUTORIAL →"
 

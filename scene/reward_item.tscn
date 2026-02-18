@@ -1,0 +1,196 @@
+[gd_scene load_steps=11 format=3 uid="uid://rnmc3c15oetr"]
+
+[ext_resource type="Script" uid="uid://cxkc3ws3ix30w" path="res://script/reward_item.gd" id="1_bxmrq"]
+[ext_resource type="Texture2D" uid="uid://kw08i6axcvxu" path="res://asset/icons/chest_icon.png" id="1_chest"]
+[ext_resource type="Texture2D" uid="uid://baao8y4pcvxum" path="res://asset/minigamesuite/rewardrare border.png" id="2_ghiom"]
+[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="4_kybth"]
+[ext_resource type="FontFile" uid="uid://c1y55nmycr726" path="res://asset/fonts/Orbitron-VariableFont_wght.ttf" id="5_5dvea"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ghiom"]
+texture = ExtResource("2_ghiom")
+expand_margin_left = 210.0
+expand_margin_top = 60.0
+expand_margin_right = 210.0
+expand_margin_bottom = 60.0
+region_rect = Rect2(0, 0, 1280, 706)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hover"]
+bg_color = Color(0.04, 0.06, 0.18, 0.85)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="LabelSettings" id="LabelSettings_ghiom"]
+font = ExtResource("4_kybth")
+font_size = 13
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.608)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_pux61"]
+font = ExtResource("5_5dvea")
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_kybth"]
+font = ExtResource("4_kybth")
+font_size = 10
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.779)
+shadow_offset = Vector2(2, 2)
+
+[node name="RewardItem" type="Control"]
+custom_minimum_size = Vector2(191, 233)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 191.0
+offset_bottom = 233.0
+mouse_filter = 2
+script = ExtResource("1_bxmrq")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_ghiom")
+
+[node name="RevealOverlay" type="Control" parent="Panel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ChestIcon" type="TextureRect" parent="Panel/RevealOverlay"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 72.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("1_chest")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FallbackLabel" type="Label" parent="Panel/RevealOverlay"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 48
+text = "?"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Content" type="Control" parent="Panel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="IconRect" type="TextureRect" parent="Panel/Content"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -43.0
+offset_top = 39.0
+offset_right = 50.0
+offset_bottom = -47.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+mouse_default_cursor_shape = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="IconFallback" type="Label" parent="Panel/Content"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 64
+text = "✨"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HoverOverlay" type="PanelContainer" parent="Panel/Content"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 26.0
+offset_top = 42.0
+offset_right = -28.0
+offset_bottom = -47.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hover")
+
+[node name="HoverMargin" type="MarginContainer" parent="Panel/Content/HoverOverlay"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="HoverVBox" type="VBoxContainer" parent="Panel/Content/HoverOverlay/HoverMargin"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+mouse_default_cursor_shape = 2
+theme_override_constants/separation = 6
+
+[node name="Spacer" type="Control" parent="Panel/Content/HoverOverlay/HoverMargin/HoverVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="NameLabel" type="Label" parent="Panel/Content/HoverOverlay/HoverMargin/HoverVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Reward Name"
+label_settings = SubResource("LabelSettings_ghiom")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="AmountLabel" type="Label" parent="Panel/Content/HoverOverlay/HoverMargin/HoverVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "+0"
+label_settings = SubResource("LabelSettings_pux61")
+horizontal_alignment = 1
+
+[node name="DescLabel" type="Label" parent="Panel/Content/HoverOverlay/HoverMargin/HoverVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 0.9)
+theme_override_font_sizes/font_size = 10
+text = "aa"
+label_settings = SubResource("LabelSettings_kybth")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Spacer2" type="Control" parent="Panel/Content/HoverOverlay/HoverMargin/HoverVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
