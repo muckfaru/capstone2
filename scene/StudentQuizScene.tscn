@@ -1,0 +1,430 @@
+[gd_scene load_steps=10 format=3 uid="uid://c1qyh7dlnmra4"]
+
+[ext_resource type="Script" uid="uid://b3hdslbq7og65" path="res://script/StudentQuizScene.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxEmpty" id="SBE_flat"]
+
+[sub_resource type="StyleBoxFlat" id="SB_submit"]
+bg_color = Color(0.145, 0.878, 0.992, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.145, 0.878, 0.992, 0.45)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_card"]
+bg_color = Color(0.05, 0.1, 0.26, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.5)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.145, 0.878, 0.992, 0.15)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="SB_circle"]
+bg_color = Color(0.06, 0.06, 0.12, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.5)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+
+[sub_resource type="StyleBoxFlat" id="SB_next"]
+bg_color = Color(0.145, 0.878, 0.992, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.145, 0.878, 0.992, 0.45)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_score_panel"]
+bg_color = Color(0.03, 0.08, 0.22, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.6)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="SB_done"]
+bg_color = Color(0.145, 0.878, 0.992, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="StudentQuizScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="BG" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.07, 0.18, 1)
+
+[node name="GridScreen" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="HBoxContainer" parent="GridScreen"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 14.0
+offset_right = -20.0
+offset_bottom = 50.0
+theme_override_constants/separation = 0
+
+[node name="BackButton" type="Button" parent="GridScreen/TopBar"]
+custom_minimum_size = Vector2(40, 36)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("SBE_flat")
+theme_override_styles/hover = SubResource("SBE_flat")
+theme_override_styles/pressed = SubResource("SBE_flat")
+theme_override_styles/normal = SubResource("SBE_flat")
+text = "←"
+flat = true
+
+[node name="HintLabel" type="Label" parent="GridScreen/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.85, 0.92, 1, 0.9)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Click here to Start"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TimerLabel" type="Label" parent="GridScreen/TopBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.96, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "29:59:00"
+vertical_alignment = 1
+
+[node name="QuestionGrid" type="GridContainer" parent="GridScreen"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.1
+anchor_right = 0.95
+anchor_bottom = 0.85
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 5
+
+[node name="SubmitButton" type="Button" parent="GridScreen"]
+custom_minimum_size = Vector2(120, 42)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -58.0
+offset_right = -20.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.03, 0.05, 0.12, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/focus = SubResource("SBE_flat")
+theme_override_styles/hover = SubResource("SB_submit")
+theme_override_styles/pressed = SubResource("SB_submit")
+theme_override_styles/normal = SubResource("SB_submit")
+text = "SUBMIT"
+
+[node name="QuestionScreen" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="HBoxContainer" parent="QuestionScreen"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 14.0
+offset_right = -20.0
+offset_bottom = 50.0
+theme_override_constants/separation = 0
+
+[node name="BackButton" type="Button" parent="QuestionScreen/TopBar"]
+custom_minimum_size = Vector2(40, 36)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("SBE_flat")
+theme_override_styles/hover = SubResource("SBE_flat")
+theme_override_styles/pressed = SubResource("SBE_flat")
+theme_override_styles/normal = SubResource("SBE_flat")
+text = "←"
+flat = true
+
+[node name="TopSpacer" type="Control" parent="QuestionScreen/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TimerLabel" type="Label" parent="QuestionScreen/TopBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.96, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "29:59:00"
+vertical_alignment = 1
+
+[node name="Card" type="Panel" parent="QuestionScreen"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.03
+anchor_top = 0.1
+anchor_right = 0.97
+anchor_bottom = 0.85
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("SB_card")
+
+[node name="TPQCircle" type="Panel" parent="QuestionScreen/Card"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 76.0
+offset_bottom = 76.0
+theme_override_styles/panel = SubResource("SB_circle")
+
+[node name="TPQLabel" type="Label" parent="QuestionScreen/Card/TPQCircle"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "30s"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="QuestionLabel" type="Label" parent="QuestionScreen/Card"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.88, 0.94, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "Question # 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="NextButton" type="Button" parent="QuestionScreen"]
+custom_minimum_size = Vector2(110, 42)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -130.0
+offset_top = -58.0
+offset_right = -20.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.03, 0.05, 0.12, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/focus = SubResource("SBE_flat")
+theme_override_styles/hover = SubResource("SB_next")
+theme_override_styles/pressed = SubResource("SB_next")
+theme_override_styles/normal = SubResource("SB_next")
+text = "Next →"
+
+[node name="ScoreScreen" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="HBoxContainer" parent="ScoreScreen"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 14.0
+offset_right = -20.0
+offset_bottom = 50.0
+
+[node name="BackButton" type="Button" parent="ScoreScreen/TopBar"]
+custom_minimum_size = Vector2(40, 36)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("SBE_flat")
+theme_override_styles/hover = SubResource("SBE_flat")
+theme_override_styles/pressed = SubResource("SBE_flat")
+theme_override_styles/normal = SubResource("SBE_flat")
+text = "←"
+flat = true
+
+[node name="ContentRow" type="HBoxContainer" parent="ScoreScreen"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.03
+anchor_top = 0.12
+anchor_right = 0.97
+anchor_bottom = 0.75
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 30
+
+[node name="ScorePanel" type="Panel" parent="ScoreScreen/ContentRow"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("SB_score_panel")
+
+[node name="ScoreTitle" type="Label" parent="ScoreScreen/ContentRow/ScorePanel"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 184.0
+offset_bottom = 36.0
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.85)
+theme_override_font_sizes/font_size = 14
+text = "SCORE"
+
+[node name="ScoreNumber" type="Label" parent="ScoreScreen/ContentRow/ScorePanel"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 40.0
+offset_right = 184.0
+offset_bottom = 140.0
+theme_override_colors/font_color = Color(0.9, 0.96, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 72
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PctLabel" type="Label" parent="ScoreScreen/ContentRow/ScorePanel"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 145.0
+offset_right = 184.0
+offset_bottom = 175.0
+theme_override_colors/font_color = Color(0.65, 0.8, 1, 0.8)
+theme_override_font_sizes/font_size = 13
+text = "Percentage: 0%"
+
+[node name="ResultGrid" type="GridContainer" parent="ScoreScreen/ContentRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 5
+
+[node name="MessageLabel" type="Label" parent="ScoreScreen"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.78
+anchor_right = 1.0
+anchor_bottom = 0.88
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.88, 0.94, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "Great job soldier!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DoneButton" type="Button" parent="ScoreScreen"]
+custom_minimum_size = Vector2(110, 42)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -130.0
+offset_top = -58.0
+offset_right = -20.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.03, 0.05, 0.12, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/focus = SubResource("SBE_flat")
+theme_override_styles/hover = SubResource("SB_done")
+theme_override_styles/pressed = SubResource("SB_done")
+theme_override_styles/normal = SubResource("SB_done")
+text = "Done"
+
+[connection signal="pressed" from="GridScreen/TopBar/BackButton" to="." method="_on_score_back_pressed"]
+[connection signal="pressed" from="GridScreen/SubmitButton" to="." method="_on_submit_pressed"]
+[connection signal="pressed" from="QuestionScreen/TopBar/BackButton" to="." method="_on_q_back_pressed"]
+[connection signal="pressed" from="QuestionScreen/NextButton" to="." method="_on_q_next_pressed"]
+[connection signal="pressed" from="ScoreScreen/TopBar/BackButton" to="." method="_on_score_back_pressed"]
+[connection signal="pressed" from="ScoreScreen/DoneButton" to="." method="_on_done_pressed"]
