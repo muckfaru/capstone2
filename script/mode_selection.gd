@@ -6,6 +6,10 @@ extends Control
 @onready var advanced_btn: Button = $CanvasLayer/AdvancedButton
 @onready var back_btn: Button = $CanvasLayer/BackButton
 
+# ── Multiplayer buttons ───────────────────────────────────────────────────
+@onready var create_room_btn: Button = $CanvasLayer/CreateRoomButton
+@onready var join_lobby_btn: Button = $CanvasLayer/JoinLobbyButton
+@onready var join_lobby_popup: Control = null  # instantiated at runtime
 # ── XP / Rank display (now scene nodes) ──────────────────────────────────
 @onready var xp_label: Label = $CanvasLayer/XPLabel
 @onready var xp_progress_bar: ProgressBar = $CanvasLayer/XPProgressBar
@@ -55,6 +59,7 @@ const ICON_INCIDENT_COMMANDER := preload("res://asset/icons/incident_commander_i
 const ICON_SECURITY_GUARDIAN := preload("res://asset/icons/security_guardian_icon.png")
 const ICON_MALWARE_DEFENSE := preload("res://asset/icons/malware_defense_icon.png")
 const ICON_INCIDENT_RESPONSE := preload("res://asset/icons/incident_response_icon.png")
+
 # Tutorial metadata
 const TUTORIAL_METADATA := {
 	"beginner_fundamentals": {"time": "10-15 min", "xp_range": "100-200 XP", "difficulty": 2},
@@ -228,6 +233,22 @@ func _animate_entrance() -> void:
 		var tween = create_tween()
 		tween.tween_property(advanced_btn, "modulate:a", 1.0, 0.5).set_delay(0.3)
 		tween.parallel().tween_property(advanced_btn, "position:x", advanced_btn.position.x + 50, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	# Animate multiplayer buttons sliding in from the right
+	for btn in [create_room_btn, join_lobby_btn]:
+		if btn:
+			btn.modulate.a = 0
+			btn.position.x += 30
+
+	if create_room_btn:
+		var tween = create_tween()
+		tween.tween_property(create_room_btn, "modulate:a", 1.0, 0.5).set_delay(0.4)
+		tween.parallel().tween_property(create_room_btn, "position:x", create_room_btn.position.x - 30, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	if join_lobby_btn:
+		var tween = create_tween()
+		tween.tween_property(join_lobby_btn, "modulate:a", 1.0, 0.5).set_delay(0.5)
+		tween.parallel().tween_property(join_lobby_btn, "position:x", join_lobby_btn.position.x - 30, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -593,6 +614,57 @@ func _transition_to_tutorial(scene_path: String) -> void:
 		tween.tween_property(bgm, "volume_db", -80, 0.3)
 	await tween.finished
 	get_tree().change_scene_to_file(scene_path)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MULTIPLAYER — CREATE ROOM
+# ─────────────────────────────────────────────────────────────────────────────
+func _on_create_room_pressed() -> void:
+	if create_room_btn:
+		var tween = create_tween()
+		tween.set_trans(Tween.TRANS_BACK)
+		tween.set_ease(Tween.EASE_IN_OUT)
+		tween.tween_property(create_room_btn, "scale", Vector2(0.92, 0.92), 0.08)
+		tween.tween_property(create_room_btn, "scale", Vector2(1.0, 1.0), 0.15)
+		await tween.finished
+	_fade_out_music_and_transition("res://scene/TeacherCreateRoom.tscn")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MULTIPLAYER — JOIN LOBBY
+# ─────────────────────────────────────────────────────────────────────────────
+func _on_join_lobby_pressed() -> void:
+	if join_lobby_btn:
+		var tween = create_tween()
+		tween.set_trans(Tween.TRANS_BACK)
+		tween.set_ease(Tween.EASE_IN_OUT)
+		tween.tween_property(join_lobby_btn, "scale", Vector2(0.92, 0.92), 0.08)
+		tween.tween_property(join_lobby_btn, "scale", Vector2(1.0, 1.0), 0.15)
+
+	var popup_scene = load("res://scene/JoinLobbyPopup.tscn")
+	if not popup_scene:
+		push_error("❌ Could not load JoinLobbyPopup.tscn")
+		return
+	join_lobby_popup = popup_scene.instantiate()
+	$CanvasLayer.add_child(join_lobby_popup)
+	join_lobby_popup.join_requested.connect(_on_join_code_submitted)
+	join_lobby_popup.popup_closed.connect(_on_join_popup_closed)
+	join_lobby_popup.show_popup()
+
+func _on_join_popup_closed() -> void:
+	if join_lobby_popup:
+		join_lobby_popup.queue_free()
+		join_lobby_popup = null
+
+func _on_join_code_submitted(room_code: String) -> void:
+	# For now just transition to TeacherLobby reusing existing lobby panel
+	# Later: validate code against Firestore/multiplayer server
+	print("[Join] Student attempting to join room: %s" % room_code)
+	if join_lobby_popup:
+		join_lobby_popup.queue_free()
+		join_lobby_popup = null
+	# TODO: validate code and load student lobby view
+	# get_tree().change_scene_to_file("res://scene/StudentLobby.tscn")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

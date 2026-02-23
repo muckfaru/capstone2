@@ -1,0 +1,643 @@
+[gd_scene load_steps=8 format=3 uid="uid://yfarxf2di6ej"]
+
+[ext_resource type="Script" uid="uid://chmrq2q3rn56y" path="res://script/TeacherLobby.gd" id="1_lobby"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lobby_bg"]
+bg_color = Color(0, 0.08, 0.2, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 0.4)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot_empty"]
+bg_color = Color(0.04, 0.07, 0.18, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.14, 0.58, 0.75, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_avatar_bg"]
+bg_color = Color(0.04, 0.1, 0.24, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.14, 0.58, 0.75, 0.5)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rank_bg"]
+bg_color = Color(0.04, 0.12, 0.28, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.14, 0.58, 0.75, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chat_input"]
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0.098, 0.224, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_btn"]
+bg_color = Color(0.145, 0.878, 0.992, 0.531)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.211765, 0.490196, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0.211765, 0.490196, 1)
+shadow_size = 10
+
+[node name="TeacherLobbyPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lobby")
+
+[node name="PanelBg" type="Panel" parent="."]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = -280.0
+offset_right = 420.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lobby_bg")
+
+[node name="TopBar" type="HBoxContainer" parent="PanelBg"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 816.0
+offset_bottom = 50.0
+theme_override_constants/separation = 12
+
+[node name="BackButton" type="Button" parent="PanelBg/TopBar"]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 22
+text = "←"
+flat = true
+
+[node name="RoomNameLabel" type="Label" parent="PanelBg/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Quiz-1"
+horizontal_alignment = 1
+
+[node name="RoomCodeLabel" type="Label" parent="PanelBg/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.145098, 0.878431, 0.992157, 1)
+text = "HDBF6734JGLLS"
+horizontal_alignment = 1
+
+[node name="PlayerCountLabel" type="Label" parent="PanelBg/TopBar"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.9, 1, 0.8)
+text = "0 / 10"
+horizontal_alignment = 2
+
+[node name="HSeparator" type="HSeparator" parent="PanelBg"]
+self_modulate = Color(0.145098, 0.878431, 0.992157, 0.5)
+layout_mode = 0
+offset_left = 12.0
+offset_top = 56.0
+offset_right = 816.0
+offset_bottom = 60.0
+
+[node name="SlotGrid" type="GridContainer" parent="PanelBg"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 68.0
+offset_right = 824.0
+offset_bottom = 460.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 5
+
+[node name="Slot1" type="PanelContainer" parent="PanelBg/SlotGrid"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="VBox" type="VBoxContainer" parent="PanelBg/SlotGrid/Slot1"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot1/VBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
+
+[node name="AvatarTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot1/VBox/AvatarPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot1/VBox"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
+theme_override_font_sizes/font_size = 12
+text = "Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RankPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot1/VBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_rank_bg")
+
+[node name="RankTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot1/VBox/RankPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot2" type="PanelContainer" parent="PanelBg/SlotGrid"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="VBox" type="VBoxContainer" parent="PanelBg/SlotGrid/Slot2"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot2/VBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
+
+[node name="AvatarTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot2/VBox/AvatarPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot2/VBox"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
+theme_override_font_sizes/font_size = 12
+text = "Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RankPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot2/VBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_rank_bg")
+
+[node name="RankTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot2/VBox/RankPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot3" type="PanelContainer" parent="PanelBg/SlotGrid"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="VBox" type="VBoxContainer" parent="PanelBg/SlotGrid/Slot3"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot3/VBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
+
+[node name="AvatarTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot3/VBox/AvatarPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot3/VBox"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
+theme_override_font_sizes/font_size = 12
+text = "Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RankPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot3/VBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_rank_bg")
+
+[node name="RankTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot3/VBox/RankPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot4" type="PanelContainer" parent="PanelBg/SlotGrid"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="VBox" type="VBoxContainer" parent="PanelBg/SlotGrid/Slot4"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot4/VBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
+
+[node name="AvatarTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot4/VBox/AvatarPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot4/VBox"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
+theme_override_font_sizes/font_size = 12
+text = "Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RankPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot4/VBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_rank_bg")
+
+[node name="RankTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot4/VBox/RankPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot5" type="PanelContainer" parent="PanelBg/SlotGrid"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="VBox" type="VBoxContainer" parent="PanelBg/SlotGrid/Slot5"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot5/VBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
+
+[node name="AvatarTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot5/VBox/AvatarPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot5/VBox"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
+theme_override_font_sizes/font_size = 12
+text = "Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RankPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot5/VBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_rank_bg")
+
+[node name="RankTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot5/VBox/RankPanel"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot6" type="PanelContainer" parent="PanelBg/SlotGrid"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="VBox" type="VBoxContainer" parent="PanelBg/SlotGrid/Slot6"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot6/VBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
+
+[node name="AvatarTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot6/VBox/AvatarPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot6/VBox"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
+theme_override_font_sizes/font_size = 12
+text = "Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RankPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot6/VBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_rank_bg")
+
+[node name="RankTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot6/VBox/RankPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot7" type="PanelContainer" parent="PanelBg/SlotGrid"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="VBox" type="VBoxContainer" parent="PanelBg/SlotGrid/Slot7"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot7/VBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
+
+[node name="AvatarTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot7/VBox/AvatarPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot7/VBox"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
+theme_override_font_sizes/font_size = 12
+text = "Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RankPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot7/VBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_rank_bg")
+
+[node name="RankTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot7/VBox/RankPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot8" type="PanelContainer" parent="PanelBg/SlotGrid"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="VBox" type="VBoxContainer" parent="PanelBg/SlotGrid/Slot8"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot8/VBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
+
+[node name="AvatarTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot8/VBox/AvatarPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot8/VBox"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
+theme_override_font_sizes/font_size = 12
+text = "Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RankPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot8/VBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_rank_bg")
+
+[node name="RankTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot8/VBox/RankPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot9" type="PanelContainer" parent="PanelBg/SlotGrid"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="VBox" type="VBoxContainer" parent="PanelBg/SlotGrid/Slot9"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot9/VBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
+
+[node name="AvatarTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot9/VBox/AvatarPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot9/VBox"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
+theme_override_font_sizes/font_size = 12
+text = "Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RankPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot9/VBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_rank_bg")
+
+[node name="RankTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot9/VBox/RankPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot10" type="PanelContainer" parent="PanelBg/SlotGrid"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
+
+[node name="VBox" type="VBoxContainer" parent="PanelBg/SlotGrid/Slot10"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot10/VBox"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
+
+[node name="AvatarTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot10/VBox/AvatarPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot10/VBox"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
+theme_override_font_sizes/font_size = 12
+text = "Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RankPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot10/VBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_rank_bg")
+
+[node name="RankTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot10/VBox/RankPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BottomBar" type="HBoxContainer" parent="PanelBg"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 472.0
+offset_right = 509.0
+offset_bottom = 516.0
+theme_override_constants/separation = 30
+
+[node name="ChatInput" type="LineEdit" parent="PanelBg/BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxFlat_chat_input")
+theme_override_styles/read_only = SubResource("StyleBoxFlat_chat_input")
+theme_override_styles/normal = SubResource("StyleBoxFlat_chat_input")
+placeholder_text = "Type a message..."
+
+[node name="StartQuizButton" type="Button" parent="PanelBg/BottomBar"]
+custom_minimum_size = Vector2(160, 40)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_start_btn")
+text = "Start Quiz"
