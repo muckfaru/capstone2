@@ -734,38 +734,81 @@ func _on_server_disconnected() -> void:
 # =============================================================================
 
 func _generate_snippet_list() -> void:
-	"""Generate a SHUFFLED list of ALL security commands for sequential race"""
-	# Educational security commands - learn while playing!
-	var cmd_snippets = [
-		# Windows CMD/PowerShell commands
-		"scan /system /deep",
-		"check-integrity --files",
-		"firewall enable /all",
-		"netstat -a -n",
-		"tasklist /malware",
-		"killvirus /id:0231",
-		"clean temp /force",
-		"quarantine threat_virus.exe",
-		"update-defender /latest",
-		"restore system --safe",
+	"""Generate a SHUFFLED list of IAS curriculum-based GDScript snippets"""
+	# IT 323 - Information Assurance & Security 1 (Curriculum-Based)
+	
+	# ═══════════════════════════════════════════════════════════════
+	# 1.1-1.2 Introduction to IAS & Data/Network Security
+	# Keywords: firewall, antivirus, encryption, phishing, malware,
+	#           intrusion, vulnerability, exploit, patch, breach
+	# ═══════════════════════════════════════════════════════════════
+	var ias_intro_snippets = [
+		"firewall",
+		"antivirus",
+		"encryption",
+		"phishing",
+		"malware",
+		"intrusion",
+		"vulnerability",
+		"exploit",
+		"patch",
+		"breach",
 	]
 	
-	var terminal_snippets = [
-		# Linux/Unix terminal commands
-		"sudo chkrootkit",
-		"sudo rkhunter --check",
-		"sudo ufw enable",
-		"sudo systemctl stop trojan.service",
-		"sudo rm -rf /tmp/malware",
-		"sudo apt update && sudo apt upgrade",
-		"sudo find / -name \"virus*\"",
-		"sudo chmod -x /usr/bin/fakephish",
-		"sudo iptables -L",
-		"sudo reboot --safe-mode",
+	# ═══════════════════════════════════════════════════════════════
+	# 2.1 CIA Triad - Confidentiality, Integrity, Availability
+	# Keywords: confidentiality, integrity, availability, authenticate,
+	#           authorize, audit, classify, access
+	# ═══════════════════════════════════════════════════════════════
+	var cia_snippets = [
+		"confidentiality",
+		"integrity",
+		"availability",
+		"authenticate",
+		"authorize",
+		"audit",
+		"classify",
+		"access",
 	]
 	
-	# Combine and SHUFFLE for random order
-	var all_snippets = cmd_snippets + terminal_snippets
+	# ═══════════════════════════════════════════════════════════════
+	# 2.2 Assets and Threats
+	# Keywords: trojan, worm, virus, ransomware, spyware,
+	#           rootkit, botnet, keylogger, adware, backdoor
+	# ═══════════════════════════════════════════════════════════════
+	var threats_snippets = [
+		"trojan",
+		"worm",
+		"virus",
+		"ransomware",
+		"spyware",
+		"rootkit",
+		"botnet",
+		"keylogger",
+		"adware",
+		"backdoor",
+	]
+	
+	# ═══════════════════════════════════════════════════════════════
+	# 7.1-7.2 Authentication
+	# Keywords: password, biometric, token, otp,
+	#           mfa, session, logout, hash, salt, bruteforce
+	# ═══════════════════════════════════════════════════════════════
+	var auth_snippets = [
+		"password",
+		"biometric",
+		"token",
+		"otp",
+		"mfa",
+		"session",
+		"logout",
+		"hash",
+		"salt",
+		"bruteforce",
+	]
+	
+	# Combine ALL curriculum snippets and SHUFFLE
+	var all_snippets = ias_intro_snippets + cia_snippets + threats_snippets + auth_snippets
 	all_snippets.shuffle()
 	
 	# Convert to typed array
