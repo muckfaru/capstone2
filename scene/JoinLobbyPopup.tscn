@@ -1,0 +1,183 @@
+[gd_scene load_steps=8 format=3 uid="uid://d3a3c48p7glhf"]
+
+[ext_resource type="Script" uid="uid://djb3e30pxye8f" path="res://script/JoinLobbyPopu.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="SB_panel"]
+bg_color = Color(0.02, 0.08, 0.22, 0.97)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.6)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0.145, 0.878, 0.992, 0.25)
+shadow_size = 16
+
+[sub_resource type="StyleBoxEmpty" id="SBE_flat"]
+
+[sub_resource type="StyleBoxFlat" id="SB_input"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.02, 0.05, 0.14, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_join_hover"]
+bg_color = Color(0.2, 0.95, 1, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.145, 0.878, 0.992, 0.6)
+shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="SB_join"]
+bg_color = Color(0.145, 0.878, 0.992, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.145, 0.878, 0.992, 0.45)
+shadow_size = 10
+shadow_offset = Vector2(0, 3)
+
+[node name="JoinLobbyPopup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+color = Color(0, 0, 0, 0.55)
+
+[node name="PopupPanel" type="Panel" parent="."]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -180.0
+offset_right = 260.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("SB_panel")
+
+[node name="TopBar" type="HBoxContainer" parent="PopupPanel"]
+layout_mode = 0
+offset_right = 520.0
+offset_bottom = 50.0
+theme_override_constants/separation = 0
+
+[node name="BackButton" type="Button" parent="PopupPanel/TopBar"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("SBE_flat")
+theme_override_styles/hover = SubResource("SBE_flat")
+theme_override_styles/pressed = SubResource("SBE_flat")
+theme_override_styles/normal = SubResource("SBE_flat")
+text = "←"
+flat = true
+
+[node name="TitleLabel" type="Label" parent="PopupPanel/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "Quiz-1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TopBarSpacer" type="Control" parent="PopupPanel/TopBar"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+
+[node name="TopDivider" type="HSeparator" parent="PopupPanel"]
+self_modulate = Color(0.145, 0.878, 0.992, 0.35)
+layout_mode = 0
+offset_top = 50.0
+offset_right = 520.0
+offset_bottom = 54.0
+
+[node name="VBox" type="VBoxContainer" parent="PopupPanel"]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 70.0
+offset_right = 480.0
+offset_bottom = 340.0
+theme_override_constants/separation = 18
+
+[node name="EnterCodeLabel" type="Label" parent="PopupPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.8, 1, 0.8)
+theme_override_font_sizes/font_size = 13
+text = "Enter Code"
+horizontal_alignment = 1
+
+[node name="CodeInput" type="LineEdit" parent="PopupPanel/VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/caret_color = Color(0.145, 0.878, 0.992, 1)
+theme_override_colors/font_color = Color(0.9, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/focus = SubResource("SB_input")
+theme_override_styles/read_only = SubResource("SB_input")
+theme_override_styles/normal = SubResource("SB_input")
+placeholder_text = "e.g. HDBF6734JGLLS"
+max_length = 20
+
+[node name="ErrorLabel" type="Label" parent="PopupPanel/VBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 12
+text = "Invalid code."
+horizontal_alignment = 1
+
+[node name="JoinButton" type="Button" parent="PopupPanel/VBox"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.03, 0.05, 0.12, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/focus = SubResource("SBE_flat")
+theme_override_styles/hover = SubResource("SB_join_hover")
+theme_override_styles/pressed = SubResource("SB_join")
+theme_override_styles/normal = SubResource("SB_join")
+text = "Join"
+
+[connection signal="pressed" from="PopupPanel/TopBar/BackButton" to="." method="_on_back_pressed"]
+[connection signal="text_changed" from="PopupPanel/VBox/CodeInput" to="." method="_on_code_input_changed"]
+[connection signal="pressed" from="PopupPanel/VBox/JoinButton" to="." method="_on_join_pressed"]

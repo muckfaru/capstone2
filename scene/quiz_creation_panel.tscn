@@ -1,0 +1,356 @@
+[gd_scene load_steps=11 format=3 uid="uid://e5eddy1e6lws"]
+
+[ext_resource type="Script" uid="uid://hhdgub7dhjs6" path="res://script/QuizCreationPanel.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_font"]
+
+[sub_resource type="StyleBoxFlat" id="SB_main"]
+bg_color = Color(0.031, 0.082, 0.208, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.55)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="SB_toppanel"]
+bg_color = Color(0.03, 0.09, 0.22, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxEmpty" id="SBE_flat"]
+
+[sub_resource type="LabelSettings" id="LS_qnum"]
+font = ExtResource("3_font")
+font_size = 20
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="SB_input_focus"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.04, 0.1, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.9)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="SB_input"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.04, 0.1, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.3)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="SB_next"]
+bg_color = Color(0.145, 0.878, 0.992, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0.878, 0.992, 0.4)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="SB_done"]
+bg_color = Color(0.145, 0.878, 0.992, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0.878, 0.992, 0.6)
+shadow_size = 8
+
+[node name="QuizCreationPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="MainPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 15.0
+offset_right = -20.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("SB_main")
+
+[node name="Root" type="VBoxContainer" parent="MainPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = 14.0
+offset_right = -14.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="TopPanel" type="Panel" parent="MainPanel/Root"]
+custom_minimum_size = Vector2(0, 170)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("SB_toppanel")
+
+[node name="BackButton" type="Button" parent="MainPanel/Root/TopPanel"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 6.0
+offset_right = 48.0
+offset_bottom = 34.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.145, 0.878, 0.992, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("SBE_flat")
+theme_override_styles/hover = SubResource("SBE_flat")
+theme_override_styles/pressed = SubResource("SBE_flat")
+theme_override_styles/normal = SubResource("SBE_flat")
+text = "←"
+flat = true
+
+[node name="ContentRow" type="HBoxContainer" parent="MainPanel/Root/TopPanel"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 36.0
+offset_right = -10.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="MiniBoxGrid" type="GridContainer" parent="MainPanel/Root/TopPanel/ContentRow"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+columns = 5
+
+[node name="VDiv" type="VSeparator" parent="MainPanel/Root/TopPanel/ContentRow"]
+modulate = Color(0.145, 0.878, 0.992, 0.45)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PreviewCol" type="VBoxContainer" parent="MainPanel/Root/TopPanel/ContentRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 5
+
+[node name="QuestionNumberLabel" type="Label" parent="MainPanel/Root/TopPanel/ContentRow/PreviewCol"]
+layout_mode = 2
+text = "Q1"
+label_settings = SubResource("LS_qnum")
+
+[node name="PreviewQuestionLabel" type="Label" parent="MainPanel/Root/TopPanel/ContentRow/PreviewCol"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.93, 1, 1)
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 2
+
+[node name="PreviewChoicesGrid" type="GridContainer" parent="MainPanel/Root/TopPanel/ContentRow/PreviewCol"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="PreviewAnswerRow" type="HBoxContainer" parent="MainPanel/Root/TopPanel/ContentRow/PreviewCol"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AnswerLbl" type="Label" parent="MainPanel/Root/TopPanel/ContentRow/PreviewCol/PreviewAnswerRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "Answer:"
+
+[node name="PreviewAnswerValue" type="Label" parent="MainPanel/Root/TopPanel/ContentRow/PreviewCol/PreviewAnswerRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.145, 0.878, 0.992, 1)
+theme_override_font_sizes/font_size = 13
+
+[node name="InputSection" type="VBoxContainer" parent="MainPanel/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="QuestionInput" type="LineEdit" parent="MainPanel/Root/InputSection"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_placeholder_color = Color(0.4, 0.55, 0.7, 0.7)
+theme_override_colors/font_color = Color(0.85, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("SB_input_focus")
+theme_override_styles/read_only = SubResource("SB_input")
+theme_override_styles/normal = SubResource("SB_input")
+placeholder_text = "Input Question"
+
+[node name="ChoicesGrid" type="GridContainer" parent="MainPanel/Root/InputSection"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 2
+
+[node name="Choice1" type="LineEdit" parent="MainPanel/Root/InputSection/ChoicesGrid"]
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_placeholder_color = Color(0.35, 0.5, 0.65, 0.6)
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/focus = SubResource("SB_input_focus")
+theme_override_styles/read_only = SubResource("SB_input")
+theme_override_styles/normal = SubResource("SB_input")
+placeholder_text = "Choice 1"
+
+[node name="Choice2" type="LineEdit" parent="MainPanel/Root/InputSection/ChoicesGrid"]
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_placeholder_color = Color(0.35, 0.5, 0.65, 0.6)
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/focus = SubResource("SB_input_focus")
+theme_override_styles/read_only = SubResource("SB_input")
+theme_override_styles/normal = SubResource("SB_input")
+placeholder_text = "Choice 2"
+
+[node name="Choice3" type="LineEdit" parent="MainPanel/Root/InputSection/ChoicesGrid"]
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_placeholder_color = Color(0.35, 0.5, 0.65, 0.6)
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/focus = SubResource("SB_input_focus")
+theme_override_styles/read_only = SubResource("SB_input")
+theme_override_styles/normal = SubResource("SB_input")
+placeholder_text = "Choice 3"
+
+[node name="Choice4" type="LineEdit" parent="MainPanel/Root/InputSection/ChoicesGrid"]
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_placeholder_color = Color(0.35, 0.5, 0.65, 0.6)
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/focus = SubResource("SB_input_focus")
+theme_override_styles/read_only = SubResource("SB_input")
+theme_override_styles/normal = SubResource("SB_input")
+placeholder_text = "Choice 4"
+
+[node name="AnswerSection" type="HBoxContainer" parent="MainPanel/Root/InputSection"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="AnswerLabel" type="Label" parent="MainPanel/Root/InputSection/AnswerSection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Answer:"
+vertical_alignment = 1
+
+[node name="AnswerInput" type="LineEdit" parent="MainPanel/Root/InputSection/AnswerSection"]
+custom_minimum_size = Vector2(300, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_placeholder_color = Color(0.35, 0.5, 0.65, 0.6)
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/focus = SubResource("SB_input_focus")
+theme_override_styles/read_only = SubResource("SB_input")
+theme_override_styles/normal = SubResource("SB_input")
+placeholder_text = "Enter correct answer text"
+
+[node name="BottomBar" type="HBoxContainer" parent="MainPanel/Root"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 15
+
+[node name="Spacer" type="Control" parent="MainPanel/Root/BottomBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NextButton" type="Button" parent="MainPanel/Root/BottomBar"]
+custom_minimum_size = Vector2(110, 42)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.03, 0.05, 0.1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/hover = SubResource("SB_next")
+theme_override_styles/pressed = SubResource("SB_next")
+theme_override_styles/normal = SubResource("SB_next")
+disabled = true
+text = "Next"
+
+[node name="DoneButton" type="Button" parent="MainPanel/Root/BottomBar"]
+visible = false
+custom_minimum_size = Vector2(110, 42)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.03, 0.05, 0.1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/hover = SubResource("SB_done")
+theme_override_styles/pressed = SubResource("SB_done")
+theme_override_styles/normal = SubResource("SB_done")
+disabled = true
+text = "Done"
+
+[connection signal="pressed" from="MainPanel/Root/TopPanel/BackButton" to="." method="_on_back_pressed"]
+[connection signal="text_changed" from="MainPanel/Root/InputSection/QuestionInput" to="." method="_on_input_changed"]
+[connection signal="text_changed" from="MainPanel/Root/InputSection/ChoicesGrid/Choice1" to="." method="_on_input_changed"]
+[connection signal="text_changed" from="MainPanel/Root/InputSection/ChoicesGrid/Choice2" to="." method="_on_input_changed"]
+[connection signal="text_changed" from="MainPanel/Root/InputSection/ChoicesGrid/Choice3" to="." method="_on_input_changed"]
+[connection signal="text_changed" from="MainPanel/Root/InputSection/ChoicesGrid/Choice4" to="." method="_on_input_changed"]
+[connection signal="text_changed" from="MainPanel/Root/InputSection/AnswerSection/AnswerInput" to="." method="_on_input_changed"]
+[connection signal="pressed" from="MainPanel/Root/BottomBar/NextButton" to="." method="_on_next_pressed"]
+[connection signal="pressed" from="MainPanel/Root/BottomBar/DoneButton" to="." method="_on_done_pressed"]

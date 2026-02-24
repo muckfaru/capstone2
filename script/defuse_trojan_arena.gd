@@ -10,17 +10,31 @@ const ENEMY_SCENES = {
 const ENEMY_SCRIPT = preload("res://script/defuse_trojan_enemy.gd")
 const PROJECTILE_SCENE = preload("res://scene/projectile.tscn")
 
-# CMD commands for virus removal - educational content
+# IT 323 - Information Assurance & Security 1 (Curriculum-Based Keywords)
 const COMMANDS: Array = [
-	# Basic commands
-	"TASKKILL", "NETSTAT", "SFC", "CHKDSK", "ATTRIB",
-	"DEL", "RD", "CLS", "IPCONFIG", "PING",
-	# Intermediate commands
-	"TRACERT", "SHUTDOWN", "MSCONFIG", "REGEDIT", "DISKPART",
-	"FORMAT", "XCOPY", "ROBOCOPY", "WMIC", "POWERSHELL",
-	# Advanced commands (longer = harder)
-	"SYSTEMINFO", "DRIVERQUERY", "TASKLIST", "NETSH", "BCDEDIT",
-	"SCHTASKS", "TAKEOWN", "ICACLS", "CERTUTIL", "CIPHER"
+	# ═══════════════════════════════════════════════════════════════
+	# 1.1-1.2 Introduction to IAS & Data/Network Security
+	# ═══════════════════════════════════════════════════════════════
+	"firewall", "antivirus", "encryption", "phishing", "malware",
+	"intrusion", "vulnerability", "exploit", "patch", "breach",
+	
+	# ═══════════════════════════════════════════════════════════════
+	# 2.1 CIA Triad - Confidentiality, Integrity, Availability
+	# ═══════════════════════════════════════════════════════════════
+	"confidentiality", "integrity", "availability", "authenticate",
+	"authorize", "audit", "classify", "access",
+	
+	# ═══════════════════════════════════════════════════════════════
+	# 2.2 Assets and Threats
+	# ═══════════════════════════════════════════════════════════════
+	"trojan", "worm", "virus", "ransomware", "spyware",
+	"rootkit", "botnet", "keylogger", "adware", "backdoor",
+	
+	# ═══════════════════════════════════════════════════════════════
+	# 7.1-7.2 Authentication
+	# ═══════════════════════════════════════════════════════════════
+	"password", "biometric", "token", "otp",
+	"mfa", "session", "logout", "hash", "salt", "bruteforce"
 ]
 
 const ENEMY_TYPES: Array = ["trojan", "worm", "virus", "ransomware"]
