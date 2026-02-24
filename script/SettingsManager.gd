@@ -61,8 +61,10 @@ func apply_all() -> void:
 
 
 func _map_level_to_db(level: float) -> float:
+	# Map 1-100 slider to -80 dB to +6 dB (allows boosting above unity)
+	# 50 = ~-37 dB (quiet), 80 = ~-6 dB (normal), 100 = +6 dB (loud/boosted)
 	var t: float = clampf((level - 1.0) / 99.0, 0.0, 1.0)
-	return lerp(-80.0, 0.0, t)
+	return lerp(-80.0, 6.0, t)  # +6 dB max for louder audio
 
 
 func apply_music_volume_db(vol_db: float) -> void:

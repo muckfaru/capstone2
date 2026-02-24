@@ -147,7 +147,7 @@ func play_hologram_ringtone():
 	# You'll need to add your ringtone sound file
 	# For now, using a placeholder - replace with: preload("res://asset/audio/sfx/hologram_ringtone.mp3")
 	ringtone_player.stream = preload("res://asset/audio/sfx/hologram_ringtone.mp3")
-	ringtone_player.volume_db = -5.0
+	ringtone_player.volume_db = 0.0
 	
 	# Play ringtone (will loop until answered)
 	ringtone_player.play()
@@ -810,31 +810,31 @@ func setup_audio_players():
 	# Hologram ringtone player
 	hologram_ringtone_player = AudioStreamPlayer.new()
 	hologram_ringtone_player.name = "HologramRingtone"
-	hologram_ringtone_player.volume_db = -5.0
+	hologram_ringtone_player.volume_db = 0.0
 	add_child(hologram_ringtone_player)
 	
 	# Screen flicker sound
 	screen_flicker_player = AudioStreamPlayer.new()
 	screen_flicker_player.name = "ScreenFlicker"
-	screen_flicker_player.volume_db = -8.0
+	screen_flicker_player.volume_db = 0.0
 	add_child(screen_flicker_player)
 	
 	# Beep sound (for messages/notifications)
 	beep_player = AudioStreamPlayer.new()
 	beep_player.name = "BeepPlayer"
-	beep_player.volume_db = -6.0
+	beep_player.volume_db = 0.0
 	add_child(beep_player)
 	
 	# Call connect sound
 	call_connect_player = AudioStreamPlayer.new()
 	call_connect_player.name = "CallConnect"
-	call_connect_player.volume_db = -5.0
+	call_connect_player.volume_db = 0.0
 	add_child(call_connect_player)
 	
 	# Call disconnect sound
 	call_disconnect_player = AudioStreamPlayer.new()
 	call_disconnect_player.name = "CallDisconnect"
-	call_disconnect_player.volume_db = -5.0
+	call_disconnect_player.volume_db = 0.0
 	add_child(call_disconnect_player)
 
 # ============================================
