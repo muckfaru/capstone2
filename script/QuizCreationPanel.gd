@@ -33,7 +33,7 @@ class QuestionData:
 
 var total_questions: int = 0
 var time_per_question: int = 0
-var quiz_timer: int = 0
+
 var current_question_index: int = 0
 var questions_data: Array[QuestionData] = []
 var minibox_buttons: Array[Button] = []
@@ -44,22 +44,22 @@ var _sb_current: StyleBoxFlat
 var _sb_invalid: StyleBoxFlat
 
 # Node paths — must match TSCN exactly
-@onready var minibox_grid: GridContainer    = $MainPanel/Root/TopPanel/ContentRow/MiniBoxGrid
-@onready var q_num_lbl: Label               = $MainPanel/Root/TopPanel/ContentRow/PreviewCol/QuestionNumberLabel
-@onready var prev_question: Label           = $MainPanel/Root/TopPanel/ContentRow/PreviewCol/PreviewQuestionLabel
-@onready var prev_choices: GridContainer    = $MainPanel/Root/TopPanel/ContentRow/PreviewCol/PreviewChoicesGrid
-@onready var prev_answer: Label             = $MainPanel/Root/TopPanel/ContentRow/PreviewCol/PreviewAnswerRow/PreviewAnswerValue
+@onready var minibox_grid: GridContainer = $MainPanel/Root/TopPanel/ContentRow/MiniBoxGrid
+@onready var q_num_lbl: Label = $MainPanel/Root/TopPanel/ContentRow/PreviewCol/QuestionNumberLabel
+@onready var prev_question: Label = $MainPanel/Root/TopPanel/ContentRow/PreviewCol/PreviewQuestionLabel
+@onready var prev_choices: GridContainer = $MainPanel/Root/TopPanel/ContentRow/PreviewCol/PreviewChoicesGrid
+@onready var prev_answer: Label = $MainPanel/Root/TopPanel/ContentRow/PreviewCol/PreviewAnswerRow/PreviewAnswerValue
 
-@onready var question_input: LineEdit       = $MainPanel/Root/InputSection/QuestionInput
+@onready var question_input: LineEdit = $MainPanel/Root/InputSection/QuestionInput
 @onready var choice_inputs: Array[LineEdit] = [
 	$MainPanel/Root/InputSection/ChoicesGrid/Choice1,
 	$MainPanel/Root/InputSection/ChoicesGrid/Choice2,
 	$MainPanel/Root/InputSection/ChoicesGrid/Choice3,
 	$MainPanel/Root/InputSection/ChoicesGrid/Choice4,
 ]
-@onready var answer_input: LineEdit         = $MainPanel/Root/InputSection/AnswerSection/AnswerInput
-@onready var next_button: Button            = $MainPanel/Root/BottomBar/NextButton
-@onready var done_button: Button            = $MainPanel/Root/BottomBar/DoneButton
+@onready var answer_input: LineEdit = $MainPanel/Root/InputSection/AnswerSection/AnswerInput
+@onready var next_button: Button = $MainPanel/Root/BottomBar/NextButton
+@onready var done_button: Button = $MainPanel/Root/BottomBar/DoneButton
 
 func _ready() -> void:
 	_build_styles()
@@ -94,10 +94,9 @@ func _build_styles() -> void:
 	_sb_invalid.border_color = Color(0.9, 0.15, 0.15, 1.0)
 	_sb_invalid.set_corner_radius_all(5)
 
-func initialize(num_questions: int, time_per_q: int, total_timer: int) -> void:
-	total_questions   = num_questions
+func initialize(num_questions: int, time_per_q: int) -> void:
+	total_questions = num_questions
 	time_per_question = time_per_q
-	quiz_timer        = total_timer
 
 	# Preserve existing question data instead of wiping it
 	var old_data: Array[QuestionData] = questions_data.duplicate()
@@ -125,9 +124,9 @@ func _create_miniboxes() -> void:
 
 	for i in range(total_questions):
 		var btn := Button.new()
-		btn.custom_minimum_size        = Vector2(36, 36)
+		btn.custom_minimum_size = Vector2(36, 36)
 		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		btn.flat                       = false
+		btn.flat = false
 		var idx := i
 		btn.pressed.connect(func(): _on_minibox_pressed(idx))
 		minibox_grid.add_child(btn)
@@ -136,16 +135,16 @@ func _create_miniboxes() -> void:
 	_update_minibox_states()
 
 func _apply_style(btn: Button, sb: StyleBoxFlat) -> void:
-	btn.add_theme_stylebox_override("normal",   sb)
-	btn.add_theme_stylebox_override("hover",    sb)
-	btn.add_theme_stylebox_override("pressed",  sb)
-	btn.add_theme_stylebox_override("focus",    sb)
+	btn.add_theme_stylebox_override("normal", sb)
+	btn.add_theme_stylebox_override("hover", sb)
+	btn.add_theme_stylebox_override("pressed", sb)
+	btn.add_theme_stylebox_override("focus", sb)
 	btn.add_theme_stylebox_override("disabled", sb)
 
 func _update_minibox_states() -> void:
 	for i in range(minibox_buttons.size()):
 		var btn := minibox_buttons[i]
-		var q   := questions_data[i]
+		var q := questions_data[i]
 		var sb: StyleBoxFlat
 
 		if i == current_question_index:
@@ -175,22 +174,22 @@ func _on_minibox_pressed(index: int) -> void:
 
 func _save_current_question() -> void:
 	var q := questions_data[current_question_index]
-	q.question_text  = question_input.text
-	q.choices[0]     = choice_inputs[0].text
-	q.choices[1]     = choice_inputs[1].text
-	q.choices[2]     = choice_inputs[2].text
-	q.choices[3]     = choice_inputs[3].text
+	q.question_text = question_input.text
+	q.choices[0] = choice_inputs[0].text
+	q.choices[1] = choice_inputs[1].text
+	q.choices[2] = choice_inputs[2].text
+	q.choices[3] = choice_inputs[3].text
 	q.correct_answer = answer_input.text
-	q.is_completed   = q.is_valid()
+	q.is_completed = q.is_valid()
 
 func _load_question(index: int) -> void:
 	var q := questions_data[index]
-	question_input.text   = q.question_text
+	question_input.text = q.question_text
 	choice_inputs[0].text = q.choices[0]
 	choice_inputs[1].text = q.choices[1]
 	choice_inputs[2].text = q.choices[2]
 	choice_inputs[3].text = q.choices[3]
-	answer_input.text     = q.correct_answer
+	answer_input.text = q.correct_answer
 	_update_preview()
 
 func _update_preview() -> void:
@@ -199,10 +198,10 @@ func _update_preview() -> void:
 
 	if q.question_text.strip_edges().is_empty():
 		prev_question.visible = false
-		prev_question.text    = ""
+		prev_question.text = ""
 	else:
 		prev_question.visible = true
-		prev_question.text    = q.question_text
+		prev_question.text = q.question_text
 
 	for child in prev_choices.get_children():
 		child.queue_free()
@@ -226,12 +225,12 @@ func _update_ui() -> void:
 func _update_navigation_buttons() -> void:
 	var valid := questions_data[current_question_index].is_valid()
 	if current_question_index < total_questions - 1:
-		next_button.visible  = true
+		next_button.visible = true
 		next_button.disabled = not valid
-		done_button.visible  = false
+		done_button.visible = false
 	else:
-		next_button.visible  = false
-		done_button.visible  = true
+		next_button.visible = false
+		done_button.visible = true
 		done_button.disabled = not _all_questions_completed()
 
 func _all_questions_completed() -> bool:
@@ -260,7 +259,6 @@ func _on_done_pressed() -> void:
 	var quiz_data := {
 		"total_questions": total_questions,
 		"time_per_question": time_per_question,
-		"quiz_timer": quiz_timer,
 		"questions": []
 	}
 	for q in questions_data:
@@ -274,7 +272,7 @@ func _on_back_pressed() -> void:
 
 func _animate_in() -> void:
 	modulate.a = 0.0
-	scale      = Vector2(0.95, 0.95)
+	scale = Vector2(0.95, 0.95)
 	var tw := create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(self, "modulate:a", 1.0, 0.25)
@@ -296,10 +294,10 @@ func _animate_question_transition() -> void:
 
 func clear_all_data() -> void:
 	for q in questions_data:
-		q.question_text  = ""
-		q.choices        = ["", "", "", ""]
+		q.question_text = ""
+		q.choices = ["", "", "", ""]
 		q.correct_answer = ""
-		q.is_completed   = false
+		q.is_completed = false
 	current_question_index = 0
 	if questions_data.size() > 0:
 		_load_question(0)
@@ -307,14 +305,14 @@ func clear_all_data() -> void:
 
 func load_existing_data(saved_questions: Array) -> void:
 	for i in range(mini(saved_questions.size(), questions_data.size())):
-		var src: Dictionary  = saved_questions[i]
-		var q: QuestionData  = questions_data[i]
-		q.question_text  = src.get("question", "")
-		q.choices[0]     = src.get("choices", ["","","",""])[0]
-		q.choices[1]     = src.get("choices", ["","","",""])[1]
-		q.choices[2]     = src.get("choices", ["","","",""])[2]
-		q.choices[3]     = src.get("choices", ["","","",""])[3]
+		var src: Dictionary = saved_questions[i]
+		var q: QuestionData = questions_data[i]
+		q.question_text = src.get("question", "")
+		q.choices[0] = src.get("choices", ["", "", "", ""])[0]
+		q.choices[1] = src.get("choices", ["", "", "", ""])[1]
+		q.choices[2] = src.get("choices", ["", "", "", ""])[2]
+		q.choices[3] = src.get("choices", ["", "", "", ""])[3]
 		q.correct_answer = src.get("correct_answer", "")
-		q.is_completed   = q.is_valid()
+		q.is_completed = q.is_valid()
 	_load_question(0)
 	_update_ui()

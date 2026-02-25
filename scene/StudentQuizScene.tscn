@@ -102,6 +102,7 @@ offset_left = 20.0
 offset_top = 14.0
 offset_right = -20.0
 offset_bottom = 50.0
+grow_horizontal = 2
 theme_override_constants/separation = 0
 
 [node name="BackButton" type="Button" parent="GridScreen/TopBar"]
@@ -190,6 +191,7 @@ offset_left = 20.0
 offset_top = 14.0
 offset_right = -20.0
 offset_bottom = 50.0
+grow_horizontal = 2
 theme_override_constants/separation = 0
 
 [node name="BackButton" type="Button" parent="QuestionScreen/TopBar"]
@@ -310,6 +312,7 @@ offset_left = 20.0
 offset_top = 14.0
 offset_right = -20.0
 offset_bottom = 50.0
+grow_horizontal = 2
 
 [node name="BackButton" type="Button" parent="ScoreScreen/TopBar"]
 custom_minimum_size = Vector2(40, 36)

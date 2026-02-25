@@ -894,6 +894,9 @@ app.post('/api/quiz/create', (req, res) => {
 
   quizRooms.set(room_code, quizRoom);
   console.log(`[CyberQuiz] Room created: ${room_code} by ${host_username} (${questions.length} questions)`);
+  questions.forEach((q, i) => {
+    console.log(`[CyberQuiz DEBUG] Stored Q${i}: question="${q.question}" correct_answer="${q.correct_answer}" choices=${JSON.stringify(q.choices)}`);
+  });
 
   res.json({
     ok: true,
@@ -1039,10 +1042,10 @@ app.get('/api/quiz/:code/questions', (req, res) => {
   });
 });
 
-// POST /api/quiz/:code/submit — Student submits answers + score
+// POST /api/quiz/:code/submit — Student submits answers (score calculated server-side)
 app.post('/api/quiz/:code/submit', (req, res) => {
   const code = req.params.code.toUpperCase();
-  const { player_id, answers, score } = req.body;
+  const { player_id, answers } = req.body;
 
   if (!player_id) {
     return res.status(400).json({ error: 'Missing player_id' });
@@ -1058,13 +1061,28 @@ app.post('/api/quiz/:code/submit', (req, res) => {
     return res.status(404).json({ error: 'Player not found in this room' });
   }
 
-  player.answers = answers || [];
-  player.score = typeof score === 'number' ? score : 0;
+  // Calculate score server-side by comparing answers to correct_answer
+  const submittedAnswers = answers || [];
+  const questions = qr.quiz_data.questions || [];
+  let score = 0;
+  console.log(`[CyberQuiz DEBUG] Scoring ${questions.length} questions for ${player.username}`);
+  for (let i = 0; i < questions.length; i++) {
+    const correctAns = (questions[i].correct_answer || '').trim().toLowerCase();
+    const studentAns = (submittedAnswers[i] || '').trim().toLowerCase();
+    const match = studentAns && studentAns === correctAns;
+    console.log(`[CyberQuiz DEBUG] Q${i}: correct="${questions[i].correct_answer}" student="${submittedAnswers[i]}" | trimmed: correct="${correctAns}" student="${studentAns}" | match=${match}`);
+    if (match) {
+      score++;
+    }
+  }
+
+  player.answers = submittedAnswers;
+  player.score = score;
   player.finished = true;
   player.finished_at = Date.now();
   qr.last_heartbeat = Date.now();
 
-  console.log(`[CyberQuiz] ${player.username} submitted in ${code}: score=${player.score}`);
+  console.log(`[CyberQuiz] ${player.username} submitted in ${code}: score=${score}/${questions.length}`);
 
   // Check if all players finished
   const allFinished = qr.players.every(p => p.finished);
@@ -1075,6 +1093,8 @@ app.post('/api/quiz/:code/submit', (req, res) => {
 
   res.json({
     ok: true,
+    score: score,
+    total_questions: questions.length,
     all_finished: allFinished,
     status: qr.status
   });

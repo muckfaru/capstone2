@@ -9,7 +9,7 @@ extends Control
 # ── Multiplayer buttons ───────────────────────────────────────────────────
 @onready var create_room_btn: Button = $CanvasLayer/CreateRoomButton
 @onready var join_lobby_btn: Button = $CanvasLayer/JoinLobbyButton
-@onready var join_lobby_popup: Control = null  # instantiated at runtime
+@onready var join_lobby_popup: Control = null # instantiated at runtime
 # ── XP / Rank display (now scene nodes) ──────────────────────────────────
 @onready var xp_label: Label = $CanvasLayer/XPLabel
 @onready var xp_progress_bar: ProgressBar = $CanvasLayer/XPProgressBar
@@ -641,9 +641,9 @@ func _on_join_lobby_pressed() -> void:
 		tween.tween_property(join_lobby_btn, "scale", Vector2(0.92, 0.92), 0.08)
 		tween.tween_property(join_lobby_btn, "scale", Vector2(1.0, 1.0), 0.15)
 
-	var popup_scene = load("res://scene/JoinLobbyPopup.tscn")
+	var popup_scene = load("res://scene/JoinRoomPopup.tscn")
 	if not popup_scene:
-		push_error("❌ Could not load JoinLobbyPopup.tscn")
+		push_error("❌ Could not load JoinRoomPopup.tscn")
 		return
 	join_lobby_popup = popup_scene.instantiate()
 	$CanvasLayer.add_child(join_lobby_popup)
@@ -657,14 +657,53 @@ func _on_join_popup_closed() -> void:
 		join_lobby_popup = null
 
 func _on_join_code_submitted(room_code: String) -> void:
-	# For now just transition to TeacherLobby reusing existing lobby panel
-	# Later: validate code against Firestore/multiplayer server
 	print("[Join] Student attempting to join room: %s" % room_code)
-	if join_lobby_popup:
-		join_lobby_popup.queue_free()
-		join_lobby_popup = null
-	# TODO: validate code and load student lobby view
-	# get_tree().change_scene_to_file("res://scene/StudentLobby.tscn")
+	# Validate the code against the CyberQuiz server
+	var lobby_url := _get_lobby_url()
+	var url := lobby_url + "/api/quiz/%s/join" % room_code
+	var body := {
+		"player_id": Auth.current_local_id,
+		"username": Auth.current_username,
+	}
+	var headers := ["Content-Type: application/json"]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code == 200:
+			print("[Join] ✅ Successfully joined quiz room: %s" % room_code)
+			if join_lobby_popup:
+				join_lobby_popup.queue_free()
+				join_lobby_popup = null
+			# Store room code and lobby URL for StudentQuizScene
+			get_tree().set_meta("cyber_quiz_room_code", room_code)
+			get_tree().set_meta("cyber_quiz_lobby_url", lobby_url)
+			get_tree().change_scene_to_file("res://scene/StudentQuizScene.tscn")
+		else:
+			var err_text: String = resp_body.get_string_from_utf8() if resp_body.size() > 0 else ""
+			var err_data = JSON.parse_string(err_text)
+			var msg := "Failed to join room."
+			if typeof(err_data) == TYPE_DICTIONARY:
+				msg = err_data.get("error", msg)
+			print("[Join] ❌ Join failed: %d %s" % [code, msg])
+			if join_lobby_popup and join_lobby_popup.has_method("show_error"):
+				join_lobby_popup.show_error(msg)
+	)
+	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	if err != OK:
+		push_error("[Join] HTTP request failed: %d" % err)
+		http.queue_free()
+		if join_lobby_popup and join_lobby_popup.has_method("show_error"):
+			join_lobby_popup.show_error("Connection error. Try again.")
+
+func _get_lobby_url() -> String:
+	if has_node("/root/MultiplayerConfig"):
+		return get_node("/root/MultiplayerConfig").get_lobby_url()
+	var cfg_script = load("res://script/MultiplayerConfig.gd")
+	if cfg_script:
+		var cfg = cfg_script.new()
+		return cfg.get_lobby_url()
+	return "https://codebreaker-lobby.onrender.com"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

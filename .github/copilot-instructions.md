@@ -132,6 +132,24 @@ Per-player card fields (minimal schema):
 
 ---
 
+## CyberQuiz (Multiple Choice Quiz)
+
+### Core Files
+- **Quiz Creation:** `script/QuizCreationPanel.gd`
+- **Student Quiz:** `script/StudentQuizScene.gd`
+- **Teacher Stats:** `script/TeacherCreateRoom.gd`
+
+### Scoring & Anti-Cheat
+- **Authoritative Scoring:** Always calculate quiz scores on the server side (`server/server.js`).
+- **Anti-Cheat:** The server `/api/quiz/:code/questions` endpoint **strips** `correct_answer` from the payload sent to students.
+- **Client Submission:** Students should only send their `answers` array to the `/submit` endpoint. The server response will contain the calculated score.
+
+### UI & Layout Rules
+- **Teacher Statistics:** When displaying the leaderboard or real-time results in the `StatisticsPanel`, ensure the placeholder `StatsGrid` (containing Graph, HighScore, Rankings) is hidden (`stats_grid.visible = false`) to prevent layout overlaps.
+- **Scene Tree Paths:** Always verify `@onready` paths against `.tscn` structure. For example, `score_grid` in `StudentQuizScene` is often nested under a `ContentRow` container.
+
+---
+
 ## Development Notes
 
 ### Common Patterns

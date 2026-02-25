@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://bt42jb2so5bw7" path="res://TEACHERCREATEROOMUI/Group 46.png" id="7_3wnox"]
 [ext_resource type="Texture2D" uid="uid://cjbj4s556fviw" path="res://TEACHERCREATEROOMUI/Rectangle 48.png" id="7_7jrwp"]
 [ext_resource type="FontFile" uid="uid://cqfcxnj3ofmyk" path="res://TEACHERCREATEROOMUI/Inter-VariableFont_opsz,wght.ttf" id="9_87rh8"]
-[ext_resource type="PackedScene" uid="uid://yfarxf2di6ej" path="res://scene/TeacherLobbyPanel.tscn" id="10_lobby"]
+[ext_resource type="PackedScene" uid="uid://yfarxf2di6ej" path="res://scene/TeacherRoomPanel.tscn" id="10_lobby"]
 [ext_resource type="PackedScene" uid="uid://e5eddy1e6lws" path="res://scene/quiz_creation_panel.tscn" id="11_quiz"]
 [ext_resource type="PackedScene" uid="uid://c2yy3h13d6xt7" path="res://scene/QuizPreviewPanel.tscn" id="12_f1r1v"]
 
@@ -655,6 +655,7 @@ size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.8
 
 [node name="TitleLabel" type="Label" parent="CanvasLayer/MainPanel/TopBar"]
+visible = false
 layout_mode = 2
 text = "Room"
 label_settings = SubResource("LabelSettings_7jrwp")
@@ -694,6 +695,7 @@ offset_bottom = 60.0
 theme_override_styles/separator = SubResource("StyleBoxEmpty_a4gcc")
 
 [node name="RoomListContainer" type="VBoxContainer" parent="CanvasLayer/MainPanel"]
+visible = false
 layout_mode = 0
 offset_left = 15.0
 offset_top = 70.0
@@ -711,7 +713,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="CreateFormPanel" type="Panel" parent="CanvasLayer"]
-visible = false
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -1026,58 +1027,8 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
 theme_override_styles/normal = SubResource("StyleBoxFlat_mc_view")
 text = "240s"
 
-[node name="MCQuizTimerRow" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="MCQuizTimerLabel" type="Label" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCQuizTimerRow"]
-custom_minimum_size = Vector2(160, 0)
-layout_mode = 2
-text = "Quiz Timer"
-label_settings = SubResource("LabelSettings_87rh8")
-vertical_alignment = 1
-
-[node name="MCQTimer30m" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCQuizTimerRow"]
-custom_minimum_size = Vector2(62, 34)
-layout_mode = 2
-mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
-theme_override_styles/normal = SubResource("StyleBoxFlat_mc_view")
-text = "30min"
-
-[node name="MCQTimer1h" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCQuizTimerRow"]
-custom_minimum_size = Vector2(52, 34)
-layout_mode = 2
-mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
-theme_override_styles/normal = SubResource("StyleBoxFlat_mc_view")
-text = "1hr"
-
-[node name="MCQTimer1h30m" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCQuizTimerRow"]
-custom_minimum_size = Vector2(72, 34)
-layout_mode = 2
-mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
-theme_override_styles/normal = SubResource("StyleBoxFlat_mc_view")
-text = "1h 30m"
-
-[node name="MCQTimer2h" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCQuizTimerRow"]
-custom_minimum_size = Vector2(52, 34)
-layout_mode = 2
-mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
-theme_override_styles/normal = SubResource("StyleBoxFlat_mc_view")
-text = "2hr"
-
 [node name="DifficultyRow" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent"]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 20
 
@@ -1368,12 +1319,12 @@ text = "Copy"
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 
-[node name="ViewStatsButton" type="Button" parent="CanvasLayer/RoomCodePanel/CodeContent"]
+[node name="CreateRoomButton" type="Button" parent="CanvasLayer/RoomCodePanel/CodeContent"]
 custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_default_cursor_shape = 2
-text = "Lobby"
+text = "Create Room"
 
 [node name="StatisticsPanel" type="Panel" parent="CanvasLayer"]
 visible = false
@@ -1532,6 +1483,6 @@ visible = false
 [connection signal="pressed" from="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/ConfirmRow/ConfirmButton" to="." method="_on_popup_confirm_pressed"]
 [connection signal="pressed" from="CanvasLayer/RoomCodePanel/CodeTopBar/CodeBackButton" to="." method="_on_code_back_pressed"]
 [connection signal="pressed" from="CanvasLayer/RoomCodePanel/CodeContent/CodeRow/CopyButton" to="." method="_on_copy_code_pressed"]
-[connection signal="pressed" from="CanvasLayer/RoomCodePanel/CodeContent/ViewStatsButton" to="." method="_on_lobby_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/RoomCodePanel/CodeContent/CreateRoomButton" to="." method="_on_lobby_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/StatisticsPanel/StatsTopBar/StatsBackButton" to="." method="_on_stats_back_pressed"]
 [connection signal="pressed" from="CanvasLayer/StatisticsPanel/StatsGrid/RightColumn/SeeAllButton" to="." method="_on_see_all_pressed"]

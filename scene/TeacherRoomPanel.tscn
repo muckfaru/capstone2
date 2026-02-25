@@ -79,7 +79,7 @@ corner_radius_bottom_left = 5
 shadow_color = Color(0, 0.211765, 0.490196, 1)
 shadow_size = 10
 
-[node name="TeacherLobbyPanel" type="Control"]
+[node name="TeacherRoomPanel" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -187,7 +187,7 @@ custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
 theme_override_font_sizes/font_size = 12
-text = "Name"
+text = "Teacher: Name"
 horizontal_alignment = 1
 clip_text = true
 
@@ -233,7 +233,7 @@ custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
 theme_override_font_sizes/font_size = 12
-text = "Name"
+text = "Student: Name"
 horizontal_alignment = 1
 clip_text = true
 
@@ -279,7 +279,7 @@ custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
 theme_override_font_sizes/font_size = 12
-text = "Name"
+text = "Student: Name"
 horizontal_alignment = 1
 clip_text = true
 
@@ -325,7 +325,7 @@ custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
 theme_override_font_sizes/font_size = 12
-text = "Name"
+text = "Student: Name"
 horizontal_alignment = 1
 clip_text = true
 
@@ -371,7 +371,7 @@ custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
 theme_override_font_sizes/font_size = 12
-text = "Name"
+text = "Student: Name"
 horizontal_alignment = 1
 clip_text = true
 
@@ -418,7 +418,7 @@ custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
 theme_override_font_sizes/font_size = 12
-text = "Name"
+text = "Student: Name"
 horizontal_alignment = 1
 clip_text = true
 
@@ -464,7 +464,7 @@ custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
 theme_override_font_sizes/font_size = 12
-text = "Name"
+text = "Student: Name"
 horizontal_alignment = 1
 clip_text = true
 
@@ -510,7 +510,7 @@ custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
 theme_override_font_sizes/font_size = 12
-text = "Name"
+text = "Student: Name"
 horizontal_alignment = 1
 clip_text = true
 
@@ -556,7 +556,7 @@ custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
 theme_override_font_sizes/font_size = 12
-text = "Name"
+text = "Student: Name"
 horizontal_alignment = 1
 clip_text = true
 
@@ -602,7 +602,7 @@ custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
 theme_override_font_sizes/font_size = 12
-text = "Name"
+text = "Student: Name"
 horizontal_alignment = 1
 clip_text = true
 
