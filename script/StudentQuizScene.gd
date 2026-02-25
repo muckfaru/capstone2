@@ -280,17 +280,18 @@ func _show_score() -> void:
 	_show_screen(Screen.SCORE)
 	_build_score_grid()
 
-	# For now score = number of answered questions (placeholder)
-	# Real scoring: compare student_answers[i] with correct_answer
+	# Local scoring as fallback (server is authoritative for CyberQuiz)
 	var questions: Array = quiz_data.get("questions", [])
 	var correct_count := 0
 	var correct_flags: Array[bool] = []
 
+	print("[StudentQuiz DEBUG] Scoring %d questions, student_answers=%s" % [total_questions, str(student_answers)])
 	for i in range(total_questions):
 		var q: Dictionary = questions[i] if i < questions.size() else {}
 		var correct_ans: String = q.get("correct_answer", "").strip_edges().to_lower()
-		var student_ans: String = student_answers[i].strip_edges().to_lower()
+		var student_ans: String = student_answers[i].strip_edges().to_lower() if i < student_answers.size() else ""
 		var is_correct := student_ans != "" and student_ans == correct_ans
+		print("[StudentQuiz DEBUG] Q%d: correct='%s' student='%s' match=%s" % [i, correct_ans, student_ans, str(is_correct)])
 		correct_flags.append(is_correct)
 		if is_correct:
 			correct_count += 1
@@ -532,6 +533,9 @@ func _fetch_questions() -> void:
 		if ws: ws.visible = false
 
 		print("[CyberQuiz] Received %d questions. Starting quiz!" % questions.size())
+		for i in range(questions.size()):
+			var q = questions[i]
+			print("[CyberQuiz DEBUG] Q%d: choices=%s" % [i, str(q.get("choices", []))])
 		start_quiz(quiz)
 	)
 	http.request(url, [], HTTPClient.METHOD_GET)
@@ -615,6 +619,7 @@ func _build_answer_choices(q: Dictionary, q_index: int) -> void:
 func _on_choice_selected(q_index: int, answer: String, clicked_btn: Button) -> void:
 	student_answers[q_index] = answer
 	answered_flags[q_index] = true
+	print("[StudentQuiz DEBUG] Selected Q%d answer='%s'" % [q_index, answer])
 	_update_grid_visuals()
 	_update_submit_button()
 
@@ -649,6 +654,7 @@ func _submit_to_server_and_show_leaderboard(score: int = -1) -> void:
 		"player_id": Auth.current_local_id,
 		"answers": student_answers,
 	}
+	print("[CyberQuiz DEBUG] Submitting answers: %s" % str(student_answers))
 	var headers := ["Content-Type: application/json"]
 	var http := HTTPRequest.new()
 	add_child(http)
@@ -792,11 +798,11 @@ func _show_leaderboard_screen(data: Dictionary) -> void:
 
 	# Done button
 	var done := Button.new()
-	done.text = "Return to Menu"
-	done.custom_minimum_size = Vector2(200, 48)
+	done.text = "← Back to Landing"
+	done.custom_minimum_size = Vector2(220, 48)
 	done.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	done.offset_top = -60; done.offset_bottom = -12
-	done.offset_left = -100; done.offset_right = 100
+	done.offset_left = -110; done.offset_right = 110
 	var done_sb := StyleBoxFlat.new()
 	done_sb.bg_color = Color(0, 0.5, 0.7, 0.9)
 	done_sb.border_color = Color(0, 1, 1, 0.8)
@@ -806,7 +812,7 @@ func _show_leaderboard_screen(data: Dictionary) -> void:
 	done.add_theme_color_override("font_color", Color(1, 1, 1))
 	done.add_theme_font_size_override("font_size", 16)
 	done.pressed.connect(func():
-		get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+		get_tree().change_scene_to_file("res://scene/landing.tscn")
 	)
 	lb.add_child(done)
 

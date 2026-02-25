@@ -179,7 +179,15 @@ func _save_current_question() -> void:
 	q.choices[1] = choice_inputs[1].text
 	q.choices[2] = choice_inputs[2].text
 	q.choices[3] = choice_inputs[3].text
-	q.correct_answer = answer_input.text
+	# Normalize correct_answer to match exact choice text (case-insensitive lookup)
+	var raw_answer := answer_input.text.strip_edges()
+	var normalized_answer := raw_answer
+	var answer_lower := raw_answer.to_lower()
+	for choice in q.choices:
+		if choice.strip_edges().to_lower() == answer_lower:
+			normalized_answer = choice.strip_edges()
+			break
+	q.correct_answer = normalized_answer
 	q.is_completed = q.is_valid()
 
 func _load_question(index: int) -> void:

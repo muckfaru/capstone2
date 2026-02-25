@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://cii0a20ah7am4"]
 
-[ext_resource type="Script" path="res://script/JoinRoomPopup.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://djb3e30pxye8f" path="res://script/JoinRoomPopup.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="SB_panel"]

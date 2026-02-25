@@ -1066,11 +1066,18 @@ app.post('/api/quiz/:code/submit', (req, res) => {
   const questions = qr.quiz_data.questions || [];
   let score = 0;
   console.log(`[CyberQuiz DEBUG] Scoring ${questions.length} questions for ${player.username}`);
+  console.log(`[CyberQuiz DEBUG] Raw submitted answers: ${JSON.stringify(submittedAnswers)}`);
   for (let i = 0; i < questions.length; i++) {
-    const correctAns = (questions[i].correct_answer || '').trim().toLowerCase();
-    const studentAns = (submittedAnswers[i] || '').trim().toLowerCase();
-    const match = studentAns && studentAns === correctAns;
-    console.log(`[CyberQuiz DEBUG] Q${i}: correct="${questions[i].correct_answer}" student="${submittedAnswers[i]}" | trimmed: correct="${correctAns}" student="${studentAns}" | match=${match}`);
+    const rawCorrect = questions[i].correct_answer || '';
+    const rawStudent = submittedAnswers[i] || '';
+    // Normalize: trim whitespace, collapse multiple spaces, lowercase
+    const correctAns = rawCorrect.trim().replace(/\s+/g, ' ').toLowerCase();
+    const studentAns = rawStudent.trim().replace(/\s+/g, ' ').toLowerCase();
+    const match = studentAns.length > 0 && studentAns === correctAns;
+    console.log(`[CyberQuiz DEBUG] Q${i}: `);
+    console.log(`  raw_correct="${rawCorrect}" raw_student="${rawStudent}"`);
+    console.log(`  normalized_correct="${correctAns}" normalized_student="${studentAns}"`);
+    console.log(`  match=${match}`);
     if (match) {
       score++;
     }

@@ -882,6 +882,36 @@ func _update_stats_leaderboard(data: Dictionary) -> void:
 		empty.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
 		stats_vbox.add_child(empty)
 
+	# Spacer
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 20)
+	stats_vbox.add_child(spacer)
+
+	# Back to Landing button
+	var back_btn := Button.new()
+	back_btn.text = "← Back to Landing"
+	back_btn.custom_minimum_size = Vector2(200, 44)
+	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var back_sb := StyleBoxFlat.new()
+	back_sb.bg_color = Color(0, 0.5, 0.7, 0.9)
+	back_sb.border_color = Color(0, 1, 1, 0.8)
+	back_sb.set_border_width_all(2)
+	back_sb.set_corner_radius_all(8)
+	back_btn.add_theme_stylebox_override("normal", back_sb)
+	back_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+	back_btn.add_theme_font_size_override("font_size", 14)
+	back_btn.pressed.connect(func():
+		# Stop polling timers
+		if _quiz_poll_timer:
+			_quiz_poll_timer.queue_free()
+			_quiz_poll_timer = null
+		if _quiz_heartbeat_timer:
+			_quiz_heartbeat_timer.queue_free()
+			_quiz_heartbeat_timer = null
+		get_tree().change_scene_to_file("res://scene/landing.tscn")
+	)
+	stats_vbox.add_child(back_btn)
+
 func _start_quiz_heartbeat(room_code: String) -> void:
 	if _quiz_heartbeat_timer:
 		_quiz_heartbeat_timer.queue_free()
