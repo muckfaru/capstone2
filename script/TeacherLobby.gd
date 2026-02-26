@@ -5,10 +5,12 @@ extends Control
 # All 10 slot nodes are defined in TeacherRoomPanel.tscn.
 # AvatarTexture and RankTexture are TextureRect nodes — assign textures via
 # the player data dictionary: { "name": String, "avatar": Texture2D, "rank_icon": Texture2D }
+# Supports both Teacher mode (can start) and Student mode (waiting only).
 # ─────────────────────────────────────────────────────────────────────────────
 
 signal quiz_started(room_code: String)
 signal lobby_closed
+signal game_started(data: Dictionary)  # For student mode when teacher starts
 
 @export var max_player_count: int = 10
 
@@ -28,6 +30,14 @@ var _players: Array[Dictionary] = []
 var _slot_nodes: Array[PanelContainer] = []
 var _poll_timer: Timer = null
 var _lobby_url: String = ""
+
+# Student mode variables
+var _is_student_mode: bool = false
+var _game_name: String = ""
+var _game_scene: String = ""
+var _waiting_label: Label = null
+var _dot_timer: Timer = null
+var _dot_count: int = 0
 
 # ─────────────────────────────────────────────────────────────────────────────
 func _ready() -> void:
@@ -49,14 +59,87 @@ func show_lobby(room_code: String, room_name: String,
 	_room_name = room_name
 	_minigame = minigame
 	_difficulty = difficulty
+	_is_student_mode = false
 	max_player_count = mini(player_count, _slot_nodes.size())
 
 	room_name_label.text = room_name
 	room_code_label.text = room_code
 
+	# Reset UI for teacher mode
+	if start_quiz_btn:
+		start_quiz_btn.visible = true
+		start_quiz_btn.text = "Start"
+	if chat_input:
+		chat_input.visible = true
+	_clear_waiting_label()
+
 	_players.clear()
 	_refresh_all_slots()
 	_refresh_player_count_label()
+
+## Student mode: Show lobby without start button, waiting for teacher
+func show_lobby_student_mode(room_code: String, game_name: String, game_scene: String,
+		lobby_url: String, player_count: int = 10) -> void:
+	_room_code = room_code
+	_room_name = game_name
+	_game_name = game_name
+	_game_scene = game_scene
+	_lobby_url = lobby_url
+	_is_student_mode = true
+	max_player_count = mini(player_count, _slot_nodes.size())
+
+	room_name_label.text = game_name
+	room_code_label.text = room_code
+
+	# Hide start button, show waiting message
+	if start_quiz_btn:
+		start_quiz_btn.visible = false
+	if chat_input:
+		chat_input.visible = false
+	_create_waiting_label()
+
+	_players.clear()
+	_refresh_all_slots()
+	_refresh_player_count_label()
+
+	# Start polling for player list and game status
+	start_gamemode_polling_student(room_code, lobby_url)
+
+func _create_waiting_label() -> void:
+	_clear_waiting_label()
+	var bottom_bar := $PanelBg/BottomBar as HBoxContainer
+	if not bottom_bar:
+		return
+
+	_waiting_label = Label.new()
+	_waiting_label.name = "WaitingLabel"
+	_waiting_label.text = "⏳ Waiting for teacher to start the game..."
+	_waiting_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_waiting_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_waiting_label.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+	_waiting_label.add_theme_font_size_override("font_size", 16)
+	bottom_bar.add_child(_waiting_label)
+
+	# Animate dots
+	_dot_timer = Timer.new()
+	_dot_timer.wait_time = 0.5
+	_dot_timer.autostart = true
+	add_child(_dot_timer)
+	_dot_timer.timeout.connect(_animate_waiting_dots)
+
+func _clear_waiting_label() -> void:
+	if _waiting_label and is_instance_valid(_waiting_label):
+		_waiting_label.queue_free()
+		_waiting_label = null
+	if _dot_timer and is_instance_valid(_dot_timer):
+		_dot_timer.queue_free()
+		_dot_timer = null
+
+func _animate_waiting_dots() -> void:
+	_dot_count = (_dot_count + 1) % 4
+	if _waiting_label and is_instance_valid(_waiting_label):
+		var dots := ".".repeat(_dot_count + 1)
+		_waiting_label.text = "⏳ Waiting for teacher to start the game" + dots
 
 ## CyberQuiz: Start polling server for joined students
 func start_server_polling(room_code: String, lobby_url: String) -> void:
@@ -108,12 +191,16 @@ func _sync_players_from_server(server_players: Array) -> void:
 	var current_names: Array[String] = []
 	for p in _players:
 		current_names.append(p.get("name", ""))
-	# Add new players
+	# Add new players with avatar + rank
 	for sp in server_players:
 		var uname: String = sp.get("username", "")
 		if uname.is_empty(): continue
 		if uname not in current_names:
-			add_player(uname)
+			var avatar_file: String = str(sp.get("avatar", "default.png"))
+			var level_val: int = int(sp.get("level", 0))
+			var avatar_tex := _load_avatar_texture(avatar_file)
+			var rank_tex := _load_rank_texture(level_val)
+			add_player(uname, avatar_tex, rank_tex)
 	# Remove players that left
 	var server_names: Array[String] = []
 	for sp in server_players:
@@ -121,6 +208,56 @@ func _sync_players_from_server(server_players: Array) -> void:
 	for p in _players.duplicate():
 		if p.get("name", "") not in server_names:
 			remove_player(p.get("name", ""))
+
+## Load avatar texture from filename (e.g., "avatar1.png")
+func _load_avatar_texture(avatar_file: String) -> Texture2D:
+	if avatar_file.is_empty() or avatar_file == "default.png":
+		return null
+	# Try loading from asset folder
+	var path: String
+	if avatar_file.begins_with("res://"):
+		path = avatar_file
+	else:
+		path = "res://asset/avatars/" + avatar_file
+	if ResourceLoader.exists(path):
+		var tex = load(path)
+		if tex is Texture2D:
+			return tex as Texture2D
+	return null
+
+## Load rank icon texture from level (maps level to XP-based rank)
+func _load_rank_texture(level: int) -> Texture2D:
+	# Use RANK_THRESHOLDS from TutorialManager to get appropriate icon
+	# Level is stored as Firestore int; use it as an XP approximation
+	# Level mapping: lvl 0-1 = Iron, 2 = Bronze, 3 = Silver, etc.
+	var rank_icons := [
+		"res://asset/rankicon/IRON.png",       # 0-1
+		"res://asset/rankicon/IRON.png",       # 1 
+		"res://asset/rankicon/BRONZE.png",     # 2
+		"res://asset/rankicon/SILVER.png",     # 3
+		"res://asset/rankicon/GOLD.png",       # 4
+		"res://asset/rankicon/PLATINUM.png",   # 5
+		"res://asset/rankicon/DIAMOND.png",    # 6
+		"res://asset/rankicon/MASTER.png",     # 7
+		"res://asset/rankicon/GRAND MASTER.png", # 8
+		"res://asset/rankicon/CHALLENGER.png", # 9+
+	]
+	# If TutorialManager is available, try to get rank by XP
+	if TutorialManager:
+		var rank: Dictionary = TutorialManager.get_rank(TutorialManager.total_xp if level == 0 else -1)
+		var rank_icon: String = rank.get("icon", "")
+		if not rank_icon.is_empty() and ResourceLoader.exists(rank_icon):
+			var tex = load(rank_icon)
+			if tex is Texture2D:
+				return tex as Texture2D
+	# Fallback: use level index
+	var idx := clampi(level, 0, rank_icons.size() - 1)
+	var fallback_path: String = rank_icons[idx]
+	if ResourceLoader.exists(fallback_path):
+		var tex = load(fallback_path)
+		if tex is Texture2D:
+			return tex as Texture2D
+	return null
 
 func _poll_gamemode_players(room_code: String) -> void:
 	if _lobby_url.is_empty(): return
@@ -137,6 +274,62 @@ func _poll_gamemode_players(room_code: String) -> void:
 		_sync_players_from_server(server_players)
 	)
 	http.request(url, [], HTTPClient.METHOD_GET)
+
+## Student mode polling: Also checks if game started
+func start_gamemode_polling_student(room_code: String, lobby_url: String) -> void:
+	_lobby_url = lobby_url
+	stop_server_polling()
+	_poll_timer = Timer.new()
+	_poll_timer.wait_time = 3.0
+	_poll_timer.autostart = true
+	add_child(_poll_timer)
+	_poll_timer.timeout.connect(func(): _poll_gamemode_student(room_code))
+	# Immediate first poll
+	_poll_gamemode_student(room_code)
+
+func _poll_gamemode_student(room_code: String) -> void:
+	if _lobby_url.is_empty(): return
+	var url := _lobby_url + "/api/gamemode/%s/info" % room_code
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code != 200: return
+		var text: String = resp_body.get_string_from_utf8()
+		var data = JSON.parse_string(text)
+		if typeof(data) != TYPE_DICTIONARY: return
+
+		# Update player list
+		var server_players: Array = data.get("players", [])
+		_sync_players_from_server(server_players)
+
+		# Check if game started
+		var status: String = data.get("status", "waiting")
+		if status == "active":
+			_on_game_started_student(data)
+	)
+	http.request(url, [], HTTPClient.METHOD_GET)
+
+func _on_game_started_student(data: Dictionary) -> void:
+	# Stop polling
+	stop_server_polling()
+	_clear_waiting_label()
+
+	# Update waiting label to show starting
+	if _waiting_label == null:
+		var bottom_bar := $PanelBg/BottomBar as HBoxContainer
+		if bottom_bar:
+			_waiting_label = Label.new()
+			_waiting_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			_waiting_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			_waiting_label.add_theme_font_size_override("font_size", 16)
+			bottom_bar.add_child(_waiting_label)
+	if _waiting_label:
+		_waiting_label.text = "🚀 Game starting..."
+		_waiting_label.add_theme_color_override("font_color", Color(0.3, 1, 0.5))
+
+	# Emit signal for parent to handle
+	emit_signal("game_started", data)
 
 # player dict: { "name": String, "avatar": Texture2D (optional), "rank_icon": Texture2D (optional) }
 func add_player(player_name: String, avatar: Texture2D = null, rank_icon: Texture2D = null) -> void:

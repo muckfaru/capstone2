@@ -690,7 +690,14 @@ func _on_join_code_submitted(room_code: String) -> void:
 		# Fallback: try game mode
 		_try_gamemode_join(room_code, lobby_url, body, headers)
 
-func _try_gamemode_join(room_code: String, lobby_url: String, body: Dictionary, headers: Array) -> void:
+func _try_gamemode_join(room_code: String, lobby_url: String, _body: Dictionary, headers: Array) -> void:
+	# Build body with avatar + level for the room panel
+	var gm_body := {
+		"player_id": Auth.current_local_id,
+		"username": Auth.current_username,
+		"avatar": Auth.current_avatar if Auth.current_avatar != "" else "default.png",
+		"level": Auth.current_level,
+	}
 	var url := lobby_url + "/api/gamemode/%s/join" % room_code
 	var http := HTTPRequest.new()
 	add_child(http)
@@ -724,7 +731,7 @@ func _try_gamemode_join(room_code: String, lobby_url: String, body: Dictionary, 
 			if join_lobby_popup and join_lobby_popup.has_method("show_error"):
 				join_lobby_popup.show_error(msg)
 	)
-	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(gm_body))
 	if err != OK:
 		push_error("[Join] GameMode HTTP request failed: %d" % err)
 		http.queue_free()
