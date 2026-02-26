@@ -19,7 +19,7 @@ This is a Godot 4.4 educational game project featuring multiple minigames for cy
 
 #### Multiplayer Flow (UI parity with Code Breaker / Akashic)
 - Landing → Defuse Trojan Lobby → Room → Synchronized Loading → Shared Arena → Postgame
-- Lobby/room uses the same “room list + room scene + ready gating” pattern as Code Breaker.
+- Lobby/room uses the same "room list + room scene + ready gating" pattern as Code Breaker.
 
 #### Core Multiplayer Files
 - **Lobby Panel Scene:** `scene/defuse_trojan_lobby.tscn`
@@ -70,7 +70,7 @@ Match end / postgame sync:
 - Score is tracked per-player (`_scores_by_player`) and displayed from the local player id.
 
 #### Postgame Analytics (Per-Player Cards)
-Postgame reuses Code Breaker’s visual design via scene inheritance and renders up to 3 player cards.
+Postgame reuses Code Breaker's visual design via scene inheritance and renders up to 3 player cards.
 
 Per-player card fields (minimal schema):
 - Match summary: `mode`, `duration_ms`, `wave_reached`
@@ -150,6 +150,161 @@ Per-player card fields (minimal schema):
 
 ---
 
+## Cybersecurity Fundamentals (Game Mode — Multiplayer)
+
+### Overview
+Teacher creates a room → students join via room code → teacher starts → all students launch the same game scene. Uses the **GameMode** server endpoints (separate from CyberQuiz).
+
+### Core Files
+- **Teacher Room Creation:** `script/TeacherCreateRoom.gd` — teacher creates room, selects game
+- **Room Panel Scene:** `scene/TeacherRoomPanel.tscn` — shared UI for teacher & student room view
+- **Room Panel Script:** `script/TeacherLobby.gd` — manages player slots, avatar/rank, polling, dual-mode (teacher/student)
+- **Student Waiting Screen:** `script/gamemode_student_waiting.gd` — loads TeacherRoomPanel in student mode
+- **Student Waiting Scene:** `scene/gamemode_student_waiting.tscn`
+- **Student Join Flow:** `script/mode_selection.gd` → `_try_gamemode_join()` — sends join request with avatar + XP
+
+### Server Endpoints (GameMode)
+All endpoints in `server/server.js` under `/api/gamemode/`:
+- `POST /api/gamemode/create` — Teacher creates a room (returns `room_code`)
+- `GET /api/gamemode/:code/info` — Get room info: players list (with `avatar`, `xp`), status, game_name, game_scene
+- `POST /api/gamemode/:code/join` — Student joins room (sends `player_id`, `username`, `avatar`, `xp`)
+- `POST /api/gamemode/:code/start` — Teacher starts the game (sets status to `"active"`)
+- `POST /api/gamemode/:code/submit` — Student submits score after game ends
+- `GET /api/gamemode/:code/results` — Get all player results
+- `POST /api/gamemode/:code/heartbeat` — Keep room alive
+
+### Server Player Data Schema
+When a player joins via `/join`, the server stores:
+```json
+{
+  "player_id": "string",
+  "username": "string",
+  "avatar": "avatar1.png",
+  "xp": 300,
+  "joined_at": 1234567890,
+  "finished": false,
+  "score": 0,
+  "max_score": 0,
+  "time_taken_ms": 0
+}
+```
+The `/info` endpoint returns `avatar` + `xp` per player for the room panel to display.
+
+### Server Deployment
+- **Platform:** Render.com (free tier, auto-deploy from GitHub `main` branch)
+- **URL:** `https://codebreaker-lobby.onrender.com`
+- **Root Directory (on Render):** `server/`
+- **Build Command:** `npm install`
+- **Start Command:** `node server.js`
+- **Version Check:** The `/health` endpoint includes `code_version` field to verify which code is deployed. Always confirm this after pushing server changes.
+- **IMPORTANT:** Render free tier can be slow to deploy. After `git push`, wait 2–3 minutes and confirm via `/health` → `code_version`. If the field is missing or old, manually trigger deploy from the Render dashboard ("Manual Deploy → Deploy latest commit").
+
+### TeacherRoomPanel (Shared Room UI)
+
+#### Scene Structure (`scene/TeacherRoomPanel.tscn`)
+- **TopBar:** RoomNameLabel, RoomCodeLabel, PlayerCountLabel, BackButton
+- **SlotGrid:** 10 player slots (Slot1–Slot10), each containing:
+  - `VBox` → `AvatarPanel/AvatarTexture` + `NameLabel` + `RankPanel/RankTexture`
+- **BottomBar:** ChatInput + StartQuizButton (hidden in student mode)
+
+#### Slot Node Hierarchy
+```
+SlotX (PanelContainer)
+  └─ VBox (VBoxContainer)
+      ├─ AvatarPanel (PanelContainer, 56×56)
+      │    └─ AvatarTexture (TextureRect, expand_mode=1, stretch_mode=5)
+      ├─ NameLabel (Label, 90×auto)
+      └─ RankPanel (PanelContainer, 70×24)
+           └─ RankTexture (TextureRect, expand_mode=1, stretch_mode=5)
+```
+
+#### StyleBox Resources (Sub-resources in .tscn)
+- `StyleBoxFlat_slot_empty` — empty slot border (`corner_radius = 8`, dark bg)
+- `StyleBoxFlat_avatar_bg` — avatar border (`corner_radius = 4`, square shape)
+- `StyleBoxFlat_rank_bg` — rank badge border (`corner_radius = 4`)
+
+#### Runtime Style Overrides (`TeacherLobby.gd`)
+The script overrides slot styles at runtime via `_slot_style(filled)` and `_avatar_style(filled)`:
+- **`_slot_style(true)`:** Neon cyan border with glow shadow for filled slots
+- **`_slot_style(false)`:** Dim border for empty slots
+- **`_avatar_style(true)`:** Bright cyan border for filled avatar
+- **`_avatar_style(false)`:** Dim border for empty avatar placeholder
+- **IMPORTANT:** Both functions use `corner_radius = 4` for avatar (square) and `corner_radius = 8` for slot. If you change the shape in .tscn but not in the script's style helpers, the script will override it at runtime.
+
+### TeacherLobby.gd — Dual-Mode Script
+
+#### Teacher Mode
+- Called via `show_lobby(room_code, room_name, minigame, difficulty, player_count)`
+- Shows Start button, chat input
+- Polls via `start_gamemode_polling()` → `_poll_gamemode_players()`
+- Start button → emits `quiz_started` signal
+
+#### Student Mode
+- Called via `show_lobby_student_mode(room_code, game_name, game_scene, lobby_url, player_count)`
+- Hides Start button and chat input
+- Shows "⏳ Waiting for teacher to start the game..." with animated dots
+- Polls via `start_gamemode_polling_student()` → `_poll_gamemode_student()`
+- When server status changes to `"active"`, emits `game_started(data)` signal
+
+#### Key Signals
+- `quiz_started(room_code)` — Teacher pressed Start
+- `lobby_closed` — Back button pressed
+- `game_started(data)` — Student mode: teacher started the game (data = full server response dict)
+
+#### Player Data Flow
+1. Student joins → `mode_selection.gd` → `_try_gamemode_join()` sends `{ player_id, username, avatar, xp }`
+2. Server stores player with avatar + xp
+3. Lobby polls `/api/gamemode/:code/info` every 3 seconds
+4. `_sync_players_from_server()` processes server response:
+   - Extracts `avatar` (filename) and `xp` (int) per player
+   - Calls `_load_avatar_texture(avatar_file)` → returns `Texture2D`
+   - Calls `_load_rank_texture_from_xp(xp)` → returns rank icon `Texture2D`
+   - Calls `add_player(name, avatar_tex, rank_tex)`
+5. `_refresh_all_slots()` assigns textures to `AvatarTexture` and `RankTexture` nodes
+
+#### Avatar Loading (`_load_avatar_texture`)
+Handles three path formats:
+- **Plain filename** (e.g., `"avatar3.png"`) → loads from `res://asset/avatars/avatar3.png`
+- **`res://` path** → loads directly
+- **`user://` path** (custom avatar) → loads with `Image.load_from_file()`, resizes to 80×80
+- Returns `null` for `"default.png"` or empty string
+
+#### Rank Loading (`_load_rank_texture_from_xp`)
+- Uses `TutorialManager.get_rank(xp)` to get rank dict with `"icon"` path
+- Falls back to `res://asset/rankicon/IRON.png` if lookup fails
+
+### Avatar & Rank Assets
+- **Avatar files:** `res://asset/avatars/avatar1.png` through `avatar18.png` (17 files, no avatar13)
+- **Auth singleton:** `Auth.current_avatar` stores the avatar filename (e.g., `"avatar1.png"` or `"user://custom_avatar_xxx.png"`)
+- **Rank icon files:** `res://asset/rankicon/IRON.png`, `BRONZE.png`, `SILVER.png`, `GOLD.png`, `PLATINUM.png`, `DIAMOND.png`, `MASTER.png`, `GRAND MASTER.png`, `CHALLENGER.png`
+- **TutorialManager.RANK_THRESHOLDS:** Iron 0–199 XP, Bronze 200–399, Silver 400–699, Gold 700–1099, Platinum 1100–1599, Diamond 1600–2299, Master 2300–3199, Grandmaster 3200–4499, Challenger 4500+
+- **XP source:** `TutorialManager.total_xp` (not `Auth.current_level` — that is a separate Firestore field)
+
+### Student Waiting Flow (`gamemode_student_waiting.gd`)
+1. Reads meta keys from `get_tree()`: `gamemode_room_code`, `gamemode_lobby_url`, `gamemode_game_name`, `gamemode_game_scene`
+2. Instantiates `TeacherRoomPanel.tscn` and calls `show_lobby_student_mode()`
+3. Connects `game_started` signal → sets meta + launches game scene
+4. Connects `lobby_closed` signal → returns to landing
+
+#### Scene Init Meta Contracts (GameMode Student)
+Set by `mode_selection.gd` → `_try_gamemode_join()` before `change_scene_to_file(gamemode_student_waiting.tscn)`:
+- `gamemode_room_code` — room code string (e.g., `"ABC123"`)
+- `gamemode_lobby_url` — server base URL (e.g., `"https://codebreaker-lobby.onrender.com"`)
+- `gamemode_game_name` — display name (e.g., `"Cybersecurity Fundamentals"`)
+- `gamemode_game_scene` — scene path (e.g., `"res://scene/tutorial_cyber_fundamentals.tscn"`)
+
+### GameMode Testing Checklist
+- [ ] Teacher creates room and sees room code + player slots
+- [ ] Student joins with room code and sees same TeacherRoomPanel (no Start button)
+- [ ] Student avatar loads correctly in room panel (square border, correct image)
+- [ ] Student rank icon shows correctly based on XP
+- [ ] Player list updates in real-time (3s polling) for both teacher and student
+- [ ] "Waiting for teacher to start..." message animates dots
+- [ ] Teacher clicks Start → all students detect status change and launch game scene
+- [ ] Server `/health` shows `code_version` field matching latest push
+
+---
+
 ## Development Notes
 
 ### Common Patterns
@@ -169,7 +324,7 @@ Per-player card fields (minimal schema):
 - [ ] Room supports 2–3 players (Host + Client + Client2)
 - [ ] Ready gating works: host can start only when all present clients are ready
 - [ ] Loading screen starts simultaneously (via `game_start_time_ms` or relay fallback)
-- [ ] Host sees client projectiles and clients see each other’s projectiles
+- [ ] Host sees client projectiles and clients see each other's projectiles
 - [ ] Wave UI/notifications update consistently from host state sync
 - [ ] Clients can request kills; host broadcasts destroy; scores attribute to the correct player
 - [ ] Postgame triggers for all peers and shows consistent cards (score/WPM/accuracy/streak)
@@ -178,7 +333,18 @@ Per-player card fields (minimal schema):
 - Relay/state dictionaries can contain stale references. Never assume a Node pulled from a dictionary is valid.
   - Always guard with `is_instance_valid(node)` before use.
   - When invalid, `erase(id)` from mappings like `_enemies_by_id` and request resync.
-- Avoid typed assignments directly from dictionary lookups (can throw “invalid previously freed instance”).
+- Avoid typed assignments directly from dictionary lookups (can throw "invalid previously freed instance").
   - Prefer `var any = dict.get(key, null)` then validate/cast: `var n := any as Node2D`.
 - Some project settings treat warnings as errors; explicitly type values when inference fails.
   - Example: `var cached_bg: String = str(Auth.get_remote_card_bg(pid))`.
+
+### UI Style Gotchas
+- **Runtime style overrides:** `TeacherLobby.gd` creates `StyleBoxFlat` at runtime via `_slot_style()` and `_avatar_style()`. Changing corner_radius or colors in the `.tscn` alone won't work — the script overrides them on every `_refresh_all_slots()` call. Always update BOTH the `.tscn` sub-resources AND the script's style helper functions.
+- **Avatar shape:** Avatar slots use `corner_radius = 4` (square with slight rounding). This is set in both `StyleBoxFlat_avatar_bg` in the `.tscn` AND `_avatar_style()` in `TeacherLobby.gd`.
+
+### Render Deployment Notes
+- Server code is in `server/server.js` — single file Node.js/Express app
+- After pushing to `main`, Render auto-deploys but can take 2–5 minutes on free tier
+- Always verify deployment via `GET /health` → check `code_version` field
+- If `code_version` is missing or stale: go to Render dashboard → Manual Deploy → Deploy latest commit
+- The server uses in-memory Maps (`gameModeRooms`, `quizRooms`, `rooms`) — all data is lost on restart/redeploy

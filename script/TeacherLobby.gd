@@ -421,10 +421,10 @@ func _avatar_style(filled: bool) -> StyleBoxFlat:
 	s.border_width_top = 2
 	s.border_width_right = 2
 	s.border_width_bottom = 2
-	s.corner_radius_top_left = 28
-	s.corner_radius_top_right = 28
-	s.corner_radius_bottom_left = 28
-	s.corner_radius_bottom_right = 28
+	s.corner_radius_top_left = 4
+	s.corner_radius_top_right = 4
+	s.corner_radius_bottom_left = 4
+	s.corner_radius_bottom_right = 4
 	s.bg_color = Color(0.04, 0.1, 0.24, 0.85)
 	s.border_color = Color(0.0, 0.85, 1.0, 0.85) if filled else Color(0.14, 0.58, 0.75, 0.5)
 	s.shadow_color = Color(0.0, 1.0, 1.0, 0.3)
