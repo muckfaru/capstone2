@@ -16,6 +16,10 @@ enum Section {
 
 var current_section = Section.INTRO
 var xp_earned := 150
+var _is_gamemode: bool = false
+var _gamemode_room_code: String = ""
+var _gamemode_lobby_url: String = ""
+var _gamemode_start_time_ms: int = 0
 
 # Node references
 @onready var section_label: Label = $WindowDialog/VBox/TitleBar/MarginContainer/HBox/SectionLabel
@@ -245,6 +249,18 @@ func _type_text(text: String) -> void:
 	)
 func _ready() -> void:
 	print("🌐 Network Basics Tutorial Ready")
+	
+	# Detect multiplayer game mode
+	_is_gamemode = get_tree().has_meta("gamemode_room_code")
+	if _is_gamemode:
+		_gamemode_room_code = str(get_tree().get_meta("gamemode_room_code", ""))
+		_gamemode_lobby_url = str(get_tree().get_meta("gamemode_lobby_url", ""))
+		_gamemode_start_time_ms = int(get_tree().get_meta("gamemode_start_time_ms", 0))
+		print("[GameMode] Network Basics running in multiplayer game mode (room: %s)" % _gamemode_room_code)
+		# Hide close button in multiplayer mode
+		var close_btn = get_node_or_null("WindowDialog/VBox/TitleBar/MarginContainer/HBox/CloseButton")
+		if close_btn:
+			close_btn.visible = false
 	
 	# Setup CMD-style interface
 	_setup_cmd_interface()
@@ -552,6 +568,8 @@ func _on_next_pressed() -> void:
 func _on_back_pressed() -> void:
 	match current_section:
 		Section.INTRO:
+			if _is_gamemode:
+				return  # Cannot quit during multiplayer game
 			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 		Section.IP_LESSON:
 			_start_section(Section.INTRO)
@@ -564,6 +582,8 @@ func _on_back_pressed() -> void:
 
 
 func _on_close_button_pressed() -> void:
+	if _is_gamemode:
+		return  # Cannot quit during multiplayer game
 	# Show confirmation popup
 	confirm_overlay.visible = true
 	
@@ -577,6 +597,8 @@ func _on_close_button_pressed() -> void:
 	tween.tween_property(confirm_popup, "scale", Vector2.ONE, 0.3)
 
 func _on_confirm_yes_pressed() -> void:
+	if _is_gamemode:
+		return
 	# User confirmed - go back to mode selection
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 

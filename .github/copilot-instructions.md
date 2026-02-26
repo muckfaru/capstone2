@@ -302,6 +302,56 @@ Set by `mode_selection.gd` → `_try_gamemode_join()` before `change_scene_to_fi
 - [ ] "Waiting for teacher to start..." message animates dots
 - [ ] Teacher clicks Start → all students detect status change and launch game scene
 - [ ] Server `/health` shows `code_version` field matching latest push
+- [ ] Students can submit score/time to server when game completes
+- [ ] Teacher leaderboard shows correct columns per game type
+
+### GameMode-Supported Games
+
+All three games detect GameMode via `get_tree().has_meta("gamemode_room_code")` and read meta:
+- `gamemode_room_code` — room code
+- `gamemode_lobby_url` — server base URL
+- `gamemode_start_time_ms` — `Time.get_ticks_msec()` at game launch (set by `gamemode_student_waiting.gd`)
+
+In GameMode:
+- Close/quit buttons are hidden or blocked
+- Back button on first section/phase returns nothing (cannot quit)
+- On game completion, score + time are POSTed to `/api/gamemode/:code/submit`
+- After submission, student returns to `landing.tscn`
+
+#### 1. Cybersecurity Fundamentals
+- **Script:** `script/tutorial_cyber_fundamentals.gd`
+- **Sections:** INTRO → CIA_TRIAD → THREAT_MODEL → COMPLETE
+- **Score submission:** `score = xp_earned (100)`, `max_score = 100`
+- **Leaderboard:** Score + Time columns
+- **GameMode behavior:** On COMPLETE, submits score → redirects to student leaderboard (skips CIA Triad tutorial transition)
+
+#### 2. Network Basics (Tutorial + Defense Game)
+- **Tutorial Script:** `script/tutorial_network_basics.gd`
+- **Defense Game Script:** `script/network_defense_game.gd`
+- **Flow:** Tutorial (INTRO→IP→PORT→PROTOCOL→COMPLETE) → Defense Game (4 phases + victory/game over)
+- **Score submission:** Defense game submits `score` (accumulated points) with `max_score = 500`
+- **Leaderboard:** Score + Time columns
+- **GameMode behavior:** Tutorial passes meta to defense game. Defense game hides quit button, disables retry, shows "SUBMIT & FINISH" on both victory and game over → redirects to student leaderboard.
+
+#### 3. Encryption (Caesar Cipher)
+- **Script:** `script/tutorial_encryption_basics.gd`
+- **Phases:** INTRO → LEARN_WHEEL → PRACTICE_MODE → CHALLENGE_MODE → RANSOMWARE_EXPLANATION → COMPLETE
+- **Score submission:** `score = 0`, `max_score = 0` (time-only game)
+- **Leaderboard:** Time column only (Score column hidden)
+- **GameMode behavior:** On COMPLETE, submits time → redirects to student leaderboard. Both teacher and student leaderboard detect "Encryption" in game name and hide Score column.
+
+### Student Leaderboard
+- **Scene:** `scene/gamemode_leaderboard.tscn`
+- **Script:** `script/gamemode_leaderboard.gd`
+- **Meta keys:** `gamemode_leaderboard_room_code`, `gamemode_leaderboard_lobby_url` (set by game scripts before transition)
+- **Polling:** Every 5 seconds via `GET /api/gamemode/:code/results`
+- **Features:** Highlights current player with "(You)" suffix and cyan row background. Shows time-only layout for Encryption.
+- **Flow:** All 3 games → submit score → set leaderboard meta → change scene to `gamemode_leaderboard.tscn` → student views live leaderboard → "Back to Landing" button
+
+### Teacher Leaderboard Customization
+- `_update_gamemode_leaderboard()` in `TeacherCreateRoom.gd` checks if game name contains "encryption"
+- If true: shows only `#`, `Player`, `Time` columns. "playing..." shown in Time column for unfinished players.
+- If false: shows `#`, `Player`, `Score`, `Time` columns (default behavior)
 
 ---
 

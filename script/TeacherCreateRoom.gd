@@ -1082,10 +1082,18 @@ func _update_gamemode_leaderboard(data: Dictionary) -> void:
 	header.add_theme_font_size_override("font_size", 18)
 	stats_vbox.add_child(header)
 
+	# Determine if this is a time-only game (Encryption has no score)
+	var is_time_only: bool = game_name.to_lower().find("encryption") >= 0
+
 	# Column header
 	var col_header := HBoxContainer.new()
 	col_header.add_theme_constant_override("separation", 12)
-	for pair in [["#", 30], ["Player", 0], ["Score", 80], ["Time", 80]]:
+	var columns: Array
+	if is_time_only:
+		columns = [["#", 30], ["Player", 0], ["Time", 80]]
+	else:
+		columns = [["#", 30], ["Player", 0], ["Score", 80], ["Time", 80]]
+	for pair in columns:
 		var lbl := Label.new()
 		lbl.text = pair[0]
 		if pair[1] > 0:
@@ -1116,16 +1124,19 @@ func _update_gamemode_leaderboard(data: Dictionary) -> void:
 		name_lbl.add_theme_font_size_override("font_size", 16)
 		row.add_child(name_lbl)
 
-		var score_lbl := Label.new()
 		var finished: bool = entry.get("finished", false)
-		if finished:
-			score_lbl.text = "%d/%d" % [entry.get("score", 0), entry.get("max_score", 300)]
-		else:
-			score_lbl.text = "playing..."
-		score_lbl.custom_minimum_size = Vector2(80, 0)
-		score_lbl.add_theme_color_override("font_color", Color(0, 1, 0.5) if finished else Color(0.7, 0.7, 0.7))
-		score_lbl.add_theme_font_size_override("font_size", 16)
-		row.add_child(score_lbl)
+
+		# Score column (hidden for time-only games like Encryption)
+		if not is_time_only:
+			var score_lbl := Label.new()
+			if finished:
+				score_lbl.text = "%d/%d" % [entry.get("score", 0), entry.get("max_score", 300)]
+			else:
+				score_lbl.text = "playing..."
+			score_lbl.custom_minimum_size = Vector2(80, 0)
+			score_lbl.add_theme_color_override("font_color", Color(0, 1, 0.5) if finished else Color(0.7, 0.7, 0.7))
+			score_lbl.add_theme_font_size_override("font_size", 16)
+			row.add_child(score_lbl)
 
 		var time_lbl := Label.new()
 		if finished:
@@ -1137,7 +1148,7 @@ func _update_gamemode_leaderboard(data: Dictionary) -> void:
 			secs = secs % 60
 			time_lbl.text = "%d:%02d" % [mins, secs]
 		else:
-			time_lbl.text = "—"
+			time_lbl.text = "playing..." if is_time_only else "—"
 		time_lbl.custom_minimum_size = Vector2(80, 0)
 		time_lbl.add_theme_color_override("font_color", Color(1, 0.9, 0.3) if finished else Color(0.7, 0.7, 0.7))
 		time_lbl.add_theme_font_size_override("font_size", 16)

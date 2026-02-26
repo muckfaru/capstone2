@@ -134,9 +134,25 @@ const CONNECTION_SCENE = preload("res://scene/network_connection.tscn")
 # Debug
 var debug_mode := true
 
+# GameMode multiplayer
+var _is_gamemode: bool = false
+var _gamemode_room_code: String = ""
+var _gamemode_lobby_url: String = ""
+var _gamemode_start_time_ms: int = 0
+
 
 func _ready() -> void:
 	print("🎮 Network Defense Simulator - FIXED Audio System Loading...")
+	
+	# Detect multiplayer game mode
+	_is_gamemode = get_tree().has_meta("gamemode_room_code")
+	if _is_gamemode:
+		_gamemode_room_code = str(get_tree().get_meta("gamemode_room_code", ""))
+		_gamemode_lobby_url = str(get_tree().get_meta("gamemode_lobby_url", ""))
+		_gamemode_start_time_ms = int(get_tree().get_meta("gamemode_start_time_ms", 0))
+		print("[GameMode] Network Defense running in multiplayer game mode (room: %s)" % _gamemode_room_code)
+		# Hide quit button in multiplayer mode
+		quit_btn.visible = false
 	
 	# Fix audio bus first
 	_fix_audio_bus()
@@ -486,6 +502,8 @@ func on_connection_entered_zone(zone_name: String) -> void:
 
 func _on_quit_pressed() -> void:
 	"""Return to mode selection with music fadeout"""
+	if _is_gamemode:
+		return  # Cannot quit during multiplayer game
 	print("[Network Defense] Quit button pressed...")
 	
 	if current_music and current_music.playing:
@@ -600,6 +618,11 @@ func _show_victory() -> void:
 	retry_button.visible = true
 	finish_button.visible = true
 	
+	# In gamemode: no retry, finish submits score
+	if _is_gamemode:
+		retry_button.visible = false
+		finish_button.text = "SUBMIT & FINISH"
+	
 	title_label.text = "MISSION COMPLETE"
 	title_label.add_theme_color_override("font_color", Color(0.3, 1, 0.3, 1))
 	
@@ -634,6 +657,12 @@ func _show_game_over() -> void:
 	
 	retry_button.visible = true
 	finish_button.visible = false
+	
+	# In gamemode: no retry, show finish to submit score
+	if _is_gamemode:
+		retry_button.visible = false
+		finish_button.visible = true
+		finish_button.text = "SUBMIT & FINISH"
 	
 	title_label.text = "NETWORK BREACHED!"
 	title_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3, 1))
@@ -1011,4 +1040,38 @@ func _on_finish_button_pressed() -> void:
 		if tutorial_mgr.has_signal("save_completed"):
 			await tutorial_mgr.save_completed
 	
-	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+	if _is_gamemode:
+		_submit_gamemode_score()
+	else:
+		get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
+
+
+func _submit_gamemode_score() -> void:
+	var time_taken_ms := Time.get_ticks_msec() - _gamemode_start_time_ms
+	var url := _gamemode_lobby_url + "/api/gamemode/%s/submit" % _gamemode_room_code
+	var body := JSON.stringify({
+		"player_id": Auth.current_local_id,
+		"score": score,
+		"max_score": 500,
+		"time_taken_ms": time_taken_ms
+	})
+	
+	var finish_button = victory_panel.get_node_or_null("VBox/ButtonContainer/FinishButton")
+	if finish_button:
+		finish_button.disabled = true
+		finish_button.text = "Submitting..."
+	
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		print("[GameMode] Score submitted: %d (time: %dms) → status %d" % [score, time_taken_ms, code])
+		_go_to_leaderboard()
+	)
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
+
+
+func _go_to_leaderboard() -> void:
+	get_tree().set_meta("gamemode_leaderboard_room_code", _gamemode_room_code)
+	get_tree().set_meta("gamemode_leaderboard_lobby_url", _gamemode_lobby_url)
+	get_tree().change_scene_to_file("res://scene/gamemode_leaderboard.tscn")
