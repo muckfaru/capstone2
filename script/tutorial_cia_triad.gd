@@ -169,9 +169,23 @@ var card_original_position := Vector2.ZERO
 # Tutorial ID for TutorialManager
 const TUTORIAL_ID := "cia_triad_basics"
 
+# Multiplayer game mode state
+var _is_gamemode: bool = false
+var _gamemode_room_code: String = ""
+var _gamemode_lobby_url: String = ""
+var _gamemode_start_time_ms: int = 0
+
 
 func _ready() -> void:
 	print("[CIA Triad] Tutorial scene ready!")
+	
+	# Detect multiplayer game mode
+	_is_gamemode = get_tree().has_meta("gamemode_room_code")
+	if _is_gamemode:
+		_gamemode_room_code = str(get_tree().get_meta("gamemode_room_code"))
+		_gamemode_lobby_url = str(get_tree().get_meta("gamemode_lobby_url", ""))
+		_gamemode_start_time_ms = int(get_tree().get_meta("gamemode_start_time_ms", Time.get_ticks_msec()))
+		print("[GameMode] Running in multiplayer mode — room: %s" % _gamemode_room_code)
 	
 	# FIX MASTER BUS VOLUME FIRST!
 	_fix_audio_bus()
@@ -196,6 +210,10 @@ func _ready() -> void:
 	try_again_btn.pressed.connect(_on_try_again_pressed)
 	back_btn.pressed.connect(_on_back_pressed)
 	quit_btn.pressed.connect(_on_quit_pressed)
+	
+	# In multiplayer mode: hide quit button, start time is tracked
+	if _is_gamemode:
+		quit_btn.visible = false
 
 	# Setup tooltips
 	_setup_tooltips()
@@ -371,6 +389,8 @@ func _fade_bgm_for_loop() -> void:
 
 func _on_quit_pressed() -> void:
 	"""Return to mode selection from anywhere in the tutorial"""
+	if _is_gamemode:
+		return  # Cannot quit during multiplayer game
 	print("[CIA Triad] Quit button pressed, returning to mode selection...")
 	
 	# Fade out music before leaving
@@ -401,6 +421,8 @@ func _setup_tooltips() -> void:
 func _input(event: InputEvent) -> void:
 	"""Handle keyboard shortcuts"""
 	if event.is_action_pressed("ui_cancel"):
+		if _is_gamemode:
+			return  # Cannot quit during multiplayer game
 		_on_back_pressed()
 		return
 	
@@ -648,10 +670,19 @@ func _show_results() -> void:
 	
 	# Show results screen
 	results_screen.show()
+	
+	# In multiplayer game mode: change button text and auto-submit score
+	if _is_gamemode:
+		back_btn.text = "View Leaderboard"
+		_submit_gamemode_score()
 
 
 func _on_back_pressed() -> void:
 	"""Return to mode selection"""
+	if _is_gamemode:
+		# In game mode, back from results goes to leaderboard
+		_submit_gamemode_score()
+		return
 	print("[CIA Triad] Returning to mode selection...")
 	
 	# Fade out music before leaving
@@ -689,3 +720,68 @@ func _on_card_dropped(global_pos: Vector2) -> void:
 
 func _on_button_pressed() -> void:
 	pass # Replace with function body.
+
+# ===================================================
+# MULTIPLAYER GAME MODE
+# ===================================================
+var _gamemode_submitted: bool = false
+
+func _submit_gamemode_score() -> void:
+	"""Submit score and time to server for multiplayer game mode"""
+	if not _is_gamemode or _gamemode_room_code.is_empty():
+		return
+	if _gamemode_submitted:
+		# Already submitted — go to leaderboard scene
+		_go_to_gamemode_leaderboard()
+		return
+	_gamemode_submitted = true
+
+	var max_score_val = shuffled_scenarios.size() * POINTS_PER_CORRECT
+	var time_taken_ms: int = Time.get_ticks_msec() - _gamemode_start_time_ms
+
+	var url := _gamemode_lobby_url + "/api/gamemode/%s/submit" % _gamemode_room_code
+	var body := {
+		"player_id": Auth.current_local_id,
+		"score": score,
+		"max_score": max_score_val,
+		"time_taken_ms": time_taken_ms,
+	}
+	var headers := ["Content-Type: application/json"]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code == 200:
+			print("[GameMode] ✅ Score submitted: %d/%d in %dms" % [score, max_score_val, time_taken_ms])
+		else:
+			var err_text: String = resp_body.get_string_from_utf8() if resp_body.size() > 0 else ""
+			push_error("[GameMode] ❌ Failed to submit score: %d %s" % [code, err_text])
+	)
+	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	if err != OK:
+		push_error("[GameMode] ❌ HTTP request failed: %d" % err)
+		http.queue_free()
+
+func _go_to_gamemode_leaderboard() -> void:
+	"""Navigate to the game mode leaderboard scene"""
+	# Pass info via tree meta
+	get_tree().set_meta("gamemode_leaderboard_room_code", _gamemode_room_code)
+	get_tree().set_meta("gamemode_leaderboard_lobby_url", _gamemode_lobby_url)
+
+	# Fade out music
+	if bgm_player and bgm_player.playing:
+		var fade_out = create_tween()
+		fade_out.tween_property(bgm_player, "volume_db", -80.0, 0.5)
+		await fade_out.finished
+		bgm_player.stop()
+
+	get_tree().change_scene_to_file("res://scene/gamemode_leaderboard.tscn")
+
+func _get_lobby_url_gm() -> String:
+	if has_node("/root/MultiplayerConfig"):
+		return get_node("/root/MultiplayerConfig").get_lobby_url()
+	var cfg_script = load("res://script/MultiplayerConfig.gd")
+	if cfg_script:
+		var cfg = cfg_script.new()
+		return cfg.get_lobby_url()
+	return "https://codebreaker-lobby.onrender.com"

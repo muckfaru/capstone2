@@ -431,6 +431,10 @@ func _finalise_room() -> void:
 	if multiple_choice_btn.button_pressed and not mc_quiz_data.is_empty():
 		_post_quiz_to_server(current_room_code, room_data)
 
+	# ── GameMode: POST game room to server ──────────────────────────────
+	if game_mode_btn.button_pressed and not selected_minigame.is_empty():
+		_post_gamemode_to_server(current_room_code, room_data)
+
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 func _generate_code() -> String:
@@ -597,6 +601,7 @@ func _select_card(card: PanelContainer, game: Dictionary) -> void:
 	_selected_card = card
 	selected_minigame = game["name"]
 	selected_minigame_scene = game["scene"]
+	selected_difficulty = game.get("level", "Beginner")
 	popup_selected_label.text = "Selected: %s  [%s]" % [game["name"], game["level"]]
 	popup_confirm_btn.disabled = false
 
@@ -727,6 +732,10 @@ func _on_lobby_button_pressed() -> void:
 	if room_data.get("minigame", "").is_empty() and lobby_panel and lobby_panel.has_method("start_server_polling"):
 		lobby_panel.start_server_polling(current_room_code, _get_lobby_url())
 		_start_quiz_heartbeat(current_room_code)
+	# GameMode: start lobby polling + heartbeat for game mode rooms
+	elif not room_data.get("minigame", "").is_empty() and lobby_panel and lobby_panel.has_method("start_gamemode_polling"):
+		lobby_panel.start_gamemode_polling(current_room_code, _get_lobby_url())
+		_start_gamemode_heartbeat(current_room_code)
 
 func _on_lobby_closed() -> void: _show_screen("code")
 
@@ -744,10 +753,13 @@ func _on_quiz_started(room_code: String) -> void:
 		_start_results_polling(room_code)
 		return
 
-	# Game Mode → launch the actual minigame scene
-	var scene_path: String = room_data.get("minigame_scene", "")
-	if scene_path != "" and ResourceLoader.exists(scene_path):
-		get_tree().change_scene_to_file(scene_path)
+	# Game Mode → POST start to server, then show StatisticsPanel with leaderboard
+	if not _quiz_start_posted:
+		_post_gamemode_start(room_code)
+		_quiz_start_posted = true
+	stats_room_name_label.text = room_data.get("name", "")
+	_show_screen("stats")
+	_start_gamemode_results_polling(room_code)
 
 func _on_stats_back_pressed() -> void: _show_screen("code")
 func _on_see_all_pressed() -> void: print("See all rankings:", current_room_name)
@@ -949,3 +961,221 @@ func _start_quiz_heartbeat(room_code: String) -> void:
 		http.request_completed.connect(func(_r, _c, _h, _b): http.queue_free())
 		http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, "{}")
 	)
+
+# ── GameMode server helpers ──────────────────────────────────────────────────
+
+func _post_gamemode_to_server(room_code: String, room_data: Dictionary) -> void:
+	var url := _get_lobby_url() + "/api/gamemode/create"
+	var body := {
+		"room_code": room_code,
+		"room_name": room_data.get("name", "Game Room"),
+		"host_id": Auth.current_local_id,
+		"host_username": Auth.current_username,
+		"game_name": room_data.get("minigame", ""),
+		"game_scene": room_data.get("minigame_scene", ""),
+		"difficulty": room_data.get("difficulty", ""),
+		"max_players": room_data.get("player_count", 50),
+	}
+	var headers := ["Content-Type: application/json"]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code == 200:
+			print("[GameMode] ✅ Game room created on server: %s" % room_code)
+		else:
+			var err_text: String = resp_body.get_string_from_utf8() if resp_body.size() > 0 else ""
+			push_error("[GameMode] ❌ Failed to create game room: %d %s" % [code, err_text])
+	)
+	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	if err != OK:
+		push_error("[GameMode] ❌ HTTP request failed: %d" % err)
+		http.queue_free()
+
+func _post_gamemode_start(room_code: String) -> void:
+	var url := _get_lobby_url() + "/api/gamemode/%s/start" % room_code
+	var body := {"host_id": Auth.current_local_id}
+	var headers := ["Content-Type: application/json"]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code == 200:
+			print("[GameMode] ✅ Game started: %s" % room_code)
+		else:
+			var err_text: String = resp_body.get_string_from_utf8() if resp_body.size() > 0 else ""
+			push_error("[GameMode] ❌ Failed to start game: %d %s" % [code, err_text])
+	)
+	http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+
+func _start_gamemode_results_polling(room_code: String) -> void:
+	if _quiz_poll_timer:
+		_quiz_poll_timer.queue_free()
+	_quiz_poll_timer = Timer.new()
+	_quiz_poll_timer.wait_time = 5.0
+	_quiz_poll_timer.autostart = true
+	add_child(_quiz_poll_timer)
+	_quiz_poll_timer.timeout.connect(func(): _poll_gamemode_results(room_code))
+
+func _poll_gamemode_results(room_code: String) -> void:
+	var url := _get_lobby_url() + "/api/gamemode/%s/results" % room_code
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code != 200: return
+		var text: String = resp_body.get_string_from_utf8()
+		var data = JSON.parse_string(text)
+		if typeof(data) != TYPE_DICTIONARY: return
+		_update_gamemode_leaderboard(data)
+	)
+	http.request(url, [], HTTPClient.METHOD_GET)
+
+func _start_gamemode_heartbeat(room_code: String) -> void:
+	if _quiz_heartbeat_timer:
+		_quiz_heartbeat_timer.queue_free()
+	_quiz_heartbeat_timer = Timer.new()
+	_quiz_heartbeat_timer.wait_time = 30.0
+	_quiz_heartbeat_timer.autostart = true
+	add_child(_quiz_heartbeat_timer)
+	_quiz_heartbeat_timer.timeout.connect(func():
+		var url := _get_lobby_url() + "/api/gamemode/%s/heartbeat" % room_code
+		var http := HTTPRequest.new()
+		add_child(http)
+		http.request_completed.connect(func(_r, _c, _h, _b): http.queue_free())
+		http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, "{}")
+	)
+
+func _update_gamemode_leaderboard(data: Dictionary) -> void:
+	var leaderboard: Array = data.get("leaderboard", [])
+	var game_name: String = data.get("game_name", "Game Mode")
+
+	var stats_grid = statistics_panel.get_node_or_null("StatsGrid")
+	if stats_grid:
+		stats_grid.visible = false
+
+	var stats_vbox = statistics_panel.get_node_or_null("StatsContent/LeaderboardVBox")
+	if not stats_vbox:
+		var content = statistics_panel.get_node_or_null("StatsContent")
+		if not content:
+			content = VBoxContainer.new()
+			content.name = "StatsContent"
+			content.set_anchors_preset(Control.PRESET_FULL_RECT)
+			content.offset_top = 65
+			content.offset_left = 20
+			content.offset_right = -20
+			content.offset_bottom = -20
+			statistics_panel.add_child(content)
+		stats_vbox = VBoxContainer.new()
+		stats_vbox.name = "LeaderboardVBox"
+		stats_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		stats_vbox.add_theme_constant_override("separation", 6)
+		content.add_child(stats_vbox)
+
+	for child in stats_vbox.get_children():
+		child.queue_free()
+
+	# Header
+	var header := Label.new()
+	header.text = "🏆 %s — Leaderboard" % game_name
+	header.add_theme_color_override("font_color", Color(0, 1, 1))
+	header.add_theme_font_size_override("font_size", 18)
+	stats_vbox.add_child(header)
+
+	# Column header
+	var col_header := HBoxContainer.new()
+	col_header.add_theme_constant_override("separation", 12)
+	for pair in [["#", 30], ["Player", 0], ["Score", 80], ["Time", 80]]:
+		var lbl := Label.new()
+		lbl.text = pair[0]
+		if pair[1] > 0:
+			lbl.custom_minimum_size = Vector2(pair[1], 0)
+		else:
+			lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl.add_theme_color_override("font_color", Color(0.6, 0.8, 0.9))
+		lbl.add_theme_font_size_override("font_size", 13)
+		col_header.add_child(lbl)
+	stats_vbox.add_child(col_header)
+
+	for entry in leaderboard:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+
+		var rank_lbl := Label.new()
+		var rank_num: int = entry.get("rank", 0)
+		var emoji := "🥇" if rank_num == 1 else ("🥈" if rank_num == 2 else ("🥉" if rank_num == 3 else "#%d" % rank_num))
+		rank_lbl.text = emoji
+		rank_lbl.custom_minimum_size = Vector2(30, 0)
+		rank_lbl.add_theme_font_size_override("font_size", 16)
+		row.add_child(rank_lbl)
+
+		var name_lbl := Label.new()
+		name_lbl.text = str(entry.get("username", "???"))
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_lbl.add_theme_color_override("font_color", Color(0.9, 0.95, 1))
+		name_lbl.add_theme_font_size_override("font_size", 16)
+		row.add_child(name_lbl)
+
+		var score_lbl := Label.new()
+		var finished: bool = entry.get("finished", false)
+		if finished:
+			score_lbl.text = "%d/%d" % [entry.get("score", 0), entry.get("max_score", 300)]
+		else:
+			score_lbl.text = "playing..."
+		score_lbl.custom_minimum_size = Vector2(80, 0)
+		score_lbl.add_theme_color_override("font_color", Color(0, 1, 0.5) if finished else Color(0.7, 0.7, 0.7))
+		score_lbl.add_theme_font_size_override("font_size", 16)
+		row.add_child(score_lbl)
+
+		var time_lbl := Label.new()
+		if finished:
+			var time_ms: int = entry.get("time_taken_ms", 0)
+			@warning_ignore("integer_division")
+			var secs := time_ms / 1000
+			@warning_ignore("integer_division")
+			var mins := secs / 60
+			secs = secs % 60
+			time_lbl.text = "%d:%02d" % [mins, secs]
+		else:
+			time_lbl.text = "—"
+		time_lbl.custom_minimum_size = Vector2(80, 0)
+		time_lbl.add_theme_color_override("font_color", Color(1, 0.9, 0.3) if finished else Color(0.7, 0.7, 0.7))
+		time_lbl.add_theme_font_size_override("font_size", 16)
+		row.add_child(time_lbl)
+
+		stats_vbox.add_child(row)
+
+	if leaderboard.is_empty():
+		var empty := Label.new()
+		empty.text = "Waiting for students to finish..."
+		empty.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		stats_vbox.add_child(empty)
+
+	# Spacer
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 20)
+	stats_vbox.add_child(spacer)
+
+	# Back to Landing button
+	var back_btn := Button.new()
+	back_btn.text = "← Back to Landing"
+	back_btn.custom_minimum_size = Vector2(200, 44)
+	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var back_sb := StyleBoxFlat.new()
+	back_sb.bg_color = Color(0, 0.5, 0.7, 0.9)
+	back_sb.border_color = Color(0, 1, 1, 0.8)
+	back_sb.set_border_width_all(2)
+	back_sb.set_corner_radius_all(8)
+	back_btn.add_theme_stylebox_override("normal", back_sb)
+	back_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+	back_btn.add_theme_font_size_override("font_size", 14)
+	back_btn.pressed.connect(func():
+		if _quiz_poll_timer:
+			_quiz_poll_timer.queue_free()
+			_quiz_poll_timer = null
+		if _quiz_heartbeat_timer:
+			_quiz_heartbeat_timer.queue_free()
+			_quiz_heartbeat_timer = null
+		get_tree().change_scene_to_file("res://scene/landing.tscn")
+	)
+	stats_vbox.add_child(back_btn)

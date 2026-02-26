@@ -70,6 +70,18 @@ func start_server_polling(room_code: String, lobby_url: String) -> void:
 	# Do an immediate first poll
 	_poll_server_players(room_code)
 
+## GameMode: Start polling server for joined students (gamemode endpoint)
+func start_gamemode_polling(room_code: String, lobby_url: String) -> void:
+	_lobby_url = lobby_url
+	stop_server_polling()
+	_poll_timer = Timer.new()
+	_poll_timer.wait_time = 3.0
+	_poll_timer.autostart = true
+	add_child(_poll_timer)
+	_poll_timer.timeout.connect(func(): _poll_gamemode_players(room_code))
+	# Do an immediate first poll
+	_poll_gamemode_players(room_code)
+
 func stop_server_polling() -> void:
 	if _poll_timer:
 		_poll_timer.queue_free()
@@ -109,6 +121,22 @@ func _sync_players_from_server(server_players: Array) -> void:
 	for p in _players.duplicate():
 		if p.get("name", "") not in server_names:
 			remove_player(p.get("name", ""))
+
+func _poll_gamemode_players(room_code: String) -> void:
+	if _lobby_url.is_empty(): return
+	var url := _lobby_url + "/api/gamemode/%s/info" % room_code
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code != 200: return
+		var text: String = resp_body.get_string_from_utf8()
+		var data = JSON.parse_string(text)
+		if typeof(data) != TYPE_DICTIONARY: return
+		var server_players: Array = data.get("players", [])
+		_sync_players_from_server(server_players)
+	)
+	http.request(url, [], HTTPClient.METHOD_GET)
 
 # player dict: { "name": String, "avatar": Texture2D (optional), "rank_icon": Texture2D (optional) }
 func add_player(player_name: String, avatar: Texture2D = null, rank_icon: Texture2D = null) -> void:

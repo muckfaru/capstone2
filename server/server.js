@@ -22,6 +22,11 @@ const players = new Map();
 // ═══════════════════════════════════════════════════════════════════════════
 const quizRooms = new Map(); // Map<room_code, QuizRoomData>
 
+// ═══════════════════════════════════════════════════════════════════════════
+// GameMode — Teacher-created minigame rooms (students play & submit scores)
+// ═══════════════════════════════════════════════════════════════════════════
+const gameModeRooms = new Map(); // Map<room_code, GameModeRoomData>
+
 // Room cleanup interval (remove inactive rooms every 60s)
 setInterval(() => {
   const now = Date.now();
@@ -37,6 +42,13 @@ setInterval(() => {
     if (now - qr.last_heartbeat > 300000) {
       console.log(`[Cleanup] Removing inactive quiz room: ${code}`);
       quizRooms.delete(code);
+    }
+  }
+  // GameMode room cleanup (5 min timeout)
+  for (const [code, gr] of gameModeRooms.entries()) {
+    if (now - gr.last_heartbeat > 300000) {
+      console.log(`[Cleanup] Removing inactive game mode room: ${code}`);
+      gameModeRooms.delete(code);
     }
   }
 }, 60000);
@@ -1155,6 +1167,247 @@ app.post('/api/quiz/:code/heartbeat', (req, res) => {
 
 /**
  * =============================================================================
+ * GAMEMODE API ENDPOINTS (Teacher-created minigame rooms)
+ * =============================================================================
+ */
+
+// POST /api/gamemode/create — Teacher creates a game mode room
+app.post('/api/gamemode/create', (req, res) => {
+  const { room_code, room_name, host_id, host_username, game_name, game_scene, difficulty, max_players } = req.body;
+
+  if (!room_code || !host_id || !game_name) {
+    return res.status(400).json({ error: 'Missing required fields: room_code, host_id, game_name' });
+  }
+
+  if (gameModeRooms.has(room_code)) {
+    return res.status(409).json({ error: 'Room code already exists' });
+  }
+
+  const gameRoom = {
+    room_code,
+    room_name: room_name || 'Game Room',
+    host_id,
+    host_username: host_username || 'Teacher',
+    game_name,
+    game_scene: game_scene || '',
+    difficulty: difficulty || '',
+    players: [],
+    max_players: Math.min(Math.max(2, max_players || 50), 50),
+    status: 'waiting', // waiting | active | finished
+    started_at: null,
+    created_at: Date.now(),
+    last_heartbeat: Date.now()
+  };
+
+  gameModeRooms.set(room_code, gameRoom);
+  console.log(`[GameMode] Room created: ${room_code} by ${host_username} — game: ${game_name}`);
+
+  res.json({
+    ok: true,
+    room_code,
+    room_name: gameRoom.room_name,
+    game_name,
+    max_players: gameRoom.max_players
+  });
+});
+
+// GET /api/gamemode/:code/info — Get room info (player list, status)
+app.get('/api/gamemode/:code/info', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const gr = gameModeRooms.get(code);
+
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  res.json({
+    ok: true,
+    room_code: gr.room_code,
+    room_name: gr.room_name,
+    host_username: gr.host_username,
+    game_name: gr.game_name,
+    game_scene: gr.game_scene,
+    difficulty: gr.difficulty,
+    status: gr.status,
+    max_players: gr.max_players,
+    players: gr.players.map(p => ({
+      player_id: p.player_id,
+      username: p.username,
+      finished: p.finished,
+      score: p.finished ? p.score : undefined,
+      max_score: p.finished ? p.max_score : undefined,
+      time_taken_ms: p.finished ? p.time_taken_ms : undefined
+    }))
+  });
+});
+
+// POST /api/gamemode/:code/join — Student joins a game mode room
+app.post('/api/gamemode/:code/join', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { player_id, username } = req.body;
+
+  if (!player_id || !username) {
+    return res.status(400).json({ error: 'Missing player_id or username' });
+  }
+
+  const gr = gameModeRooms.get(code);
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  // Check if already joined
+  const existing = gr.players.find(p => p.player_id === player_id);
+  if (existing) {
+    console.log(`[GameMode] Player rejoined: ${username} in ${code}`);
+    return res.json({ ok: true, rejoined: true, status: gr.status, game_name: gr.game_name, game_scene: gr.game_scene });
+  }
+
+  if (gr.players.length >= gr.max_players) {
+    return res.status(403).json({ error: 'Room is full' });
+  }
+
+  gr.players.push({
+    player_id,
+    username,
+    joined_at: Date.now(),
+    finished: false,
+    score: 0,
+    max_score: 0,
+    time_taken_ms: 0
+  });
+
+  gr.last_heartbeat = Date.now();
+  console.log(`[GameMode] Player joined: ${username} in ${code} (${gr.players.length}/${gr.max_players})`);
+
+  res.json({
+    ok: true,
+    status: gr.status,
+    game_name: gr.game_name,
+    game_scene: gr.game_scene,
+    players_count: gr.players.length
+  });
+});
+
+// POST /api/gamemode/:code/start — Teacher starts the game
+app.post('/api/gamemode/:code/start', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const gr = gameModeRooms.get(code);
+
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  if (gr.status !== 'waiting') {
+    return res.status(400).json({ error: 'Game is not in waiting state' });
+  }
+
+  if (gr.players.length === 0) {
+    return res.status(400).json({ error: 'No students have joined yet' });
+  }
+
+  gr.status = 'active';
+  gr.started_at = Date.now();
+  gr.last_heartbeat = Date.now();
+  console.log(`[GameMode] Game started: ${code} — ${gr.game_name} with ${gr.players.length} players`);
+
+  res.json({ ok: true, status: 'active', players_count: gr.players.length });
+});
+
+// POST /api/gamemode/:code/submit — Student submits score + time
+app.post('/api/gamemode/:code/submit', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { player_id, score, max_score, time_taken_ms } = req.body;
+
+  if (!player_id) {
+    return res.status(400).json({ error: 'Missing player_id' });
+  }
+
+  const gr = gameModeRooms.get(code);
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  const player = gr.players.find(p => p.player_id === player_id);
+  if (!player) {
+    return res.status(404).json({ error: 'Player not found in this room' });
+  }
+
+  player.score = score || 0;
+  player.max_score = max_score || 0;
+  player.time_taken_ms = time_taken_ms || 0;
+  player.finished = true;
+  player.finished_at = Date.now();
+  gr.last_heartbeat = Date.now();
+
+  console.log(`[GameMode] ${player.username} submitted in ${code}: score=${score}/${max_score} time=${time_taken_ms}ms`);
+
+  // Check if all players finished
+  const allFinished = gr.players.every(p => p.finished);
+  if (allFinished) {
+    gr.status = 'finished';
+    console.log(`[GameMode] All players finished in ${code}`);
+  }
+
+  res.json({
+    ok: true,
+    score: player.score,
+    max_score: player.max_score,
+    time_taken_ms: player.time_taken_ms,
+    all_finished: allFinished,
+    status: gr.status
+  });
+});
+
+// GET /api/gamemode/:code/results — Get leaderboard (sorted by score desc, then time asc)
+app.get('/api/gamemode/:code/results', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const gr = gameModeRooms.get(code);
+
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  // Sort: finished first, then by score desc, then by time asc (faster is better)
+  const sorted = [...gr.players].sort((a, b) => {
+    if (a.finished !== b.finished) return a.finished ? -1 : 1;
+    if (a.score !== b.score) return b.score - a.score;
+    return a.time_taken_ms - b.time_taken_ms;
+  });
+
+  const leaderboard = sorted.map((p, i) => ({
+    rank: i + 1,
+    player_id: p.player_id,
+    username: p.username,
+    finished: p.finished,
+    score: p.score,
+    max_score: p.max_score,
+    time_taken_ms: p.time_taken_ms
+  }));
+
+  res.json({
+    ok: true,
+    room_name: gr.room_name,
+    game_name: gr.game_name,
+    status: gr.status,
+    leaderboard
+  });
+});
+
+// POST /api/gamemode/:code/heartbeat — Keep room alive
+app.post('/api/gamemode/:code/heartbeat', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const gr = gameModeRooms.get(code);
+
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  gr.last_heartbeat = Date.now();
+  res.json({ ok: true });
+});
+
+/**
+ * =============================================================================
  * SERVER START
  * =============================================================================
  */
@@ -1198,6 +1451,14 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`   POST   http://${localIP}:${PORT}/api/quiz/:code/submit`);
   console.log(`   GET    http://${localIP}:${PORT}/api/quiz/:code/results`);
   console.log(`   POST   http://${localIP}:${PORT}/api/quiz/:code/heartbeat`);
+  console.log(`\n🎮 GameMode API:`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/create`);
+  console.log(`   GET    http://${localIP}:${PORT}/api/gamemode/:code/info`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/:code/join`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/:code/start`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/:code/submit`);
+  console.log(`   GET    http://${localIP}:${PORT}/api/gamemode/:code/results`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/:code/heartbeat`);
   console.log(`\n🔌 WebSocket Relay:`);
   console.log(`   WS     ws://${localIP}:${PORT}/ws/relay/:room_id`);
   console.log(`\n🔍 Monitoring:`);

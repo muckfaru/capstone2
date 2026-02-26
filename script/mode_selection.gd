@@ -658,40 +658,75 @@ func _on_join_popup_closed() -> void:
 
 func _on_join_code_submitted(room_code: String) -> void:
 	print("[Join] Student attempting to join room: %s" % room_code)
-	# Validate the code against the CyberQuiz server
 	var lobby_url := _get_lobby_url()
-	var url := lobby_url + "/api/quiz/%s/join" % room_code
 	var body := {
 		"player_id": Auth.current_local_id,
 		"username": Auth.current_username,
 	}
 	var headers := ["Content-Type: application/json"]
+
+	# Try CyberQuiz join first
+	var url := lobby_url + "/api/quiz/%s/join" % room_code
 	var http := HTTPRequest.new()
 	add_child(http)
-	http.request_completed.connect(func(_r, code, _h, resp_body):
+	http.request_completed.connect(func(_r, code, _h, _resp_body):
 		http.queue_free()
 		if code == 200:
 			print("[Join] ✅ Successfully joined quiz room: %s" % room_code)
 			if join_lobby_popup:
 				join_lobby_popup.queue_free()
 				join_lobby_popup = null
-			# Store room code and lobby URL for StudentQuizScene
 			get_tree().set_meta("cyber_quiz_room_code", room_code)
 			get_tree().set_meta("cyber_quiz_lobby_url", lobby_url)
 			get_tree().change_scene_to_file("res://scene/StudentQuizScene.tscn")
 		else:
+			# Quiz join failed — try GameMode join
+			_try_gamemode_join(room_code, lobby_url, body, headers)
+	)
+	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	if err != OK:
+		push_error("[Join] HTTP request failed: %d" % err)
+		http.queue_free()
+		# Fallback: try game mode
+		_try_gamemode_join(room_code, lobby_url, body, headers)
+
+func _try_gamemode_join(room_code: String, lobby_url: String, body: Dictionary, headers: Array) -> void:
+	var url := lobby_url + "/api/gamemode/%s/join" % room_code
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code == 200:
+			print("[Join] ✅ Successfully joined game mode room: %s" % room_code)
+			if join_lobby_popup:
+				join_lobby_popup.queue_free()
+				join_lobby_popup = null
+			var text: String = resp_body.get_string_from_utf8()
+			var data = JSON.parse_string(text)
+			var game_name := ""
+			var game_scene := ""
+			if typeof(data) == TYPE_DICTIONARY:
+				game_name = str(data.get("game_name", ""))
+				game_scene = str(data.get("game_scene", ""))
+			# Store meta for student waiting screen
+			get_tree().set_meta("gamemode_room_code", room_code)
+			get_tree().set_meta("gamemode_lobby_url", lobby_url)
+			get_tree().set_meta("gamemode_game_name", game_name)
+			get_tree().set_meta("gamemode_game_scene", game_scene)
+			get_tree().change_scene_to_file("res://scene/gamemode_student_waiting.tscn")
+		else:
 			var err_text: String = resp_body.get_string_from_utf8() if resp_body.size() > 0 else ""
 			var err_data = JSON.parse_string(err_text)
-			var msg := "Failed to join room."
+			var msg := "Room not found. Check the code and try again."
 			if typeof(err_data) == TYPE_DICTIONARY:
 				msg = err_data.get("error", msg)
-			print("[Join] ❌ Join failed: %d %s" % [code, msg])
+			print("[Join] ❌ Join failed (both quiz + gamemode): %s" % msg)
 			if join_lobby_popup and join_lobby_popup.has_method("show_error"):
 				join_lobby_popup.show_error(msg)
 	)
 	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
 	if err != OK:
-		push_error("[Join] HTTP request failed: %d" % err)
+		push_error("[Join] GameMode HTTP request failed: %d" % err)
 		http.queue_free()
 		if join_lobby_popup and join_lobby_popup.has_method("show_error"):
 			join_lobby_popup.show_error("Connection error. Try again.")

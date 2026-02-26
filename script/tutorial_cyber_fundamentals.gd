@@ -14,6 +14,7 @@ enum Section {
 
 var current_section = Section.INTRO
 var xp_earned := 100
+var _is_gamemode: bool = false
 
 # Node references
 @onready var section_label: Label = $WindowDialog/VBox/TitleBar/MarginContainer/HBox/SectionLabel
@@ -37,10 +38,21 @@ var typing_tween: Tween = null
 func _ready() -> void:
 	print("🛡️ Cybersecurity Fundamentals Ready")
 	
+	# Detect multiplayer game mode
+	_is_gamemode = get_tree().has_meta("gamemode_room_code")
+	if _is_gamemode:
+		print("[GameMode] Running in multiplayer game mode")
+	
 	interaction_panel.visible = false
 	
 	_setup_cmd_interface()
 	_start_section(Section.INTRO)
+	
+	# Hide close/back button in multiplayer mode
+	if _is_gamemode:
+		var close_btn = get_node_or_null("WindowDialog/VBox/TitleBar/MarginContainer/HBox/CloseButton")
+		if close_btn:
+			close_btn.visible = false
 
 
 func _setup_cmd_interface() -> void:
@@ -342,6 +354,8 @@ func _on_next_pressed() -> void:
 func _on_back_pressed() -> void:
 	match current_section:
 		Section.INTRO:
+			if _is_gamemode:
+				return  # Cannot quit during multiplayer game
 			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 		Section.CIA_TRIAD:
 			_start_section(Section.INTRO)
@@ -352,6 +366,8 @@ func _on_back_pressed() -> void:
 
 
 func _on_close_button_pressed() -> void:
+	if _is_gamemode:
+		return  # Cannot quit during multiplayer game
 	confirm_overlay.visible = true
 	confirm_popup.scale = Vector2.ZERO
 	confirm_popup.pivot_offset = confirm_popup.size / 2
@@ -363,6 +379,8 @@ func _on_close_button_pressed() -> void:
 
 
 func _on_confirm_yes_pressed() -> void:
+	if _is_gamemode:
+		return
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 
