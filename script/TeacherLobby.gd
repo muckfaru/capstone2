@@ -198,8 +198,10 @@ func _sync_players_from_server(server_players: Array) -> void:
 		if uname not in current_names:
 			var avatar_file: String = str(sp.get("avatar", "default.png"))
 			var xp_val: int = int(sp.get("xp", 0))
+			print("[Lobby] Adding player: %s | avatar='%s' | xp=%d" % [uname, avatar_file, xp_val])
 			var avatar_tex := _load_avatar_texture(avatar_file)
 			var rank_tex := _load_rank_texture_from_xp(xp_val)
+			print("[Lobby]   avatar_tex=%s | rank_tex=%s" % [str(avatar_tex), str(rank_tex)])
 			add_player(uname, avatar_tex, rank_tex)
 	# Remove players that left
 	var server_names: Array[String] = []
@@ -211,7 +213,9 @@ func _sync_players_from_server(server_players: Array) -> void:
 
 ## Load avatar texture from filename (e.g., "avatar1.png")
 func _load_avatar_texture(avatar_file: String) -> Texture2D:
+	print("[Lobby] _load_avatar_texture called with: '%s'" % avatar_file)
 	if avatar_file.is_empty() or avatar_file == "default.png":
+		print("[Lobby]   → skipping (empty or default)")
 		return null
 	# Handle different avatar path formats
 	var path: String
@@ -224,12 +228,15 @@ func _load_avatar_texture(avatar_file: String) -> Texture2D:
 			if img:
 				img.resize(80, 80, Image.INTERPOLATE_LANCZOS)
 				return ImageTexture.create_from_image(img)
+		print("[Lobby]   → user:// file not found")
 		return null
 	else:
 		# Just a filename like "avatar1.png"
 		path = "res://asset/avatars/" + avatar_file
+	print("[Lobby]   → trying path: '%s' | exists=%s" % [path, str(ResourceLoader.exists(path))])
 	if ResourceLoader.exists(path):
 		var tex = load(path)
+		print("[Lobby]   → loaded tex: %s | is Texture2D: %s" % [str(tex), str(tex is Texture2D)])
 		if tex is Texture2D:
 			return tex as Texture2D
 	return null
@@ -357,6 +364,7 @@ func _refresh_all_slots() -> void:
 			var p: Dictionary = _players[idx]
 			# Avatar
 			avatar_tex.texture = p.get("avatar", null)
+			print("[Lobby] Slot %d → name=%s avatar_tex=%s" % [idx, p["name"], str(avatar_tex.texture)])
 			avatar_pan.add_theme_stylebox_override("panel", _avatar_style(true))
 			# Name
 			name_lbl.text = p["name"]
