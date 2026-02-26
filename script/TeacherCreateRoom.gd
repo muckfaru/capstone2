@@ -114,9 +114,12 @@ func _ready() -> void:
 
 	game_mode_btn.set_pressed_no_signal(false)
 	multiple_choice_btn.set_pressed_no_signal(false)
-	choose_game_row.visible = false
-	difficulty_row.visible = true
-	mc_section.visible = false
+	if choose_game_row:
+		choose_game_row.visible = false
+	if difficulty_row:
+		difficulty_row.visible = true
+	if mc_section:
+		mc_section.visible = false
 
 	player_count_input.text = "10"
 	player_validation_label.visible = false
@@ -264,14 +267,20 @@ func _on_preview_closed() -> void:
 func _on_game_mode_toggled(button_pressed: bool) -> void:
 	if button_pressed:
 		multiple_choice_btn.set_pressed_no_signal(false)
-		choose_game_row.visible = true
-		mc_section.visible = false
-		difficulty_row.visible = true
-		generate_button.visible = true
-		mc_view_btn.visible = false
+		if choose_game_row:
+			choose_game_row.visible = true
+		if mc_section:
+			mc_section.visible = false
+		if difficulty_row:
+			difficulty_row.visible = true
+		if generate_button:
+			generate_button.visible = true
+		if mc_view_btn:
+			mc_view_btn.visible = false
 		_reset_mc_state()
 	else:
-		choose_game_row.visible = false
+		if choose_game_row:
+			choose_game_row.visible = false
 		selected_minigame = ""
 		selected_minigame_scene = ""
 	_update_generate_button()
@@ -279,20 +288,28 @@ func _on_game_mode_toggled(button_pressed: bool) -> void:
 func _on_multiple_choice_toggled(button_pressed: bool) -> void:
 	if button_pressed:
 		game_mode_btn.set_pressed_no_signal(false)
-		choose_game_row.visible = false
+		if choose_game_row:
+			choose_game_row.visible = false
 		selected_minigame = ""
 		selected_minigame_scene = ""
-		mc_section.visible = true
-		difficulty_row.visible = false
+		if mc_section:
+			mc_section.visible = true
+		if difficulty_row:
+			difficulty_row.visible = false
 		selected_difficulty = "MC"
-		mc_view_btn.visible = true
+		if mc_view_btn:
+			mc_view_btn.visible = true
 		_update_mc_create_button()
 	else:
-		mc_section.visible = false
-		difficulty_row.visible = true
-		generate_button.visible = true
+		if mc_section:
+			mc_section.visible = false
+		if difficulty_row:
+			difficulty_row.visible = true
+		if generate_button:
+			generate_button.visible = true
 		selected_difficulty = ""
-		mc_view_btn.visible = false
+		if mc_view_btn:
+			mc_view_btn.visible = false
 		_reset_mc_state()
 	_update_generate_button()
 
@@ -318,16 +335,22 @@ func _reset_mc_state() -> void:
 func _reset_form() -> void:
 	game_mode_btn.set_pressed_no_signal(false)
 	multiple_choice_btn.set_pressed_no_signal(false)
-	choose_game_row.visible = false
-	mc_section.visible = false
-	difficulty_row.visible = true
-	generate_button.visible = true
+	if choose_game_row:
+		choose_game_row.visible = false
+	if mc_section:
+		mc_section.visible = false
+	if difficulty_row:
+		difficulty_row.visible = true
+	if generate_button:
+		generate_button.visible = true
 	selected_minigame = ""
 	selected_minigame_scene = ""
 	selected_difficulty = ""
 	_selected_difficulty_button = null
-	player_count_input.text = "10"
-	player_validation_label.visible = false
+	if player_count_input:
+		player_count_input.text = "10"
+	if player_validation_label:
+		player_validation_label.visible = false
 	_reset_mc_state()
 	_update_generate_button()
 
