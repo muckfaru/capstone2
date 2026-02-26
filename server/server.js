@@ -681,6 +681,7 @@ app.get('/health', (req, res) => {
 
   res.json({
     status: 'ok',
+    code_version: 'avatar-xp-v2',
     uptime: process.uptime(),
     rooms: {
       total: rooms.size,
