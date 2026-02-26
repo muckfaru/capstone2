@@ -17,7 +17,7 @@
 [ext_resource type="Texture2D" uid="uid://cokg85h7pt2rg" path="res://asset/newUIlandingupdate/topleft.png" id="11_p3l0o"]
 [ext_resource type="PackedScene" uid="uid://clvghcukrtua8" path="res://scene/akashic_tcg_lobby.tscn" id="11_tgc"]
 [ext_resource type="Texture2D" uid="uid://bjkci8oobkta" path="res://asset/rankicon/MASTER.png" id="11_w34e0"]
-[ext_resource type="PackedScene" path="res://scene/defuse_trojan_lobby.tscn" id="12_defuse"]
+[ext_resource type="PackedScene" uid="uid://by8pxsiunowkt" path="res://scene/defuse_trojan_lobby.tscn" id="12_defuse"]
 [ext_resource type="Texture2D" uid="uid://c1p5w4nvx1i1l" path="res://asset/newUIlandingupdate/bottomleft.png" id="12_kbofv"]
 [ext_resource type="Texture2D" uid="uid://bpkxbcgeecepa" path="res://asset/newUIlandingupdate/rankframer.png" id="12_w34e0"]
 [ext_resource type="Texture2D" uid="uid://b53xk27ilwwy5" path="res://asset/newUIlandingupdate/example trophu.png" id="13_6jpks"]
@@ -758,7 +758,7 @@ layout_mode = 0
 offset_left = -9.0
 offset_top = 152.0
 offset_right = 819.0
-offset_bottom = 681.0
+offset_bottom = 711.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_kbofv")
 
 [node name="TextureRect" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/PanelContainer"]
@@ -777,7 +777,7 @@ layout_mode = 0
 offset_left = -11.0
 offset_top = 153.0
 offset_right = 376.0
-offset_bottom = 680.0
+offset_bottom = 710.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_bsyjm")
 
 [node name="usernameLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
@@ -937,10 +937,10 @@ vertical_alignment = 1
 [node name="RankIconRect" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 0
-offset_left = -113.0
-offset_top = 184.0
-offset_right = 506.0
-offset_bottom = 504.0
+offset_left = -68.0
+offset_top = 206.0
+offset_right = 468.0
+offset_bottom = 462.0
 mouse_filter = 2
 texture = ExtResource("11_w34e0")
 expand_mode = 1
@@ -948,42 +948,45 @@ stretch_mode = 5
 
 [node name="1stachievmentslot" type="PanelContainer" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect"]
 layout_mode = 0
-offset_left = 84.0
-offset_top = 228.0
-offset_right = 305.0
-offset_bottom = 341.0
+offset_left = 40.0
+offset_top = 207.0
+offset_right = 261.0
+offset_bottom = 320.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_1sd5v")
 
 [node name="1stachievementpicture" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect/1stachievmentslot"]
 layout_mode = 2
 texture = ExtResource("13_6jpks")
 expand_mode = 1
+stretch_mode = 5
 
 [node name="2ndachievementslot" type="PanelContainer" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect"]
 layout_mode = 0
-offset_left = 202.0
-offset_top = 228.0
-offset_right = 423.0
-offset_bottom = 341.0
+offset_left = 161.0
+offset_top = 208.0
+offset_right = 382.0
+offset_bottom = 321.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_w34e0")
 
 [node name="2ndachievementpicture" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect/2ndachievementslot"]
 layout_mode = 2
 texture = ExtResource("13_6jpks")
 expand_mode = 1
+stretch_mode = 5
 
 [node name="3rdachievementslot" type="PanelContainer" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect"]
 layout_mode = 0
-offset_left = 320.0
-offset_top = 228.0
-offset_right = 541.0
-offset_bottom = 341.0
+offset_left = 282.0
+offset_top = 208.0
+offset_right = 503.0
+offset_bottom = 321.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_6jpks")
 
 [node name="3rdachievementpicture" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect/3rdachievementslot"]
 layout_mode = 2
 texture = ExtResource("13_6jpks")
 expand_mode = 1
+stretch_mode = 5
 
 [node name="ProfilePic" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 custom_minimum_size = Vector2(80, 80)
@@ -1107,7 +1110,7 @@ layout_mode = 0
 offset_left = 376.0
 offset_top = 153.0
 offset_right = 820.0
-offset_bottom = 680.0
+offset_bottom = 710.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_wbnsf")
 
 [node name="XPProgressBar" type="TextureProgressBar" parent="VideoStreamPlayer/ProfilePanel/MatchHistoyPanel"]

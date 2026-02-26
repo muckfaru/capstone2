@@ -39,6 +39,14 @@ var card_textures := {
 }
 
 @onready var rank_icon_rect: TextureRect = $VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect
+# Achievement slots (Profile) — names start with digits so we use get_node()
+var _ach_slot_0: PanelContainer
+var _ach_slot_1: PanelContainer
+var _ach_slot_2: PanelContainer
+var _ach_pic_0: TextureRect
+var _ach_pic_1: TextureRect
+var _ach_pic_2: TextureRect
+var _equipped_achievements: Array = ["", "", ""]  # slot 0/1/2
 # Match history (Profile)
 @onready var match_history_panel: Panel = $VideoStreamPlayer/ProfilePanel/MatchHistoyPanel
 @onready var winrate_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/winrateInput
@@ -161,6 +169,9 @@ func _ready() -> void:
 	if defuse_trojan_card:
 		defuse_trojan_card.gui_input.connect(_on_defuse_trojan_card_input)
 		print("[Landing] ✅ DefuseTheTrojan card click handler connected")
+	
+	# Achievement slots
+	_setup_achievement_slots()
 
 
 # Replace these functions in your landing.gd script
@@ -226,7 +237,7 @@ func _setup_match_history_tabs() -> void:
 	_on_tab_stats()
 
 
-func _set_active_tab(active: Button, all_tabs: Array) -> void:
+func _set_active_tab(_active: Button, _all_tabs: Array) -> void:
 	pass # All styling is handled in the .tscn file
 
 func _on_tab_match_history() -> void:
@@ -2306,6 +2317,14 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 		else:
 			Auth.current_card_bg_path = ""
 
+	# Load equipped achievement badges
+	if f.has("equipped_achievements"):
+		var arr = f["equipped_achievements"].get("arrayValue", {}).get("values", [])
+		for i in range(min(arr.size(), 3)):
+			_equipped_achievements[i] = arr[i].get("stringValue", "")
+	for i in range(3):
+		_refresh_achievement_slot(i)
+
 	if f.has("level"):
 		var lvl := int(f["level"]["integerValue"])
 		level_input.text = str(lvl)
@@ -3351,10 +3370,10 @@ func _show_locked_game_dialog(game_name: String, required_xp: int) -> void:
 func _setup_profile_picture_constraints() -> void:
 	if not profile_pic:
 		return
-		# ONLY set how the texture renders, NOT position or size
-		profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# ONLY set how the texture renders, NOT position or size
+	profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _setup_inventory_system() -> void:
 	"""Load and setup the inventory panel"""
@@ -4105,11 +4124,11 @@ static func update_leaderboard_rtdb(game_type: String, uid: String, username: St
 		"https://capstone-823dc-default-rtdb.firebaseio.com", game_type, uid, token
 	]
 	
-	var http := HTTPRequest.new()
-	Engine.get_main_loop().root.add_child(http)
+	var lb_http := HTTPRequest.new()
+	Engine.get_main_loop().root.add_child(lb_http)
 	
-	http.request_completed.connect(func(_r, code, _h, _b):
-		http.queue_free()
+	lb_http.request_completed.connect(func(_r, code, _h, _b):
+		lb_http.queue_free()
 		if code == 200:
 			print("[Landing] ✅ Leaderboard updated for %s (%s)" % [username, game_type])
 		else:
@@ -4117,7 +4136,7 @@ static func update_leaderboard_rtdb(game_type: String, uid: String, username: St
 	)
 	
 	var headers := PackedStringArray(["Content-Type: application/json"])
-	http.request(url, headers, HTTPClient.METHOD_PUT, JSON.stringify(entry))
+	lb_http.request(url, headers, HTTPClient.METHOD_PUT, JSON.stringify(entry))
 
 func _setup_game_card_hovers() -> void:
 		var defuse = $VideoStreamPlayer/GameSelectPanel/allgame/DefuseTheTrojan
@@ -4195,3 +4214,105 @@ func _setup_game_sfx() -> void:
 		print("[Landing] ✅ Click sound loaded: ", click_sound.resource_path)
 	else:
 		push_error("[Landing] ❌ Failed to load click sound!")
+
+
+# =============================================================================
+# ACHIEVEMENT PICKER — slot click setup, picker popup, Firestore save
+# =============================================================================
+func _setup_achievement_slots() -> void:
+	var base := "VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect/"
+	_ach_slot_0 = get_node_or_null(base + "1stachievmentslot")
+	_ach_slot_1 = get_node_or_null(base + "2ndachievementslot")
+	_ach_slot_2 = get_node_or_null(base + "3rdachievementslot")
+	_ach_pic_0  = get_node_or_null(base + "1stachievmentslot/1stachievementpicture")
+	_ach_pic_1  = get_node_or_null(base + "2ndachievementslot/2ndachievementpicture")
+	_ach_pic_2  = get_node_or_null(base + "3rdachievementslot/3rdachievementpicture")
+
+	var raw_slots: Array = [_ach_slot_0, _ach_slot_1, _ach_slot_2]
+	for i in range(raw_slots.size()):
+		var slot: PanelContainer = raw_slots[i] as PanelContainer
+		if not is_instance_valid(slot):
+			continue
+		slot.mouse_filter = Control.MOUSE_FILTER_STOP
+		slot.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		var idx := i  # capture for lambda
+		slot.gui_input.connect(func(event: InputEvent):
+			if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+				_open_achievement_picker(idx)
+		)
+
+
+func _open_achievement_picker(slot_index: int) -> void:
+	var picker: AchievementPickerPopup = preload("res://scene/achievement_picker_popup.tscn").instantiate()
+	add_child(picker)
+	picker.achievement_picked.connect(func(ach_id: String):
+		_on_achievement_pick_confirmed(ach_id, slot_index)
+	)
+	picker.slot_cleared.connect(func():
+		_on_achievement_slot_cleared(slot_index)
+	)
+	picker.show_picker(slot_index, _equipped_achievements[slot_index])
+
+
+func _on_achievement_pick_confirmed(ach_id: String, slot_index: int) -> void:
+	_equipped_achievements[slot_index] = ach_id
+	_refresh_achievement_slot(slot_index)
+	_save_equipped_achievements()
+
+
+func _on_achievement_slot_cleared(slot_index: int) -> void:
+	_equipped_achievements[slot_index] = ""
+	_refresh_achievement_slot(slot_index)
+	_save_equipped_achievements()
+
+
+func _refresh_achievement_slot(slot_index: int) -> void:
+	var pics := [_ach_pic_0, _ach_pic_1, _ach_pic_2]
+	if slot_index < 0 or slot_index >= pics.size():
+		return
+	var pic: TextureRect = pics[slot_index]
+	if not is_instance_valid(pic):
+		return
+	var ach_id: String = _equipped_achievements[slot_index]
+	if ach_id == "" or not AchievementPickerPopup.ACHIEVEMENT_DEFS.has(ach_id):
+		pic.texture = null
+		pic.modulate = Color(1, 1, 1, 1)
+		return
+	var badge_path: String = AchievementPickerPopup.ACHIEVEMENT_DEFS[ach_id]["badge"]
+	if ResourceLoader.exists(badge_path):
+		pic.texture = load(badge_path)
+		pic.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		pic.modulate = Color(1, 1, 1, 1)
+	else:
+		pic.texture = null
+
+
+func _save_equipped_achievements() -> void:
+	var user_id := Auth.current_local_id
+	var id_token := Auth.current_id_token
+	if user_id == "" or id_token == "":
+		return
+	var url := "%s/%s?updateMask.fieldPaths=equipped_achievements" % [firestore_base_url, user_id]
+	var values := []
+	for id in _equipped_achievements:
+		values.append({"stringValue": id})
+	var body := {
+		"fields": {
+			"equipped_achievements": {"arrayValue": {"values": values}}
+		}
+	}
+	var headers := [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	var save_http := HTTPRequest.new()
+	add_child(save_http)
+	save_http.request_completed.connect(func(_r, code, _h, _b):
+		save_http.queue_free()
+		if code == 200:
+			print("[Landing] ✅ Achievement badges saved.")
+		else:
+			push_error("[Landing] ❌ Failed to save achievement badges: %d" % code)
+	)
+	save_http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
