@@ -691,12 +691,13 @@ func _on_join_code_submitted(room_code: String) -> void:
 		_try_gamemode_join(room_code, lobby_url, body, headers)
 
 func _try_gamemode_join(room_code: String, lobby_url: String, _body: Dictionary, headers: Array) -> void:
-	# Build body with avatar + level for the room panel
+	# Build body with avatar + xp for the room panel
+	var xp_val: int = TutorialManager.total_xp if TutorialManager else 0
 	var gm_body := {
 		"player_id": Auth.current_local_id,
 		"username": Auth.current_username,
 		"avatar": Auth.current_avatar if Auth.current_avatar != "" else "default.png",
-		"level": Auth.current_level,
+		"xp": xp_val,
 	}
 	var url := lobby_url + "/api/gamemode/%s/join" % room_code
 	var http := HTTPRequest.new()

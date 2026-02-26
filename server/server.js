@@ -1234,7 +1234,7 @@ app.get('/api/gamemode/:code/info', (req, res) => {
       player_id: p.player_id,
       username: p.username,
       avatar: p.avatar || 'default.png',
-      level: p.level || 0,
+      xp: p.xp || 0,
       finished: p.finished,
       score: p.finished ? p.score : undefined,
       max_score: p.finished ? p.max_score : undefined,
@@ -1246,7 +1246,7 @@ app.get('/api/gamemode/:code/info', (req, res) => {
 // POST /api/gamemode/:code/join — Student joins a game mode room
 app.post('/api/gamemode/:code/join', (req, res) => {
   const code = req.params.code.toUpperCase();
-  const { player_id, username, avatar, level } = req.body;
+  const { player_id, username, avatar, xp } = req.body;
 
   if (!player_id || !username) {
     return res.status(400).json({ error: 'Missing player_id or username' });
@@ -1260,9 +1260,9 @@ app.post('/api/gamemode/:code/join', (req, res) => {
   // Check if already joined
   const existing = gr.players.find(p => p.player_id === player_id);
   if (existing) {
-    // Update avatar/level if provided
+    // Update avatar/xp if provided
     if (avatar) existing.avatar = avatar;
-    if (level !== undefined) existing.level = level;
+    if (xp !== undefined) existing.xp = xp;
     console.log(`[GameMode] Player rejoined: ${username} in ${code}`);
     return res.json({ ok: true, rejoined: true, status: gr.status, game_name: gr.game_name, game_scene: gr.game_scene });
   }
@@ -1275,7 +1275,7 @@ app.post('/api/gamemode/:code/join', (req, res) => {
     player_id,
     username,
     avatar: avatar || 'default.png',
-    level: level || 0,
+    xp: xp || 0,
     joined_at: Date.now(),
     finished: false,
     score: 0,

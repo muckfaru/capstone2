@@ -193,18 +193,18 @@ func _sync_players_from_server(server_players: Array) -> void:
 		current_names.append(p.get("name", ""))
 	# Add new players with avatar + rank
 	for sp in server_players:
-		var uname: String = sp.get("username", "")
+		var uname: String = str(sp.get("username", ""))
 		if uname.is_empty(): continue
 		if uname not in current_names:
 			var avatar_file: String = str(sp.get("avatar", "default.png"))
-			var level_val: int = int(sp.get("level", 0))
+			var xp_val: int = int(sp.get("xp", 0))
 			var avatar_tex := _load_avatar_texture(avatar_file)
-			var rank_tex := _load_rank_texture(level_val)
+			var rank_tex := _load_rank_texture_from_xp(xp_val)
 			add_player(uname, avatar_tex, rank_tex)
 	# Remove players that left
 	var server_names: Array[String] = []
 	for sp in server_players:
-		server_names.append(sp.get("username", ""))
+		server_names.append(str(sp.get("username", "")))
 	for p in _players.duplicate():
 		if p.get("name", "") not in server_names:
 			remove_player(p.get("name", ""))
@@ -213,11 +213,20 @@ func _sync_players_from_server(server_players: Array) -> void:
 func _load_avatar_texture(avatar_file: String) -> Texture2D:
 	if avatar_file.is_empty() or avatar_file == "default.png":
 		return null
-	# Try loading from asset folder
+	# Handle different avatar path formats
 	var path: String
 	if avatar_file.begins_with("res://"):
 		path = avatar_file
+	elif avatar_file.begins_with("user://"):
+		# Custom avatar - load from user data
+		if FileAccess.file_exists(avatar_file):
+			var img := Image.load_from_file(avatar_file)
+			if img:
+				img.resize(80, 80, Image.INTERPOLATE_LANCZOS)
+				return ImageTexture.create_from_image(img)
+		return null
 	else:
+		# Just a filename like "avatar1.png"
 		path = "res://asset/avatars/" + avatar_file
 	if ResourceLoader.exists(path):
 		var tex = load(path)
@@ -225,34 +234,18 @@ func _load_avatar_texture(avatar_file: String) -> Texture2D:
 			return tex as Texture2D
 	return null
 
-## Load rank icon texture from level (maps level to XP-based rank)
-func _load_rank_texture(level: int) -> Texture2D:
-	# Use RANK_THRESHOLDS from TutorialManager to get appropriate icon
-	# Level is stored as Firestore int; use it as an XP approximation
-	# Level mapping: lvl 0-1 = Iron, 2 = Bronze, 3 = Silver, etc.
-	var rank_icons := [
-		"res://asset/rankicon/IRON.png",       # 0-1
-		"res://asset/rankicon/IRON.png",       # 1 
-		"res://asset/rankicon/BRONZE.png",     # 2
-		"res://asset/rankicon/SILVER.png",     # 3
-		"res://asset/rankicon/GOLD.png",       # 4
-		"res://asset/rankicon/PLATINUM.png",   # 5
-		"res://asset/rankicon/DIAMOND.png",    # 6
-		"res://asset/rankicon/MASTER.png",     # 7
-		"res://asset/rankicon/GRAND MASTER.png", # 8
-		"res://asset/rankicon/CHALLENGER.png", # 9+
-	]
-	# If TutorialManager is available, try to get rank by XP
+## Load rank icon texture from XP value (uses TutorialManager.RANK_THRESHOLDS)
+func _load_rank_texture_from_xp(xp: int) -> Texture2D:
+	# Use TutorialManager to get the correct rank based on XP
 	if TutorialManager:
-		var rank: Dictionary = TutorialManager.get_rank(TutorialManager.total_xp if level == 0 else -1)
+		var rank: Dictionary = TutorialManager.get_rank(xp)
 		var rank_icon: String = rank.get("icon", "")
 		if not rank_icon.is_empty() and ResourceLoader.exists(rank_icon):
 			var tex = load(rank_icon)
 			if tex is Texture2D:
 				return tex as Texture2D
-	# Fallback: use level index
-	var idx := clampi(level, 0, rank_icons.size() - 1)
-	var fallback_path: String = rank_icons[idx]
+	# Fallback: Iron rank
+	var fallback_path := "res://asset/rankicon/IRON.png"
 	if ResourceLoader.exists(fallback_path):
 		var tex = load(fallback_path)
 		if tex is Texture2D:
