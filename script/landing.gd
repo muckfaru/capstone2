@@ -85,6 +85,11 @@ var welcome_bonus_awarded: bool = false
 # Starter reward state (cached from Firestore)
 var _starter_reward_claimed_cache: bool = false
 
+# Cached stats computed from match history (more accurate than Firestore win/loss fields alone)
+var _history_match_count: int = -1   # -1 = not yet loaded
+var _history_win_count:   int = 0
+var _history_loss_count:  int = 0
+
 # Resume retry guard (prevents infinite loops if server is down)
 var _code_breaker_resume_retries: int = 0
 var _tgc_resume_retries: int = 0
@@ -280,13 +285,100 @@ func _on_tab_stats() -> void:
 		return
 	stats_content.visible = true
 
-	# ✅ Compute winrate
-	var w = int(wins_input.text) if wins_input and wins_input.text.is_valid_int() else 0
-	var l = int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else 0
-	var total = w + l
-	var wr_text = ("%.1f%%" % (float(w) / float(total) * 100.0)) if total > 0 else "0%"
+	# Show cached data immediately (uses history counts if already loaded)
+	_apply_stats_from_local()
+	# Fetch real-time stats from Firestore (user doc for level/wins/losses)
+	_fetch_stats_realtime()
+	# If match history hasn't been loaded yet, load it now so match_played is accurate
+	if _history_match_count < 0:
+		_load_match_history()
 
-	# ✅ Update free-floating value labels
+
+# ─────────────────────────────────────────────────────────────────────────────
+# REAL-TIME STATS HELPERS
+# ─────────────────────────────────────────────────────────────────────────────
+
+func _fetch_stats_realtime() -> void:
+	"""Fetch level from Firestore, then redraw the Stats panel using history-derived counts."""
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		print("[Stats] ⚠️ No auth — showing cached stats")
+		_apply_stats_from_local()
+		return
+
+	_show_stats_loading(true)
+
+	var url := "%s/%s" % [firestore_base_url, Auth.current_local_id]
+	var headers := PackedStringArray(["Authorization: Bearer %s" % Auth.current_id_token])
+
+	var http_stats := HTTPRequest.new()
+	http_stats.timeout = 10.0
+	add_child(http_stats)
+
+	http_stats.request_completed.connect(func(_r, code, _h, body):
+		if is_instance_valid(http_stats):
+			http_stats.queue_free()
+
+		_show_stats_loading(false)
+
+		if code != 200:
+			print("[Stats] ⚠️ Firestore returned %d — using cached data" % code)
+			_apply_stats_from_local()
+			return
+
+		var data = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(data) != TYPE_DICTIONARY or not data.has("fields"):
+			_apply_stats_from_local()
+			return
+
+		var f: Dictionary = data["fields"]
+
+		# Only update level from Firestore — wins/losses are unreliable there.
+		# Win/Loss counts are always derived from match history (more accurate).
+		var lv := 0
+		if f.has("level"):
+			lv = int(str(f["level"].get("integerValue", 0)))
+			if level_input:
+				level_input.text = str(lv)
+
+		# Use history-derived wins/losses; fall back to label cache if history not loaded yet.
+		var w := _history_win_count  if _history_match_count >= 0 else \
+				 (int(wins_input.text) if wins_input and wins_input.text.is_valid_int() else 0)
+		var l := _history_loss_count if _history_match_count >= 0 else \
+				 (int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else 0)
+
+		print("[Stats] ✅ Refreshed — W:%d L:%d Lv:%d (from history)" % [w, l, lv])
+		_apply_stats_to_panel(w, l, lv)
+	)
+
+	http_stats.request(url, headers, HTTPClient.METHOD_GET)
+
+
+func _apply_stats_from_local() -> void:
+	"""Populate the Stats panel — always prefer history-derived counts."""
+	# Wins/losses from history are the most accurate source (covers all game types).
+	var w  := _history_win_count  if _history_match_count >= 0 else \
+			  (int(wins_input.text) if wins_input and wins_input.text.is_valid_int() else 0)
+	var l  := _history_loss_count if _history_match_count >= 0 else \
+			  (int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else 0)
+	var lv := int(level_input.text) if level_input and level_input.text.is_valid_int() else 0
+	_apply_stats_to_panel(w, l, lv)
+
+
+func _apply_stats_to_panel(w: int, l: int, lv: int) -> void:
+	"""Write computed stats into the StatsContent child nodes."""
+	var stats_content = match_history_panel.get_node_or_null("StatsContent")
+	if not stats_content or not stats_content.visible:
+		return
+
+	# WIN / LOSE come from history counts (passed in as w, l).
+	# WIN RATE = wins / (wins + losses) for PvP matches only.
+	var pvp_total := w + l
+	var wr_pct    := (float(w) / float(pvp_total) * 100.0) if pvp_total > 0 else 0.0
+	var wr_text   := ("%.1f%%" % wr_pct) if pvp_total > 0 else "0%"
+
+	# MATCH PLAYED — total history count (PvP + PvE like Defuse the Trojan).
+	var display_total := _history_match_count if _history_match_count >= 0 else pvp_total
+
 	var wins_val = stats_content.get_node_or_null("WinsPanel/WinsValue")
 	if wins_val: wins_val.text = str(w)
 
@@ -297,10 +389,39 @@ func _on_tab_stats() -> void:
 	if wr_val: wr_val.text = wr_text
 
 	var mp_val = stats_content.get_node_or_null("MatchPlayedPanel/MatchPlayedValue")
-	if mp_val: mp_val.text = str(total)
+	if mp_val: mp_val.text = str(display_total)
 
 	var lv_val = stats_content.get_node_or_null("LevelPanel/LevelValue")
-	if lv_val: lv_val.text = level_input.text if level_input else "0"
+	if lv_val: lv_val.text = str(lv) if lv > 0 else (level_input.text if level_input else "0")
+
+	# ── Winrate progress bar (optional — if a ProgressBar node exists) ──
+	var wr_bar = stats_content.get_node_or_null("WinRatePanel/WinRateBar")
+	if wr_bar and wr_bar is ProgressBar:
+		wr_bar.value = wr_pct
+
+
+func _show_stats_loading(loading: bool) -> void:
+	"""Show/hide a subtle 'Refreshing…' hint inside the StatsContent panel."""
+	var stats_content = match_history_panel.get_node_or_null("StatsContent")
+	if not stats_content:
+		return
+
+	var lbl = stats_content.get_node_or_null("StatsLoadingLabel")
+	if loading:
+		if not lbl:
+			lbl = Label.new()
+			lbl.name = "StatsLoadingLabel"
+			lbl.text = "⟳ Refreshing…"
+			lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			lbl.add_theme_color_override("font_color", Color(0, 1, 1, 0.55))
+			lbl.add_theme_font_size_override("font_size", 11)
+			lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			stats_content.add_child(lbl)
+		lbl.visible = true
+	else:
+		if lbl:
+			lbl.visible = false
 
 func _on_tab_inventory_panel() -> void:
 	var tab_bar = match_history_panel.get_node_or_null("TabBar")
@@ -516,6 +637,40 @@ func _doc_timestamp_ms(doc: Dictionary) -> int:
 
 func _render_match_history(items: Array) -> void:
 	_clear_match_history_rows()
+
+	# ── Compute stats from history items (covers PvE games Firestore fields miss) ──
+	var h_wins   := 0
+	var h_losses := 0
+	var my_uname := Auth.current_username
+	for _doc in items:
+		var _f: Dictionary = _doc.get("fields", {})
+		var _gt := _fs_string(_f, "game_type", "")
+		if _gt == "defuse_trojan":
+			# PvE — counts as a match played, not a win or loss
+			pass
+		else:
+			var _winner := _fs_string(_f, "winner", "")
+			var _loser  := _fs_string(_f, "loser",  "")
+			var _result := _fs_string(_f, "result", "")
+			if _winner == my_uname or _result.to_upper() == "WIN":
+				h_wins += 1
+			elif _loser == my_uname or _result.to_upper() == "LOSE":
+				h_losses += 1
+	_history_match_count = items.size()
+	_history_win_count   = h_wins
+	_history_loss_count  = h_losses
+	# Sync the hidden profile labels so _apply_stats_from_local stays accurate
+	if wins_input   and h_wins   > 0: wins_input.text   = str(h_wins)
+	if losses_input and h_losses > 0: losses_input.text = str(h_losses)
+	if match_played_input: match_played_input.text = str(items.size())
+	# If the Stats tab is already open, refresh it with the newly computed counts
+	var _sc = match_history_panel.get_node_or_null("StatsContent") if match_history_panel else null
+	if _sc and _sc.visible:
+		# Use Firestore wins/losses (authoritative) + history total for match played
+		var _w  := int(wins_input.text)   if wins_input   and wins_input.text.is_valid_int()   else h_wins
+		var _l  := int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else h_losses
+		var _lv := int(level_input.text)  if level_input  and level_input.text.is_valid_int()  else 0
+		_apply_stats_to_panel(_w, _l, _lv)
 
 	if items.is_empty():
 		_add_match_history_placeholder("No matches yet")
@@ -2815,10 +2970,18 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
 		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
 		match_played_input.text = str(wins + losses)
-	
+
+	# ── Load equipped achievement badges (cached-path fix) ──
+	if f.has("equipped_achievements"):
+		var arr = f["equipped_achievements"].get("arrayValue", {}).get("values", [])
+		for i in range(min(arr.size(), 3)):
+			_equipped_achievements[i] = arr[i].get("stringValue", "")
+	for i in range(3):
+		_refresh_achievement_slot(i)
+
 	original_avatar = selected_avatar
 
-	# Load match history after we have username/uid
+	# Load match history after we have username/uid (also populates _history_match_count)
 	_ensure_match_history_ui()
 	_load_match_history()
 

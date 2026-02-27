@@ -42,9 +42,31 @@ var _dot_count: int = 0
 # ─────────────────────────────────────────────────────────────────────────────
 func _ready() -> void:
 	_slot_nodes.clear()
+	# Remove static slots baked in the .tscn — slots are rebuilt dynamically
+	# in show_lobby() / show_lobby_student_mode() via _build_slots().
 	for child in slot_grid.get_children():
-		if child is PanelContainer:
-			_slot_nodes.append(child as PanelContainer)
+		slot_grid.remove_child(child)
+		child.queue_free()
+
+	# Wrap SlotGrid in a ScrollContainer so large player counts don't overflow.
+	var panel_bg: Control = slot_grid.get_parent()
+	var sc := ScrollContainer.new()
+	sc.name = "SlotScroll"
+	sc.layout_mode = 0
+	sc.offset_left   = slot_grid.offset_left
+	sc.offset_top    = slot_grid.offset_top
+	sc.offset_right  = slot_grid.offset_right
+	sc.offset_bottom = slot_grid.offset_bottom
+	sc.vertical_scroll_mode   = ScrollContainer.SCROLL_MODE_AUTO
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	panel_bg.remove_child(slot_grid)
+	panel_bg.add_child(sc)
+	sc.add_child(slot_grid)
+	# Switch SlotGrid to container-based layout so it fills the scroll width
+	# and grows vertically with its content.
+	slot_grid.layout_mode          = 2
+	slot_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slot_grid.size_flags_vertical   = Control.SIZE_SHRINK_BEGIN
 
 	start_quiz_btn.pressed.connect(_on_start_quiz_pressed)
 	back_button.pressed.connect(_on_back_pressed)
@@ -60,7 +82,8 @@ func show_lobby(room_code: String, room_name: String,
 	_minigame = minigame
 	_difficulty = difficulty
 	_is_student_mode = false
-	max_player_count = mini(player_count, _slot_nodes.size())
+	max_player_count = clampi(player_count, 1, 50)
+	_build_slots(max_player_count)
 
 	room_name_label.text = room_name
 	room_code_label.text = room_code
@@ -86,7 +109,8 @@ func show_lobby_student_mode(room_code: String, game_name: String, game_scene: S
 	_game_scene = game_scene
 	_lobby_url = lobby_url
 	_is_student_mode = true
-	max_player_count = mini(player_count, _slot_nodes.size())
+	max_player_count = clampi(player_count, 1, 50)
+	_build_slots(max_player_count)
 
 	room_name_label.text = game_name
 	room_code_label.text = room_code
@@ -350,6 +374,70 @@ func remove_player(player_name: String) -> void:
 # ─────────────────────────────────────────────────────────────────────────────
 # SLOT REFRESH
 # ─────────────────────────────────────────────────────────────────────────────
+
+## Dynamically create `count` slot nodes, replacing any existing ones.
+## This allows the lobby to support any player count (1–50) at runtime.
+func _build_slots(count: int) -> void:
+	for child in slot_grid.get_children():
+		slot_grid.remove_child(child)
+		child.queue_free()
+	_slot_nodes.clear()
+
+	for i in count:
+		var slot := PanelContainer.new()
+		slot.name = "Slot%d" % (i + 1)
+		slot.custom_minimum_size = Vector2(0, 150)
+		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		slot.add_theme_stylebox_override("panel", _slot_style(false))
+
+		var vbox := VBoxContainer.new()
+		vbox.name = "VBox"
+		vbox.add_theme_constant_override("separation", 6)
+		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		slot.add_child(vbox)
+
+		var avatar_pan := PanelContainer.new()
+		avatar_pan.name = "AvatarPanel"
+		avatar_pan.custom_minimum_size = Vector2(56, 56)
+		avatar_pan.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		avatar_pan.add_theme_stylebox_override("panel", _avatar_style(false))
+		vbox.add_child(avatar_pan)
+
+		var avatar_tex := TextureRect.new()
+		avatar_tex.name = "AvatarTexture"
+		avatar_tex.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		avatar_tex.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		avatar_tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		avatar_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		avatar_pan.add_child(avatar_tex)
+
+		var name_lbl := Label.new()
+		name_lbl.name = "NameLabel"
+		name_lbl.custom_minimum_size = Vector2(90, 0)
+		name_lbl.add_theme_color_override("font_color", Color(0.7, 0.85, 1, 0.45))
+		name_lbl.add_theme_font_size_override("font_size", 12)
+		name_lbl.text = "Name"
+		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_lbl.clip_text = true
+		vbox.add_child(name_lbl)
+
+		var rank_pan := PanelContainer.new()
+		rank_pan.name = "RankPanel"
+		rank_pan.custom_minimum_size = Vector2(70, 24)
+		rank_pan.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		vbox.add_child(rank_pan)
+
+		var rank_tex := TextureRect.new()
+		rank_tex.name = "RankTexture"
+		rank_tex.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		rank_tex.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		rank_tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		rank_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		rank_pan.add_child(rank_tex)
+
+		slot_grid.add_child(slot)
+		_slot_nodes.append(slot)
+
 func _refresh_all_slots() -> void:
 	for idx in _slot_nodes.size():
 		var slot: PanelContainer = _slot_nodes[idx]

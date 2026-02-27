@@ -232,7 +232,7 @@ layout_mode = 0
 offset_left = 88.0
 offset_top = 128.0
 offset_right = 1120.0
-offset_bottom = 608.0
+offset_bottom = 642.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_k1g1t")
 
 [node name="Panel" type="Panel" parent="NinePatchRect"]
