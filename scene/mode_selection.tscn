@@ -1,4 +1,4 @@
-[gd_scene load_steps=71 format=3 uid="uid://iskq8vfxcwm1"]
+[gd_scene load_steps=72 format=3 uid="uid://iskq8vfxcwm1"]
 
 [ext_resource type="Script" uid="uid://dpn2fg7mjjx55" path="res://script/mode_selection.gd" id="1_mode"]
 [ext_resource type="VideoStream" uid="uid://dtdwmmtpj8uia" path="res://asset/minigamesuite/7e0f9999-9b44-4b49-b3f5-8bde4a5a8aee (1).ogv" id="2_rqr7f"]
@@ -27,7 +27,18 @@ corner_radius_bottom_left = 21
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_an838"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mfesm"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_anre4"]
+bg_color = Color(0.0666667, 0.0745098, 0.203922, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.937255, 0.235294, 0.207843, 1)
+border_blend = true
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e3y5h"]
 
@@ -46,6 +57,7 @@ border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
 border_color = Color(0, 0.901961, 1, 1)
+border_blend = true
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
@@ -76,6 +88,8 @@ shadow_size = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4hln6"]
 draw_center = false
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mfesm"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_usa3j"]
 texture = ExtResource("10_t1w3r")
@@ -359,7 +373,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("8_4hln6")
 theme_override_font_sizes/font_size = 25
-theme_override_styles/focus = SubResource("StyleBoxEmpty_mfesm")
+theme_override_styles/focus = SubResource("StyleBoxFlat_anre4")
 theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_e3y5h")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_5ry8m")
 theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_1lb30")

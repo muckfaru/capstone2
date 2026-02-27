@@ -235,11 +235,15 @@ func _load_own_profile() -> void:
 		# Username
 		var uname: String = fields.get("username", {}).get("stringValue", str(Auth.current_username))
 		if uname != "":
+			# Keep Auth cache in sync
+			Auth.current_username = uname
 			own_username_label.text = uname.to_upper()
 
 		# Avatar
 		var avatar_file: String = fields.get("avatar", {}).get("stringValue", "")
 		if avatar_file != "":
+			# Keep Auth cache in sync so instant-apply never reverts to stale data
+			Auth.current_avatar = avatar_file
 			_apply_own_avatar(avatar_file)
 	)
 	http.request(url, headers, HTTPClient.METHOD_GET)
@@ -570,63 +574,39 @@ func refresh_presence_all() -> void:
 
 
 # -------------------------
-# Resolve username -> uid (cached) and then fetch RTDB presence
+# Fetch presence directly by username from RTDB /presence_by_name/{username}
+# No uid resolution needed — Auth writes this path alongside /presence/{uid}
 # -------------------------
 func _start_presence_check(username: String, label: Control) -> void:
-	# Check if label is still valid before proceeding
 	if not is_instance_valid(label):
 		return
-	
+
 	var token = Auth.current_id_token
 	if token == "" or username == "":
 		_set_presence_label(label, username, "offline")
 		return
 
-	# if cached uid exists, fetch presence directly
-	if username_to_uid.has(username):
-		var cached_uid: String = str(username_to_uid[username])
-		_fetch_presence_for_uid(cached_uid, label, username, token)
-		return
-
-	# else resolve uid via runQuery and cache it
-	var query_url = "%s:runQuery" % BASE_URL
-	var query_body = {
-		"structuredQuery": {
-			"from": [{"collectionId": "users"}],
-			"where": {
-				"fieldFilter": {
-					"field": {"fieldPath": "username"},
-					"op": "EQUAL",
-					"value": {"stringValue": username}
-				}
-			},
-			"limit": 1
-		}
-	}
-	var headers = [
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % token
-	]
-
-	var http_q := HTTPRequest.new()
-	add_child(http_q)
-	http_q.request_completed.connect(func(_r, code, _h, body):
-		http_q.queue_free()
+	var url := "%s/presence_by_name/%s.json?auth=%s" % [RTDB_BASE, username.uri_encode(), token]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		http.queue_free()
+		if not is_instance_valid(label):
+			return
 		if code != 200:
 			_set_presence_label(label, username, "offline")
 			return
-
-		var arr = JSON.parse_string(body.get_string_from_utf8())
-		if typeof(arr) != TYPE_ARRAY or arr.size() == 0:
+		var txt := body.get_string_from_utf8()
+		if txt == "" or txt == "null":
 			_set_presence_label(label, username, "offline")
 			return
-
-		var friend_uid = arr[0]["document"]["name"].get_file()
-		# cache uid for future checks (store as String explicitly)
-		username_to_uid[username] = str(friend_uid)
-		_fetch_presence_for_uid(friend_uid, label, username, token)
+		var parsed = JSON.parse_string(txt)
+		var state := "offline"
+		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("state"):
+			state = str(parsed["state"])
+		_set_presence_label(label, username, state)
 	)
-	http_q.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+	http.request(url, [], HTTPClient.METHOD_GET)
 
 
 # -------------------------
@@ -1283,21 +1263,17 @@ func debug_print_tree(node: Node, depth: int) -> void:
 # ======================================================
 func _on_view_profile_button_pressed(friend_username: String) -> void:
 	print("[FriendList] View profile pressed for: ", friend_username)
-	
-	# Try to find ViewPlayerProfileModal in the scene tree
-	var modal = get_tree().root.find_child("ViewPlayerProfileModal", true, false)
-	
-	if not modal:
-		push_error("[FriendList] ViewPlayerProfileModal not found in scene tree")
-		debug_print_tree(get_tree().root, 0)
+
+	var modal_scene := load("res://scene/view_player_profile.tscn")
+	if not modal_scene:
+		push_error("[FriendList] view_player_profile.tscn not found")
 		return
-	
-	# Call display_player_profile on the modal
+
+	var modal = modal_scene.instantiate()
+	get_tree().root.add_child(modal)
+
+	# Fetch data — popup updates live when HTTP responds
 	if modal.has_method("display_player_profile"):
-		print("[FriendList] Displaying profile for: ", friend_username)
 		modal.display_player_profile(friend_username)
-		# Wait for profile data to load before showing
-		await get_tree().create_timer(0.5).timeout
-		modal.popup_centered()
-	else:
-		push_error("[FriendList] Modal doesn't have 'display_player_profile' method")
+
+	modal.popup_centered()

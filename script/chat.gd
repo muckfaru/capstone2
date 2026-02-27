@@ -37,11 +37,11 @@ func _ready() -> void:
 	if has_node("VBoxContainer/ScrollContainer/VBoxContainer"):
 		_messages_container = $VBoxContainer/ScrollContainer/VBoxContainer
 		print("[Chat] Messages container found")
-	if has_node("VBoxContainer/HBoxContainer/LineEdit"):
-		_message_input = $VBoxContainer/HBoxContainer/LineEdit
+	if has_node("HBoxContainer/LineEdit"):
+		_message_input = $HBoxContainer/LineEdit
 		print("[Chat] Message input found")
-	if has_node("VBoxContainer/HBoxContainer/Button"):
-		_send_button = $VBoxContainer/HBoxContainer/Button
+	if has_node("HBoxContainer/Button"):
+		_send_button = $HBoxContainer/Button
 		print("[Chat] Send button found")
 	
 	# Get username label - CORRECT PATH

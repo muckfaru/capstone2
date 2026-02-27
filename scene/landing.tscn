@@ -18,7 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://cokg85h7pt2rg" path="res://asset/newUIlandingupdate/topleft.png" id="11_p3l0o"]
 [ext_resource type="PackedScene" uid="uid://clvghcukrtua8" path="res://scene/akashic_tcg_lobby.tscn" id="11_tgc"]
 [ext_resource type="Texture2D" uid="uid://bjkci8oobkta" path="res://asset/rankicon/MASTER.png" id="11_w34e0"]
-[ext_resource type="PackedScene" path="res://scene/defuse_trojan_lobby.tscn" id="12_defuse"]
+[ext_resource type="PackedScene" uid="uid://by8pxsiunowkt" path="res://scene/defuse_trojan_lobby.tscn" id="12_defuse"]
 [ext_resource type="Texture2D" uid="uid://c1p5w4nvx1i1l" path="res://asset/newUIlandingupdate/bottomleft.png" id="12_kbofv"]
 [ext_resource type="Texture2D" uid="uid://bpkxbcgeecepa" path="res://asset/newUIlandingupdate/rankframer.png" id="12_w34e0"]
 [ext_resource type="Texture2D" uid="uid://b53xk27ilwwy5" path="res://asset/newUIlandingupdate/example trophu.png" id="13_6jpks"]
@@ -366,7 +366,7 @@ font = ExtResource("16_8k3g4")
 font_size = 12
 font_color = Color(0, 0, 0, 1)
 outline_size = 5
-outline_color = Color(0, 0.8, 1, 1)
+outline_color = Color(0.937255, 0.235294, 0.207843, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_w34e0"]
 
@@ -873,28 +873,28 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_ie1g5")
 
 [node name="DefuseTheTrojan" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
 layout_mode = 0
-offset_left = -13.0
-offset_top = 14.0
-offset_right = 236.0
-offset_bottom = 338.0
+offset_left = -48.0
+offset_top = 3.0
+offset_right = 251.0
+offset_bottom = 385.0
 mouse_filter = 0
 texture = ExtResource("3_ie1g5")
 
 [node name="AkashicTCG" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
 layout_mode = 0
-offset_left = 249.0
+offset_left = 242.0
 offset_top = 22.0
-offset_right = 498.0
-offset_bottom = 336.0
+offset_right = 524.0
+offset_bottom = 400.0
 mouse_filter = 0
 texture = ExtResource("4_ie1g5")
 
 [node name="CodeBreaker" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
 layout_mode = 0
 offset_left = 517.0
-offset_top = 10.0
-offset_right = 765.0
-offset_bottom = 337.0
+offset_top = 8.0
+offset_right = 803.0
+offset_bottom = 389.0
 mouse_filter = 0
 texture = ExtResource("5_ie1g5")
 
@@ -1897,10 +1897,10 @@ text = "☰              "
 [node name="ChatPanel" parent="." instance=ExtResource("9_1dlu4")]
 visible = false
 layout_mode = 0
-offset_left = 36.0
-offset_top = 401.0
-offset_right = 362.0
-offset_bottom = 625.0
+offset_left = 17.0
+offset_top = 237.0
+offset_right = 569.0
+offset_bottom = 638.0
 
 [node name="FriendListPanel" parent="." instance=ExtResource("3_hlv06")]
 layout_mode = 0

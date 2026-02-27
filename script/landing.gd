@@ -809,6 +809,39 @@ func _render_match_history(items: Array) -> void:
 		row.add_child(right)
 		_match_history_vbox.add_child(row)
 
+	# Publish simplified history to RTDB so friends can view it on the profile modal
+	_publish_match_history_to_rtdb(items)
+
+
+func _publish_match_history_to_rtdb(items: Array) -> void:
+	var username := Auth.current_username
+	var token := Auth.current_id_token
+	if username == "" or token == "":
+		return
+	const _RTDB := "https://capstone-823dc-default-rtdb.firebaseio.com"
+	var history_data := []
+	var count := mini(items.size(), 20)
+	for i in range(count):
+		var doc = items[i]
+		var f: Dictionary = doc.get("fields", {})
+		history_data.append({
+			"game_type": _fs_string(f, "game_type", ""),
+			"result":    _fs_string(f, "result",    ""),
+			"winner":    _fs_string(f, "winner",    ""),
+			"loser":     _fs_string(f, "loser",     ""),
+			"opponent":  _fs_string(f, "opponent",  ""),
+			"host":      _fs_string(f, "host",      ""),
+			"client":    _fs_string(f, "client",    ""),
+			"timestamp":    _fs_int(f, "timestamp",    0),
+			"wave_reached": _fs_int(f, "wave_reached", 0),
+			"top_score":    _fs_int(f, "top_score",    0),
+			"mode":      _fs_string(f, "mode",      "")
+		})
+	var url := "%s/public_profiles/%s/recent_matches.json?auth=%s" % [_RTDB, username.uri_encode(), token]
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(func(_r, _c, _h, _b): req.queue_free())
+	req.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, JSON.stringify(history_data))
 
 func _load_match_history_from_user_doc() -> void:
 	if Auth.current_local_id == "" or Auth.current_id_token == "":
@@ -2496,6 +2529,15 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
 		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
 		match_played_input.text = str(wins + losses)
+
+	# Publish public profile to RTDB so friends can view it (bypasses Firestore 403)
+	var _pub_w := int(wins_input.text) if wins_input and wins_input.text.is_valid_int() else 0
+	var _pub_l := int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else 0
+	Auth.publish_public_profile({
+		"wins": _pub_w,
+		"losses": _pub_l,
+		"total_xp": TutorialManager.total_xp
+	})
 	
 	# Check welcome tutorial
 	var welcome_completed := true
@@ -2541,8 +2583,8 @@ func _show_starter_reward_popup(welcome_completed: bool) -> void:
 	_apply_font_to_children(popup, custom_font, 20)
 
 	var guide_icon: Texture2D = null
-	if ResourceLoader.exists("res://asset/newUIlandingupdate/example trophu.png"):
-		guide_icon = load("res://asset/newUIlandingupdate/example trophu.png")
+	if ResourceLoader.exists("res://asset/newUIlandingupdate/beginnerbadgdes.png"):
+		guide_icon = load("res://asset/newUIlandingupdate/beginnerbadgdes.png")
 
 	var chariot_path := "res://asset/reward_background_cards/the chariot 7 card.jpeg"
 	var chariot_icon: Texture2D = null
@@ -2570,7 +2612,7 @@ func _show_starter_reward_claimed_async(welcome_completed: bool) -> void:
 			"type": "badge",
 			"rarity": "common",
 			"description": "Your quick-start guide.",
-			"icon_path": "res://asset/icons/hologram_guide.png",
+			"icon_path": "res://asset/newUIlandingupdate/beginnerbadgdes.png",
 			"amount": 1,
 		})
 

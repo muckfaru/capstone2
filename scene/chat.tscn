@@ -1,42 +1,96 @@
-[gd_scene load_steps=8 format=3 uid="uid://d0infgusfi845"]
+[gd_scene load_steps=10 format=3 uid="uid://d0infgusfi845"]
 
 [ext_resource type="Script" uid="uid://d2rxkk4fy6h00" path="res://script/chat.gd" id="1_chatgd"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_1781r"]
+[ext_resource type="Texture2D" uid="uid://dfiuums4nog7" path="res://asset/newUIlandingupdate/Arrow 1.png" id="3_miach"]
+[ext_resource type="Texture2D" uid="uid://q4o4v2qa5p1k" path="res://asset/newUIlandingupdate/sent.png" id="4_0yfik"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_odng3"]
-bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+bg_color = Color(0.024, 0.184, 0.376, 0.597)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0yfik"]
+bg_color = Color(0.00392157, 0.101961, 0.180392, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.937255, 0.235294, 0.207843, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v4gu4"]
+bg_color = Color(0.00392157, 0.101961, 0.180392, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y4cq1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x0o17"]
 bg_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0yfik"]
-bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1781r"]
-bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_miach"]
-bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
-
 [node name="ChatPanel" type="Panel"]
-offset_left = 66.0
-offset_top = 405.0
-offset_right = 392.0
-offset_bottom = 629.0
+offset_left = 39.0
+offset_top = 230.0
+offset_right = 600.0
+offset_bottom = 625.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_odng3")
 script = ExtResource("1_chatgd")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+offset_left = 12.0
+offset_top = 337.0
+offset_right = 558.0
+offset_bottom = 387.0
+
+[node name="LineEdit" type="LineEdit" parent="HBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxFlat_0yfik")
+theme_override_styles/normal = SubResource("StyleBoxFlat_v4gu4")
+placeholder_text = "Type a message..."
+
+[node name="Control" type="Control" parent="HBoxContainer"]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_y4cq1")
+text = "  "
+icon = ExtResource("4_0yfik")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = -21.0
+offset_bottom = -65.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="Panel" type="Panel" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
@@ -63,13 +117,13 @@ vertical_alignment = 1
 
 [node name="CloseChatButton" type="Button" parent="VBoxContainer/Panel"]
 layout_mode = 0
-offset_left = 290.0
+offset_left = 12.0
 offset_top = 4.0
-offset_right = 319.0
+offset_right = 55.0
 offset_bottom = 35.0
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 0, 0, 1)
-text = "X"
+icon = ExtResource("3_miach")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
 layout_mode = 2
@@ -79,20 +133,3 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 35)
-layout_mode = 2
-
-[node name="LineEdit" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/focus = SubResource("StyleBoxFlat_0yfik")
-theme_override_styles/normal = SubResource("StyleBoxFlat_1781r")
-placeholder_text = "Type a message..."
-
-[node name="Button" type="Button" parent="VBoxContainer/HBoxContainer"]
-layout_mode = 2
-mouse_default_cursor_shape = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_miach")
-text = "➤➤"
