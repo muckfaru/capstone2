@@ -15,6 +15,12 @@ extends Control
 @onready var confirm_overlay: ColorRect = $ConfirmOverlay
 @onready var confirm_popup: PanelContainer = $ConfirmOverlay/ConfirmPopup
 
+# GameMode multiplayer
+var _is_gamemode: bool = false
+var _gamemode_room_code: String = ""
+var _gamemode_lobby_url: String = ""
+var _gamemode_start_time_ms: int = 0
+
 # Game State
 enum GameState { BRIEFING, PASSWORD_BUILD, BATTLE, VICTORY, DEFEAT }
 var current_state: GameState = GameState.BRIEFING
@@ -82,6 +88,18 @@ func _ready() -> void:
 	_setup_signals()
 	_start_wave(current_wave)
 	print("✅ Password Fortress Defender Ready!")
+	
+	# GameMode detection
+	_is_gamemode = get_tree().has_meta("gamemode_room_code")
+	if _is_gamemode:
+		_gamemode_room_code = str(get_tree().get_meta("gamemode_room_code", ""))
+		_gamemode_lobby_url = str(get_tree().get_meta("gamemode_lobby_url", ""))
+		_gamemode_start_time_ms = int(get_tree().get_meta("gamemode_start_time_ms", 0))
+		print("[GameMode] Password Fortress running in game mode (room: %s)" % _gamemode_room_code)
+		# Hide close button in GameMode
+		var close_btn = get_node_or_null("WindowDialog/VBox/TitleBar/MarginContainer/HBox/CloseButton")
+		if close_btn:
+			close_btn.visible = false
 
 func _process(delta: float) -> void:
 	if current_state == GameState.BATTLE and battle_active:
@@ -623,6 +641,10 @@ func _on_next_pressed() -> void:
 		var max_score := 200
 		print("[TUTORIAL] Calculated Score: %d / Max: %d" % [player_score, max_score])
 		
+		if _is_gamemode:
+			_submit_gamemode_score(player_score, max_score)
+			return
+		
 		var tutorial_mgr = get_node("/root/TutorialManager")
 		if tutorial_mgr:
 			print("[TUTORIAL] TutorialManager found, saving result...")
@@ -648,6 +670,8 @@ func _on_next_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	if current_wave == 0:
+		if _is_gamemode:
+			return  # Block quitting in GameMode
 		get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 	elif current_state == GameState.DEFEAT or current_state == GameState.PASSWORD_BUILD or current_state == GameState.BATTLE:
 		content_text.visible = true
@@ -1199,6 +1223,8 @@ func _close_term_popup() -> void:
 	term_popup.visible = false
 
 func _on_close_button_pressed() -> void:
+	if _is_gamemode:
+		return  # Block closing in GameMode
 	# Show confirmation popup
 	confirm_overlay.visible = true
 	
@@ -1212,6 +1238,8 @@ func _on_close_button_pressed() -> void:
 	tween.tween_property(confirm_popup, "scale", Vector2.ONE, 0.3)
 
 func _on_confirm_yes_pressed() -> void:
+	if _is_gamemode:
+		return  # Block quitting in GameMode
 	# User confirmed - go back to mode selection
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
@@ -1221,3 +1249,36 @@ func _on_confirm_no_pressed() -> void:
 	tween.tween_property(confirm_popup, "scale", Vector2.ZERO, 0.2)
 	await tween.finished
 	confirm_overlay.visible = false
+
+
+# ============================================
+# GAMEMODE MULTIPLAYER
+# ============================================
+
+func _submit_gamemode_score(final_score: int, max_score: int) -> void:
+	var time_taken_ms := Time.get_ticks_msec() - _gamemode_start_time_ms
+	var url := _gamemode_lobby_url + "/api/gamemode/%s/submit" % _gamemode_room_code
+	var body := JSON.stringify({
+		"player_id": Auth.current_local_id,
+		"score": final_score,
+		"max_score": max_score,
+		"time_taken_ms": time_taken_ms
+	})
+
+	next_button.disabled = true
+	next_button.text = "Submitting..."
+
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		print("[GameMode] Score submitted: %d/%d (time: %dms) → status %d" % [final_score, max_score, time_taken_ms, code])
+		_go_to_leaderboard()
+	)
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
+
+
+func _go_to_leaderboard() -> void:
+	get_tree().set_meta("gamemode_leaderboard_room_code", _gamemode_room_code)
+	get_tree().set_meta("gamemode_leaderboard_lobby_url", _gamemode_lobby_url)
+	get_tree().change_scene_to_file("res://scene/gamemode_leaderboard.tscn")

@@ -902,7 +902,7 @@ func _update_stats_leaderboard(data: Dictionary) -> void:
 		var score_lbl := Label.new()
 		var finished: bool = entry.get("finished", false)
 		if finished:
-			score_lbl.text = "%d/%d" % [entry.get("score", 0), total_q]
+			score_lbl.text = "%d" % entry.get("score", 0)
 		else:
 			score_lbl.text = "answering..."
 		score_lbl.add_theme_color_override("font_color", Color(0, 1, 0.5) if finished else Color(0.7, 0.7, 0.7))
@@ -1130,7 +1130,7 @@ func _update_gamemode_leaderboard(data: Dictionary) -> void:
 		if not is_time_only:
 			var score_lbl := Label.new()
 			if finished:
-				score_lbl.text = "%d/%d" % [entry.get("score", 0), entry.get("max_score", 300)]
+				score_lbl.text = "%d" % entry.get("score", 0)
 			else:
 				score_lbl.text = "playing..."
 			score_lbl.custom_minimum_size = Vector2(80, 0)

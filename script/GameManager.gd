@@ -11,6 +11,12 @@ var max_waves = 5
 var wave_in_progress = false
 @onready var quit_btn: Button = $Background/Quit
 
+# GameMode multiplayer
+var _is_gamemode: bool = false
+var _gamemode_room_code: String = ""
+var _gamemode_lobby_url: String = ""
+var _gamemode_start_time_ms: int = 0
+
 # ✅ Wave completion tracking
 var threats_spawned_this_wave = 0
 var threats_defeated_this_wave = 0
@@ -147,6 +153,17 @@ func _ready():
 	
 	load_custom_cursor()
 	quit_btn.pressed.connect(_on_quit_pressed)
+	
+	# ✅ GameMode detection
+	if get_tree().has_meta("gamemode_room_code"):
+		_is_gamemode = true
+		_gamemode_room_code = get_tree().get_meta("gamemode_room_code")
+		_gamemode_lobby_url = get_tree().get_meta("gamemode_lobby_url")
+		_gamemode_start_time_ms = get_tree().get_meta("gamemode_start_time_ms")
+		print("[Asset vs Threats] 🎮 GameMode detected — room: %s" % _gamemode_room_code)
+		# Hide quit button in GameMode
+		if quit_btn:
+			quit_btn.visible = false
 	
 	print("\n=== 🛡️ DEFENSE MATRIX ===")
 	for threat in defense_matrix.keys():
@@ -364,6 +381,8 @@ func start_game():
 
 func _on_quit_pressed() -> void:
 	"""Return to mode selection from anywhere in the game"""
+	if _is_gamemode:
+		return  # Block quitting in GameMode
 	print("[Network Defense] Quit button pressed, returning to mode selection...")
 	
 	# ✅ Stop BGM when quitting
@@ -621,6 +640,10 @@ func win_game():
 	if xp_awarded == 0:
 		print("  ⚠️ Replay - No XP awarded (game still playable!)")
 	
+	if _is_gamemode:
+		_submit_gamemode_score(score, 500)
+		return
+	
 	show_victory()
 
 func show_victory():
@@ -646,39 +669,45 @@ func show_victory():
 			stats_label.text += "\n🏆 PERFECT DEFENSE! 🏆"
 
 func show_game_over():
+	# Calculate stats first (needed for both GameMode and normal)
+	var protected_count = 0
+	for health in assets_health.values():
+		if health > 0:
+			protected_count += 1
+	
+	var protection_rate = float(protected_count) / float(assets_health.size()) * 100
+	var rating = "Bronze ⭐"
+	
+	if protection_rate >= 100:
+		rating = "Gold ⭐⭐⭐"
+	elif protection_rate >= 75:
+		rating = "Silver ⭐⭐"
+	
+	# ✅ AWARD PARTIAL XP ON LOSS (Based on performance)
+	var wave_xp = current_wave * 5  # 5 XP per wave reached (vs 8 XP on win)
+	var score_xp = int((float(score) / 1000.0) * 15)  # Up to 15 XP from score (vs 30 on win)
+	var protection_xp = int((protection_rate / 100.0) * 15)  # Up to 15 XP from protection (vs 30 on win)
+	var partial_xp = wave_xp + score_xp + protection_xp
+	
+	print("[Asset vs Threats] 💀 Game Over - Awarding partial XP:")
+	print("  Wave XP: %d (wave %d)" % [wave_xp, current_wave])
+	print("  Score XP: %d (score %d)" % [score_xp, score])
+	print("  Protection XP: %d (%.1f%% protected)" % [protection_xp, protection_rate])
+	print("  Total Partial XP: %d" % partial_xp)
+	
+	# Award XP but DON'T mark as completed
+	TutorialManager.add_xp(partial_xp, "Asset vs Threats (Attempt)")
+	
+	# ✅ GameMode: skip game over panel, go straight to leaderboard
+	if _is_gamemode:
+		_submit_gamemode_score(score, 500)
+		return
+	
 	if game_over_panel:
 		game_over_panel.visible = true
 		
 		var result_label = game_over_panel.get_node_or_null("VBox/ResultLabel")
 		var stats_label = game_over_panel.get_node_or_null("VBox/StatsLabel")
-		
-		var protected_count = 0
-		for health in assets_health.values():
-			if health > 0:
-				protected_count += 1
-		
-		var protection_rate = float(protected_count) / float(assets_health.size()) * 100
-		var rating = "Bronze ⭐"
-		
-		if protection_rate >= 100:
-			rating = "Gold ⭐⭐⭐"
-		elif protection_rate >= 75:
-			rating = "Silver ⭐⭐"
-		
-		# ✅ AWARD PARTIAL XP ON LOSS (Based on performance)
-		var wave_xp = current_wave * 5  # 5 XP per wave reached (vs 8 XP on win)
-		var score_xp = int((float(score) / 1000.0) * 15)  # Up to 15 XP from score (vs 30 on win)
-		var protection_xp = int((protection_rate / 100.0) * 15)  # Up to 15 XP from protection (vs 30 on win)
-		var partial_xp = wave_xp + score_xp + protection_xp
-		
-		print("[Asset vs Threats] 💀 Game Over - Awarding partial XP:")
-		print("  Wave XP: %d (wave %d)" % [wave_xp, current_wave])
-		print("  Score XP: %d (score %d)" % [score_xp, score])
-		print("  Protection XP: %d (%.1f%% protected)" % [protection_xp, protection_rate])
-		print("  Total Partial XP: %d" % partial_xp)
-		
-		# Award XP but DON'T mark as completed
-		TutorialManager.add_xp(partial_xp, "Asset vs Threats (Attempt)")
 		
 		if result_label:
 			if protection_rate >= 50:
@@ -741,5 +770,40 @@ func _on_RestartButton_pressed():
 func _input(event):
 		# Handle ESC key to quit/return to mode selection
 		if event.is_action_pressed("ui_cancel"):  # ESC key
+			if _is_gamemode:
+				return  # Block ESC in GameMode
 			print("[Network Defense] ESC key pressed")
 			_on_quit_pressed()
+
+
+# ============================================
+# GAMEMODE MULTIPLAYER
+# ============================================
+
+func _submit_gamemode_score(final_score: int, max_score: int) -> void:
+	var time_taken_ms := Time.get_ticks_msec() - _gamemode_start_time_ms
+	var url := _gamemode_lobby_url + "/api/gamemode/%s/submit" % _gamemode_room_code
+	var body := JSON.stringify({
+		"player_id": Auth.current_local_id,
+		"score": final_score,
+		"max_score": max_score,
+		"time_taken_ms": time_taken_ms
+	})
+
+	print("[GameMode] Submitting score: %d/%d (time: %dms)" % [final_score, max_score, time_taken_ms])
+
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		print("[GameMode] Score submitted → status %d" % code)
+		_go_to_leaderboard()
+	)
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
+
+
+func _go_to_leaderboard() -> void:
+	reset_cursor()
+	get_tree().set_meta("gamemode_leaderboard_room_code", _gamemode_room_code)
+	get_tree().set_meta("gamemode_leaderboard_lobby_url", _gamemode_lobby_url)
+	get_tree().change_scene_to_file("res://scene/gamemode_leaderboard.tscn")

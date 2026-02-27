@@ -340,13 +340,70 @@ In GameMode:
 - **Leaderboard:** Time column only (Score column hidden)
 - **GameMode behavior:** On COMPLETE, submits time → redirects to student leaderboard. Both teacher and student leaderboard detect "Encryption" in game name and hide Score column.
 
+#### 4. Password Fortress Defender
+- **Script:** `script/tutorial_password_basics.gd`
+- **GameState enum:** BRIEFING → PASSWORD_BUILD → BATTLE → VICTORY → DEFEAT
+- **Score submission:** `score = player_score`, `max_score = 200`
+- **Leaderboard:** Score + Time columns
+- **GameMode behavior:** Hides CloseButton, blocks back on wave 0, blocks confirm-quit. On final wave completion submits score → redirects to student leaderboard.
+
+#### 5. Malware Types Overview
+- **Script:** `script/tutorial_malware_types.gd`
+- **Phases:** Timed (90s), 6 incident reports to classify
+- **Score submission:** `score = final_score (0-100)`, `max_score = 100`
+- **Leaderboard:** Score + Time columns
+- **GameMode behavior:** Hides CloseButton, blocks back/confirm-quit. On time expired, submits partial score. On FINISH, submits computed score → redirects to student leaderboard.
+
+#### 6. Drop Zone Defender
+- **Script:** `script/datavsnetworkgmmanager.gd`
+- **Phases:** Tutorial → 8 waves of drag-and-drop attack classification
+- **Score submission:** `score = score (accumulated)`, `max_score = 500`
+- **Leaderboard:** Score + Time columns
+- **GameMode behavior:** Hides Quit button, blocks ESC. On victory, submits score → leaderboard. On game over (system critical), submits partial score → leaderboard (no retry).
+
+#### 7. Phishing Detection Lab (Two-Part Chain)
+- **Intro Script:** `scene/phishing_intro.gd` — Splash page chains to lab
+- **Lab Script:** `script/tutorial_phishing_lab.gd` — Gmail-style email analysis
+- **Phases:** 8 emails to analyze (90s timer), actions: Reply/Spam/Delete
+- **Score submission:** `score = score`, `max_score = 1200` (8 emails × 150 max)
+- **Leaderboard:** Score + Time columns
+- **GameMode behavior:** Intro hides BackButton. Lab hides BackButton. On final results OK → submits score → leaderboard. On time expired → shows results → OK → submits → leaderboard.
+
+#### 8. Asset vs Threats
+- **Script:** `script/GameManager.gd`
+- **Phases:** Wave-based (5 waves), click-to-defend threats on assets
+- **Score submission:** `score = score (accumulated)`, `max_score = 500`
+- **Leaderboard:** Score + Time columns
+- **GameMode behavior:** Hides Quit button, blocks ESC. On victory (`win_game()`), submits score → leaderboard. On game over (`show_game_over()`), submits partial score → leaderboard (no restart).
+
+#### 9. Crypt Contract
+- **Script:** `script/PhoneEncryption.gd`
+- **Phases:** Mission-based (5 missions), create encryption keys to protect phone data
+- **Score submission:** `score = score (accumulated)`, `max_score = 500`
+- **Leaderboard:** Score + Time columns
+- **GameMode behavior:** Hides Quitbtn. On victory (`victory()`), submits score → leaderboard (skips victory panel). On game over (`game_over()`), submits partial score → leaderboard (skips retry). VictoryPanel QuitButton also submits in GameMode.
+
+#### 10. Incident Commander
+- **Script:** `script/SOCMain.gd`
+- **Phases:** Wave-based (10 waves), SOC command-line defense
+- **Score submission:** `score = score (accumulated)`, `max_score = 500`
+- **Leaderboard:** Score + Time columns
+- **GameMode behavior:** Hides Quit button, blocks ESC, blocks keyboard shortcuts (R/SPACE/ENTER) from restarting. On victory, submits score → leaderboard. On game over (debrief), submits partial score → leaderboard (no restart). `_on_victory_exit()` and `_on_debrief_restart()` both redirect to submit in GameMode.
+
+#### 11. Security Guardian
+- **Script:** `script/authgmMain.gd`
+- **Phases:** Scenario-based (10 waves), approve/deny authentication requests
+- **Score submission:** `score = correct_decisions * 10 + attacks_blocked * 5`, `max_score = 500`
+- **Leaderboard:** Score + Time columns
+- **GameMode behavior:** Hides ExitButton, blocks ESC, blocks replay. On victory (`_show_debrief()`), submits score → leaderboard (skips debrief panel). On game over (`_show_game_over()`), submits partial score → leaderboard (skips debrief panel). `_on_continue_pressed()` also submits in GameMode.
+
 ### Student Leaderboard
 - **Scene:** `scene/gamemode_leaderboard.tscn`
 - **Script:** `script/gamemode_leaderboard.gd`
 - **Meta keys:** `gamemode_leaderboard_room_code`, `gamemode_leaderboard_lobby_url` (set by game scripts before transition)
 - **Polling:** Every 5 seconds via `GET /api/gamemode/:code/results`
 - **Features:** Highlights current player with "(You)" suffix and cyan row background. Shows time-only layout for Encryption.
-- **Flow:** All 3 games → submit score → set leaderboard meta → change scene to `gamemode_leaderboard.tscn` → student views live leaderboard → "Back to Landing" button
+- **Flow:** All 11 games → submit score → set leaderboard meta → change scene to `gamemode_leaderboard.tscn` → student views live leaderboard → "Back to Landing" button
 
 ### Teacher Leaderboard Customization
 - `_update_gamemode_leaderboard()` in `TeacherCreateRoom.gd` checks if game name contains "encryption"
