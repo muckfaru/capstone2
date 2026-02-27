@@ -196,7 +196,7 @@ func _update_leaderboard(data: Dictionary) -> void:
 		if not is_time_only:
 			var score_lbl := Label.new()
 			if finished:
-				score_lbl.text = "%d/%d" % [entry.get("score", 0), entry.get("max_score", 300)]
+				score_lbl.text = "%d" % entry.get("score", 0)
 			else:
 				score_lbl.text = "playing..."
 			score_lbl.custom_minimum_size = Vector2(100, 0)

@@ -51,6 +51,12 @@ var threats_neutralized := 0
 var threats_missed := 0
 var missed_threats_data := []
 
+# GameMode multiplayer
+var _is_gamemode: bool = false
+var _gamemode_room_code: String = ""
+var _gamemode_lobby_url: String = ""
+var _gamemode_start_time_ms: int = 0
+
 # Victory conditions
 const VICTORY_WAVE := 10  # Win after completing wave 10
 var game_won := false
@@ -259,6 +265,16 @@ func _ready():
 	
 	# Connect quit button
 	connect_button_sounds(quit_btn)
+	
+	# ✅ GameMode detection
+	if get_tree().has_meta("gamemode_room_code"):
+		_is_gamemode = true
+		_gamemode_room_code = get_tree().get_meta("gamemode_room_code")
+		_gamemode_lobby_url = get_tree().get_meta("gamemode_lobby_url")
+		_gamemode_start_time_ms = get_tree().get_meta("gamemode_start_time_ms")
+		print("[Incident Commander] 🎮 GameMode detected — room: %s" % _gamemode_room_code)
+		if quit_btn:
+			quit_btn.visible = false
 	
 	# Connect tutorial button
 	if has_node("UI/TutorialPanel/ContinueButton"):
@@ -609,6 +625,8 @@ func _on_button_press():
 # ============================================================================
 
 func _on_quit_pressed() -> void:
+	if _is_gamemode:
+		return  # Block quitting in GameMode
 	print("[Quit] Button pressed")
 	_play_sfx(audio_ui_click, 0, 1.0)
 	
@@ -1047,6 +1065,10 @@ func victory():
 	if xp_awarded == 0:
 		print("  ⚠️ Replay - No XP awarded (game still playable!)")
 	
+	if _is_gamemode:
+		_submit_gamemode_score(score, 500)
+		return
+	
 	var victory_text = "[b][color=lime]🎉 MISSION ACCOMPLISHED! 🎉[/color][/b]\n\n"
 	victory_text += "[color=cyan]You completed all 10 waves and defeated the final assault![/color]\n\n"
 	victory_text += "[b]PERFORMANCE REPORT:[/b]\n\n"
@@ -1109,6 +1131,10 @@ func game_over():
 	# Award XP but DON'T mark as completed
 	TutorialManager.add_xp(partial_xp, "Incident Commander (Attempt)")
 	
+	if _is_gamemode:
+		_submit_gamemode_score(score, 500)
+		return
+	
 	var debrief = "[b]SECURITY OPERATIONS FAILED[/b]\n\n"
 	debrief += "Threats Neutralized: [color=lime]" + str(threats_neutralized) + "[/color]\n"
 	debrief += "Threats Missed: [color=red]" + str(threats_missed) + "[/color]\n"
@@ -1136,6 +1162,9 @@ func game_over():
 
 # ✅ DebriefPanel RestartButton → RESTARTS the game
 func _on_debrief_restart():
+	if _is_gamemode:
+		_submit_gamemode_score(score, 500)
+		return
 	print("\n" + "=".repeat(80))
 	print("🔄 [DEBUG] DebriefPanel RESTART button clicked!")
 	print("=".repeat(80))
@@ -1166,6 +1195,9 @@ func _on_debrief_restart():
 
 # ✅ VictoryPanel RestartButton → EXITS to mode selection
 func _on_victory_exit():
+	if _is_gamemode:
+		_submit_gamemode_score(score, 500)
+		return
 	print("\n" + "=".repeat(80))
 	print("🚪 [DEBUG] VictoryPanel EXIT button clicked!")
 	print("=".repeat(80))
@@ -1192,6 +1224,8 @@ func _input(event):
 	if event is InputEventKey and event.pressed:
 		# ESC key - always quits to menu
 		if event.keycode == KEY_ESCAPE:
+			if _is_gamemode:
+				return  # Block ESC in GameMode
 			_on_quit_pressed()
 		
 		# R key or SPACE - restart if debrief panel is visible
@@ -1208,3 +1242,35 @@ func _input(event):
 
 func play_threat_neutralized_sound():
 	_play_sfx(audio_threat_neutralized, 0.1, 1.0)
+
+
+# ============================================
+# GAMEMODE MULTIPLAYER
+# ============================================
+
+func _submit_gamemode_score(final_score: int, max_score: int) -> void:
+	var time_taken_ms := Time.get_ticks_msec() - _gamemode_start_time_ms
+	var url := _gamemode_lobby_url + "/api/gamemode/%s/submit" % _gamemode_room_code
+	var body := JSON.stringify({
+		"player_id": Auth.current_local_id,
+		"score": final_score,
+		"max_score": max_score,
+		"time_taken_ms": time_taken_ms
+	})
+
+	print("[GameMode] Submitting score: %d/%d (time: %dms)" % [final_score, max_score, time_taken_ms])
+
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		print("[GameMode] Score submitted → status %d" % code)
+		_go_to_leaderboard()
+	)
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
+
+
+func _go_to_leaderboard() -> void:
+	get_tree().set_meta("gamemode_leaderboard_room_code", _gamemode_room_code)
+	get_tree().set_meta("gamemode_leaderboard_lobby_url", _gamemode_lobby_url)
+	get_tree().change_scene_to_file("res://scene/gamemode_leaderboard.tscn")
