@@ -445,7 +445,6 @@ func _display_rank(rank: Dictionary) -> void:
 					user_panel2.add_child(rank_icon_rect)
 			if is_instance_valid(rank_icon_rect):
 				rank_icon_rect.texture = rank_texture
-				_add_glow_to_rank_icon(rank_icon_rect, color)
 				print("[ViewPlayerProfile] ✅ Rank icon displayed")
 	if rank_label:
 		rank_label.text = rank_name

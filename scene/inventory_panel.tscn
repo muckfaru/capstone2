@@ -1,28 +1,131 @@
-[gd_scene load_steps=14 format=3 uid="uid://7tjwuknii5ij"]
+[gd_scene load_steps=32 format=3 uid="uid://7tjwuknii5ij"]
 
 [ext_resource type="Script" uid="uid://7gmira7sv3on" path="res://script/inventory_panel.gd" id="1_inventory"]
 [ext_resource type="Texture2D" uid="uid://bsdt466q6oftp" path="res://asset/newUIlandingupdate/Group 115.png" id="1_puhy8"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_sccuv"]
 [ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="3_jw66u"]
 [ext_resource type="FontFile" uid="uid://gj4s1cvcj5il" path="res://asset/fonts/ChakraPetch-SemiBold.ttf" id="4_jw66u"]
+[ext_resource type="Texture2D" uid="uid://ca4p0dn5w8adu" path="res://asset/newUIlandingupdate/beginnerbadgdes.png" id="6_n18cb"]
+[ext_resource type="Texture2D" uid="uid://5wh8vqpt5xoh" path="res://asset/avatars/default.png" id="6_n723b"]
 [ext_resource type="Texture2D" uid="uid://dwqolbjt7ppqx" path="res://asset/Group 44.png" id="6_p2c31"]
+[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="7_icccq"]
 [ext_resource type="Texture2D" uid="uid://cwbi1ffhuk7he" path="res://asset/Group 42.png" id="7_ylscw"]
 [ext_resource type="Texture2D" uid="uid://pmw11w6gwi7f" path="res://asset/Group 43.png" id="8_n723b"]
 [ext_resource type="Texture2D" uid="uid://csw7w01ns12j1" path="res://asset/Group 41.png" id="9_icccq"]
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="9_n1str"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_p2c31"]
 texture = ExtResource("1_puhy8")
 
-[sub_resource type="LabelSettings" id="LabelSettings_sccuv"]
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
 font_size = 28
 shadow_size = 10
 shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
 
-[sub_resource type="LabelSettings" id="LabelSettings_puhy8"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cat_hover"]
+bg_color = Color(0, 0.6, 0.7, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cat_normal"]
+bg_color = Color(0.1, 0.2, 0.3, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 0.6)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="LabelSettings" id="LabelSettings_sort"]
 font = ExtResource("4_jw66u")
 font_color = Color(0, 1, 0, 1)
 shadow_size = 5
 shadow_color = Color(0.193, 0.517, 0.739, 0.735)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sort_hover"]
+bg_color = Color(0, 0.5, 0.6, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.7, 0.8, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sort_normal"]
+bg_color = Color(0.05, 0.1, 0.15, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.7, 0.8, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_item_card"]
+bg_color = Color(0.1, 0.1, 0.15, 0.9)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.7, 0.7, 0.7, 1)
+border_blend = true
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h7hmr"]
+corner_radius_top_left = 80
+corner_radius_top_right = 80
+corner_radius_bottom_right = 80
+corner_radius_bottom_left = 80
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n723b"]
+border_blend = true
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_icccq"]
+border_blend = true
+corner_radius_top_left = 80
+corner_radius_top_right = 80
+corner_radius_bottom_right = 80
+corner_radius_bottom_left = 80
+
+[sub_resource type="LabelSettings" id="LabelSettings_n18cb"]
+font = ExtResource("7_icccq")
+font_size = 13
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n18cb"]
+draw_center = false
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.992157, 0.145098, 0.145098, 1)
+border_blend = true
+corner_radius_top_left = 80
+corner_radius_top_right = 80
+corner_radius_bottom_right = 80
+corner_radius_bottom_left = 80
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_detail_panel"]
 bg_color = Color(0.184314, 0.403922, 0.439216, 0.670588)
@@ -30,13 +133,44 @@ border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(1, 0.415686, 0.717647, 1)
+border_color = Color(0.966628, 0.0677985, 0.102811, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 shadow_color = Color(0.854864, 4.33177e-06, 0.531595, 0.4)
 shadow_size = 12
+
+[sub_resource type="LabelSettings" id="LabelSettings_h7hmr"]
+font = ExtResource("9_n1str")
+font_size = 22
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_detail"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_equip_hover"]
+bg_color = Color(0, 0.6, 0.7, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_equip_normal"]
+bg_color = Color(0, 0.3, 0.4, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="InventoryPanel" type="Panel"]
 custom_minimum_size = Vector2(800, 600)
@@ -56,14 +190,15 @@ script = ExtResource("1_inventory")
 
 [node name="TitleLabel" type="Label" parent="."]
 layout_mode = 0
-offset_top = 20.0
-offset_right = 800.0
-offset_bottom = 60.0
+offset_left = 260.0
+offset_top = 10.0
+offset_right = 601.0
+offset_bottom = 50.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 28
 text = "YOUR INVENTORY"
-label_settings = SubResource("LabelSettings_sccuv")
+label_settings = SubResource("LabelSettings_title")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -76,11 +211,71 @@ offset_bottom = 125.0
 theme_override_constants/separation = 10
 alignment = 1
 
+[node name="BtnCatAll" type="Button" parent="CategoryContainer"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/hover = SubResource("StyleBoxFlat_cat_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cat_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_cat_normal")
+text = "All Items"
+
+[node name="BtnCatBadge" type="Button" parent="CategoryContainer"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/hover = SubResource("StyleBoxFlat_cat_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cat_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_cat_normal")
+text = "Badges"
+
+[node name="BtnCatCard" type="Button" parent="CategoryContainer"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/hover = SubResource("StyleBoxFlat_cat_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cat_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_cat_normal")
+text = "Cards"
+
+[node name="BtnCatAvatar" type="Button" parent="CategoryContainer"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/hover = SubResource("StyleBoxFlat_cat_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cat_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_cat_normal")
+text = "Avatars"
+
+[node name="BtnCatPowerup" type="Button" parent="CategoryContainer"]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/hover = SubResource("StyleBoxFlat_cat_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cat_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_cat_normal")
+text = "Power-ups"
+
 [node name="SortContainer" type="HBoxContainer" parent="."]
 layout_mode = 0
-offset_left = 18.0
+offset_left = 9.0
 offset_top = 136.0
-offset_right = 718.0
+offset_right = 709.0
 offset_bottom = 176.0
 theme_override_constants/separation = 10
 
@@ -90,14 +285,50 @@ theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("3_jw66u")
 theme_override_font_sizes/font_size = 14
 text = "Sort by:"
-label_settings = SubResource("LabelSettings_puhy8")
+label_settings = SubResource("LabelSettings_sort")
 vertical_alignment = 1
+
+[node name="BtnSortRarity" type="Button" parent="SortContainer"]
+custom_minimum_size = Vector2(100, 35)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0.8, 1, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_sort_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_sort_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_sort_normal")
+text = "By Rarity"
+
+[node name="BtnSortDate" type="Button" parent="SortContainer"]
+custom_minimum_size = Vector2(100, 35)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0.8, 1, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_sort_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_sort_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_sort_normal")
+text = "By Date"
+
+[node name="BtnSortName" type="Button" parent="SortContainer"]
+custom_minimum_size = Vector2(100, 35)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0.8, 1, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_sort_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_sort_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_sort_normal")
+text = "By Name"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 185.0
-offset_right = 780.0
+offset_left = 77.0
+offset_top = 190.0
+offset_right = 776.0
 offset_bottom = 575.0
 horizontal_scroll_mode = 0
 
@@ -106,9 +337,513 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_default_cursor_shape = 2
-theme_override_constants/h_separation = 15
-theme_override_constants/v_separation = 15
+theme_override_constants/h_separation = 25
+theme_override_constants/v_separation = 25
 columns = 4
+
+[node name="LoadingLabel" type="Label" parent="ScrollContainer/ItemsGrid"]
+visible = false
+custom_minimum_size = Vector2(600, 300)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_jw66u")
+theme_override_font_sizes/font_size = 18
+text = "Loading inventory..."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EmptyStateLabel" type="Label" parent="ScrollContainer/ItemsGrid"]
+visible = false
+custom_minimum_size = Vector2(600, 200)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 0.7, 0.8, 1)
+theme_override_fonts/font = ExtResource("3_jw66u")
+theme_override_font_sizes/font_size = 18
+text = "Your inventory is empty.
+Complete missions to earn rewards!"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="NoResultsLabel" type="Label" parent="ScrollContainer/ItemsGrid"]
+visible = false
+custom_minimum_size = Vector2(600, 200)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 0.7, 0.8, 1)
+theme_override_fonts/font = ExtResource("3_jw66u")
+theme_override_font_sizes/font_size = 16
+text = "No items match this filter.
+Try selecting a different category!"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="ErrorLabel" type="Label" parent="ScrollContainer/ItemsGrid"]
+visible = false
+custom_minimum_size = Vector2(600, 200)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_fonts/font = ExtResource("3_jw66u")
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="CardTemplateBadge" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(150, 185)
+layout_mode = 0
+offset_top = 8.0
+offset_right = 147.0
+offset_bottom = 153.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_item_card")
+
+[node name="EquippedBadge" type="Label" parent="CardTemplateBadge"]
+visible = false
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 73.0
+offset_bottom = 24.0
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 11
+text = "EQUIPPED"
+horizontal_alignment = 1
+
+[node name="CardVBox" type="VBoxContainer" parent="CardTemplateBadge"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -11.0
+offset_bottom = -11.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="IconContainer" type="PanelContainer" parent="CardTemplateBadge/CardVBox"]
+clip_children = 1
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_h7hmr")
+
+[node name="ItemIcon" type="TextureRect" parent="CardTemplateBadge/CardVBox/IconContainer"]
+clip_children = 2
+clip_contents = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+texture = ExtResource("6_n18cb")
+expand_mode = 1
+
+[node name="FallbackLabel" type="Label" parent="CardTemplateBadge/CardVBox/IconContainer"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "🏆"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ItemName" type="Label" parent="CardTemplateBadge/CardVBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_jw66u")
+theme_override_font_sizes/font_size = 13
+text = "Badge Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RarityLabel" type="Label" parent="CardTemplateBadge/CardVBox"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "Common"
+horizontal_alignment = 1
+
+[node name="CardTemplateCard" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(150, 200)
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 200.0
+mouse_default_cursor_shape = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_item_card")
+
+[node name="EquippedBadge" type="Label" parent="CardTemplateCard"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+offset_left = 41.0
+offset_top = 201.0
+offset_right = 108.0
+offset_bottom = 219.0
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 11
+text = "EQUIPPED"
+horizontal_alignment = 1
+vertical_alignment = 3
+
+[node name="CardVBox" type="VBoxContainer" parent="CardTemplateCard"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="IconContainer" type="PanelContainer" parent="CardTemplateCard/CardVBox"]
+clip_children = 1
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_n723b")
+
+[node name="ItemIcon" type="TextureRect" parent="CardTemplateCard/CardVBox/IconContainer"]
+clip_children = 2
+clip_contents = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+expand_mode = 1
+
+[node name="FallbackLabel" type="Label" parent="CardTemplateCard/CardVBox/IconContainer"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "🎴"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ItemName" type="Label" parent="CardTemplateCard/CardVBox"]
+visible = false
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_jw66u")
+theme_override_font_sizes/font_size = 13
+text = "Card Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RarityLabel" type="Label" parent="CardTemplateCard/CardVBox"]
+visible = false
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "Common"
+horizontal_alignment = 1
+
+[node name="CardTemplateAvatar" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(150, 190)
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 190.0
+mouse_default_cursor_shape = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_item_card")
+
+[node name="EquippedBadge" type="Label" parent="CardTemplateAvatar"]
+visible = false
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+offset_left = 46.0
+offset_top = 196.0
+offset_right = 113.0
+offset_bottom = 214.0
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 11
+text = "EQUIPPED"
+horizontal_alignment = 1
+
+[node name="CardVBox" type="VBoxContainer" parent="CardTemplateAvatar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 9.0
+offset_right = -5.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="IconContainer" type="PanelContainer" parent="CardTemplateAvatar/CardVBox"]
+clip_children = 1
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_icccq")
+
+[node name="ItemIcon" type="TextureRect" parent="CardTemplateAvatar/CardVBox/IconContainer"]
+clip_children = 2
+clip_contents = true
+layout_mode = 2
+mouse_default_cursor_shape = 2
+texture = ExtResource("6_n723b")
+expand_mode = 1
+
+[node name="FallbackLabel" type="Label" parent="CardTemplateAvatar/CardVBox/IconContainer"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "👤"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ItemName" type="Label" parent="CardTemplateAvatar/CardVBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_jw66u")
+theme_override_font_sizes/font_size = 13
+text = "Avatar Name"
+label_settings = SubResource("LabelSettings_n18cb")
+horizontal_alignment = 1
+vertical_alignment = 2
+clip_text = true
+
+[node name="RarityLabel" type="Label" parent="CardTemplateAvatar/CardVBox"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "Common"
+horizontal_alignment = 1
+
+[node name="PanelContainer" type="Panel" parent="CardTemplateAvatar"]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 8.0
+offset_right = 144.0
+offset_bottom = 140.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_n18cb")
+
+[node name="CardTemplatePowerup" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(150, 185)
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 185.0
+mouse_default_cursor_shape = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_item_card")
+
+[node name="EquippedBadge" type="Label" parent="CardTemplatePowerup"]
+visible = false
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 73.0
+offset_bottom = 24.0
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 11
+text = "EQUIPPED"
+horizontal_alignment = 1
+
+[node name="CardVBox" type="VBoxContainer" parent="CardTemplatePowerup"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="IconContainer" type="Control" parent="CardTemplatePowerup/CardVBox"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ItemIcon" type="TextureRect" parent="CardTemplatePowerup/CardVBox/IconContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_default_cursor_shape = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FallbackLabel" type="Label" parent="CardTemplatePowerup/CardVBox/IconContainer"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 48
+text = "⚡"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AmountLabel" type="Label" parent="CardTemplatePowerup/CardVBox/IconContainer"]
+custom_minimum_size = Vector2(26, 20)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -28.0
+offset_top = -22.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 12
+text = "x1"
+horizontal_alignment = 2
+
+[node name="ItemName" type="Label" parent="CardTemplatePowerup/CardVBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_jw66u")
+theme_override_font_sizes/font_size = 13
+text = "Powerup Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RarityLabel" type="Label" parent="CardTemplatePowerup/CardVBox"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "Common"
+horizontal_alignment = 1
+
+[node name="CardTemplateDefault" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(150, 190)
+layout_mode = 0
+offset_left = -5.0
+offset_top = -3.0
+offset_right = 145.0
+offset_bottom = 187.0
+mouse_default_cursor_shape = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_item_card")
+
+[node name="EquippedBadge" type="Label" parent="CardTemplateDefault"]
+visible = false
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 73.0
+offset_bottom = 24.0
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 11
+text = "EQUIPPED"
+horizontal_alignment = 1
+
+[node name="CardVBox" type="VBoxContainer" parent="CardTemplateDefault"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="IconContainer" type="Control" parent="CardTemplateDefault/CardVBox"]
+custom_minimum_size = Vector2(0, 95)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ItemIcon" type="TextureRect" parent="CardTemplateDefault/CardVBox/IconContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 9.0
+offset_top = 1.0
+offset_right = -5.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_default_cursor_shape = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FallbackLabel" type="Label" parent="CardTemplateDefault/CardVBox/IconContainer"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 48
+text = "🎁"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ItemName" type="Label" parent="CardTemplateDefault/CardVBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_jw66u")
+theme_override_font_sizes/font_size = 13
+text = "Item Name"
+horizontal_alignment = 1
+clip_text = true
+
+[node name="RarityLabel" type="Label" parent="CardTemplateDefault/CardVBox"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "Common"
+horizontal_alignment = 1
 
 [node name="ItemDetailPanel" type="Panel" parent="."]
 visible = false
@@ -118,6 +853,78 @@ offset_top = 164.0
 offset_right = 655.0
 offset_bottom = 476.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_detail_panel")
+
+[node name="DetailRoot" type="MarginContainer" parent="ItemDetailPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 14.0
+offset_right = -16.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DetailVBox" type="VBoxContainer" parent="ItemDetailPanel/DetailRoot"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="DetailHeader" type="HBoxContainer" parent="ItemDetailPanel/DetailRoot/DetailVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DetailTitle" type="Label" parent="ItemDetailPanel/DetailRoot/DetailVBox/DetailHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "Item Name"
+label_settings = SubResource("LabelSettings_h7hmr")
+horizontal_alignment = 1
+
+[node name="CloseDetailButton" type="Button" parent="ItemDetailPanel/DetailRoot/DetailVBox/DetailHeader"]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/hover = SubResource("StyleBoxFlat_close_detail")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_close_detail")
+theme_override_styles/normal = SubResource("StyleBoxFlat_close_detail")
+text = "✕"
+
+[node name="DetailDesc" type="Label" parent="ItemDetailPanel/DetailRoot/DetailVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 3
+
+[node name="DetailInfoVBox" type="VBoxContainer" parent="ItemDetailPanel/DetailRoot/DetailVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="DetailSpacer" type="Control" parent="ItemDetailPanel/DetailRoot/DetailVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DetailEquipButton" type="Button" parent="ItemDetailPanel/DetailRoot/DetailVBox"]
+visible = false
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_sccuv")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_equip_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_equip_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_equip_normal")
+text = "EQUIP"
 
 [node name="lefttop" type="TextureRect" parent="."]
 self_modulate = Color(0, 0.639487, 0.662643, 1)

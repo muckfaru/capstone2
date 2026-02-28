@@ -39,6 +39,8 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
+shadow_color = Color(0.966628, 0.0677985, 0.102811, 1)
+shadow_size = 16
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e3y5h"]
 
@@ -63,7 +65,6 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 shadow_color = Color(0, 0.901961, 1, 0.513726)
-shadow_size = 16
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jqb01"]
 
@@ -390,10 +391,10 @@ text = "Back"
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -60.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = 60.0
+offset_left = -49.0
+offset_top = 15.0
+offset_right = -9.0
+offset_bottom = 59.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_font")
@@ -405,9 +406,9 @@ text = "≡"
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -390.0
+offset_left = -393.0
 offset_top = 20.0
-offset_right = -220.0
+offset_right = -223.0
 offset_bottom = 55.0
 grow_horizontal = 0
 mouse_default_cursor_shape = 2

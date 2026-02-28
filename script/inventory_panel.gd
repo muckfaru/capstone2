@@ -4,622 +4,508 @@ extends Panel
 
 const AvatarCatalog = preload("res://script/AvatarCatalog.gd")
 
-# UI References
-@onready var close_button: Button = $CloseButton
-@onready var category_container: HBoxContainer = $CategoryContainer
-@onready var sort_container: HBoxContainer = $SortContainer
-@onready var items_grid: GridContainer = $ScrollContainer/ItemsGrid
-@onready var item_detail_panel: Panel = $ItemDetailPanel
+# ── Scene-defined UI references ──────────────────────────────────────────────
+@onready var close_button: Button               = $CloseButton
+@onready var category_container: HBoxContainer  = $CategoryContainer
+@onready var sort_container: HBoxContainer      = $SortContainer
+@onready var items_grid: GridContainer          = $ScrollContainer/ItemsGrid
+@onready var item_detail_panel: Panel           = $ItemDetailPanel
 
-# Category buttons
+# Status labels (inside ItemsGrid, hidden by default)
+@onready var loading_label: Label     = $ScrollContainer/ItemsGrid/LoadingLabel
+@onready var empty_state_label: Label = $ScrollContainer/ItemsGrid/EmptyStateLabel
+@onready var no_results_label: Label  = $ScrollContainer/ItemsGrid/NoResultsLabel
+@onready var error_label: Label       = $ScrollContainer/ItemsGrid/ErrorLabel
+
+# Item card template (hidden Panel, cloned at runtime)
+@onready var card_tpl_badge:   Panel = $CardTemplateBadge
+@onready var card_tpl_card:    Panel = $CardTemplateCard
+@onready var card_tpl_avatar:  Panel = $CardTemplateAvatar
+@onready var card_tpl_powerup: Panel = $CardTemplatePowerup
+@onready var card_tpl_default: Panel = $CardTemplateDefault
+
+# Detail panel children
+@onready var detail_title: Label             = $ItemDetailPanel/DetailRoot/DetailVBox/DetailHeader/DetailTitle
+@onready var detail_desc: Label              = $ItemDetailPanel/DetailRoot/DetailVBox/DetailDesc
+@onready var detail_info_vbox: VBoxContainer = $ItemDetailPanel/DetailRoot/DetailVBox/DetailInfoVBox
+@onready var detail_equip_btn: Button        = $ItemDetailPanel/DetailRoot/DetailVBox/DetailEquipButton
+@onready var close_detail_btn: Button        = $ItemDetailPanel/DetailRoot/DetailVBox/DetailHeader/CloseDetailButton
+
+# Category buttons (scene-defined)
+@onready var btn_cat_all:     Button = $CategoryContainer/BtnCatAll
+@onready var btn_cat_badge:   Button = $CategoryContainer/BtnCatBadge
+@onready var btn_cat_card:    Button = $CategoryContainer/BtnCatCard
+@onready var btn_cat_avatar:  Button = $CategoryContainer/BtnCatAvatar
+@onready var btn_cat_powerup: Button = $CategoryContainer/BtnCatPowerup
+
+# Sort buttons (scene-defined)
+@onready var btn_sort_rarity: Button = $SortContainer/BtnSortRarity
+@onready var btn_sort_date:   Button = $SortContainer/BtnSortDate
+@onready var btn_sort_name:   Button = $SortContainer/BtnSortName
+
+# ── State ─────────────────────────────────────────────────────────────────────
 var category_buttons: Dictionary = {}
 var sort_buttons: Dictionary = {}
-
-# Current filters
 var current_category: String = "all"
 var current_sort: String = "rarity"
-
-# Item data (will be loaded from Firestore)
 var player_items: Array = []
-
-# Item detail state
 var _detail_item: Dictionary = {}
+var is_loading: bool = false
 
 signal inventory_closed
 signal avatar_selected(avatar_file: String)
 
-# ✅ FIX 1: Add loading state
-var is_loading: bool = false
-var loading_label: Label = null
-
+# ─────────────────────────────────────────────────────────────────────────────
 func _ready() -> void:
 	if Engine.is_editor_hint():
-		_build_editor_preview()
 		return
 
 	visible = false
-	
-	# Setup close button
+
 	if close_button:
 		close_button.mouse_filter = Control.MOUSE_FILTER_STOP
 		close_button.pressed.connect(_on_close_pressed)
-	
-	# Setup categories
-	_create_category_buttons(true)
-	_create_sort_buttons(true)
-	
-	# Hide item detail panel initially
+	if close_detail_btn:
+		close_detail_btn.pressed.connect(_on_close_detail_pressed)
+	if detail_equip_btn:
+		detail_equip_btn.pressed.connect(_on_detail_equip_pressed)
+
+	category_buttons = {
+		"all":     btn_cat_all,
+		"badge":   btn_cat_badge,
+		"card":    btn_cat_card,
+		"avatar":  btn_cat_avatar,
+		"powerup": btn_cat_powerup,
+	}
+	btn_cat_all.pressed.connect(_on_cat_all_pressed)
+	btn_cat_badge.pressed.connect(_on_cat_badge_pressed)
+	btn_cat_card.pressed.connect(_on_cat_card_pressed)
+	btn_cat_avatar.pressed.connect(_on_cat_avatar_pressed)
+	btn_cat_powerup.pressed.connect(_on_cat_powerup_pressed)
+
+	sort_buttons = {
+		"rarity": btn_sort_rarity,
+		"date":   btn_sort_date,
+		"name":   btn_sort_name,
+	}
+	btn_sort_rarity.pressed.connect(_on_sort_rarity_pressed)
+	btn_sort_date.pressed.connect(_on_sort_date_pressed)
+	btn_sort_name.pressed.connect(_on_sort_name_pressed)
+
 	if item_detail_panel:
 		item_detail_panel.visible = false
-	
-	# ✅ FIX 2: Create loading indicator
-	_create_loading_indicator()
 
-func _build_editor_preview() -> void:
-	# In-editor preview: show the runtime-generated buttons without doing any
-	# inventory loading / Firebase calls.
-	visible = true
-	_create_category_buttons(false)
-	_create_sort_buttons(false)
+	_on_category_selected("all")
+	_on_sort_selected("rarity")
 
-	# Optional: leave the grid empty in editor to avoid spawning runtime item cards.
-	# If the grid is empty, show a small hint label.
-	if items_grid and items_grid.get_child_count() == 0:
-		var hint := Label.new()
-		hint.name = "EditorPreviewHint"
-		hint.text = "(Editor preview) Buttons are generated by script at runtime."
-		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		hint.custom_minimum_size = Vector2(600, 300)
-		hint.add_theme_color_override("font_color", Color(0.5, 0.7, 0.8, 1))
-		items_grid.add_child(hint)
+# ── Button signal handlers ────────────────────────────────────────────────────
+func _on_close_pressed() -> void:
+	visible = false
+	inventory_closed.emit()
 
-func _clear_children_except(container: Node, keep_names: Array[String]) -> void:
-	for child in container.get_children():
-		if keep_names.has(child.name):
-			continue
-		child.queue_free()
+func _on_close_detail_pressed() -> void:
+	item_detail_panel.visible = false
 
-func _create_loading_indicator() -> void:
-	loading_label = Label.new()
-	loading_label.name = "LoadingLabel"
-	loading_label.text = "Loading inventory..."
-	loading_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	loading_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	loading_label.custom_minimum_size = Vector2(600, 300)
-	loading_label.add_theme_color_override("font_color", Color(0, 1, 1, 1))
-	loading_label.add_theme_font_size_override("font_size", 18)
-	loading_label.add_theme_font_override("font", load("res://asset/fonts/ABeeZee-Regular.ttf"))
-	loading_label.visible = false
-	items_grid.add_child(loading_label)
+func _on_cat_all_pressed()     -> void: _on_category_selected("all")
+func _on_cat_badge_pressed()   -> void: _on_category_selected("badge")
+func _on_cat_card_pressed()    -> void: _on_category_selected("card")
+func _on_cat_avatar_pressed()  -> void: _on_category_selected("avatar")
+func _on_cat_powerup_pressed() -> void: _on_category_selected("powerup")
 
-func _ensure_detail_panel_layout() -> Dictionary:
-	if not item_detail_panel:
-		return {}
+func _on_sort_rarity_pressed() -> void: _on_sort_selected("rarity")
+func _on_sort_date_pressed()   -> void: _on_sort_selected("date")
+func _on_sort_name_pressed()   -> void: _on_sort_selected("name")
 
-	var root := item_detail_panel.get_node_or_null("DetailRoot")
-	if root == null:
-		# Wipe any legacy children (we'll keep CloseDetailButton name for compatibility,
-		# but we rebuild it inside the header to avoid manual positioning).
-		for child in item_detail_panel.get_children():
+# ─── Category / sort selection ────────────────────────────────────────────────
+func _on_category_selected(category: String) -> void:
+	current_category = category
+	_refresh_display()
+	for cat_id in category_buttons:
+		var btn: Button = category_buttons[cat_id]
+		if cat_id == category:
+			btn.add_theme_color_override("font_color", Color(1, 1, 0, 1))
+		else:
+			btn.add_theme_color_override("font_color", Color(0, 1, 1, 1))
+
+func _on_sort_selected(sort_type: String) -> void:
+	current_sort = sort_type
+	_refresh_display()
+	for sort_id in sort_buttons:
+		var btn: Button = sort_buttons[sort_id]
+		if sort_id == sort_type:
+			btn.add_theme_color_override("font_color", Color(1, 1, 0, 1))
+		else:
+			btn.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
+
+# ─── Display ──────────────────────────────────────────────────────────────────
+func _hide_all_status_labels() -> void:
+	loading_label.visible     = false
+	empty_state_label.visible = false
+	no_results_label.visible  = false
+	error_label.visible       = false
+
+func _clear_item_cards() -> void:
+	var keep: Array = ["LoadingLabel", "EmptyStateLabel", "NoResultsLabel", "ErrorLabel"]
+	for child in items_grid.get_children():
+		if not keep.has(child.name):
 			child.queue_free()
 
-		var margin := MarginContainer.new()
-		margin.name = "DetailRoot"
-		margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-		margin.offset_left = 0
-		margin.offset_top = 0
-		margin.offset_right = 0
-		margin.offset_bottom = 0
-		margin.add_theme_constant_override("margin_left", 16)
-		margin.add_theme_constant_override("margin_right", 16)
-		margin.add_theme_constant_override("margin_top", 14)
-		margin.add_theme_constant_override("margin_bottom", 14)
-		item_detail_panel.add_child(margin)
-		root = margin
+func _refresh_display() -> void:
+	_clear_item_cards()
+	_hide_all_status_labels()
 
-		var vbox := VBoxContainer.new()
-		vbox.name = "DetailVBox"
-		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		vbox.add_theme_constant_override("separation", 10)
-		root.add_child(vbox)
+	if player_items.is_empty():
+		empty_state_label.visible = true
+		return
 
-		var header := HBoxContainer.new()
-		header.name = "DetailHeader"
-		header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		header.add_theme_constant_override("separation", 8)
-		vbox.add_child(header)
+	var filtered: Array = _filter_items(player_items)
+	if filtered.is_empty():
+		no_results_label.visible = true
+		return
 
-		var title := Label.new()
-		title.name = "DetailTitle"
-		title.text = "Item"
-		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		title.add_theme_font_size_override("font_size", 22)
-		title.add_theme_color_override("font_color", Color.WHITE)
-		header.add_child(title)
+	var sorted: Array = _sort_items(filtered)
+	for item in sorted:
+		_create_item_card(item)
 
-		var close_btn := Button.new()
-		close_btn.name = "CloseDetailButton"
-		close_btn.text = "✕"
-		close_btn.custom_minimum_size = Vector2(34, 34)
-		close_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		var close_style := StyleBoxFlat.new()
-		close_style.bg_color = Color(0, 0, 0, 0)
-		close_btn.add_theme_stylebox_override("normal", close_style)
-		close_btn.add_theme_stylebox_override("hover", close_style)
-		close_btn.add_theme_stylebox_override("pressed", close_style)
-		close_btn.add_theme_color_override("font_color", Color(1, 0, 0, 1))
-		close_btn.add_theme_font_size_override("font_size", 20)
-		close_btn.pressed.connect(func(): item_detail_panel.visible = false)
-		header.add_child(close_btn)
+# ─── Item card ────────────────────────────────────────────────────────────────
+func _get_template_for_type(item_type: String) -> Panel:
+	if item_type == "badge":   return card_tpl_badge
+	if item_type == "card":    return card_tpl_card
+	if item_type == "avatar":  return card_tpl_avatar
+	if item_type == "powerup": return card_tpl_powerup
+	return card_tpl_default
 
-		var desc := Label.new()
-		desc.name = "DetailDesc"
-		desc.text = ""
-		desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		desc.autowrap_mode = TextServer.AUTOWRAP_WORD
-		desc.add_theme_color_override("font_color", Color.WHITE)
-		desc.add_theme_font_size_override("font_size", 14)
-		vbox.add_child(desc)
+func _create_item_card(item: Dictionary) -> void:
+	var item_type: String  = str(item.get("type", ""))
+	var template: Panel    = _get_template_for_type(item_type)
+	var card: Panel        = template.duplicate()
+	card.visible = true
 
-		var info_vbox := VBoxContainer.new()
-		info_vbox.name = "DetailInfoVBox"
-		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info_vbox.add_theme_constant_override("separation", 6)
-		vbox.add_child(info_vbox)
 
-		var spacer := Control.new()
-		spacer.name = "DetailSpacer"
-		spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		vbox.add_child(spacer)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if card.custom_minimum_size == Vector2.ZERO:
+		card.custom_minimum_size = Vector2(150, 185)
+	# Rarity border colour
+	var rarity_color: Color      = _get_rarity_color(item.get("rarity", "common"))
+	var card_style: StyleBoxFlat = card.get_theme_stylebox("panel").duplicate()
+	card_style.border_color = rarity_color
+	card.add_theme_stylebox_override("panel", card_style)
 
-		var equip_btn := Button.new()
-		equip_btn.name = "DetailEquipButton"
-		equip_btn.text = "EQUIP"
-		equip_btn.visible = false
-		equip_btn.disabled = false
-		equip_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		equip_btn.custom_minimum_size = Vector2(0, 44)
-		equip_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		equip_btn.add_theme_font_override("font", load("res://asset/fonts/NicoMoji-Regular.ttf"))
-		equip_btn.add_theme_font_size_override("font_size", 14)
-		equip_btn.pressed.connect(_on_detail_equip_pressed)
-		vbox.add_child(equip_btn)
+	# Equipped badge (only relevant for card_backgrounds)
+	var badge: Label = card.get_node("EquippedBadge")
+	var is_bg: bool  = str(item.get("subtype", "")) == "card_background"
+	var is_eq: bool  = bool(item.get("is_equipped", false))
+	badge.visible = is_bg and is_eq
 
-	var out := {
-		"root": root,
-		"vbox": root.get_node("DetailVBox"),
-		"title": root.get_node("DetailVBox/DetailHeader/DetailTitle"),
-		"desc": root.get_node("DetailVBox/DetailDesc"),
-		"info_vbox": root.get_node("DetailVBox/DetailInfoVBox"),
-		"equip_btn": root.get_node("DetailVBox/DetailEquipButton"),
-	}
-	return out
+	# Icon / fallback
+	var icon: TextureRect = card.get_node("CardVBox/IconContainer/ItemIcon")
+	var fallback: Label   = card.get_node("CardVBox/IconContainer/FallbackLabel")
+	var icon_path: String = item.get("icon_path", "")
+
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		icon.texture     = load(icon_path)
+		icon.visible     = true
+		fallback.visible = false
+	else:
+		icon.visible     = false
+		fallback.visible = true
+		if item_type == "badge":
+			fallback.text = "🏆"
+		elif item_type == "card":
+			fallback.text = "🎴"
+		elif item_type == "avatar":
+			fallback.text = "👤"
+		elif item_type == "powerup":
+			fallback.text = "⚡"
+		else:
+			fallback.text = "🎁"
+
+	# Powerup amount badge (only exists on CardTemplatePowerup)
+	if item_type == "powerup":
+		var amount_lbl: Label = card.get_node_or_null("CardVBox/IconContainer/AmountLabel")
+		if amount_lbl:
+			var amt: int = int(item.get("amount", 1))
+			amount_lbl.text = "x%d" % amt
+			amount_lbl.visible = amt > 1
+
+	# Name
+	var name_lbl: Label      = card.get_node("CardVBox/ItemName")
+	var display_name: String = str(item.get("name", "Unknown"))
+	if str(item.get("subtype", "")) == "card_background":
+		display_name = _normalize_card_bg_name(display_name)
+	name_lbl.text = display_name
+
+	# Rarity
+	var rarity_lbl: Label = card.get_node("CardVBox/RarityLabel")
+	rarity_lbl.text = item.get("rarity", "common").capitalize()
+	rarity_lbl.add_theme_color_override("font_color", rarity_color)
+
+	card.mouse_filter = Control.MOUSE_FILTER_STOP
+	card.set_meta("item_data", item)
+	card.gui_input.connect(_on_item_card_input.bind(card))
+	card.size_flags_horizontal = Control.SIZE_FILL
+	card.size_flags_vertical   = Control.SIZE_FILL
+	items_grid.add_child(card)
+
+func _on_item_card_input(event: InputEvent, card: Panel) -> void:
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			var item: Dictionary = card.get_meta("item_data")
+			_show_item_details(item)
+
+# ─── Detail panel ─────────────────────────────────────────────────────────────
+func _show_item_details(item: Dictionary) -> void:
+	if not item_detail_panel:
+		return
+
+	_detail_item = item.duplicate(true)
+	item_detail_panel.visible = true
+
+	var display_title: String = str(item.get("name", "Unknown"))
+	if str(item.get("subtype", "")) == "card_background":
+		display_title = _normalize_card_bg_name(display_title)
+	detail_title.text = display_title
+	detail_title.add_theme_color_override("font_color", _get_rarity_color(item.get("rarity", "common")))
+	detail_desc.text = item.get("description", "No description available.")
+
+	for child in detail_info_vbox.get_children():
+		child.queue_free()
+
+	var lines: Array = [
+		"Type: "     + item.get("type",   "unknown").capitalize(),
+		"Rarity: "   + item.get("rarity", "common").capitalize(),
+		"Acquired: " + _format_date(item.get("date_acquired", 0))
+	]
+	for line in lines:
+		var lbl := Label.new()
+		lbl.text = line
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
+		lbl.add_theme_font_size_override("font_size", 13)
+		detail_info_vbox.add_child(lbl)
+
+	if str(item.get("subtype", "")) == "card_background":
+		var equipped_now: bool = bool(item.get("is_equipped", false))
+		var status := Label.new()
+		status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		status.add_theme_font_size_override("font_size", 13)
+		if equipped_now:
+			status.text = "Status: Equipped"
+			status.add_theme_color_override("font_color", Color(1, 1, 0, 1))
+		else:
+			status.text = "Status: Not equipped"
+			status.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
+		detail_info_vbox.add_child(status)
+
+		detail_equip_btn.visible  = true
+		detail_equip_btn.disabled = equipped_now
+		if equipped_now:
+			detail_equip_btn.text = "EQUIPPED"
+		else:
+			detail_equip_btn.text = "EQUIP BACKGROUND"
+
+	elif str(item.get("type", "")) == "avatar":
+		detail_equip_btn.visible  = true
+		detail_equip_btn.text     = "SET AVATAR"
+		detail_equip_btn.disabled = false
+	else:
+		detail_equip_btn.visible  = false
+		detail_equip_btn.disabled = true
 
 func _on_detail_equip_pressed() -> void:
 	if _detail_item.is_empty():
 		return
 	if str(_detail_item.get("subtype", "")) == "card_background":
 		_equip_card_background(_detail_item)
-		return
-	if str(_detail_item.get("type", "")) == "avatar":
+	elif str(_detail_item.get("type", "")) == "avatar":
 		_equip_avatar(_detail_item)
-		return
 
-
+# ─── Inventory loading ────────────────────────────────────────────────────────
 func show_inventory() -> void:
-	"""Open the inventory panel"""
 	visible = true
 	_load_player_items()
 
-func _create_category_buttons(select_default: bool = true) -> void:
-	"""Create filter buttons for item categories"""
-	_clear_children_except(category_container, [])
-	category_buttons.clear()
-
-	var categories = [
-		{"id": "all", "label": "All Items"},
-		{"id": "badge", "label": "Badges"},
-		{"id": "card", "label": "Cards"},
-		{"id": "avatar", "label": "Avatars"},
-		{"id": "powerup", "label": "Power-ups"}
-	]
-	
-	for cat in categories:
-		var btn = Button.new()
-		btn.text = cat["label"]
-		btn.custom_minimum_size = Vector2(120, 40)
-		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		
-		# Style button
-		var btn_style_normal = StyleBoxFlat.new()
-		btn_style_normal.bg_color = Color(0.1, 0.2, 0.3, 0.9)
-		btn_style_normal.border_width_left = 2
-		btn_style_normal.border_width_right = 2
-		btn_style_normal.border_width_top = 2
-		btn_style_normal.border_width_bottom = 2
-		btn_style_normal.border_color = Color(0, 0.9, 1, 0.6)
-		btn_style_normal.corner_radius_top_left = 5
-		btn_style_normal.corner_radius_top_right = 5
-		btn_style_normal.corner_radius_bottom_left = 5
-		btn_style_normal.corner_radius_bottom_right = 5
-		
-		var btn_style_hover = btn_style_normal.duplicate()
-		btn_style_hover.bg_color = Color(0, 0.6, 0.7, 1)
-		btn_style_hover.border_color = Color(0, 1, 1, 1)
-		
-		btn.add_theme_stylebox_override("normal", btn_style_normal)
-		btn.add_theme_stylebox_override("hover", btn_style_hover)
-		btn.add_theme_stylebox_override("pressed", btn_style_hover)
-		btn.add_theme_color_override("font_color", Color(0, 1, 1, 1))
-		
-		# 🔧 ADD CUSTOM FONT TO BUTTONS
-		btn.add_theme_font_override("font", load("res://asset/fonts/NicoMoji-Regular.ttf"))
-		btn.add_theme_font_size_override("font_size", 16)
-		
-		var cat_id = cat["id"]
-		btn.pressed.connect(func(): _on_category_selected(cat_id))
-		
-		category_container.add_child(btn)
-		category_buttons[cat_id] = btn
-	
-	if select_default:
-		_on_category_selected("all")
-
-func _create_sort_buttons(select_default: bool = true) -> void:
-	"""Create sorting buttons"""
-	_clear_children_except(sort_container, ["SortLabel"])
-	sort_buttons.clear()
-
-	var sorts = [
-		{"id": "rarity", "label": "By Rarity"},
-		{"id": "date", "label": "By Date"},
-		{"id": "name", "label": "By Name"}
-	]
-	
-	for sort in sorts:
-		var btn = Button.new()
-		btn.text = sort["label"]
-		btn.custom_minimum_size = Vector2(100, 35)
-		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		
-		# Style button (smaller than category buttons)
-		var btn_style_normal = StyleBoxFlat.new()
-		btn_style_normal.bg_color = Color(0.05, 0.1, 0.15, 0.9)
-		btn_style_normal.border_width_left = 2
-		btn_style_normal.border_width_right = 2
-		btn_style_normal.border_width_top = 2
-		btn_style_normal.border_width_bottom = 2
-		btn_style_normal.border_color = Color(0, 0.7, 0.8, 0.6)
-		btn_style_normal.corner_radius_top_left = 4
-		btn_style_normal.corner_radius_top_right = 4
-		btn_style_normal.corner_radius_bottom_left = 4
-		btn_style_normal.corner_radius_bottom_right = 4
-		
-		var btn_style_hover = btn_style_normal.duplicate()
-		btn_style_hover.bg_color = Color(0, 0.5, 0.6, 1)
-		
-		btn.add_theme_stylebox_override("normal", btn_style_normal)
-		btn.add_theme_stylebox_override("hover", btn_style_hover)
-		btn.add_theme_stylebox_override("pressed", btn_style_hover)
-		btn.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
-		btn.add_theme_font_size_override("font_size", 14)
-		
-		# 🔧 ADD CUSTOM FONT TO SORT BUTTONS
-		btn.add_theme_font_override("font", load("res://asset/fonts/NicoMoji-Regular.ttf"))
-		
-		var sort_id = sort["id"]
-		btn.pressed.connect(func(): _on_sort_selected(sort_id))
-		
-		sort_container.add_child(btn)
-		sort_buttons[sort_id] = btn
-	
-	if select_default:
-		_on_sort_selected("rarity")
-	
-func _on_category_selected(category: String) -> void:
-	"""Filter items by category"""
-	current_category = category
-	_refresh_display()
-	
-	# Update button states (highlight selected)
-	for cat_id in category_buttons.keys():
-		var btn = category_buttons[cat_id]
-		if cat_id == category:
-			btn.add_theme_color_override("font_color", Color(1, 1, 0, 1))  # Yellow for selected
-		else:
-			btn.add_theme_color_override("font_color", Color(0, 1, 1, 1))  # Cyan for normal
-
-func _on_sort_selected(sort_type: String) -> void:
-	"""Sort items"""
-	current_sort = sort_type
-	_refresh_display()
-	
-	# Update button states
-	for sort_id in sort_buttons.keys():
-		var btn = sort_buttons[sort_id]
-		if sort_id == sort_type:
-			btn.add_theme_color_override("font_color", Color(1, 1, 0, 1))
-		else:
-			btn.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
-
-func _refresh_display() -> void:
-	"""Refresh the items grid based on current filters"""
-	# Clear existing items
-	for child in items_grid.get_children():
-		child.queue_free()
-	
-	# ✅ FIX 4: Show empty state if no items
-	if player_items.is_empty():
-		_show_empty_state()
+func _load_player_items() -> void:
+	if is_loading:
 		return
-	
-	# Filter items
-	var filtered_items = _filter_items(player_items)
-	
-	# ✅ Show "no results" if filter returns nothing
-	if filtered_items.is_empty():
-		_show_no_results_state()
+	if not Auth or Auth.current_local_id == "" or Auth.current_id_token == "":
+		push_error("[Inventory] User not logged in")
+		_show_error_message("Please log in to view your inventory")
 		return
-	
-	# Sort items
-	var sorted_items = _sort_items(filtered_items)
-	
-	# Display items
-	for item in sorted_items:
-		_create_item_card(item)
 
-# ✅ FIX 5: Add empty state UI
-func _show_empty_state() -> void:
-	var empty_label = Label.new()
-	empty_label.text = "Your inventory is empty.\nComplete missions to earn rewards!"
-	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	empty_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	empty_label.add_theme_color_override("font_color", Color(0.5, 0.7, 0.8, 1))
-	empty_label.add_theme_font_size_override("font_size", 18)
-	# 🔧 ADD CUSTOM FONT
-	empty_label.add_theme_font_override("font", load("res://asset/fonts/ABeeZee-Regular.ttf"))
-	empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	empty_label.custom_minimum_size = Vector2(600, 200)
-	items_grid.add_child(empty_label)
+	is_loading = true
+	_hide_all_status_labels()
+	_clear_item_cards()
+	loading_label.visible = true
 
-# ✅ FIX 6: Add no results state
-func _show_no_results_state() -> void:
-	var no_results_label = Label.new()
-	no_results_label.text = "No items match this filter.\nTry selecting a different category!"
-	no_results_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	no_results_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	no_results_label.add_theme_color_override("font_color", Color(0.5, 0.7, 0.8, 1))
-	no_results_label.add_theme_font_size_override("font_size", 16)
-	# 🔧 ADD CUSTOM FONT
-	no_results_label.add_theme_font_override("font", load("res://asset/fonts/ABeeZee-Regular.ttf"))
-	no_results_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	no_results_label.custom_minimum_size = Vector2(800, 200)
-	items_grid.add_child(no_results_label)
+	var user_id:  String = Auth.current_local_id
+	var id_token: String = Auth.current_id_token
+	var url:      String = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s/inventory" % user_id
+	var headers:  Array  = ["Authorization: Bearer %s" % id_token]
+
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(_on_inventory_loaded.bind(http))
+
+	var err: int = http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		http.queue_free()
+		is_loading = false
+		loading_label.visible = false
+		push_error("[Inventory] HTTP request failed: %d" % err)
+		_show_error_message("Connection error. Please check your internet.")
+
+func _on_inventory_loaded(_result: int, code: int, _headers: PackedStringArray, body: PackedByteArray, http: HTTPRequest) -> void:
+	http.queue_free()
+	is_loading = false
+	loading_label.visible = false
+
+	if code == 200:
+		_parse_inventory_data(body)
+	else:
+		var err_msg: String = body.get_string_from_utf8() if body.size() > 0 else "Unknown error"
+		push_error("[Inventory] Failed to load items: %d - %s" % [code, err_msg])
+		_show_error_message("Failed to load inventory. Please try again.")
+
+func _parse_inventory_data(body: PackedByteArray) -> void:
+	var data = JSON.parse_string(body.get_string_from_utf8())
+	if not data or not data.has("documents"):
+		player_items = []
+		_append_builtin_avatars()
+		_refresh_display()
+		return
+
+	player_items.clear()
+	for doc in data["documents"]:
+		if not doc.has("fields"):
+			continue
+		var f: Dictionary = doc["fields"]
+		var entry: Dictionary = {
+			"id":            doc.get("name", "").split("/")[-1],
+			"name":          f.get("name",          {}).get("stringValue",  "Unknown"),
+			"type":          f.get("type",           {}).get("stringValue",  "unknown"),
+			"subtype":       f.get("subtype",        {}).get("stringValue",  ""),
+			"rarity":        f.get("rarity",         {}).get("stringValue",  "common"),
+			"description":   f.get("description",    {}).get("stringValue",  ""),
+			"icon_path":     f.get("icon_path",      {}).get("stringValue",  ""),
+			"amount":        int(f.get("amount",     {}).get("integerValue", 1)),
+			"is_equipped":   f.get("is_equipped",    {}).get("booleanValue", false),
+			"date_acquired": int(f.get("date_acquired", {}).get("integerValue", 0))
+		}
+		player_items.append(entry)
+
+	_append_builtin_avatars()
+	print("[Inventory] Loaded %d items" % player_items.size())
+	_refresh_display()
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+func _show_error_message(message: String) -> void:
+	_clear_item_cards()
+	_hide_all_status_labels()
+	error_label.text    = "⚠️ " + message
+	error_label.visible = true
 
 func _filter_items(items: Array) -> Array:
-	"""Filter items based on current category"""
 	if current_category == "all":
 		return items
-	
-	var filtered: Array = []
+	var out: Array = []
 	for item in items:
 		if item.get("type", "") == current_category:
-			filtered.append(item)
-	return filtered
+			out.append(item)
+	return out
 
 func _sort_items(items: Array) -> Array:
-	"""Sort items based on current sort type"""
-	var sorted = items.duplicate()
-	
-	match current_sort:
-		"rarity":
-			sorted.sort_custom(func(a, b): return _get_rarity_value(a.get("rarity", "common")) > _get_rarity_value(b.get("rarity", "common")))
-		"date":
-			sorted.sort_custom(func(a, b): return a.get("date_acquired", 0) > b.get("date_acquired", 0))
-		"name":
-			sorted.sort_custom(func(a, b): return a.get("name", "").naturalnocasecmp_to(b.get("name", "")) < 0)
-	
+	var sorted: Array = items.duplicate()
+	if current_sort == "rarity":
+		sorted.sort_custom(_sort_by_rarity)
+	elif current_sort == "date":
+		sorted.sort_custom(_sort_by_date)
+	elif current_sort == "name":
+		sorted.sort_custom(_sort_by_name)
 	return sorted
 
+func _sort_by_rarity(a: Dictionary, b: Dictionary) -> bool:
+	return _get_rarity_value(a.get("rarity", "common")) > _get_rarity_value(b.get("rarity", "common"))
+
+func _sort_by_date(a: Dictionary, b: Dictionary) -> bool:
+	return a.get("date_acquired", 0) > b.get("date_acquired", 0)
+
+func _sort_by_name(a: Dictionary, b: Dictionary) -> bool:
+	return a.get("name", "").naturalnocasecmp_to(b.get("name", "")) < 0
+
 func _get_rarity_value(rarity: String) -> int:
-	"""Convert rarity to numeric value for sorting"""
-	match rarity.to_lower():
-		"legendary": return 5
-		"epic": return 4
-		"rare": return 3
-		"uncommon": return 2
-		"common": return 1
-		_: return 0
-
-func _create_item_card(item: Dictionary) -> void:
-	"""Create a visual card for an item"""
-	var card = Panel.new()
-	card.custom_minimum_size = Vector2(150, 180)
-	
-	# Style based on rarity
-	var rarity_color = _get_rarity_color(item.get("rarity", "common"))
-	var card_style = StyleBoxFlat.new()
-	card_style.bg_color = Color(0.1, 0.1, 0.15, 0.9)
-	card_style.border_width_left = 3
-	card_style.border_width_right = 3
-	card_style.border_width_top = 3
-	card_style.border_width_bottom = 3
-	card_style.border_color = rarity_color
-	card_style.corner_radius_top_left = 8
-	card_style.corner_radius_top_right = 8
-	card_style.corner_radius_bottom_left = 8
-	card_style.corner_radius_bottom_right = 8
-	card.add_theme_stylebox_override("panel", card_style)
-	
-	# Item icon
-	var icon = TextureRect.new()
-	if str(item.get("type", "")) == "avatar":
-		icon.position = Vector2(35, 15)
-		icon.size = Vector2(80, 80)
-	else:
-		icon.position = Vector2(25, 15)
-		icon.size = Vector2(100, 100)
-	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-
-	# Small equipped marker on the grid card
-	if str(item.get("subtype", "")) == "card_background" and bool(item.get("is_equipped", false)):
-		var eq_badge := Label.new()
-		eq_badge.text = "EQUIPPED"
-		eq_badge.position = Vector2(10, 5)
-		eq_badge.size = Vector2(130, 18)
-		eq_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		eq_badge.add_theme_color_override("font_color", Color(1, 1, 0, 1))
-		eq_badge.add_theme_font_override("font", load("res://asset/fonts/NicoMoji-Regular.ttf"))
-		eq_badge.add_theme_font_size_override("font_size", 12)
-		card.add_child(eq_badge)
-	
-	# ✅ FIX 7: Better icon loading with fallback
-	var icon_path = item.get("icon_path", "")
-	if icon_path != "" and ResourceLoader.exists(icon_path):
-		icon.texture = load(icon_path)
-	else:
-		# Use emoji as fallback if icon doesn't exist
-		var fallback_label = Label.new()
-		fallback_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		fallback_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		fallback_label.add_theme_font_size_override("font_size", 64)
-		fallback_label.size = Vector2(100, 100)
-		fallback_label.position = Vector2(25, 15)
-		
-		match item.get("type", ""):
-			"badge":
-				fallback_label.text = "🏆"
-			"card":
-				fallback_label.text = "🎴"
-			"avatar":
-				fallback_label.text = "👤"
-			"powerup":
-				fallback_label.text = "⚡"
-			_:
-				fallback_label.text = "🎁"
-		
-		card.add_child(fallback_label)
-	
-	if icon.texture:
-		card.add_child(icon)
-	
-	# Item name
-	var name_label = Label.new()
-	var display_name: String = str(item.get("name", "Unknown"))
-	if str(item.get("subtype", "")) == "card_background":
-		display_name = _normalize_card_bg_name(display_name)
-	name_label.text = display_name
-	name_label.position = Vector2(10, 120)
-	name_label.size = Vector2(130, 25)
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_color_override("font_color", Color.WHITE)
-	name_label.add_theme_font_size_override("font_size", 14)
-	card.add_child(name_label)
-	
-	# Rarity label
-	var rarity_label = Label.new()
-	rarity_label.text = item.get("rarity", "common").capitalize()
-	rarity_label.position = Vector2(10, 145)
-	rarity_label.size = Vector2(130, 20)
-	rarity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	rarity_label.add_theme_color_override("font_color", rarity_color)
-	rarity_label.add_theme_font_size_override("font_size", 12)
-	card.add_child(rarity_label)
-	
-	# Make card clickable
-	card.mouse_filter = Control.MOUSE_FILTER_STOP
-	card.gui_input.connect(func(event): _on_item_card_clicked(event, item))
-	
-	items_grid.add_child(card)
+	if rarity == "legendary": return 5
+	if rarity == "epic":      return 4
+	if rarity == "rare":      return 3
+	if rarity == "uncommon":  return 2
+	if rarity == "common":    return 1
+	return 0
 
 func _get_rarity_color(rarity: String) -> Color:
-	"""Get color based on rarity"""
-	match rarity.to_lower():
-		"legendary": return Color(1, 0.5, 0, 1)  # Orange
-		"epic": return Color(0.7, 0, 1, 1)  # Purple
-		"rare": return Color(0, 0.5, 1, 1)  # Blue
-		"uncommon": return Color(0, 1, 0, 1)  # Green
-		"common": return Color(0.7, 0.7, 0.7, 1)  # Gray
-		_: return Color(0.5, 0.5, 0.5, 1)
+	if rarity == "legendary": return Color(1, 0.5, 0, 1)
+	if rarity == "epic":      return Color(0.7, 0, 1, 1)
+	if rarity == "rare":      return Color(0, 0.5, 1, 1)
+	if rarity == "uncommon":  return Color(0, 1, 0, 1)
+	if rarity == "common":    return Color(0.7, 0.7, 0.7, 1)
+	return Color(0.5, 0.5, 0.5, 1)
 
-func _on_item_card_clicked(event: InputEvent, item: Dictionary) -> void:
-	"""Show item details when clicked"""
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_show_item_details(item)
+func _format_date(timestamp: int) -> String:
+	if timestamp == 0:
+		return "Unknown"
+	var dt: Dictionary = Time.get_datetime_dict_from_unix_time(timestamp)
+	return "%02d/%02d/%d" % [dt.month, dt.day, dt.year]
 
-func _show_item_details(item: Dictionary) -> void:
-	"""Display detailed information about an item"""
-	if not item_detail_panel:
+func _normalize_card_bg_name(raw_name: String) -> String:
+	var s: String = raw_name.strip_edges()
+	if s == "":
+		return "Unknown"
+	if s.to_lower().begins_with("reward background"):
+		s = s.substr("Reward Background".length()).strip_edges()
+		if s.begins_with(":"):
+			s = s.substr(1).strip_edges()
+	var parts: Array = s.split(" ", false)
+	if parts.size() <= 2:
+		return s
+	return parts[0] + " " + parts[1]
+
+func _append_builtin_avatars() -> void:
+	var dir := DirAccess.open("res://asset/avatars")
+	if dir == null:
 		return
-	
-	_detail_item = item.duplicate(true)
-	item_detail_panel.visible = true
+	var existing_files: Dictionary = {}
+	for it in player_items:
+		var af: String = str(it.get("avatar_file", ""))
+		if af != "":
+			existing_files[af] = true
+		var ip: String = str(it.get("icon_path", ""))
+		if ip.begins_with("res://asset/avatars/"):
+			existing_files[ip.get_file()] = true
 
-	var ui := _ensure_detail_panel_layout()
-	if ui.is_empty():
-		return
-
-	# Update header/title
-	var title: Label = ui["title"]
-	var display_title: String = str(item.get("name", "Unknown"))
-	if str(item.get("subtype", "")) == "card_background":
-		display_title = _normalize_card_bg_name(display_title)
-	title.text = display_title
-	title.add_theme_color_override("font_color", _get_rarity_color(item.get("rarity", "common")))
-
-	# Update description
-	var desc: Label = ui["desc"]
-	desc.text = item.get("description", "No description available.")
-
-	# Rebuild info lines
-	var info_vbox: VBoxContainer = ui["info_vbox"]
-	for child in info_vbox.get_children():
-		child.queue_free()
-
-	var info_lines: Array[String] = [
-		"Type: %s" % item.get("type", "unknown").capitalize(),
-		"Rarity: %s" % item.get("rarity", "common").capitalize(),
-		"Acquired: %s" % _format_date(item.get("date_acquired", 0))
-	]
-
-	for line in info_lines:
-		var info_label := Label.new()
-		info_label.text = line
-		info_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		info_label.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
-		info_label.add_theme_font_size_override("font_size", 13)
-		info_vbox.add_child(info_label)
-
-	# Equip UI for card backgrounds
-	var equip_btn: Button = ui["equip_btn"]
-	if str(item.get("subtype", "")) == "card_background":
-		var equipped_now: bool = bool(item.get("is_equipped", false))
-
-		var status := Label.new()
-		status.text = "Status: %s" % ("Equipped" if equipped_now else "Not equipped")
-		status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		status.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		status.add_theme_color_override("font_color", Color(1, 1, 0, 1) if equipped_now else Color(0, 0.8, 1, 1))
-		status.add_theme_font_size_override("font_size", 13)
-		info_vbox.add_child(status)
-
-		equip_btn.visible = true
-		equip_btn.text = "EQUIP BACKGROUND" if not equipped_now else "EQUIPPED"
-		equip_btn.disabled = equipped_now
-	elif str(item.get("type", "")) == "avatar":
-		equip_btn.visible = true
-		equip_btn.text = "SET AVATAR"
-		equip_btn.disabled = false
-	else:
-		equip_btn.visible = false
-		equip_btn.disabled = true
-
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir():
+			var ext: String = file_name.get_extension().to_lower()
+			if ext in ["png", "jpg", "jpeg", "webp"]:
+				if not existing_files.has(file_name):
+					var base: String = file_name.get_basename()
+					var entry: Dictionary = {
+						"id":            "builtin_avatar_" + base,
+						"name":          AvatarCatalog.get_display_name(file_name),
+						"type":          "avatar",
+						"subtype":       "preset",
+						"rarity":        "common",
+						"description":   "Preset avatar",
+						"icon_path":     "res://asset/avatars/" + file_name,
+						"avatar_file":   file_name,
+						"amount":        1,
+						"is_equipped":   false,
+						"date_acquired": 0,
+					}
+					player_items.append(entry)
+		file_name = dir.get_next()
+	dir.list_dir_end()
 
 func _equip_avatar(item: Dictionary) -> void:
 	var file_name: String = str(item.get("avatar_file", ""))
@@ -633,183 +519,6 @@ func _equip_avatar(item: Dictionary) -> void:
 	avatar_selected.emit(file_name)
 	item_detail_panel.visible = false
 
-func _format_date(timestamp: int) -> String:
-	"""Format Unix timestamp to readable date"""
-	if timestamp == 0:
-		return "Unknown"
-	var datetime = Time.get_datetime_dict_from_unix_time(timestamp)
-	return "%02d/%02d/%d" % [datetime.month, datetime.day, datetime.year]
-
-
-func _normalize_card_bg_name(raw_name: String) -> String:
-	var s := raw_name.strip_edges()
-	if s == "":
-		return "Unknown"
-
-	# Strip any legacy prefix coming from older Firestore docs.
-	var lower := s.to_lower()
-	var idx := lower.find("reward background")
-	if idx == 0:
-		# Remove "Reward Background" and optional ':' after it.
-		s = s.substr("Reward Background".length()).strip_edges()
-		if s.begins_with(":"):
-			s = s.substr(1).strip_edges()
-
-	# Clamp to 2 words.
-	var parts := s.split(" ", false)
-	if parts.size() <= 2:
-		return s
-	return "%s %s" % [parts[0], parts[1]]
-
-# ✅ FIX 8: Better error handling for Firestore loading
-func _load_player_items() -> void:
-	"""Load player's items from Firestore"""
-	# ✅ Check if already loading
-	if is_loading:
-		print("[Inventory] Already loading items")
-		return
-	
-	# ✅ Check authentication
-	if not Auth or Auth.current_local_id == "" or Auth.current_id_token == "":
-		push_error("[Inventory] User not logged in")
-		_show_error_message("Please log in to view your inventory")
-		return
-	
-	is_loading = true
-	
-	# Show loading indicator
-	if loading_label:
-		loading_label.visible = true
-	
-	var user_id = Auth.current_local_id
-	var id_token = Auth.current_id_token
-	
-	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s/inventory" % user_id
-	var headers = ["Authorization: Bearer %s" % id_token]
-	
-	var http = HTTPRequest.new()
-	add_child(http)
-	
-	http.request_completed.connect(func(_r, code, _h, body):
-		http.queue_free()
-		is_loading = false
-		
-		if loading_label:
-			loading_label.visible = false
-		
-		if code == 200:
-			_parse_inventory_data(body)
-		else:
-			var error_msg = body.get_string_from_utf8() if body.size() > 0 else "Unknown error"
-			push_error("[Inventory] Failed to load items: %d - %s" % [code, error_msg])
-			_show_error_message("Failed to load inventory. Please try again.")
-			_refresh_display()  # Show empty state
-	)
-	
-	var err = http.request(url, headers, HTTPClient.METHOD_GET)
-	if err != OK:
-		http.queue_free()
-		is_loading = false
-		if loading_label:
-			loading_label.visible = false
-		push_error("[Inventory] HTTP request failed: %d" % err)
-		_show_error_message("Connection error. Please check your internet.")
-
-# ✅ FIX 9: Add error message display
-func _show_error_message(message: String) -> void:
-	"""Show error message in inventory panel"""
-	for child in items_grid.get_children():
-		child.queue_free()
-	
-	var error_label = Label.new()
-	error_label.text = "⚠️ " + message
-	error_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	error_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	error_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3, 1))
-	error_label.add_theme_font_size_override("font_size", 16)
-	# 🔧 ADD CUSTOM FONT
-	error_label.add_theme_font_override("font", load("res://asset/fonts/ABeeZee-Regular.ttf"))
-	error_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	error_label.custom_minimum_size = Vector2(600, 200)
-	items_grid.add_child(error_label)
-
-func _parse_inventory_data(body: PackedByteArray) -> void:
-	"""Parse inventory data from Firestore response"""
-	var json_str = body.get_string_from_utf8()
-	var data = JSON.parse_string(json_str)
-	
-	if not data or not data.has("documents"):
-		player_items = []
-		_append_builtin_avatars()
-		_refresh_display()
-		return
-	
-	player_items.clear()
-	
-	for doc in data["documents"]:
-		if not doc.has("fields"):
-			continue
-		
-		var fields = doc["fields"]
-		var item = {
-			"id": doc.get("name", "").split("/")[-1],
-			"name": fields.get("name", {}).get("stringValue", "Unknown"),
-			"type": fields.get("type", {}).get("stringValue", "unknown"),
-			"subtype": fields.get("subtype", {}).get("stringValue", ""),
-			"rarity": fields.get("rarity", {}).get("stringValue", "common"),
-			"description": fields.get("description", {}).get("stringValue", ""),
-			"icon_path": fields.get("icon_path", {}).get("stringValue", ""),
-			"amount": int(fields.get("amount", {}).get("integerValue", 1)),
-			"is_equipped": fields.get("is_equipped", {}).get("booleanValue", false),
-			"date_acquired": int(fields.get("date_acquired", {}).get("integerValue", 0))
-		}
-		player_items.append(item)
-
-	_append_builtin_avatars()
-	
-	print("[Inventory] Loaded %d items" % player_items.size())
-	_refresh_display()
-
-
-func _append_builtin_avatars() -> void:
-	# Always expose preset avatars in the Bag so players can pick them.
-	var dir := DirAccess.open("res://asset/avatars")
-	if dir == null:
-		return
-
-	var existing_files := {}
-	for it in player_items:
-		var f := str(it.get("avatar_file", ""))
-		if f != "":
-			existing_files[f] = true
-		var icon_path := str(it.get("icon_path", ""))
-		if icon_path.begins_with("res://asset/avatars/"):
-			existing_files[icon_path.get_file()] = true
-
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if not dir.current_is_dir() and file_name.get_extension().to_lower() in ["png", "jpg", "jpeg", "webp"]:
-			if not existing_files.has(file_name):
-				var base := file_name.get_basename()
-				var pretty := AvatarCatalog.get_display_name(file_name)
-				player_items.append({
-					"id": "builtin_avatar_%s" % base,
-					"name": pretty,
-					"type": "avatar",
-					"subtype": "preset",
-					"rarity": "common",
-					"description": "Preset avatar",
-					"icon_path": "res://asset/avatars/%s" % file_name,
-					"avatar_file": file_name,
-					"amount": 1,
-					"is_equipped": false,
-					"date_acquired": 0,
-				})
-		file_name = dir.get_next()
-	dir.list_dir_end()
-
-
 func _equip_card_background(item: Dictionary) -> void:
 	if not Auth or Auth.current_local_id == "" or Auth.current_id_token == "":
 		_show_error_message("Please log in to equip items")
@@ -818,17 +527,16 @@ func _equip_card_background(item: Dictionary) -> void:
 		_show_error_message("InventoryHelper missing")
 		return
 
-	var item_id := str(item.get("id", ""))
-	var icon_path := str(item.get("icon_path", ""))
+	var item_id:   String = str(item.get("id", ""))
+	var icon_path: String = str(item.get("icon_path", ""))
 	if item_id.strip_edges() == "" or icon_path.strip_edges() == "":
 		_show_error_message("Invalid item")
 		return
 
-	# Unequip others in the same slot (client-side best-effort)
 	for it in player_items:
 		if str(it.get("subtype", "")) != "card_background":
 			continue
-		var other_id := str(it.get("id", ""))
+		var other_id: String = str(it.get("id", ""))
 		if other_id != "" and other_id != item_id and bool(it.get("is_equipped", false)):
 			InventoryHelper.update_item(other_id, {"is_equipped": false})
 			it["is_equipped"] = false
@@ -837,7 +545,6 @@ func _equip_card_background(item: Dictionary) -> void:
 	InventoryHelper.set_equipped_card_background(icon_path)
 	item["is_equipped"] = true
 
-	# Update local cache + Auth cache
 	for it2 in player_items:
 		if str(it2.get("id", "")) == item_id:
 			it2["is_equipped"] = true
@@ -846,8 +553,3 @@ func _equip_card_background(item: Dictionary) -> void:
 
 	_refresh_display()
 	_show_item_details(item)
-
-func _on_close_pressed() -> void:
-	"""Close the inventory panel"""
-	visible = false
-	inventory_closed.emit()

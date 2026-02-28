@@ -362,7 +362,7 @@ corner_radius_bottom_right = 15
 shadow_color = Color(0.0117647, 0.0196078, 0.329412, 0.662745)
 
 [sub_resource type="LabelSettings" id="LabelSettings_k8628"]
-font = ExtResource("16_8k3g4")
+font = ExtResource("9_ld5je")
 font_size = 12
 font_color = Color(0, 0, 0, 1)
 outline_size = 5
@@ -1353,10 +1353,10 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_wbnsf")
 
 [node name="XPProgressBar" type="TextureProgressBar" parent="VideoStreamPlayer/ProfilePanel/MatchHistoyPanel"]
 layout_mode = 0
-offset_left = 5.0
-offset_top = 284.0
-offset_right = 424.0
-offset_bottom = 504.0
+offset_left = -18.0
+offset_top = 282.0
+offset_right = 444.0
+offset_bottom = 533.0
 max_value = 1000.0
 value = 100.0
 fill_mode = 4
@@ -1364,7 +1364,7 @@ nine_patch_stretch = true
 texture_under = ExtResource("14_70c5x")
 texture_over = ExtResource("15_y5vp8")
 texture_progress = ExtResource("14_70c5x")
-tint_under = Color(0.411433, 3.44135e-06, 0.270724, 0.759)
+tint_under = Color(0.947944, 0, 0.208252, 1)
 tint_over = Color(0.51781, 0.918427, 0.995654, 1)
 
 [node name="XPLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/MatchHistoyPanel/XPProgressBar"]
@@ -1373,9 +1373,9 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 3.0
-offset_top = 28.0
+offset_top = 32.0
 offset_right = 3.0
-offset_bottom = 28.0
+offset_bottom = 32.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "0 / 1000 XP"
@@ -1385,10 +1385,10 @@ vertical_alignment = 1
 
 [node name="expiconlvl" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/MatchHistoyPanel/XPProgressBar"]
 layout_mode = 0
-offset_left = 106.0
-offset_top = 54.0
-offset_right = 314.0
-offset_bottom = 146.0
+offset_left = 126.0
+offset_top = 68.0
+offset_right = 334.0
+offset_bottom = 160.0
 texture = ExtResource("16_y5vp8")
 expand_mode = 1
 
@@ -1892,7 +1892,7 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_menu_focus")
 theme_override_styles/hover = SubResource("StyleBoxFlat_menu_focus")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_menu_pressed")
 theme_override_styles/normal = SubResource("StyleBoxFlat_menu")
-text = "☰              "
+text = "     "
 
 [node name="ChatPanel" parent="." instance=ExtResource("9_1dlu4")]
 visible = false

@@ -70,9 +70,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -360.0
+offset_left = -459.0
 offset_top = -290.0
-offset_right = 360.0
+offset_right = 441.0
 offset_bottom = 290.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -179,9 +179,9 @@ color = Color(0, 1, 1, 1)
 [node name="CornerTR" type="Control" parent="DialogPanel"]
 custom_minimum_size = Vector2(50, 50)
 anchors_preset = 0
-offset_left = 665.0
+offset_left = 845.0
 offset_top = 5.0
-offset_right = 715.0
+offset_right = 895.0
 offset_bottom = 55.0
 mouse_filter = 2
 
@@ -227,10 +227,10 @@ color = Color(0, 1, 1, 1)
 [node name="CornerBR" type="Control" parent="DialogPanel"]
 custom_minimum_size = Vector2(50, 50)
 anchors_preset = 0
-offset_left = 665.0
-offset_top = 525.0
-offset_right = 715.0
-offset_bottom = 575.0
+offset_left = 844.0
+offset_top = 524.0
+offset_right = 894.0
+offset_bottom = 574.0
 mouse_filter = 2
 
 [node name="HBR" type="ColorRect" parent="DialogPanel/CornerBR"]

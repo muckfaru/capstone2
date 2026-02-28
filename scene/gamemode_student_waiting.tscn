@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=2 format=3 uid="uid://cgs3v5x4u7o42"]
 
 [ext_resource type="Script" path="res://script/gamemode_student_waiting.gd" id="1_script"]
 
