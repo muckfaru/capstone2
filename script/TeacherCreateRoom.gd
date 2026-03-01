@@ -105,6 +105,7 @@ var _quiz_heartbeat_timer: Timer = null
 var _quiz_poll_timer: Timer = null
 var _quiz_start_posted: bool = false
 var _cached_leaderboard: Array = []  # Cached for See All popup
+var _cached_results_by_room: Dictionary = {}  # { room_code: { leaderboard, question_stats, ... } }
 
 # ── Room History (Firestore) ─────────────────────────────────────────────────
 const FIRESTORE_BASE_URL: String = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents"
@@ -826,17 +827,41 @@ func _view_room_history(code: String, category: String) -> void:
 	current_room_name = room_name
 	stats_room_name_label.text = room_name
 	
-	# Fetch statistics based on category
+	# Clear stale stats from previous room view
+	_clear_stats_panels()
+	_show_screen("stats")
+	
+	# Show cached results immediately if we have them
+	if _cached_results_by_room.has(code):
+		var cached: Dictionary = _cached_results_by_room[code]
+		if category == "multiple_choice":
+			_update_stats_leaderboard(cached)
+		elif category == "game_mode":
+			_update_gamemode_leaderboard(cached)
+	
+	# Fetch fresh statistics from server
 	if category == "multiple_choice":
-		# Fetch CyberQuiz leaderboard
-		_show_screen("stats")
 		_start_results_polling(code)
 	elif category == "game_mode":
-		# Fetch GameMode leaderboard
-		_show_screen("stats")
 		_start_gamemode_results_polling(code)
 	else:
 		push_warning("[RoomHistory] Unknown category: %s" % category)
+
+## Clear all stats sub-panels to empty/loading state
+func _clear_stats_panels() -> void:
+	var graph_panel = statistics_panel.get_node_or_null("StatsGrid/GraphPanel")
+	if graph_panel:
+		for child in graph_panel.get_children():
+			child.queue_free()
+	var high_score_panel = statistics_panel.get_node_or_null("StatsGrid/RightColumn/HighScorePanel")
+	if high_score_panel:
+		for child in high_score_panel.get_children():
+			child.queue_free()
+	var rankings_panel = statistics_panel.get_node_or_null("StatsGrid/RightColumn/RankingsPanel")
+	if rankings_panel:
+		for child in rankings_panel.get_children():
+			child.queue_free()
+	_cached_leaderboard = []
 
 func _view_room(code: String) -> void:
 	if not rooms.has(code): return
@@ -987,6 +1012,8 @@ func _start_results_polling(room_code: String) -> void:
 	_quiz_poll_timer.autostart = true
 	add_child(_quiz_poll_timer)
 	_quiz_poll_timer.timeout.connect(func(): _poll_quiz_results(room_code))
+	# Immediate first poll
+	_poll_quiz_results(room_code)
 
 func _poll_quiz_results(room_code: String) -> void:
 	var url := _get_lobby_url() + "/api/quiz/%s/results" % room_code
@@ -994,11 +1021,18 @@ func _poll_quiz_results(room_code: String) -> void:
 	add_child(http)
 	http.request_completed.connect(func(_r, code, _h, resp_body):
 		http.queue_free()
-		if code != 200: return
+		if code != 200:
+			# Server doesn't have this room (expired/restarted) — try Firestore cache
+			if not _cached_results_by_room.has(room_code):
+				_load_results_from_firestore(room_code, "multiple_choice")
+			return
 		var text: String = resp_body.get_string_from_utf8()
 		var data = JSON.parse_string(text)
 		if typeof(data) != TYPE_DICTIONARY: return
+		_cached_results_by_room[room_code] = data
 		_update_stats_leaderboard(data)
+		# Save to Firestore for persistence
+		_save_results_to_firestore(room_code, data)
 	)
 	http.request(url, [], HTTPClient.METHOD_GET)
 
@@ -1505,6 +1539,8 @@ func _start_gamemode_results_polling(room_code: String) -> void:
 	_quiz_poll_timer.autostart = true
 	add_child(_quiz_poll_timer)
 	_quiz_poll_timer.timeout.connect(func(): _poll_gamemode_results(room_code))
+	# Immediate first poll
+	_poll_gamemode_results(room_code)
 
 func _poll_gamemode_results(room_code: String) -> void:
 	var url := _get_lobby_url() + "/api/gamemode/%s/results" % room_code
@@ -1512,11 +1548,16 @@ func _poll_gamemode_results(room_code: String) -> void:
 	add_child(http)
 	http.request_completed.connect(func(_r, code, _h, resp_body):
 		http.queue_free()
-		if code != 200: return
+		if code != 200:
+			if not _cached_results_by_room.has(room_code):
+				_load_results_from_firestore(room_code, "game_mode")
+			return
 		var text: String = resp_body.get_string_from_utf8()
 		var data = JSON.parse_string(text)
 		if typeof(data) != TYPE_DICTIONARY: return
+		_cached_results_by_room[room_code] = data
 		_update_gamemode_leaderboard(data)
+		_save_results_to_firestore(room_code, data)
 	)
 	http.request(url, [], HTTPClient.METHOD_GET)
 
@@ -2067,3 +2108,82 @@ func _on_room_history_loaded(_result: int, code: int, _headers: PackedStringArra
 	print("[RoomHistory] ✅ Loaded %d rooms from user doc" % room_history.size())
 	_refresh_room_list()
 
+# ════════════════════════════════════════════════════════════════════════════
+# QUIZ RESULTS — FIRESTORE CACHE (per room)
+# ════════════════════════════════════════════════════════════════════════════
+
+## Save quiz/gamemode results to Firestore for persistence across server restarts
+func _save_results_to_firestore(room_code: String, data: Dictionary) -> void:
+	if not Auth or not Auth.current_local_id or not Auth.current_id_token:
+		return
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	var safe_code := room_code.replace("/", "_")
+	var url := "%s/users/%s/quiz_results/%s" % [FIRESTORE_BASE_URL, uid, safe_code]
+	var headers := [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+	# Serialize the entire results dict as a JSON string
+	var json_str := JSON.stringify(data)
+	var doc := {
+		"fields": {
+			"room_code": {"stringValue": room_code},
+			"results_json": {"stringValue": json_str},
+			"updated_at": {"timestampValue": _utc_now()}
+		}
+	}
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code == 200:
+			print("[ResultsCache] ✅ Saved results for %s" % room_code)
+		else:
+			push_warning("[ResultsCache] Failed to save results for %s: HTTP %d" % [room_code, code])
+	)
+	http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(doc))
+
+## Load quiz/gamemode results from Firestore when server no longer has them
+func _load_results_from_firestore(room_code: String, category: String) -> void:
+	if not Auth or not Auth.current_local_id or not Auth.current_id_token:
+		return
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	var safe_code := room_code.replace("/", "_")
+	var url := "%s/users/%s/quiz_results/%s" % [FIRESTORE_BASE_URL, uid, safe_code]
+	var headers := [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code != 200:
+			print("[ResultsCache] No cached results for %s" % room_code)
+			return
+		var text: String = resp_body.get_string_from_utf8()
+		var doc = JSON.parse_string(text)
+		if typeof(doc) != TYPE_DICTIONARY: return
+		var fields: Dictionary = doc.get("fields", {})
+		var json_str: String = fields.get("results_json", {}).get("stringValue", "")
+		if json_str.is_empty(): return
+		var data = JSON.parse_string(json_str)
+		if typeof(data) != TYPE_DICTIONARY: return
+		print("[ResultsCache] ✅ Loaded cached results for %s" % room_code)
+		_cached_results_by_room[room_code] = data
+		# Only update if still viewing this room
+		if _viewing_room_code == room_code:
+			if category == "multiple_choice":
+				_update_stats_leaderboard(data)
+			elif category == "game_mode":
+				_update_gamemode_leaderboard(data)
+	)
+	http.request(url, headers, HTTPClient.METHOD_GET)
+
+func _utc_now() -> String:
+	var now := Time.get_datetime_dict_from_system(true)
+	return "%04d-%02d-%02dT%02d:%02d:%02dZ" % [
+		now.year, now.month, now.day, now.hour, now.minute, now.second
+	]
