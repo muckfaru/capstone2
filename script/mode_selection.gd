@@ -659,9 +659,12 @@ func _on_join_popup_closed() -> void:
 func _on_join_code_submitted(room_code: String) -> void:
 	print("[Join] Student attempting to join room: %s" % room_code)
 	var lobby_url := _get_lobby_url()
+	var xp_val: int = TutorialManager.total_xp if TutorialManager else 0
 	var body := {
 		"player_id": Auth.current_local_id,
 		"username": Auth.current_username,
+		"avatar": Auth.current_avatar if Auth.current_avatar != "" else "default.png",
+		"xp": xp_val,
 	}
 	var headers := ["Content-Type: application/json"]
 

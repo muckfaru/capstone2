@@ -59,6 +59,8 @@ var _answer_buttons: Array[Button] = []
 
 var _grid_buttons: Array[Button] = []
 var _last_correct_count: int = 0
+var _question_results: Array = []    # Per-question results from server
+var _score_submitted: bool = false   # Whether server submission is done
 
 # ── Styles ────────────────────────────────────────────────────────────────────
 var _sb_unanswered: StyleBoxFlat
@@ -251,10 +253,8 @@ func _auto_advance_question() -> void:
 	_show_screen(Screen.GRID)
 
 func _force_submit() -> void:
-	if _is_cyber_quiz:
-		_submit_to_server_and_show_leaderboard()
-	else:
-		_show_score()
+	# Always show score screen (CyberQuiz will auto-submit from there)
+	_show_score()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ANSWER CHOICE BUTTONS  (uses ChoicesVBox from .tscn — no dynamic creation)
@@ -353,6 +353,17 @@ func _show_score() -> void:
 	_show_screen(Screen.SCORE)
 	_build_score_grid()
 
+	if _is_cyber_quiz:
+		# Server-authoritative: show loading state, submit, update on response
+		score_number.text = "..."
+		score_pct.text = "Calculating..."
+		score_message.text = ""
+		done_btn.text = "⏳ Submitting..."
+		done_btn.disabled = true
+		_submit_and_update_score()
+		return
+
+	# Offline / teacher-hosted: compute score client-side
 	var questions: Array = quiz_data.get("questions", [])
 	var correct_count := 0
 	var correct_flags: Array[bool] = []
@@ -377,6 +388,7 @@ func _show_score() -> void:
 		var btn: Button = result_btns[i]
 		if i < correct_flags.size():
 			btn.add_theme_stylebox_override("normal", _sb_correct if correct_flags[i] else _sb_wrong)
+			btn.add_theme_stylebox_override("disabled", _sb_correct if correct_flags[i] else _sb_wrong)
 
 	if pct >= 80:
 		score_message.text = "Great job soldier! 🎖️"
@@ -385,7 +397,6 @@ func _show_score() -> void:
 	else:
 		score_message.text = "Keep practicing soldier! 📚"
 
-	# Store so Done button can pass it — do NOT auto-submit or auto-transition here
 	_last_correct_count = correct_count
 
 func _build_score_grid() -> void:
@@ -393,17 +404,21 @@ func _build_score_grid() -> void:
 		child.queue_free()
 	for i in range(total_questions):
 		var btn := Button.new()
+		btn.text = str(i + 1)
 		btn.custom_minimum_size = Vector2(48, 48)
 		btn.disabled = true
 		btn.flat     = false
 		btn.add_theme_stylebox_override("normal",   _sb_unanswered)
 		btn.add_theme_stylebox_override("disabled", _sb_unanswered)
+		btn.add_theme_color_override("font_color", Color(1, 1, 1))
+		btn.add_theme_color_override("font_disabled_color", Color(0.8, 0.8, 0.8))
+		btn.add_theme_font_size_override("font_size", 14)
 		score_grid.add_child(btn)
 
 func _on_done_pressed() -> void:
 	if _is_cyber_quiz:
-		# Submit score then show leaderboard — only triggered by player clicking Done
-		_submit_to_server_and_show_leaderboard(_last_correct_count)
+		# Score already submitted during _show_score; just go to leaderboard
+		_fetch_leaderboard()
 		return
 	emit_signal("quiz_finished")
 	_animate_out()
@@ -481,6 +496,16 @@ func _show_waiting_screen() -> void:
 	_lobby_panel_instance.set_anchors_preset(Control.PRESET_FULL_RECT)
 	ws.add_child(_lobby_panel_instance)
 
+	if _lobby_panel_instance.has_method("show_lobby"):
+		_lobby_panel_instance.show_lobby(
+			_cyber_quiz_room_code, "CyberQuiz", "Multiple Choice", "", 10
+		)
+	if _lobby_panel_instance.has_method("start_server_polling"):
+		_lobby_panel_instance.start_server_polling(
+			_cyber_quiz_room_code, _cyber_quiz_lobby_url
+		)
+
+	# Hide Start button, chat, and back AFTER show_lobby (which re-enables them)
 	var bottom_bar = _lobby_panel_instance.get_node_or_null("PanelBg/BottomBar")
 	if bottom_bar:
 		var start_btn  = bottom_bar.get_node_or_null("StartQuizButton")
@@ -491,15 +516,6 @@ func _show_waiting_screen() -> void:
 	if top_bar:
 		var back_btn = top_bar.get_node_or_null("BackButton")
 		if back_btn: back_btn.visible = false
-
-	if _lobby_panel_instance.has_method("show_lobby"):
-		_lobby_panel_instance.show_lobby(
-			_cyber_quiz_room_code, "CyberQuiz", "Multiple Choice", "", 10
-		)
-	if _lobby_panel_instance.has_method("start_server_polling"):
-		_lobby_panel_instance.start_server_polling(
-			_cyber_quiz_room_code, _cyber_quiz_lobby_url
-		)
 
 	var wait_label := Label.new()
 	wait_label.name = "WaitingLabel"
@@ -626,6 +642,225 @@ func _submit_to_server_and_show_leaderboard(score: int = -1) -> void:
 		_fetch_leaderboard()
 	)
 	http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+
+# ── NEW: Submit and update score screen (no auto-leaderboard) ────────────────
+func _submit_and_update_score() -> void:
+	if not _is_cyber_quiz or _cyber_quiz_lobby_url.is_empty(): return
+	var url  := _cyber_quiz_lobby_url + "/api/quiz/%s/submit" % _cyber_quiz_room_code
+	var body := {
+		"player_id": Auth.current_local_id,
+		"answers":   student_answers,
+	}
+	print("[CyberQuiz DEBUG] Submitting answers for score update: %s" % str(student_answers))
+	var headers := ["Content-Type: application/json"]
+	var http    := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		_score_submitted = true
+		if code != 200:
+			push_error("[CyberQuiz] Submit failed: %d" % code)
+			score_number.text = "?"
+			score_pct.text = "Error submitting"
+			done_btn.text = "View Leaderboard →"
+			done_btn.disabled = false
+			return
+
+		var resp_text: String = resp_body.get_string_from_utf8()
+		var resp_data = JSON.parse_string(resp_text)
+		if typeof(resp_data) != TYPE_DICTIONARY:
+			done_btn.text = "View Leaderboard →"
+			done_btn.disabled = false
+			return
+
+		var server_score: int = resp_data.get("score", 0)
+		var server_total: int = resp_data.get("total_questions", total_questions)
+		_question_results = resp_data.get("question_results", [])
+		_last_correct_count = server_score
+		print("[CyberQuiz] Server score: %d/%d, question_results: %d items" % [server_score, server_total, _question_results.size()])
+
+		# Update score display
+		score_number.text = str(server_score)
+		var pct := (float(server_score) / float(server_total)) * 100.0 if server_total > 0 else 0.0
+		score_pct.text = "Percentage: %.0f%%" % pct
+		if pct >= 80:
+			score_message.text = "Great job soldier! 🎖️"
+		elif pct >= 50:
+			score_message.text = "Good effort! Keep it up! 💪"
+		else:
+			score_message.text = "Keep practicing soldier! 📚"
+
+		# Color grid and enable wrong-answer review
+		_update_score_grid_from_results()
+
+		done_btn.text = "View Leaderboard →"
+		done_btn.disabled = false
+	)
+	http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+
+func _update_score_grid_from_results() -> void:
+	var result_btns := score_grid.get_children()
+	for i in range(result_btns.size()):
+		var btn: Button = result_btns[i]
+		if i >= _question_results.size(): continue
+		var res: Dictionary = _question_results[i]
+		var is_correct: bool = res.get("is_correct", false)
+		var sb: StyleBoxFlat = _sb_correct if is_correct else _sb_wrong
+		btn.add_theme_stylebox_override("normal", sb)
+		btn.add_theme_stylebox_override("disabled", sb)
+		btn.add_theme_stylebox_override("hover", sb)
+		btn.add_theme_stylebox_override("pressed", sb)
+		if not is_correct:
+			# Make wrong answers clickable for review
+			btn.disabled = false
+			btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			btn.tooltip_text = "Click to review"
+			var idx := i
+			if not btn.pressed.is_connected(_on_review_btn_pressed):
+				btn.pressed.connect(_on_review_btn_pressed.bind(idx))
+
+func _on_review_btn_pressed(index: int) -> void:
+	_show_question_review(index)
+
+func _show_question_review(index: int) -> void:
+	if index >= _question_results.size(): return
+	var result: Dictionary = _question_results[index]
+	var question_text: String = result.get("question_text", "Question %d" % (index + 1))
+	var correct_answer: String = result.get("correct_answer", "")
+	var student_answer: String = result.get("student_answer", "")
+	var choices: Array = result.get("choices", [])
+
+	# Remove existing review popup
+	var existing = get_node_or_null("ReviewPopup")
+	if existing: existing.queue_free()
+
+	# Dimmed backdrop
+	var backdrop := ColorRect.new()
+	backdrop.name = "ReviewPopup"
+	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	backdrop.color = Color(0, 0, 0, 0.6)
+	add_child(backdrop)
+
+	# Popup panel
+	var popup := PanelContainer.new()
+	popup.set_anchors_preset(Control.PRESET_CENTER)
+	popup.custom_minimum_size = Vector2(520, 0)
+	popup.offset_left = -260
+	popup.offset_right = 260
+	popup.offset_top = -200
+	popup.offset_bottom = 200
+	var popup_style := StyleBoxFlat.new()
+	popup_style.bg_color = Color(0.04, 0.07, 0.16, 0.98)
+	popup_style.border_color = Color(0, 1, 1, 0.8)
+	popup_style.set_border_width_all(2)
+	popup_style.set_corner_radius_all(12)
+	popup.add_theme_stylebox_override("panel", popup_style)
+	backdrop.add_child(popup)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	popup.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	margin.add_child(vbox)
+
+	# Header
+	var header := Label.new()
+	header.text = "📋 Question %d — Review" % (index + 1)
+	header.add_theme_color_override("font_color", Color(0, 1, 1))
+	header.add_theme_font_size_override("font_size", 20)
+	header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(header)
+
+	# Question text
+	var q_label := Label.new()
+	q_label.text = question_text
+	q_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	q_label.add_theme_color_override("font_color", Color(0.9, 0.95, 1))
+	q_label.add_theme_font_size_override("font_size", 16)
+	vbox.add_child(q_label)
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 6)
+	vbox.add_child(spacer)
+
+	# Choices with correct/wrong coloring
+	for choice in choices:
+		var choice_str: String = str(choice)
+		var is_correct := choice_str.strip_edges().to_lower() == correct_answer.strip_edges().to_lower()
+		var is_student_pick := choice_str.strip_edges().to_lower() == student_answer.strip_edges().to_lower()
+
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+
+		var icon_lbl := Label.new()
+		icon_lbl.custom_minimum_size = Vector2(28, 0)
+		icon_lbl.add_theme_font_size_override("font_size", 16)
+
+		var choice_lbl := Label.new()
+		choice_lbl.text = choice_str
+		choice_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		choice_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		choice_lbl.add_theme_font_size_override("font_size", 15)
+
+		if is_correct:
+			icon_lbl.text = "✅"
+			choice_lbl.add_theme_color_override("font_color", Color(0.2, 1, 0.5))
+		elif is_student_pick:
+			icon_lbl.text = "❌"
+			choice_lbl.add_theme_color_override("font_color", Color(1, 0.3, 0.3))
+		else:
+			icon_lbl.text = "  "
+			choice_lbl.add_theme_color_override("font_color", Color(0.5, 0.55, 0.6))
+
+		row.add_child(icon_lbl)
+		row.add_child(choice_lbl)
+
+		# Highlight row background for student's pick
+		if is_student_pick and not is_correct:
+			var row_panel := PanelContainer.new()
+			var row_sb := StyleBoxFlat.new()
+			row_sb.bg_color = Color(0.5, 0.08, 0.08, 0.4)
+			row_sb.set_corner_radius_all(6)
+			row_sb.set_content_margin_all(6)
+			row_panel.add_theme_stylebox_override("panel", row_sb)
+			row_panel.add_child(row)
+			vbox.add_child(row_panel)
+		elif is_correct:
+			var row_panel := PanelContainer.new()
+			var row_sb := StyleBoxFlat.new()
+			row_sb.bg_color = Color(0.05, 0.3, 0.1, 0.4)
+			row_sb.set_corner_radius_all(6)
+			row_sb.set_content_margin_all(6)
+			row_panel.add_theme_stylebox_override("panel", row_sb)
+			row_panel.add_child(row)
+			vbox.add_child(row_panel)
+		else:
+			vbox.add_child(row)
+
+	var spacer2 := Control.new()
+	spacer2.custom_minimum_size = Vector2(0, 8)
+	vbox.add_child(spacer2)
+
+	# Close button
+	var close_btn := Button.new()
+	close_btn.text = "Close"
+	close_btn.custom_minimum_size = Vector2(140, 44)
+	close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var close_sb := StyleBoxFlat.new()
+	close_sb.bg_color = Color(0, 0.4, 0.6, 0.9)
+	close_sb.border_color = Color(0, 1, 1, 0.6)
+	close_sb.set_border_width_all(1)
+	close_sb.set_corner_radius_all(8)
+	close_btn.add_theme_stylebox_override("normal", close_sb)
+	close_btn.add_theme_color_override("font_color", Color(1, 1, 1))
+	close_btn.add_theme_font_size_override("font_size", 16)
+	close_btn.pressed.connect(func(): backdrop.queue_free())
+	vbox.add_child(close_btn)
 
 func _fetch_leaderboard() -> void:
 	var url  := _cyber_quiz_lobby_url + "/api/quiz/%s/results" % _cyber_quiz_room_code

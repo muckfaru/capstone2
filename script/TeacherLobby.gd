@@ -387,29 +387,34 @@ func _build_slots(count: int) -> void:
 	for i in count:
 		var slot := PanelContainer.new()
 		slot.name = "Slot%d" % (i + 1)
-		slot.custom_minimum_size = Vector2(0, 250)
+		slot.custom_minimum_size = Vector2(150, 220)
 		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		slot.add_theme_stylebox_override("panel", _slot_style(false))
 
-		# Use plain Control with absolute positioning — matches Slot1 tscn layout
-		var vbox := Control.new()
+		# Use a proper VBoxContainer for vertical alignment
+		var vbox := VBoxContainer.new()
 		vbox.name = "VBox"
 		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		vbox.add_theme_constant_override("separation", 8)
 		slot.add_child(vbox)
 
-		# AvatarPanel — offset_left=35, offset_top=21, offset_right=114, offset_bottom=99
+		# Spacer top
+		var spacer_top := Control.new()
+		spacer_top.custom_minimum_size = Vector2(0, 8)
+		vbox.add_child(spacer_top)
+
+		# Avatar centered
+		var avatar_center := CenterContainer.new()
+		avatar_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vbox.add_child(avatar_center)
+
 		var avatar_pan := PanelContainer.new()
 		avatar_pan.name = "AvatarPanel"
-		avatar_pan.custom_minimum_size = Vector2(56, 56)
-		avatar_pan.layout_mode = 0  # Absolute/anchored
-		avatar_pan.offset_left   = 36.0
-		avatar_pan.offset_top    = 21.0
-		avatar_pan.offset_right  = 114.0
-		avatar_pan.offset_bottom = 99.0
-		avatar_pan.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		avatar_pan.custom_minimum_size = Vector2(72, 72)
 		avatar_pan.add_theme_stylebox_override("panel", _avatar_style(false))
-		vbox.add_child(avatar_pan)
+		avatar_center.add_child(avatar_pan)
 
 		var avatar_tex := TextureRect.new()
 		avatar_tex.name = "AvatarTexture"
@@ -420,15 +425,10 @@ func _build_slots(count: int) -> void:
 		avatar_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		avatar_pan.add_child(avatar_tex)
 
-		# NameLabel — offset_top=117, offset_right=150, offset_bottom=137
+		# NameLabel centered
 		var name_lbl := Label.new()
 		name_lbl.name = "NameLabel"
-		name_lbl.custom_minimum_size = Vector2(90, 0)
-		name_lbl.layout_mode = 0
-		name_lbl.offset_left   = 0.0
-		name_lbl.offset_top    = 117.0
-		name_lbl.offset_right  = 150.0
-		name_lbl.offset_bottom = 137.0
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_lbl.add_theme_color_override("font_color", Color(0.7, 0.85, 1, 0.45))
 		name_lbl.add_theme_font_size_override("font_size", 12)
 		name_lbl.text = "Name"
@@ -436,18 +436,16 @@ func _build_slots(count: int) -> void:
 		name_lbl.clip_text = true
 		vbox.add_child(name_lbl)
 
-		# RankPanel — offset_left=39, offset_top=157, offset_right=114, offset_bottom=220
+		# RankPanel centered
+		var rank_center := CenterContainer.new()
+		rank_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vbox.add_child(rank_center)
+
 		var rank_pan := PanelContainer.new()
 		rank_pan.name = "RankPanel"
-		rank_pan.custom_minimum_size = Vector2(70, 24)
-		rank_pan.layout_mode = 0
-		rank_pan.offset_left   = 39.0
-		rank_pan.offset_top    = 157.0
-		rank_pan.offset_right  = 114.0
-		rank_pan.offset_bottom = 220.0
-		rank_pan.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		rank_pan.custom_minimum_size = Vector2(70, 50)
 		rank_pan.add_theme_stylebox_override("panel", _rank_style())
-		vbox.add_child(rank_pan)
+		rank_center.add_child(rank_pan)
 
 		var rank_tex := TextureRect.new()
 		rank_tex.name = "RankTexture"
@@ -464,11 +462,12 @@ func _build_slots(count: int) -> void:
 func _refresh_all_slots() -> void:
 	for idx in _slot_nodes.size():
 		var slot: PanelContainer = _slot_nodes[idx]
-		var vbox: Control = slot.get_child(0)
-		var avatar_pan: PanelContainer = vbox.get_node("AvatarPanel")
+		var vbox = slot.get_child(0)
+		# Navigate the VBox layout: SpacerTop, AvatarCenter > AvatarPanel > AvatarTexture, NameLabel, RankCenter > RankPanel > RankTexture
+		var avatar_pan: PanelContainer = vbox.get_child(1).get_child(0)  # AvatarCenter > AvatarPanel
 		var avatar_tex: TextureRect = avatar_pan.get_node("AvatarTexture")
-		var name_lbl: Label = vbox.get_node("NameLabel")
-		var rank_pan: PanelContainer = vbox.get_node("RankPanel")
+		var name_lbl: Label = vbox.get_child(2)  # NameLabel
+		var rank_pan: PanelContainer = vbox.get_child(3).get_child(0)  # RankCenter > RankPanel
 		var rank_tex: TextureRect = rank_pan.get_node("RankTexture")
 
 		if idx < _players.size():

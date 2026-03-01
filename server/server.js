@@ -941,6 +941,8 @@ app.get('/api/quiz/:code/info', (req, res) => {
     players: qr.players.map(p => ({
       player_id: p.player_id,
       username: p.username,
+      avatar: p.avatar || 'default.png',
+      xp: p.xp || 0,
       finished: p.finished,
       score: p.finished ? p.score : undefined
     }))
@@ -950,7 +952,7 @@ app.get('/api/quiz/:code/info', (req, res) => {
 // POST /api/quiz/:code/join — Student joins quiz room
 app.post('/api/quiz/:code/join', (req, res) => {
   const code = req.params.code.toUpperCase();
-  const { player_id, username } = req.body;
+  const { player_id, username, avatar, xp } = req.body;
 
   if (!player_id || !username) {
     return res.status(400).json({ error: 'Missing required fields: player_id, username' });
@@ -972,6 +974,9 @@ app.post('/api/quiz/:code/join', (req, res) => {
   // Check if player already joined (allow rejoin)
   const existing = qr.players.find(p => p.player_id === player_id);
   if (existing) {
+    // Update avatar/xp on rejoin
+    if (avatar) existing.avatar = avatar;
+    if (xp !== undefined) existing.xp = xp;
     console.log(`[CyberQuiz] Player rejoined: ${username} in ${code}`);
     return res.json({ ok: true, status: qr.status, rejoined: true });
   }
@@ -979,6 +984,8 @@ app.post('/api/quiz/:code/join', (req, res) => {
   qr.players.push({
     player_id,
     username,
+    avatar: avatar || 'default.png',
+    xp: xp || 0,
     answers: [],
     score: 0,
     finished: false,
@@ -1111,12 +1118,28 @@ app.post('/api/quiz/:code/submit', (req, res) => {
     console.log(`[CyberQuiz] All players finished in ${code}`);
   }
 
+  // Per-question results so client can show correct/wrong indicators
+  const question_results = questions.map((q, i) => {
+    const rawCorrect = (q.correct_answer || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const rawStudent = (submittedAnswers[i] || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const is_correct = rawStudent.length > 0 && rawStudent === rawCorrect;
+    return {
+      question_index: i,
+      is_correct,
+      correct_answer: q.correct_answer || '',
+      student_answer: submittedAnswers[i] || '',
+      question_text: q.question || `Q${i + 1}`,
+      choices: q.choices || []
+    };
+  });
+
   res.json({
     ok: true,
     score: score,
     total_questions: questions.length,
     all_finished: allFinished,
-    status: qr.status
+    status: qr.status,
+    question_results
   });
 });
 
