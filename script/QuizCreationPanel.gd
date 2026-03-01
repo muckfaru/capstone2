@@ -61,6 +61,15 @@ var _sb_invalid: StyleBoxFlat
 @onready var next_button: Button = $MainPanel/Root/BottomBar/NextButton
 @onready var done_button: Button = $MainPanel/Root/BottomBar/DoneButton
 
+# Letter labels and their accent colors for A/B/C/D
+const CHOICE_LETTERS := ["A", "B", "C", "D"]
+const CHOICE_COLORS := [
+	Color(0.1, 0.6, 1.0, 1.0),   # A — blue
+	Color(0.2, 0.85, 0.5, 1.0),  # B — green
+	Color(1.0, 0.75, 0.2, 1.0),  # C — yellow
+	Color(1.0, 0.35, 0.5, 1.0),  # D — pink/red
+]
+
 func _ready() -> void:
 	_build_styles()
 	visible = false
@@ -104,10 +113,8 @@ func initialize(num_questions: int, time_per_q: int) -> void:
 	questions_data.clear()
 	for i in range(total_questions):
 		if i < old_data.size():
-			# Reuse the saved question data for existing slots
 			questions_data.append(old_data[i])
 		else:
-			# Only create blank entries for NEW slots
 			questions_data.append(QuestionData.new())
 
 	_create_miniboxes()
@@ -116,7 +123,7 @@ func initialize(num_questions: int, time_per_q: int) -> void:
 	_update_ui()
 	visible = true
 	_animate_in()
-	
+
 func _create_miniboxes() -> void:
 	for child in minibox_grid.get_children():
 		child.queue_free()
@@ -200,6 +207,9 @@ func _load_question(index: int) -> void:
 	answer_input.text = q.correct_answer
 	_update_preview()
 
+# ─────────────────────────────────────────────────────────────────────────────
+# PREVIEW — shows A/B/C/D letter badge beside each choice
+# ─────────────────────────────────────────────────────────────────────────────
 func _update_preview() -> void:
 	var q := questions_data[current_question_index]
 	q_num_lbl.text = "Q%d" % (current_question_index + 1)
@@ -211,19 +221,62 @@ func _update_preview() -> void:
 		prev_question.visible = true
 		prev_question.text = q.question_text
 
+	# Clear old choice rows
 	for child in prev_choices.get_children():
 		child.queue_free()
+
+	var answer_lower := q.correct_answer.strip_edges().to_lower()
+
+	# Build 2x2 grid: A B on row 1, C D on row 2 — mirrors the input ChoicesGrid layout
+	# prev_choices GridContainer must have columns = 2 in the tscn
 	for i in range(4):
 		var txt := q.choices[i].strip_edges()
-		if not txt.is_empty():
-			var lbl := Label.new()
-			lbl.text = txt
-			lbl.add_theme_font_size_override("font_size", 13)
-			lbl.add_theme_color_override("font_color", Color(0.8, 0.92, 1, 1))
-			lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			prev_choices.add_child(lbl)
+		var is_correct := (not txt.is_empty()) and (txt.to_lower() == answer_lower) and (not answer_lower.is_empty())
+		var letter_color: Color = CHOICE_COLORS[i]
+
+		# ── Outer cell: HBox with letter badge + choice text ──────────
+		var cell := HBoxContainer.new()
+		cell.add_theme_constant_override("separation", 5)
+		cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+		# Letter badge
+		var letter_lbl := Label.new()
+		letter_lbl.text = CHOICE_LETTERS[i]
+		letter_lbl.add_theme_font_size_override("font_size", 11)
+		letter_lbl.add_theme_color_override("font_color", letter_color)
+		var letter_bg := StyleBoxFlat.new()
+		letter_bg.bg_color    = Color(letter_color.r, letter_color.g, letter_color.b, 0.18)
+		letter_bg.border_color = Color(letter_color.r, letter_color.g, letter_color.b, 0.6)
+		letter_bg.set_border_width_all(1)
+		letter_bg.set_corner_radius_all(4)
+		letter_bg.content_margin_left   = 4
+		letter_bg.content_margin_right  = 4
+		letter_bg.content_margin_top    = 1
+		letter_bg.content_margin_bottom = 1
+		letter_lbl.add_theme_stylebox_override("normal", letter_bg)
+		cell.add_child(letter_lbl)
+
+		# Choice text (blank slot still shows the letter badge, just no text)
+		var choice_lbl := Label.new()
+		choice_lbl.text = txt if not txt.is_empty() else "—"
+		choice_lbl.add_theme_font_size_override("font_size", 12)
+		choice_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		choice_lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+		choice_lbl.clip_text = true
+		if is_correct:
+			choice_lbl.add_theme_color_override("font_color", Color(0.145, 0.878, 0.992, 1.0))
+			choice_lbl.text = txt + " ✓"
+		elif txt.is_empty():
+			choice_lbl.add_theme_color_override("font_color", Color(0.4, 0.5, 0.6, 0.5))
+		else:
+			choice_lbl.add_theme_color_override("font_color", Color(0.8, 0.92, 1, 1))
+		cell.add_child(choice_lbl)
+
+		prev_choices.add_child(cell)
 
 	prev_answer.text = q.correct_answer.strip_edges()
+
+# ─────────────────────────────────────────────────────────────────────────────
 
 func _update_ui() -> void:
 	q_num_lbl.text = "Q%d" % (current_question_index + 1)

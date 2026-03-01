@@ -1,35 +1,34 @@
-[gd_scene load_steps=113 format=3 uid="uid://bh7u33b2fgi20"]
+[gd_scene load_steps=100 format=3 uid="uid://qfyke7t01nil"]
 
-[ext_resource type="Script" uid="uid://tcqud0h0ly6x" path="res://script/TeacherCreateRoom.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://cfv84307hubxo" path="res://TEACHERCREATEROOMUI/cyber ct 2.png" id="2_33jw7"]
-[ext_resource type="Texture2D" uid="uid://bttci7b1t1fch" path="res://TEACHERCREATEROOMUI/arrow-back-long_svgrepo.com.png" id="3_i5unp"]
-[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="3_lsybk"]
-[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_g2skq"]
-[ext_resource type="Shader" uid="uid://bhfjciu5yf2vs" path="res://shader/blur_panel.gdshader" id="5_blur"]
-[ext_resource type="Texture2D" uid="uid://bt42jb2so5bw7" path="res://TEACHERCREATEROOMUI/Group 46.png" id="7_3wnox"]
-[ext_resource type="Texture2D" uid="uid://cjbj4s556fviw" path="res://TEACHERCREATEROOMUI/Rectangle 48.png" id="7_7jrwp"]
-[ext_resource type="FontFile" uid="uid://cqfcxnj3ofmyk" path="res://TEACHERCREATEROOMUI/Inter-VariableFont_opsz,wght.ttf" id="9_87rh8"]
-[ext_resource type="Texture2D" uid="uid://dwqolbjt7ppqx" path="res://asset/Group 44.png" id="10_juhxy"]
-[ext_resource type="PackedScene" uid="uid://yfarxf2di6ej" path="res://scene/TeacherRoomPanel.tscn" id="10_lobby"]
-[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="10_ttatp"]
-[ext_resource type="PackedScene" uid="uid://e5eddy1e6lws" path="res://scene/quiz_creation_panel.tscn" id="11_quiz"]
-[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="12_a4gcc"]
-[ext_resource type="PackedScene" uid="uid://c2yy3h13d6xt7" path="res://scene/QuizPreviewPanel.tscn" id="12_f1r1v"]
+[ext_resource type="Script" uid="uid://tcqud0h0ly6x" path="res://script/TeacherCreateRoom.gd" id="1_0dav4"]
+[ext_resource type="Texture2D" uid="uid://cfv84307hubxo" path="res://TEACHERCREATEROOMUI/cyber ct 2.png" id="2_msu28"]
+[ext_resource type="Shader" uid="uid://bhfjciu5yf2vs" path="res://shader/blur_panel.gdshader" id="3_s60h5"]
+[ext_resource type="Texture2D" uid="uid://bttci7b1t1fch" path="res://TEACHERCREATEROOMUI/arrow-back-long_svgrepo.com.png" id="4_w2np2"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="5_qe1mu"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="6_w5wbj"]
+[ext_resource type="Texture2D" uid="uid://cjbj4s556fviw" path="res://TEACHERCREATEROOMUI/Rectangle 48.png" id="7_tmprv"]
+[ext_resource type="Texture2D" uid="uid://bt42jb2so5bw7" path="res://TEACHERCREATEROOMUI/Group 46.png" id="8_x28kd"]
+[ext_resource type="FontFile" uid="uid://cqfcxnj3ofmyk" path="res://TEACHERCREATEROOMUI/Inter-VariableFont_opsz,wght.ttf" id="9_2d5kl"]
+[ext_resource type="Texture2D" uid="uid://dwqolbjt7ppqx" path="res://asset/Group 44.png" id="10_s15o2"]
+[ext_resource type="PackedScene" uid="uid://yfarxf2di6ej" path="res://scene/TeacherRoomPanel.tscn" id="11_cw0nt"]
+[ext_resource type="PackedScene" uid="uid://e5eddy1e6lws" path="res://scene/quiz_creation_panel.tscn" id="12_32wi3"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="12_w2np2"]
+[ext_resource type="PackedScene" uid="uid://c2yy3h13d6xt7" path="res://scene/QuizPreviewPanel.tscn" id="13_c2n05"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vngf0"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_main"]
-shader = ExtResource("5_blur")
+shader = ExtResource("3_s60h5")
 shader_parameter/blur_amount = 1.5
 shader_parameter/tint_color = Color(0, 0.212, 0.49, 0.414)
 shader_parameter/corner_radius = 0.05
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3wnox"]
-texture = ExtResource("3_i5unp")
+texture = ExtResource("4_w2np2")
 region_rect = Rect2(0, 0, 45, 42)
 
 [sub_resource type="LabelSettings" id="LabelSettings_7jrwp"]
-font = ExtResource("4_g2skq")
+font = ExtResource("5_qe1mu")
 font_size = 25
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1bmxr"]
@@ -79,20 +78,20 @@ shadow_offset = Vector2(0, 4)
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a4gcc"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_87rh8"]
-texture = ExtResource("7_7jrwp")
+texture = ExtResource("7_tmprv")
 expand_margin_left = 20.0
 expand_margin_top = 20.0
 expand_margin_right = 20.0
 expand_margin_bottom = 20.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_form"]
-shader = ExtResource("5_blur")
+shader = ExtResource("3_s60h5")
 shader_parameter/blur_amount = 1.5
 shader_parameter/tint_color = Color(0, 0.08, 0.2, 0.55)
 shader_parameter/corner_radius = 0.05
 
 [sub_resource type="LabelSettings" id="LabelSettings_87rh8"]
-font = ExtResource("4_g2skq")
+font = ExtResource("5_qe1mu")
 outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lineedit"]
@@ -124,12 +123,12 @@ shadow_size = 4
 shadow_offset = Vector2(0, 4)
 
 [sub_resource type="LabelSettings" id="LabelSettings_validation"]
-font = ExtResource("3_lsybk")
+font = ExtResource("6_w5wbj")
 font_size = 11
 font_color = Color(1, 0.55, 0.1, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_vngf0"]
-font = ExtResource("4_g2skq")
+font = ExtResource("5_qe1mu")
 outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a4gcc"]
@@ -261,7 +260,7 @@ corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
 [sub_resource type="LabelSettings" id="LabelSettings_choosegame"]
-font = ExtResource("4_g2skq")
+font = ExtResource("5_qe1mu")
 outline_size = 5
 outline_color = Color(0, 0, 0, 1)
 
@@ -363,7 +362,12 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_f1r1v"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3mlsb"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mc_view"]
 draw_center = false
@@ -378,24 +382,40 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ib7iv"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_f1r1v"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qoqnn"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ib7iv"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fs36a"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ni4av"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fs36a"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b487h"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e2kxa"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vqmoe"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wnwxd"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2m7a8"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qoqnn"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3mlsb"]
-bg_color = Color(0.145, 0.878, 0.992, 0.508)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ephe"]
+bg_color = Color(0.145, 0.878, 0.992, 0.503)
 border_blend = true
 corner_radius_top_left = 5
 corner_radius_top_right = 5
@@ -404,20 +424,10 @@ corner_radius_bottom_left = 5
 shadow_size = 2
 shadow_offset = Vector2(4, 4)
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2q8xq"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ni4av"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ib7iv"]
-bg_color = Color(0.145, 0.878, 0.992, 0.508)
-border_blend = true
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-shadow_size = 2
-shadow_offset = Vector2(4, 4)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3nlsp"]
-bg_color = Color(0.031, 0.082, 0.208, 0.674)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wnwxd"]
+bg_color = Color(0.145, 0.878, 0.992, 0.503)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -452,15 +462,14 @@ corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
-shadow_color = Color(0.318, 0.91, 1, 0.757)
+shadow_color = Color(0.145, 0.878, 0.992, 0.69)
 shadow_size = 2
 shadow_offset = Vector2(0, 4)
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_w2noi"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e2kxa"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fs36a"]
-bg_color = Color(0.145, 0.878, 0.992, 0.508)
-border_blend = true
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ow5nd"]
+bg_color = Color(0.145, 0.878, 0.992, 0.503)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -469,7 +478,12 @@ shadow_size = 2
 shadow_offset = Vector2(4, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jsaon"]
-bg_color = Color(0.72202, 0, 0.134399, 1)
+bg_color = Color(0.145, 0.878, 0.992, 0.503)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.72202, 0, 0.134399, 1)
 border_blend = true
 corner_radius_top_left = 5
 corner_radius_top_right = 5
@@ -478,8 +492,8 @@ corner_radius_bottom_left = 5
 shadow_size = 2
 shadow_offset = Vector2(4, 4)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vqmoe"]
-bg_color = Color(0.145, 0.878, 0.992, 0.848)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w2noi"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
 border_blend = true
 corner_radius_top_left = 5
 corner_radius_top_right = 5
@@ -489,98 +503,26 @@ shadow_size = 2
 shadow_offset = Vector2(4, 4)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_code"]
-shader = ExtResource("5_blur")
+shader = ExtResource("3_s60h5")
 shader_parameter/blur_amount = 1.5
 shader_parameter/tint_color = Color(0, 0.08, 0.2, 0.55)
 shader_parameter/corner_radius = 0.05
 
-[sub_resource type="LabelSettings" id="LabelSettings_a4gcc"]
-font = ExtResource("10_ttatp")
+[sub_resource type="LabelSettings" id="LabelSettings_qe1mu"]
+font = ExtResource("12_w2np2")
 font_size = 20
 
-[sub_resource type="StyleBoxLine" id="StyleBoxLine_ttatp"]
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_w5wbj"]
 color = Color(0.145098, 0.878431, 0.992157, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ephe"]
-bg_color = Color(0.0313726, 0.0823529, 0.207843, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-
-[sub_resource type="LabelSettings" id="LabelSettings_qoqnn"]
-font = ExtResource("9_87rh8")
-font_size = 25
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wnwxd"]
-draw_center = false
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.145098, 0.878431, 0.992157, 1)
-border_blend = true
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ow5nd"]
-bg_color = Color(0.72202, 0, 0.134399, 1)
-border_blend = true
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_size = 2
-shadow_offset = Vector2(4, 4)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aor2d"]
-bg_color = Color(0.031, 0.082, 0.208, 0.674)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.72202, 0, 0.134399, 1)
-border_blend = true
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_size = 2
-shadow_offset = Vector2(4, 4)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qh26l"]
-bg_color = Color(0.72202, 0, 0.134399, 1)
-border_blend = true
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_size = 2
-shadow_offset = Vector2(4, 4)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w2noi"]
-bg_color = Color(0.145098, 0.878431, 0.992157, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_size = 2
-shadow_offset = Vector2(4, 4)
+[sub_resource type="LabelSettings" id="LabelSettings_msu28"]
+font = ExtResource("9_2d5kl")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_stats"]
-shader = ExtResource("5_blur")
+shader = ExtResource("3_s60h5")
 shader_parameter/blur_amount = 1.5
 shader_parameter/tint_color = Color(0, 0.08, 0.2, 0.55)
 shader_parameter/corner_radius = 0.05
-
-[sub_resource type="LabelSettings" id="LabelSettings_ni4av"]
-font = ExtResource("12_a4gcc")
-font_size = 20
-
-[sub_resource type="StyleBoxLine" id="StyleBoxLine_e2kxa"]
-color = Color(0.145, 0.878, 0.992, 0.848)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_room_item"]
 bg_color = Color(0.06, 0.1, 0.22, 0.95)
@@ -594,23 +536,14 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="LabelSettings" id="LabelSettings_2m7a8"]
-font = ExtResource("9_87rh8")
-
-[sub_resource type="LabelSettings" id="LabelSettings_2q8xq"]
-font = ExtResource("9_87rh8")
-
-[sub_resource type="LabelSettings" id="LabelSettings_3mlsb"]
-font = ExtResource("9_87rh8")
-
-[node name="CreateRoom2" type="Control"]
+[node name="CreateRoom" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_script")
+script = ExtResource("1_0dav4")
 
 [node name="VideoBackground" type="VideoStreamPlayer" parent="."]
 layout_mode = 0
@@ -628,7 +561,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_33jw7")
+texture = ExtResource("2_msu28")
 expand_mode = 1
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
@@ -656,8 +589,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -14.0
-offset_right = 11.0
+offset_top = -7.0
+offset_right = 9.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(1, 1, 1, 0)
@@ -685,8 +618,9 @@ size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.8
 
 [node name="TitleLabel" type="Label" parent="CanvasLayer/MainPanel/TopBar"]
+visible = false
 layout_mode = 2
-text = "Room History"
+text = "Room"
 label_settings = SubResource("LabelSettings_7jrwp")
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -701,7 +635,7 @@ custom_minimum_size = Vector2(130, 36)
 layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0.192157, 0, 0.00392157, 1)
-theme_override_fonts/font = ExtResource("3_lsybk")
+theme_override_fonts/font = ExtResource("6_w5wbj")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_1bmxr")
 theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_i5unp")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_g2skq")
@@ -724,6 +658,7 @@ offset_bottom = 60.0
 theme_override_styles/separator = SubResource("StyleBoxEmpty_a4gcc")
 
 [node name="RoomListContainer" type="VBoxContainer" parent="CanvasLayer/MainPanel"]
+visible = false
 layout_mode = 0
 offset_left = 15.0
 offset_top = 70.0
@@ -761,7 +696,7 @@ offset_left = 596.0
 offset_top = -14.0
 offset_right = 759.0
 offset_bottom = 128.0
-texture = ExtResource("7_3wnox")
+texture = ExtResource("8_x28kd")
 expand_mode = 1
 
 [node name="BlurBackBuffer" type="BackBufferCopy" parent="CanvasLayer/CreateFormPanel"]
@@ -887,7 +822,7 @@ theme_override_constants/separation = 15
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
+theme_override_fonts/font = ExtResource("9_2d5kl")
 theme_override_styles/focus = SubResource("StyleBoxFlat_a4gcc")
 theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_3mlsb")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_tw40h")
@@ -904,7 +839,7 @@ text = "Game Mode"
 custom_minimum_size = Vector2(145, 36)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
+theme_override_fonts/font = ExtResource("9_2d5kl")
 theme_override_styles/focus = SubResource("StyleBoxFlat_qoqnn")
 theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_lfd0h")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_ow5nd")
@@ -935,7 +870,7 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(140, 36)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
+theme_override_fonts/font = ExtResource("9_2d5kl")
 theme_override_styles/focus = SubResource("StyleBoxFlat_e2kxa")
 theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_xe64f")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_15kuk")
@@ -991,7 +926,7 @@ custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0.05, 0.05, 0.1, 1)
-theme_override_fonts/font = ExtResource("9_87rh8")
+theme_override_fonts/font = ExtResource("9_2d5kl")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_juhxy")
 theme_override_styles/hover = SubResource("StyleBoxFlat_ttatp")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_ttatp")
@@ -1029,19 +964,19 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_2q8xq")
 custom_minimum_size = Vector2(52, 34)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_f1r1v")
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_3mlsb")
 theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
-theme_override_styles/normal = SubResource("StyleBoxEmpty_ib7iv")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_f1r1v")
 text = "30s"
 
 [node name="MCTime60s" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCTimeRow"]
 custom_minimum_size = Vector2(52, 34)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_qoqnn")
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ib7iv")
 theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_fs36a")
@@ -1051,8 +986,8 @@ text = "60s"
 custom_minimum_size = Vector2(60, 34)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_ni4av")
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_fs36a")
 theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_b487h")
@@ -1062,8 +997,8 @@ text = "120s"
 custom_minimum_size = Vector2(60, 34)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_e2kxa")
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_vqmoe")
 theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_wnwxd")
@@ -1087,9 +1022,9 @@ size_flags_horizontal = 3
 custom_minimum_size = Vector2(110, 44)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_2m7a8")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_3mlsb")
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_qoqnn")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_8ephe")
 theme_override_styles/hover = SubResource("StyleBoxFlat_mc_create")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_create")
 theme_override_styles/normal = SubResource("StyleBoxFlat_mc_view")
@@ -1100,10 +1035,9 @@ text = "View"
 custom_minimum_size = Vector2(140, 44)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_2q8xq")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_ib7iv")
-theme_override_styles/hover = SubResource("StyleBoxFlat_3nlsp")
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ni4av")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_wnwxd")
 theme_override_styles/normal = SubResource("StyleBoxFlat_tw40h")
 text = "Generate"
 
@@ -1127,14 +1061,15 @@ mouse_filter = 1
 color = Color(0, 0, 0, 0.72)
 
 [node name="PopupPanel" type="Panel" parent="CanvasLayer/ChooseGamePopup"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -430.0
 offset_top = -275.0
-offset_right = 430.0
+offset_right = 451.0
 offset_bottom = 275.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -1144,9 +1079,9 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_root_panel")
 layout_mode = 0
 offset_left = 18.0
 offset_top = 14.0
-offset_right = 844.0
+offset_right = 863.0
 offset_bottom = 532.0
-theme_override_constants/separation = 12
+theme_override_constants/separation = 15
 
 [node name="PopupHeaderRow" type="HBoxContainer" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox"]
 layout_mode = 2
@@ -1199,12 +1134,12 @@ custom_minimum_size = Vector2(180, 42)
 layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_font_sizes/font_size = 13
-theme_override_styles/focus = SubResource("StyleBoxEmpty_w2noi")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_fs36a")
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_e2kxa")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_ow5nd")
 theme_override_styles/hover = SubResource("StyleBoxFlat_jsaon")
-theme_override_styles/normal = SubResource("StyleBoxFlat_vqmoe")
+theme_override_styles/normal = SubResource("StyleBoxFlat_w2noi")
 text = "Confirm & Create Room"
 
 [node name="RoomCodePanel" type="Panel" parent="CanvasLayer"]
@@ -1232,20 +1167,32 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 150.0
+offset_right = 87.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/RoomCodePanel"]
+layout_mode = 0
+offset_left = 588.0
+offset_top = -5.0
+offset_right = 710.0
+offset_bottom = 82.0
+texture = ExtResource("10_s15o2")
+expand_mode = 1
 
 [node name="CodeTopBar" type="HBoxContainer" parent="CanvasLayer/RoomCodePanel"]
 layout_mode = 0
 offset_left = 10.0
 offset_top = 10.0
-offset_right = 650.0
+offset_right = 646.0
 offset_bottom = 50.0
 
 [node name="CodeBackButton" type="Button" parent="CanvasLayer/RoomCodePanel/CodeTopBar"]
 custom_minimum_size = Vector2(40, 36)
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 30
 text = "←"
 flat = true
 
@@ -1256,7 +1203,7 @@ size_flags_horizontal = 3
 [node name="CodeRoomNameLabel" type="Label" parent="CanvasLayer/RoomCodePanel/CodeTopBar"]
 layout_mode = 2
 text = "Quiz-1"
-label_settings = SubResource("LabelSettings_a4gcc")
+label_settings = SubResource("LabelSettings_qe1mu")
 horizontal_alignment = 1
 
 [node name="CodeTitleSpacer2" type="Control" parent="CanvasLayer/RoomCodePanel/CodeTopBar"]
@@ -1265,11 +1212,11 @@ size_flags_horizontal = 3
 
 [node name="CodeDivider" type="HSeparator" parent="CanvasLayer/RoomCodePanel"]
 layout_mode = 0
-offset_left = 27.0
-offset_top = 46.0
+offset_left = 24.0
+offset_top = 55.0
 offset_right = 682.0
-offset_bottom = 51.0
-theme_override_styles/separator = SubResource("StyleBoxLine_ttatp")
+offset_bottom = 60.0
+theme_override_styles/separator = SubResource("StyleBoxLine_w5wbj")
 
 [node name="CodeContent" type="VBoxContainer" parent="CanvasLayer/RoomCodePanel"]
 layout_mode = 0
@@ -1277,45 +1224,41 @@ offset_left = 30.0
 offset_top = 80.0
 offset_right = 670.0
 offset_bottom = 400.0
-theme_override_constants/separation = 100
+theme_override_constants/separation = 20
 
 [node name="CodeHeading" type="Label" parent="CanvasLayer/RoomCodePanel/CodeContent"]
 layout_mode = 2
 text = "CODE"
+label_settings = SubResource("LabelSettings_msu28")
 horizontal_alignment = 1
 
-[node name="CodeRow" type="Control" parent="CanvasLayer/RoomCodePanel/CodeContent"]
+[node name="CodeRow" type="HBoxContainer" parent="CanvasLayer/RoomCodePanel/CodeContent"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 12
 
 [node name="CodeDisplayLabel" type="Label" parent="CanvasLayer/RoomCodePanel/CodeContent/CodeRow"]
-custom_minimum_size = Vector2(400, 40)
 layout_mode = 2
-offset_left = 73.0
-offset_top = -80.0
-offset_right = 551.0
-offset_bottom = -40.0
 size_flags_horizontal = 3
-size_flags_vertical = 1
-theme_override_styles/normal = SubResource("StyleBoxFlat_8ephe")
 text = "HDBF6734JGLLS"
-label_settings = SubResource("LabelSettings_qoqnn")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="Panel" type="Panel" parent="CanvasLayer/RoomCodePanel/CodeContent/CodeRow/CodeDisplayLabel"]
+visible = false
+layout_mode = 0
+offset_left = 75.0
+offset_top = -6.0
+offset_right = 561.0
+offset_bottom = 29.0
 
 [node name="CopyButton" type="Button" parent="CanvasLayer/RoomCodePanel/CodeContent/CodeRow"]
 custom_minimum_size = Vector2(70, 36)
 layout_mode = 2
-offset_left = 563.0
-offset_top = -80.0
-offset_right = 633.0
-offset_bottom = -40.0
 mouse_default_cursor_shape = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_wnwxd")
 text = "Copy"
 
 [node name="CodeSpacer" type="Control" parent="CanvasLayer/RoomCodePanel/CodeContent"]
-visible = false
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 
@@ -1324,22 +1267,7 @@ custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_default_cursor_shape = 2
-theme_override_colors/font_color = Color(0, 0.211765, 0.490196, 1)
-theme_override_fonts/font = ExtResource("9_87rh8")
-theme_override_styles/focus = SubResource("StyleBoxFlat_ow5nd")
-theme_override_styles/hover = SubResource("StyleBoxFlat_aor2d")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_qh26l")
-theme_override_styles/normal = SubResource("StyleBoxFlat_w2noi")
-text = "Lobby"
-
-[node name="TextureRect" type="TextureRect" parent="CanvasLayer/RoomCodePanel"]
-layout_mode = 0
-offset_left = 593.0
-offset_top = -7.0
-offset_right = 709.0
-offset_bottom = 100.0
-texture = ExtResource("10_juhxy")
-expand_mode = 1
+text = "Create Room"
 
 [node name="StatisticsPanel" type="Panel" parent="CanvasLayer"]
 visible = false
@@ -1360,7 +1288,6 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_root_panel")
 copy_mode = 2
 
 [node name="BlurRect" type="ColorRect" parent="CanvasLayer/StatisticsPanel"]
-visible = false
 material = SubResource("ShaderMaterial_stats")
 layout_mode = 1
 anchors_preset = 15
@@ -1390,7 +1317,6 @@ size_flags_horizontal = 3
 [node name="StatsRoomNameLabel" type="Label" parent="CanvasLayer/StatisticsPanel/StatsTopBar"]
 layout_mode = 2
 text = "Quiz-1"
-label_settings = SubResource("LabelSettings_ni4av")
 horizontal_alignment = 1
 
 [node name="StatsTitleSpacer2" type="Control" parent="CanvasLayer/StatisticsPanel/StatsTopBar"]
@@ -1403,7 +1329,6 @@ offset_left = 10.0
 offset_top = 55.0
 offset_right = 730.0
 offset_bottom = 60.0
-theme_override_styles/separator = SubResource("StyleBoxLine_e2kxa")
 
 [node name="StatsGrid" type="HBoxContainer" parent="CanvasLayer/StatisticsPanel"]
 layout_mode = 0
@@ -1427,7 +1352,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Graph"
-label_settings = SubResource("LabelSettings_2m7a8")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -1451,7 +1375,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "HighScore"
-label_settings = SubResource("LabelSettings_2q8xq")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -1469,7 +1392,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Rankings"
-label_settings = SubResource("LabelSettings_3mlsb")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -1478,22 +1400,13 @@ layout_mode = 2
 text = "See all"
 flat = true
 
-[node name="TextureRect" type="TextureRect" parent="CanvasLayer/StatisticsPanel"]
-layout_mode = 0
-offset_left = 615.0
-offset_top = -7.0
-offset_right = 750.0
-offset_bottom = 102.0
-texture = ExtResource("10_juhxy")
-expand_mode = 1
-
-[node name="LobbyPanel" parent="CanvasLayer" instance=ExtResource("10_lobby")]
+[node name="LobbyPanel" parent="CanvasLayer" instance=ExtResource("11_cw0nt")]
 visible = false
 
-[node name="QuizCreationPanel" parent="CanvasLayer" instance=ExtResource("11_quiz")]
+[node name="QuizCreationPanel" parent="CanvasLayer" instance=ExtResource("12_32wi3")]
 visible = false
 
-[node name="QuizPreviewPanel" parent="CanvasLayer" instance=ExtResource("12_f1r1v")]
+[node name="QuizPreviewPanel" parent="CanvasLayer" instance=ExtResource("13_c2n05")]
 visible = false
 
 [connection signal="pressed" from="CanvasLayer/MainPanel/TopBar/BackButton" to="." method="_on_back_pressed"]

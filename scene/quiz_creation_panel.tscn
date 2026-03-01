@@ -1,10 +1,12 @@
-[gd_scene load_steps=11 format=3 uid="uid://e5eddy1e6lws"]
+[gd_scene load_steps=16 format=3 uid="uid://e5eddy1e6lws"]
 
 [ext_resource type="Script" uid="uid://hhdgub7dhjs6" path="res://script/QuizCreationPanel.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cwbi1ffhuk7he" path="res://asset/Group 42.png" id="2_eoj04"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_font"]
+[ext_resource type="Texture2D" uid="uid://dwqolbjt7ppqx" path="res://asset/Group 44.png" id="3_jih71"]
 
 [sub_resource type="StyleBoxFlat" id="SB_main"]
-bg_color = Color(0.031, 0.082, 0.208, 1)
+bg_color = Color(0, 0.211765, 0.490196, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -17,17 +19,24 @@ corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="SB_toppanel"]
 bg_color = Color(0.03, 0.09, 0.22, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.145, 0.878, 0.992, 0.5)
+draw_center = false
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.145, 0.878, 0.992, 1)
+border_blend = true
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxEmpty" id="SBE_flat"]
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_jih71"]
+color = Color(0.145098, 0.878431, 0.992157, 1)
+thickness = 3
+vertical = true
 
 [sub_resource type="LabelSettings" id="LS_qnum"]
 font = ExtResource("3_font")
@@ -56,16 +65,20 @@ content_margin_left = 10.0
 content_margin_top = 8.0
 content_margin_right = 10.0
 content_margin_bottom = 8.0
-bg_color = Color(0.04, 0.1, 0.2, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.145, 0.878, 0.992, 0.3)
+bg_color = Color(0.0313726, 0.0823529, 0.207843, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eoj04"]
+bg_color = Color(0.145, 0.878, 0.992, 0.509)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(4, 4)
 
 [sub_resource type="StyleBoxFlat" id="SB_next"]
 bg_color = Color(0.145, 0.878, 0.992, 0.9)
@@ -80,6 +93,15 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 shadow_color = Color(0, 0.878, 0.992, 0.4)
 shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4mhon"]
+bg_color = Color(0.145, 0.878, 0.992, 0.503)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(4, 4)
 
 [sub_resource type="StyleBoxFlat" id="SB_done"]
 bg_color = Color(0.145, 0.878, 0.992, 1)
@@ -109,10 +131,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 15.0
-offset_right = -20.0
-offset_bottom = -15.0
+offset_left = 61.0
+offset_top = 42.0
+offset_right = -59.0
+offset_bottom = -50.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("SB_main")
@@ -123,7 +145,7 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 14.0
-offset_top = 14.0
+offset_top = 50.0
 offset_right = -14.0
 offset_bottom = -14.0
 grow_horizontal = 2
@@ -137,12 +159,20 @@ size_flags_horizontal = 3
 size_flags_vertical = 0
 theme_override_styles/panel = SubResource("SB_toppanel")
 
+[node name="TextureRect" type="TextureRect" parent="MainPanel/Root/TopPanel"]
+layout_mode = 0
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 87.0
+offset_bottom = 72.0
+texture = ExtResource("2_eoj04")
+expand_mode = 1
+
 [node name="BackButton" type="Button" parent="MainPanel/Root/TopPanel"]
 layout_mode = 0
-offset_left = 8.0
-offset_top = 6.0
-offset_right = 48.0
-offset_bottom = 34.0
+offset_top = -39.0
+offset_right = 40.0
+offset_bottom = -11.0
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0.145, 0.878, 0.992, 1)
 theme_override_font_sizes/font_size = 20
@@ -154,11 +184,12 @@ text = "←"
 flat = true
 
 [node name="ContentRow" type="HBoxContainer" parent="MainPanel/Root/TopPanel"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 10.0
-offset_top = 36.0
+offset_top = 20.0
 offset_right = -10.0
 offset_bottom = -8.0
 grow_horizontal = 2
@@ -177,6 +208,7 @@ columns = 5
 modulate = Color(0.145, 0.878, 0.992, 0.45)
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_styles/separator = SubResource("StyleBoxLine_jih71")
 
 [node name="PreviewCol" type="VBoxContainer" parent="MainPanel/Root/TopPanel/ContentRow"]
 layout_mode = 2
@@ -197,8 +229,9 @@ autowrap_mode = 2
 
 [node name="PreviewChoicesGrid" type="GridContainer" parent="MainPanel/Root/TopPanel/ContentRow/PreviewCol"]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/h_separation = 20
+theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 4
 columns = 2
 
@@ -250,7 +283,7 @@ theme_override_font_sizes/font_size = 13
 theme_override_styles/focus = SubResource("SB_input_focus")
 theme_override_styles/read_only = SubResource("SB_input")
 theme_override_styles/normal = SubResource("SB_input")
-placeholder_text = "Choice 1"
+placeholder_text = "Choice A"
 
 [node name="Choice2" type="LineEdit" parent="MainPanel/Root/InputSection/ChoicesGrid"]
 custom_minimum_size = Vector2(300, 44)
@@ -262,7 +295,7 @@ theme_override_font_sizes/font_size = 13
 theme_override_styles/focus = SubResource("SB_input_focus")
 theme_override_styles/read_only = SubResource("SB_input")
 theme_override_styles/normal = SubResource("SB_input")
-placeholder_text = "Choice 2"
+placeholder_text = "Choice B"
 
 [node name="Choice3" type="LineEdit" parent="MainPanel/Root/InputSection/ChoicesGrid"]
 custom_minimum_size = Vector2(300, 44)
@@ -274,7 +307,7 @@ theme_override_font_sizes/font_size = 13
 theme_override_styles/focus = SubResource("SB_input_focus")
 theme_override_styles/read_only = SubResource("SB_input")
 theme_override_styles/normal = SubResource("SB_input")
-placeholder_text = "Choice 3"
+placeholder_text = "Choice C"
 
 [node name="Choice4" type="LineEdit" parent="MainPanel/Root/InputSection/ChoicesGrid"]
 custom_minimum_size = Vector2(300, 44)
@@ -286,7 +319,7 @@ theme_override_font_sizes/font_size = 13
 theme_override_styles/focus = SubResource("SB_input_focus")
 theme_override_styles/read_only = SubResource("SB_input")
 theme_override_styles/normal = SubResource("SB_input")
-placeholder_text = "Choice 4"
+placeholder_text = "Choice D"
 
 [node name="AnswerSection" type="HBoxContainer" parent="MainPanel/Root/InputSection"]
 layout_mode = 2
@@ -326,6 +359,7 @@ layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0.03, 0.05, 0.1, 1)
 theme_override_font_sizes/font_size = 15
+theme_override_styles/disabled = SubResource("StyleBoxFlat_eoj04")
 theme_override_styles/hover = SubResource("SB_next")
 theme_override_styles/pressed = SubResource("SB_next")
 theme_override_styles/normal = SubResource("SB_next")
@@ -339,11 +373,21 @@ layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0.03, 0.05, 0.1, 1)
 theme_override_font_sizes/font_size = 15
+theme_override_styles/disabled = SubResource("StyleBoxFlat_4mhon")
 theme_override_styles/hover = SubResource("SB_done")
 theme_override_styles/pressed = SubResource("SB_done")
 theme_override_styles/normal = SubResource("SB_done")
 disabled = true
 text = "Done"
+
+[node name="cornerds" type="TextureRect" parent="MainPanel"]
+layout_mode = 0
+offset_left = 915.0
+offset_top = -9.0
+offset_right = 1041.0
+offset_bottom = 104.0
+texture = ExtResource("3_jih71")
+expand_mode = 1
 
 [connection signal="pressed" from="MainPanel/Root/TopPanel/BackButton" to="." method="_on_back_pressed"]
 [connection signal="text_changed" from="MainPanel/Root/InputSection/QuestionInput" to="." method="_on_input_changed"]

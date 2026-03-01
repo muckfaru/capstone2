@@ -60,7 +60,6 @@ const PLAYER_MAX: int = 50
 @onready var game_mode_btn: Button = $CanvasLayer/CreateFormPanel/FormContent/CategoryRow/CategoryButtons/GameModeButton
 @onready var multiple_choice_btn: Button = $CanvasLayer/CreateFormPanel/FormContent/CategoryRow/CategoryButtons/MultipleChoiceButton
 @onready var choose_game_row: HBoxContainer = $CanvasLayer/CreateFormPanel/FormContent/ChooseGameRow
-@onready var difficulty_row: HBoxContainer = $CanvasLayer/CreateFormPanel/FormContent/DifficultyRow
 @onready var player_count_input: LineEdit = $CanvasLayer/CreateFormPanel/FormContent/PlayerRow/PlayerInputRow/PlayerCountInput
 @onready var player_validation_label: Label = $CanvasLayer/CreateFormPanel/FormContent/PlayerRow/PlayerValidationLabel
 @onready var generate_button: Button = $CanvasLayer/CreateFormPanel/FormContent/GenerateButtonRow/GenerateButton
@@ -105,9 +104,18 @@ var _mc_time_buttons: Array[Button] = []
 var _quiz_heartbeat_timer: Timer = null
 var _quiz_poll_timer: Timer = null
 var _quiz_start_posted: bool = false
+var _cached_leaderboard: Array = []  # Cached for See All popup
+
+# ── Room History (Firestore) ─────────────────────────────────────────────────
+const FIRESTORE_BASE_URL: String = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents"
+
+var room_history: Array[Dictionary] = []  # Loaded from Firestore
+var _history_http: HTTPRequest = null
+var _viewing_room_code: String = ""  # Currently viewing room's code
 
 func _ready() -> void:
 	_show_screen("main")
+	_load_room_history()  # Load room history from Firestore
 	_refresh_room_list()
 	_build_minigame_cards()
 	popup_confirm_btn.disabled = true
@@ -116,8 +124,6 @@ func _ready() -> void:
 	multiple_choice_btn.set_pressed_no_signal(false)
 	if choose_game_row:
 		choose_game_row.visible = false
-	if difficulty_row:
-		difficulty_row.visible = true
 	if mc_section:
 		mc_section.visible = false
 
@@ -271,8 +277,6 @@ func _on_game_mode_toggled(button_pressed: bool) -> void:
 			choose_game_row.visible = true
 		if mc_section:
 			mc_section.visible = false
-		if difficulty_row:
-			difficulty_row.visible = true
 		if generate_button:
 			generate_button.visible = true
 		if mc_view_btn:
@@ -294,8 +298,6 @@ func _on_multiple_choice_toggled(button_pressed: bool) -> void:
 		selected_minigame_scene = ""
 		if mc_section:
 			mc_section.visible = true
-		if difficulty_row:
-			difficulty_row.visible = false
 		selected_difficulty = "MC"
 		if mc_view_btn:
 			mc_view_btn.visible = true
@@ -303,8 +305,6 @@ func _on_multiple_choice_toggled(button_pressed: bool) -> void:
 	else:
 		if mc_section:
 			mc_section.visible = false
-		if difficulty_row:
-			difficulty_row.visible = true
 		if generate_button:
 			generate_button.visible = true
 		selected_difficulty = ""
@@ -339,8 +339,6 @@ func _reset_form() -> void:
 		choose_game_row.visible = false
 	if mc_section:
 		mc_section.visible = false
-	if difficulty_row:
-		difficulty_row.visible = true
 	if generate_button:
 		generate_button.visible = true
 	selected_minigame = ""
@@ -424,6 +422,10 @@ func _finalise_room() -> void:
 	rooms[current_room_code] = room_data
 	code_room_name_label.text = current_room_name
 	code_display_label.text = current_room_code
+	
+	# Save to Firestore room history
+	_save_room_to_history(current_room_code, room_data)
+	
 	_show_screen("code")
 	_refresh_room_list()
 
@@ -472,15 +474,17 @@ func _preset_active_style() -> StyleBoxFlat:
 	return s
 
 func _preset_idle_style() -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = Color(0.04, 0.10, 0.22, 0.85)
-	s.border_color = Color(0.145098, 0.878431, 0.992157, 0.5)
-	s.border_width_left = 2; s.border_width_top = 2
-	s.border_width_right = 2; s.border_width_bottom = 2
-	s.corner_radius_top_left = 6; s.corner_radius_top_right = 6
-	s.corner_radius_bottom_left = 6; s.corner_radius_bottom_right = 6
-	return s
-
+		var s := StyleBoxFlat.new()
+		s.bg_color = Color(0, 0, 0, 0)
+		s.border_width_left = 0
+		s.border_width_top = 0
+		s.border_width_right = 0
+		s.border_width_bottom = 0
+		s.corner_radius_top_left = 6
+		s.corner_radius_top_right = 6
+		s.corner_radius_bottom_left = 6
+		s.corner_radius_bottom_right = 6
+		return s
 func _on_player_count_changed(new_text: String) -> void:
 	var digits := ""
 	for ch in new_text:
@@ -652,48 +656,152 @@ func _on_copy_code_pressed() -> void:
 func _refresh_room_list() -> void:
 	for child in room_list_container.get_children():
 		if child != empty_label: child.queue_free()
-	empty_label.visible = rooms.is_empty()
+	
+	# Combine active rooms and history
+	var all_shown: bool = not rooms.is_empty() or not room_history.is_empty()
+	empty_label.visible = not all_shown
+	
+	# Show room history (from Firestore)
+	for history_item in room_history:
+		var status: String = history_item.get("status", "active")
+		room_list_container.add_child(_create_room_item(
+			history_item.get("room_name", "Untitled"),
+			history_item.get("room_code", ""),
+			history_item.get("difficulty", ""),
+			history_item.get("game_name", ""),
+			history_item.get("player_count", 10),
+			status,
+			history_item.get("category", "game_mode")))
+	
+	# Show active session rooms (not yet saved to history or still in active stats)
 	for code in rooms:
 		var data: Dictionary = rooms[code]
-		room_list_container.add_child(_create_room_item(
-			data["name"], code, data["difficulty"],
-			data.get("minigame", ""), data.get("player_count", 0)))
+		# Only show if not already in history
+		var already_shown := false
+		for h in room_history:
+			if h.get("room_code") == code:
+				already_shown = true
+				break
+		if not already_shown:
+			var category := "game_mode" if game_mode_btn.button_pressed else "multiple_choice"
+			room_list_container.add_child(_create_room_item(
+				data["name"], code, data["difficulty"],
+				data.get("minigame", ""), data.get("player_count", 0), "active", category))
 
-func _create_room_item(rname: String, code: String, diff: String, game: String, player_count: int) -> PanelContainer:
+func _create_room_item(rname: String, code: String, diff: String, game: String, _player_count: int, _status: String = "active", category: String = "game_mode") -> PanelContainer:
 	var item := PanelContainer.new()
-	item.custom_minimum_size = Vector2(0, 52)
+	item.custom_minimum_size = Vector2(0, 46)
 	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	# White/light panel style matching Figma
+	var item_style := StyleBoxFlat.new()
+	item_style.bg_color = Color(0.85, 0.9, 0.95, 0.15)
+	item_style.border_color = Color(0.6, 0.75, 0.85, 0.3)
+	item_style.set_border_width_all(1)
+	item_style.set_corner_radius_all(6)
+	item_style.content_margin_left = 16
+	item_style.content_margin_right = 12
+	item_style.content_margin_top = 8
+	item_style.content_margin_bottom = 8
+	item.add_theme_stylebox_override("panel", item_style)
+	
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 14)
+	hbox.add_theme_constant_override("separation", 12)
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	item.add_child(hbox)
-	for pair in [[rname, 130, Color(1, 1, 1, 1)], [code, 0, Color(0.7, 0.9, 1, 1)], [diff, 70, Color(0.8, 0.8, 0.8, 1)]]:
-		var lbl := Label.new()
-		lbl.text = pair[0]
-		if pair[1] > 0: lbl.custom_minimum_size = Vector2(pair[1], 0)
-		else: lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		lbl.add_theme_color_override("font_color", pair[2])
-		hbox.add_child(lbl)
-	if player_count > 0:
-		var plbl := Label.new()
-		plbl.text = "👥 %d" % player_count
-		plbl.add_theme_color_override("font_color", Color(0.6, 0.9, 1, 1))
-		plbl.add_theme_font_size_override("font_size", 12)
-		hbox.add_child(plbl)
+	
+	# Room name label (left-aligned, fixed width)
+	var name_lbl := Label.new()
+	name_lbl.text = rname
+	name_lbl.custom_minimum_size = Vector2(100, 0)
+	name_lbl.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	name_lbl.add_theme_font_size_override("font_size", 14)
+	hbox.add_child(name_lbl)
+	
+	# Room code label (expanded, takes remaining space)
+	var code_lbl := Label.new()
+	code_lbl.text = code
+	code_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	code_lbl.add_theme_color_override("font_color", Color(0.75, 0.85, 0.95, 0.9))
+	code_lbl.add_theme_font_size_override("font_size", 13)
+	hbox.add_child(code_lbl)
+	
+	# Difficulty / category label (right side, before button)
+	var info_text := diff if diff != "" and diff != "MC" else ""
 	if game != "":
-		var glbl := Label.new()
-		glbl.text = game
-		glbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		glbl.add_theme_color_override("font_color", Color(0.5, 1, 0.8, 1))
-		glbl.add_theme_font_size_override("font_size", 12)
-		hbox.add_child(glbl)
+		info_text = game
+	if category == "multiple_choice" and info_text == "":
+		info_text = "Quiz"
+	if info_text != "":
+		var info_lbl := Label.new()
+		info_lbl.text = info_text
+		info_lbl.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9, 0.7))
+		info_lbl.add_theme_font_size_override("font_size", 12)
+		hbox.add_child(info_lbl)
+	
+	# View button (matching Figma style)
 	var view_btn := Button.new()
 	view_btn.text = "View"
-	view_btn.custom_minimum_size = Vector2(70, 32)
+	view_btn.custom_minimum_size = Vector2(65, 30)
 	view_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	var cap := code
-	view_btn.pressed.connect(func(): _view_room(cap))
+	
+	var btn_style := StyleBoxFlat.new()
+	btn_style.bg_color = Color(0.145, 0.878, 0.992, 0.9)
+	btn_style.set_corner_radius_all(5)
+	btn_style.content_margin_left = 12
+	btn_style.content_margin_right = 12
+	btn_style.content_margin_top = 4
+	btn_style.content_margin_bottom = 4
+	view_btn.add_theme_stylebox_override("normal", btn_style)
+	
+	var btn_hover := StyleBoxFlat.new()
+	btn_hover.bg_color = Color(0.2, 0.92, 1.0, 1.0)
+	btn_hover.set_corner_radius_all(5)
+	btn_hover.content_margin_left = 12
+	btn_hover.content_margin_right = 12
+	btn_hover.content_margin_top = 4
+	btn_hover.content_margin_bottom = 4
+	view_btn.add_theme_stylebox_override("hover", btn_hover)
+	
+	view_btn.add_theme_color_override("font_color", Color(0.03, 0.05, 0.12, 1))
+	view_btn.add_theme_font_size_override("font_size", 13)
+	
+	var cap_code := code
+	var cap_category := category
+	view_btn.pressed.connect(func(): _view_room_history(cap_code, cap_category))
 	hbox.add_child(view_btn)
+	
 	return item
+
+## View room history — fetch and display statistics for a completed/active room
+func _view_room_history(code: String, category: String) -> void:
+	_viewing_room_code = code
+	
+	# Find room in history or active rooms
+	var room_name := ""
+	for h in room_history:
+		if h.get("room_code") == code:
+			room_name = h.get("room_name", "Untitled Room")
+			break
+	
+	if room_name.is_empty() and rooms.has(code):
+		room_name = rooms[code].get("name", "Untitled Room")
+	
+	current_room_code = code
+	current_room_name = room_name
+	stats_room_name_label.text = room_name
+	
+	# Fetch statistics based on category
+	if category == "multiple_choice":
+		# Fetch CyberQuiz leaderboard
+		_show_screen("stats")
+		_start_results_polling(code)
+	elif category == "game_mode":
+		# Fetch GameMode leaderboard
+		_show_screen("stats")
+		_start_gamemode_results_polling(code)
+	else:
+		push_warning("[RoomHistory] Unknown category: %s" % category)
 
 func _view_room(code: String) -> void:
 	if not rooms.has(code): return
@@ -761,8 +869,25 @@ func _on_quiz_started(room_code: String) -> void:
 	_show_screen("stats")
 	_start_gamemode_results_polling(room_code)
 
-func _on_stats_back_pressed() -> void: _show_screen("code")
-func _on_see_all_pressed() -> void: print("See all rankings:", current_room_name)
+func _on_stats_back_pressed() -> void:
+	# Mark room as completed and return to room history
+	if not current_room_code.is_empty():
+		_mark_room_completed(current_room_code)
+	
+	# Stop any polling timers
+	if _quiz_poll_timer:
+		_quiz_poll_timer.queue_free()
+		_quiz_poll_timer = null
+	if _quiz_heartbeat_timer:
+		_quiz_heartbeat_timer.queue_free()
+		_quiz_heartbeat_timer = null
+	
+	# Reload room history and show main panel
+	_load_room_history()
+	_show_screen("main")
+
+func _on_see_all_pressed() -> void:
+	_show_see_all_popup(_cached_leaderboard)
 
 # ── CyberQuiz server helpers ─────────────────────────────────────────────────
 
@@ -845,107 +970,436 @@ func _poll_quiz_results(room_code: String) -> void:
 func _update_stats_leaderboard(data: Dictionary) -> void:
 	var leaderboard: Array = data.get("leaderboard", [])
 	var total_q: int = data.get("total_questions", 0)
+	var question_stats: Array = data.get("question_stats", [])
+	_cached_leaderboard = leaderboard
 
-	# Hide the placeholder stats grid (Graph, HighScore, Rankings)
+	# --- Ensure StatsGrid is visible and clean up any old StatsContent ---
 	var stats_grid = statistics_panel.get_node_or_null("StatsGrid")
 	if stats_grid:
-		stats_grid.visible = false
+		stats_grid.visible = true
+	var old_content = statistics_panel.get_node_or_null("StatsContent")
+	if old_content:
+		old_content.queue_free()
 
-	# Look for a VBox inside the statistics panel to populate
-	var stats_vbox = statistics_panel.get_node_or_null("StatsContent/LeaderboardVBox")
-	if not stats_vbox:
-		# Create leaderboard container if missing
-		var content = statistics_panel.get_node_or_null("StatsContent")
-		if not content:
-			content = VBoxContainer.new()
-			content.name = "StatsContent"
-			content.set_anchors_preset(Control.PRESET_FULL_RECT)
-			content.offset_top = 65
-			content.offset_left = 20
-			content.offset_right = -20
-			content.offset_bottom = -20
-			statistics_panel.add_child(content)
-		stats_vbox = VBoxContainer.new()
-		stats_vbox.name = "LeaderboardVBox"
-		stats_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		stats_vbox.add_theme_constant_override("separation", 6)
-		content.add_child(stats_vbox)
+	# --- GRAPH PANEL: per-question correct/wrong bar chart ---
+	var graph_panel: Panel = statistics_panel.get_node_or_null("StatsGrid/GraphPanel")
+	if graph_panel:
+		_populate_graph_panel(graph_panel, question_stats, total_q)
 
-	# Clear and rebuild
-	for child in stats_vbox.get_children():
+	# --- HIGH SCORE PANEL: top 1 player ---
+	var high_score_panel: Panel = statistics_panel.get_node_or_null("StatsGrid/RightColumn/HighScorePanel")
+	if high_score_panel:
+		_populate_high_score_panel(high_score_panel, leaderboard)
+
+	# --- RANKINGS PANEL: top 3 players ---
+	var rankings_panel: Panel = statistics_panel.get_node_or_null("StatsGrid/RightColumn/RankingsPanel")
+	if rankings_panel:
+		_populate_rankings_panel(rankings_panel, leaderboard)
+
+## Build bar chart inside GraphPanel showing correct/wrong per question
+func _populate_graph_panel(panel: Panel, question_stats: Array, _total_q: int) -> void:
+	# Remove old children except keep panel style
+	for child in panel.get_children():
 		child.queue_free()
 
-	# Header
-	var header := Label.new()
-	header.text = "🏆 CyberQuiz Leaderboard (%d questions)" % total_q
-	header.add_theme_color_override("font_color", Color(0, 1, 1))
-	header.add_theme_font_size_override("font_size", 18)
-	stats_vbox.add_child(header)
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	panel.add_child(margin)
 
-	for entry in leaderboard:
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	margin.add_child(vbox)
+
+	# Title
+	var title := Label.new()
+	title.text = "Questions Overview"
+	title.add_theme_color_override("font_color", Color(0, 1, 1))
+	title.add_theme_font_size_override("font_size", 14)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	if question_stats.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = "No data yet..."
+		empty_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		empty_lbl.add_theme_font_size_override("font_size", 12)
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		empty_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		vbox.add_child(empty_lbl)
+		return
+
+	# Scrollable chart area
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vbox.add_child(scroll)
+
+	var chart_hbox := HBoxContainer.new()
+	chart_hbox.add_theme_constant_override("separation", 6)
+	chart_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	chart_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	scroll.add_child(chart_hbox)
+
+	# Find max count to scale bars
+	var max_count := 1
+	for qs in question_stats:
+		var c: int = int(qs.get("correct", 0))
+		var w: int = int(qs.get("wrong", 0))
+		if c + w > max_count:
+			max_count = c + w
+
+	for qs in question_stats:
+		var q_idx: int = int(qs.get("question_index", 0))
+		var correct: int = int(qs.get("correct", 0))
+		var wrong: int = int(qs.get("wrong", 0))
+
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override("separation", 2)
+		col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		col.custom_minimum_size = Vector2(28, 0)
+
+		# Bar area (grows to fill)
+		var bar_container := VBoxContainer.new()
+		bar_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		bar_container.alignment = BoxContainer.ALIGNMENT_END
+
+		# Correct bar (green)
+		if correct > 0:
+			var correct_bar := ColorRect.new()
+			var bar_ratio: float = float(correct) / float(max_count)
+			correct_bar.custom_minimum_size = Vector2(22, max(bar_ratio * 120.0, 6.0))
+			correct_bar.color = Color(0.2, 0.85, 0.4, 0.9)
+			correct_bar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			# Tooltip
+			correct_bar.tooltip_text = "Q%d: %d correct" % [q_idx, correct]
+			bar_container.add_child(correct_bar)
+
+		# Wrong bar (red)
+		if wrong > 0:
+			var wrong_bar := ColorRect.new()
+			var bar_ratio_w: float = float(wrong) / float(max_count)
+			wrong_bar.custom_minimum_size = Vector2(22, max(bar_ratio_w * 120.0, 6.0))
+			wrong_bar.color = Color(1.0, 0.3, 0.3, 0.9)
+			wrong_bar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			wrong_bar.tooltip_text = "Q%d: %d wrong" % [q_idx, wrong]
+			bar_container.add_child(wrong_bar)
+
+		col.add_child(bar_container)
+
+		# Question label
+		var q_lbl := Label.new()
+		q_lbl.text = "Q%d" % q_idx
+		q_lbl.add_theme_font_size_override("font_size", 10)
+		q_lbl.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
+		q_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		col.add_child(q_lbl)
+
+		chart_hbox.add_child(col)
+
+	# Legend
+	var legend := HBoxContainer.new()
+	legend.add_theme_constant_override("separation", 16)
+	legend.alignment = BoxContainer.ALIGNMENT_CENTER
+	# Green = correct
+	var lg := HBoxContainer.new()
+	lg.add_theme_constant_override("separation", 4)
+	var green_box := ColorRect.new()
+	green_box.custom_minimum_size = Vector2(12, 12)
+	green_box.color = Color(0.2, 0.85, 0.4, 0.9)
+	lg.add_child(green_box)
+	var green_lbl := Label.new()
+	green_lbl.text = "Correct"
+	green_lbl.add_theme_font_size_override("font_size", 10)
+	green_lbl.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
+	lg.add_child(green_lbl)
+	legend.add_child(lg)
+	# Red = wrong
+	var lr := HBoxContainer.new()
+	lr.add_theme_constant_override("separation", 4)
+	var red_box := ColorRect.new()
+	red_box.custom_minimum_size = Vector2(12, 12)
+	red_box.color = Color(1.0, 0.3, 0.3, 0.9)
+	lr.add_child(red_box)
+	var red_lbl := Label.new()
+	red_lbl.text = "Wrong"
+	red_lbl.add_theme_font_size_override("font_size", 10)
+	red_lbl.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
+	lr.add_child(red_lbl)
+	legend.add_child(lr)
+	vbox.add_child(legend)
+
+## High-score panel: show #1 player
+func _populate_high_score_panel(panel: Panel, leaderboard: Array) -> void:
+	for child in panel.get_children():
+		child.queue_free()
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	margin.add_child(vbox)
+
+	# Title
+	var title := Label.new()
+	title.text = "High Score"
+	title.add_theme_color_override("font_color", Color(1, 0.85, 0))
+	title.add_theme_font_size_override("font_size", 14)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	if leaderboard.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = "Waiting for students..."
+		empty_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		empty_lbl.add_theme_font_size_override("font_size", 12)
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(empty_lbl)
+		return
+
+	var top: Dictionary = leaderboard[0]
+	var finished: bool = top.get("finished", false)
+
+	# Trophy + Name
+	var name_lbl := Label.new()
+	name_lbl.text = "🏆 %s" % str(top.get("username", "???"))
+	name_lbl.add_theme_color_override("font_color", Color(1, 1, 1))
+	name_lbl.add_theme_font_size_override("font_size", 16)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(name_lbl)
+
+	# Score
+	var score_lbl := Label.new()
+	if finished:
+		score_lbl.text = "%d pts" % int(top.get("score", 0))
+		score_lbl.add_theme_color_override("font_color", Color(0, 1, 0.5))
+	else:
+		score_lbl.text = "answering..."
+		score_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	score_lbl.add_theme_font_size_override("font_size", 22)
+	score_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(score_lbl)
+
+## Rankings panel: show top 3 players
+func _populate_rankings_panel(panel: Panel, leaderboard: Array) -> void:
+	for child in panel.get_children():
+		child.queue_free()
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_bottom", 6)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 2)
+	margin.add_child(vbox)
+
+	# Title
+	var title := Label.new()
+	title.text = "Top Rankings"
+	title.add_theme_color_override("font_color", Color(0, 1, 1))
+	title.add_theme_font_size_override("font_size", 13)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	if leaderboard.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = "No players yet..."
+		empty_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		empty_lbl.add_theme_font_size_override("font_size", 11)
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(empty_lbl)
+		return
+
+	var rank_emojis := ["🥇", "🥈", "🥉"]
+	var rank_colors := [Color(1, 0.85, 0), Color(0.78, 0.78, 0.82), Color(0.82, 0.55, 0.2)]
+	var top_count: int = min(leaderboard.size(), 3)
+
+	for i in range(top_count):
+		var entry: Dictionary = leaderboard[i]
 		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 12)
+		row.add_theme_constant_override("separation", 6)
+
 		var rank_lbl := Label.new()
-		var rank_num: int = entry.get("rank", 0)
-		var emoji := "🥇" if rank_num == 1 else ("🥈" if rank_num == 2 else ("🥉" if rank_num == 3 else "#%d" % rank_num))
-		rank_lbl.text = emoji
-		rank_lbl.add_theme_font_size_override("font_size", 16)
+		rank_lbl.text = rank_emojis[i]
+		rank_lbl.add_theme_font_size_override("font_size", 14)
 		row.add_child(rank_lbl)
 
 		var name_lbl := Label.new()
 		name_lbl.text = str(entry.get("username", "???"))
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_lbl.add_theme_color_override("font_color", Color(0.9, 0.95, 1))
-		name_lbl.add_theme_font_size_override("font_size", 16)
+		name_lbl.add_theme_color_override("font_color", rank_colors[i])
+		name_lbl.add_theme_font_size_override("font_size", 13)
+		name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		row.add_child(name_lbl)
 
 		var score_lbl := Label.new()
 		var finished: bool = entry.get("finished", false)
 		if finished:
-			score_lbl.text = "%d" % entry.get("score", 0)
+			score_lbl.text = "%d" % int(entry.get("score", 0))
+			score_lbl.add_theme_color_override("font_color", Color(0, 1, 0.5))
 		else:
-			score_lbl.text = "answering..."
-		score_lbl.add_theme_color_override("font_color", Color(0, 1, 0.5) if finished else Color(0.7, 0.7, 0.7))
-		score_lbl.add_theme_font_size_override("font_size", 16)
+			score_lbl.text = "..."
+			score_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		score_lbl.add_theme_font_size_override("font_size", 13)
 		row.add_child(score_lbl)
 
-		stats_vbox.add_child(row)
+		vbox.add_child(row)
+
+## See All popup — full leaderboard overlay
+func _show_see_all_popup(leaderboard: Array) -> void:
+	# Remove old popup if any
+	var old = statistics_panel.get_node_or_null("SeeAllPopup")
+	if old:
+		old.queue_free()
+
+	# Backdrop
+	var backdrop := ColorRect.new()
+	backdrop.name = "SeeAllPopup"
+	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	backdrop.color = Color(0, 0, 0, 0.6)
+	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
+	statistics_panel.add_child(backdrop)
+
+	# Popup panel
+	var popup_panel := PanelContainer.new()
+	popup_panel.set_anchors_preset(Control.PRESET_CENTER)
+	popup_panel.offset_left = -250
+	popup_panel.offset_top = -180
+	popup_panel.offset_right = 250
+	popup_panel.offset_bottom = 180
+	var popup_sb := StyleBoxFlat.new()
+	popup_sb.bg_color = Color(0.08, 0.1, 0.16, 0.97)
+	popup_sb.border_color = Color(0, 1, 1, 0.6)
+	popup_sb.set_border_width_all(2)
+	popup_sb.set_corner_radius_all(12)
+	popup_sb.set_content_margin_all(16)
+	popup_panel.add_theme_stylebox_override("panel", popup_sb)
+	backdrop.add_child(popup_panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+	popup_panel.add_child(vbox)
+
+	# Header row
+	var header_row := HBoxContainer.new()
+	var header_lbl := Label.new()
+	header_lbl.text = "🏆 Full Rankings — %s" % current_room_name
+	header_lbl.add_theme_color_override("font_color", Color(0, 1, 1))
+	header_lbl.add_theme_font_size_override("font_size", 16)
+	header_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_row.add_child(header_lbl)
+
+	var close_btn := Button.new()
+	close_btn.text = "✕"
+	close_btn.flat = true
+	close_btn.add_theme_font_size_override("font_size", 18)
+	close_btn.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+	close_btn.pressed.connect(func(): backdrop.queue_free())
+	header_row.add_child(close_btn)
+	vbox.add_child(header_row)
+
+	# Divider
+	var div := HSeparator.new()
+	var div_sb := StyleBoxLine.new()
+	div_sb.color = Color(0.3, 0.4, 0.5, 0.5)
+	div.add_theme_stylebox_override("separator", div_sb)
+	vbox.add_child(div)
+
+	# Scrollable list
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vbox.add_child(scroll)
+
+	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 4)
+	scroll.add_child(list)
 
 	if leaderboard.is_empty():
-		var empty := Label.new()
-		empty.text = "Waiting for students to finish..."
-		empty.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-		stats_vbox.add_child(empty)
+		var empty_lbl := Label.new()
+		empty_lbl.text = "No players yet."
+		empty_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		empty_lbl.add_theme_font_size_override("font_size", 13)
+		list.add_child(empty_lbl)
+	else:
+		var rank_emojis := ["🥇", "🥈", "🥉"]
+		for entry in leaderboard:
+			var row := HBoxContainer.new()
+			row.add_theme_constant_override("separation", 10)
 
-	# Spacer
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0, 20)
-	stats_vbox.add_child(spacer)
+			var rank_num: int = int(entry.get("rank", 0))
+			var rank_lbl := Label.new()
+			if rank_num >= 1 and rank_num <= 3:
+				rank_lbl.text = rank_emojis[rank_num - 1]
+			else:
+				rank_lbl.text = "#%d" % rank_num
+			rank_lbl.custom_minimum_size = Vector2(30, 0)
+			rank_lbl.add_theme_font_size_override("font_size", 14)
+			row.add_child(rank_lbl)
 
-	# Back to Landing button
-	var back_btn := Button.new()
-	back_btn.text = "← Back to Landing"
-	back_btn.custom_minimum_size = Vector2(200, 44)
-	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var back_sb := StyleBoxFlat.new()
-	back_sb.bg_color = Color(0, 0.5, 0.7, 0.9)
-	back_sb.border_color = Color(0, 1, 1, 0.8)
-	back_sb.set_border_width_all(2)
-	back_sb.set_corner_radius_all(8)
-	back_btn.add_theme_stylebox_override("normal", back_sb)
-	back_btn.add_theme_color_override("font_color", Color(1, 1, 1))
-	back_btn.add_theme_font_size_override("font_size", 14)
-	back_btn.pressed.connect(func():
-		# Stop polling timers
-		if _quiz_poll_timer:
-			_quiz_poll_timer.queue_free()
-			_quiz_poll_timer = null
-		if _quiz_heartbeat_timer:
-			_quiz_heartbeat_timer.queue_free()
-			_quiz_heartbeat_timer = null
-		get_tree().change_scene_to_file("res://scene/landing.tscn")
+			var name_lbl := Label.new()
+			name_lbl.text = str(entry.get("username", "???"))
+			name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			name_lbl.add_theme_color_override("font_color", Color(0.9, 0.95, 1))
+			name_lbl.add_theme_font_size_override("font_size", 14)
+			name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			row.add_child(name_lbl)
+
+			var score_lbl := Label.new()
+			var finished: bool = entry.get("finished", false)
+			if finished:
+				score_lbl.text = "%d pts" % int(entry.get("score", 0))
+				score_lbl.add_theme_color_override("font_color", Color(0, 1, 0.5))
+			else:
+				score_lbl.text = "answering..."
+				score_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+			score_lbl.add_theme_font_size_override("font_size", 14)
+			row.add_child(score_lbl)
+
+			list.add_child(row)
+
+	# Close button at bottom
+	var close_btn2 := Button.new()
+	close_btn2.text = "Close"
+	close_btn2.custom_minimum_size = Vector2(120, 36)
+	close_btn2.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var btn_sb := StyleBoxFlat.new()
+	btn_sb.bg_color = Color(0.15, 0.2, 0.3, 0.9)
+	btn_sb.border_color = Color(0, 1, 1, 0.5)
+	btn_sb.set_border_width_all(1)
+	btn_sb.set_corner_radius_all(8)
+	close_btn2.add_theme_stylebox_override("normal", btn_sb)
+	close_btn2.add_theme_color_override("font_color", Color(1, 1, 1))
+	close_btn2.add_theme_font_size_override("font_size", 13)
+	close_btn2.pressed.connect(func(): backdrop.queue_free())
+	vbox.add_child(close_btn2)
+
+	# Also close on backdrop click
+	backdrop.gui_input.connect(func(event: InputEvent):
+		if event is InputEventMouseButton and event.pressed:
+			var local := backdrop.get_local_mouse_position()
+			var panel_rect := Rect2(popup_panel.position, popup_panel.size)
+			if not panel_rect.has_point(local):
+				backdrop.queue_free()
 	)
-	stats_vbox.add_child(back_btn)
 
 func _start_quiz_heartbeat(room_code: String) -> void:
 	if _quiz_heartbeat_timer:
@@ -1049,144 +1503,532 @@ func _start_gamemode_heartbeat(room_code: String) -> void:
 func _update_gamemode_leaderboard(data: Dictionary) -> void:
 	var leaderboard: Array = data.get("leaderboard", [])
 	var game_name: String = data.get("game_name", "Game Mode")
+	_cached_leaderboard = leaderboard
 
+	# --- Ensure StatsGrid is visible and clean up any old StatsContent ---
 	var stats_grid = statistics_panel.get_node_or_null("StatsGrid")
 	if stats_grid:
-		stats_grid.visible = false
-
-	var stats_vbox = statistics_panel.get_node_or_null("StatsContent/LeaderboardVBox")
-	if not stats_vbox:
-		var content = statistics_panel.get_node_or_null("StatsContent")
-		if not content:
-			content = VBoxContainer.new()
-			content.name = "StatsContent"
-			content.set_anchors_preset(Control.PRESET_FULL_RECT)
-			content.offset_top = 65
-			content.offset_left = 20
-			content.offset_right = -20
-			content.offset_bottom = -20
-			statistics_panel.add_child(content)
-		stats_vbox = VBoxContainer.new()
-		stats_vbox.name = "LeaderboardVBox"
-		stats_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		stats_vbox.add_theme_constant_override("separation", 6)
-		content.add_child(stats_vbox)
-
-	for child in stats_vbox.get_children():
-		child.queue_free()
-
-	# Header
-	var header := Label.new()
-	header.text = "🏆 %s — Leaderboard" % game_name
-	header.add_theme_color_override("font_color", Color(0, 1, 1))
-	header.add_theme_font_size_override("font_size", 18)
-	stats_vbox.add_child(header)
+		stats_grid.visible = true
+	var old_content = statistics_panel.get_node_or_null("StatsContent")
+	if old_content:
+		old_content.queue_free()
 
 	# Determine if this is a time-only game (Encryption has no score)
 	var is_time_only: bool = game_name.to_lower().find("encryption") >= 0
 
-	# Column header
-	var col_header := HBoxContainer.new()
-	col_header.add_theme_constant_override("separation", 12)
-	var columns: Array
-	if is_time_only:
-		columns = [["#", 30], ["Player", 0], ["Time", 80]]
-	else:
-		columns = [["#", 30], ["Player", 0], ["Score", 80], ["Time", 80]]
-	for pair in columns:
-		var lbl := Label.new()
-		lbl.text = pair[0]
-		if pair[1] > 0:
-			lbl.custom_minimum_size = Vector2(pair[1], 0)
-		else:
-			lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		lbl.add_theme_color_override("font_color", Color(0.6, 0.8, 0.9))
-		lbl.add_theme_font_size_override("font_size", 13)
-		col_header.add_child(lbl)
-	stats_vbox.add_child(col_header)
+	# --- GRAPH PANEL: show score distribution or time leaderboard for GameMode ---
+	var graph_panel: Panel = statistics_panel.get_node_or_null("StatsGrid/GraphPanel")
+	if graph_panel:
+		_populate_gamemode_graph(graph_panel, leaderboard, game_name, is_time_only)
 
+	# --- HIGH SCORE PANEL: top 1 player ---
+	var high_score_panel: Panel = statistics_panel.get_node_or_null("StatsGrid/RightColumn/HighScorePanel")
+	if high_score_panel:
+		_populate_gamemode_high_score(high_score_panel, leaderboard, is_time_only)
+
+	# --- RANKINGS PANEL: top 3 players ---
+	var rankings_panel: Panel = statistics_panel.get_node_or_null("StatsGrid/RightColumn/RankingsPanel")
+	if rankings_panel:
+		_populate_gamemode_rankings(rankings_panel, leaderboard, is_time_only)
+
+## GameMode graph: score bar chart for each player
+func _populate_gamemode_graph(panel: Panel, leaderboard: Array, _game_name: String, is_time_only: bool) -> void:
+	for child in panel.get_children():
+		child.queue_free()
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "Player Scores" if not is_time_only else "Player Times"
+	title.add_theme_color_override("font_color", Color(0, 1, 1))
+	title.add_theme_font_size_override("font_size", 14)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	var finished_players: Array = []
 	for entry in leaderboard:
+		if entry.get("finished", false):
+			finished_players.append(entry)
+
+	if finished_players.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = "Waiting for players..."
+		empty_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		empty_lbl.add_theme_font_size_override("font_size", 12)
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		vbox.add_child(empty_lbl)
+		return
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vbox.add_child(scroll)
+
+	var chart_hbox := HBoxContainer.new()
+	chart_hbox.add_theme_constant_override("separation", 8)
+	chart_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	chart_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	scroll.add_child(chart_hbox)
+
+	var max_val := 1.0
+	for entry in finished_players:
+		if is_time_only:
+			var t: float = float(entry.get("time_taken_ms", 0)) / 1000.0
+			if t > max_val: max_val = t
+		else:
+			var s: float = float(entry.get("score", 0))
+			if s > max_val: max_val = s
+
+	for entry in finished_players:
+		var col := VBoxContainer.new()
+		col.add_theme_constant_override("separation", 2)
+		col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		col.custom_minimum_size = Vector2(32, 0)
+
+		var bar_container := VBoxContainer.new()
+		bar_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		bar_container.alignment = BoxContainer.ALIGNMENT_END
+
+		var val: float
+		var val_text: String
+		if is_time_only:
+			val = float(entry.get("time_taken_ms", 0)) / 1000.0
+			@warning_ignore("integer_division")
+			var secs: int = int(entry.get("time_taken_ms", 0)) / 1000
+			@warning_ignore("integer_division")
+			var mins: int = secs / 60
+			secs = secs % 60
+			val_text = "%d:%02d" % [mins, secs]
+		else:
+			val = float(entry.get("score", 0))
+			val_text = "%d" % int(val)
+
+		var bar := ColorRect.new()
+		var ratio: float = val / max_val if max_val > 0.0 else 0.0
+		bar.custom_minimum_size = Vector2(24, max(ratio * 120.0, 6.0))
+		bar.color = Color(0.3, 0.7, 1.0, 0.9)
+		bar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		bar.tooltip_text = "%s: %s" % [str(entry.get("username", "?")), val_text]
+		bar_container.add_child(bar)
+
+		col.add_child(bar_container)
+
+		var name_lbl := Label.new()
+		var uname: String = str(entry.get("username", "?"))
+		name_lbl.text = uname.substr(0, 4) if uname.length() > 4 else uname
+		name_lbl.add_theme_font_size_override("font_size", 9)
+		name_lbl.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
+		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		col.add_child(name_lbl)
+
+		chart_hbox.add_child(col)
+
+## GameMode high score panel
+func _populate_gamemode_high_score(panel: Panel, leaderboard: Array, is_time_only: bool) -> void:
+	for child in panel.get_children():
+		child.queue_free()
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "Best Time" if is_time_only else "High Score"
+	title.add_theme_color_override("font_color", Color(1, 0.85, 0))
+	title.add_theme_font_size_override("font_size", 14)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	if leaderboard.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = "Waiting for players..."
+		empty_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		empty_lbl.add_theme_font_size_override("font_size", 12)
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(empty_lbl)
+		return
+
+	var top: Dictionary = leaderboard[0]
+	var finished: bool = top.get("finished", false)
+
+	var name_lbl := Label.new()
+	name_lbl.text = "🏆 %s" % str(top.get("username", "???"))
+	name_lbl.add_theme_color_override("font_color", Color(1, 1, 1))
+	name_lbl.add_theme_font_size_override("font_size", 16)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(name_lbl)
+
+	var val_lbl := Label.new()
+	if finished:
+		if is_time_only:
+			var time_ms: int = int(top.get("time_taken_ms", 0))
+			@warning_ignore("integer_division")
+			var secs: int = time_ms / 1000
+			@warning_ignore("integer_division")
+			var mins: int = secs / 60
+			secs = secs % 60
+			val_lbl.text = "%d:%02d" % [mins, secs]
+		else:
+			val_lbl.text = "%d pts" % int(top.get("score", 0))
+		val_lbl.add_theme_color_override("font_color", Color(0, 1, 0.5))
+	else:
+		val_lbl.text = "playing..."
+		val_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+	val_lbl.add_theme_font_size_override("font_size", 22)
+	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(val_lbl)
+
+## GameMode rankings panel: top 3
+func _populate_gamemode_rankings(panel: Panel, leaderboard: Array, is_time_only: bool) -> void:
+	for child in panel.get_children():
+		child.queue_free()
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_bottom", 6)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 2)
+	margin.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "Top Rankings"
+	title.add_theme_color_override("font_color", Color(0, 1, 1))
+	title.add_theme_font_size_override("font_size", 13)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+
+	if leaderboard.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = "No players yet..."
+		empty_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		empty_lbl.add_theme_font_size_override("font_size", 11)
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(empty_lbl)
+		return
+
+	var rank_emojis := ["🥇", "🥈", "🥉"]
+	var rank_colors := [Color(1, 0.85, 0), Color(0.78, 0.78, 0.82), Color(0.82, 0.55, 0.2)]
+	var top_count: int = min(leaderboard.size(), 3)
+
+	for i in range(top_count):
+		var entry: Dictionary = leaderboard[i]
 		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 12)
+		row.add_theme_constant_override("separation", 6)
 
 		var rank_lbl := Label.new()
-		var rank_num: int = entry.get("rank", 0)
-		var emoji := "🥇" if rank_num == 1 else ("🥈" if rank_num == 2 else ("🥉" if rank_num == 3 else "#%d" % rank_num))
-		rank_lbl.text = emoji
-		rank_lbl.custom_minimum_size = Vector2(30, 0)
-		rank_lbl.add_theme_font_size_override("font_size", 16)
+		rank_lbl.text = rank_emojis[i]
+		rank_lbl.add_theme_font_size_override("font_size", 14)
 		row.add_child(rank_lbl)
 
 		var name_lbl := Label.new()
 		name_lbl.text = str(entry.get("username", "???"))
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_lbl.add_theme_color_override("font_color", Color(0.9, 0.95, 1))
-		name_lbl.add_theme_font_size_override("font_size", 16)
+		name_lbl.add_theme_color_override("font_color", rank_colors[i])
+		name_lbl.add_theme_font_size_override("font_size", 13)
+		name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		row.add_child(name_lbl)
 
+		var val_lbl := Label.new()
 		var finished: bool = entry.get("finished", false)
-
-		# Score column (hidden for time-only games like Encryption)
-		if not is_time_only:
-			var score_lbl := Label.new()
-			if finished:
-				score_lbl.text = "%d" % entry.get("score", 0)
-			else:
-				score_lbl.text = "playing..."
-			score_lbl.custom_minimum_size = Vector2(80, 0)
-			score_lbl.add_theme_color_override("font_color", Color(0, 1, 0.5) if finished else Color(0.7, 0.7, 0.7))
-			score_lbl.add_theme_font_size_override("font_size", 16)
-			row.add_child(score_lbl)
-
-		var time_lbl := Label.new()
 		if finished:
-			var time_ms: int = entry.get("time_taken_ms", 0)
-			@warning_ignore("integer_division")
-			var secs := time_ms / 1000
-			@warning_ignore("integer_division")
-			var mins := secs / 60
-			secs = secs % 60
-			time_lbl.text = "%d:%02d" % [mins, secs]
+			if is_time_only:
+				var time_ms: int = int(entry.get("time_taken_ms", 0))
+				@warning_ignore("integer_division")
+				var secs: int = time_ms / 1000
+				@warning_ignore("integer_division")
+				var mins: int = secs / 60
+				secs = secs % 60
+				val_lbl.text = "%d:%02d" % [mins, secs]
+			else:
+				val_lbl.text = "%d" % int(entry.get("score", 0))
+			val_lbl.add_theme_color_override("font_color", Color(0, 1, 0.5))
 		else:
-			time_lbl.text = "playing..." if is_time_only else "—"
-		time_lbl.custom_minimum_size = Vector2(80, 0)
-		time_lbl.add_theme_color_override("font_color", Color(1, 0.9, 0.3) if finished else Color(0.7, 0.7, 0.7))
-		time_lbl.add_theme_font_size_override("font_size", 16)
-		row.add_child(time_lbl)
+			val_lbl.text = "..."
+			val_lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		val_lbl.add_theme_font_size_override("font_size", 13)
+		row.add_child(val_lbl)
 
-		stats_vbox.add_child(row)
+		vbox.add_child(row)
 
-	if leaderboard.is_empty():
-		var empty := Label.new()
-		empty.text = "Waiting for students to finish..."
-		empty.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-		stats_vbox.add_child(empty)
+# ════════════════════════════════════════════════════════════════════════════
+# ROOM HISTORY — FIRESTORE PERSISTENCE
+# ════════════════════════════════════════════════════════════════════════════
 
-	# Spacer
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0, 20)
-	stats_vbox.add_child(spacer)
-
-	# Back to Landing button
-	var back_btn := Button.new()
-	back_btn.text = "← Back to Landing"
-	back_btn.custom_minimum_size = Vector2(200, 44)
-	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var back_sb := StyleBoxFlat.new()
-	back_sb.bg_color = Color(0, 0.5, 0.7, 0.9)
-	back_sb.border_color = Color(0, 1, 1, 0.8)
-	back_sb.set_border_width_all(2)
-	back_sb.set_corner_radius_all(8)
-	back_btn.add_theme_stylebox_override("normal", back_sb)
-	back_btn.add_theme_color_override("font_color", Color(1, 1, 1))
-	back_btn.add_theme_font_size_override("font_size", 14)
-	back_btn.pressed.connect(func():
-		if _quiz_poll_timer:
-			_quiz_poll_timer.queue_free()
-			_quiz_poll_timer = null
-		if _quiz_heartbeat_timer:
-			_quiz_heartbeat_timer.queue_free()
-			_quiz_heartbeat_timer = null
-		get_tree().change_scene_to_file("res://scene/landing.tscn")
+## Save room to user's Firestore document (called when room is created)
+func _save_room_to_history(room_code: String, room_data: Dictionary) -> void:
+	if not Auth or not Auth.current_local_id or not Auth.current_id_token:
+		push_warning("[RoomHistory] No Auth — cannot save room history")
+		return
+	
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	
+	# First, fetch current room_history array from user doc
+	var get_url := "%s/users/%s" % [FIRESTORE_BASE_URL, uid]
+	var headers := [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+	
+	var http_get := HTTPRequest.new()
+	add_child(http_get)
+	
+	http_get.request_completed.connect(func(_r, code, _h, body):
+		http_get.queue_free()
+		
+		if code != 200:
+			push_warning("[RoomHistory] Failed to fetch user doc: HTTP %d" % code)
+			return
+		
+		# Parse existing room_history array
+		var doc = JSON.parse_string(body.get_string_from_utf8())
+		var existing_rooms: Array = []
+		
+		if typeof(doc) == TYPE_DICTIONARY:
+			var fields = doc.get("fields", {})
+			if fields.has("room_history") and fields["room_history"].has("arrayValue"):
+				var array_val = fields["room_history"]["arrayValue"].get("values", [])
+				for item in array_val:
+					if item.has("mapValue"):
+						existing_rooms.append(item)
+		
+		# Create new room entry
+		var category := "game_mode" if game_mode_btn.button_pressed else "multiple_choice"
+		var game_name: String = str(room_data.get("minigame", ""))
+		var difficulty: String = str(room_data.get("difficulty", ""))
+		var player_count := int(room_data.get("player_count", 10))
+		
+		# Get proper UTC timestamp with 'Z'
+		var now := Time.get_datetime_dict_from_system(true)
+		var timestamp := "%04d-%02d-%02dT%02d:%02d:%02dZ" % [
+			now.year, now.month, now.day, now.hour, now.minute, now.second
+		]
+		
+		var new_room := {
+			"mapValue": {
+				"fields": {
+					"room_code": {"stringValue": room_code},
+					"room_name": {"stringValue": str(room_data.get("name", "Untitled Room"))},
+					"category": {"stringValue": category},
+					"game_name": {"stringValue": game_name},
+					"difficulty": {"stringValue": difficulty},
+					"player_count": {"integerValue": str(player_count)},
+					"created_at": {"timestampValue": timestamp},
+					"status": {"stringValue": "active"}
+				}
+			}
+		}
+		
+		# Add to existing array
+		existing_rooms.insert(0, new_room)  # Insert at beginning (newest first)
+		
+		# Limit to 50 most recent rooms
+		if existing_rooms.size() > 50:
+			existing_rooms = existing_rooms.slice(0, 50)
+		
+		# Update user document with new array
+		var update_doc := {
+			"fields": {
+				"room_history": {
+					"arrayValue": {
+						"values": existing_rooms
+					}
+				}
+			}
+		}
+		
+		var http_patch := HTTPRequest.new()
+		add_child(http_patch)
+		http_patch.request_completed.connect(func(_r2, code2, _h2, body2):
+			http_patch.queue_free()
+			if code2 == 200:
+				print("[RoomHistory] ✅ Saved room %s to user doc" % room_code)
+			else:
+				push_warning("[RoomHistory] Failed to save: HTTP %d | %s" % [code2, body2.get_string_from_utf8()])
+		)
+		
+		var patch_url := "%s?updateMask.fieldPaths=room_history" % get_url
+		var json_body := JSON.stringify(update_doc)
+		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, json_body)
 	)
-	stats_vbox.add_child(back_btn)
+	
+	http_get.request(get_url, headers, HTTPClient.METHOD_GET)
+
+## Mark room as completed in user's Firestore document
+func _mark_room_completed(room_code: String) -> void:
+	if not Auth or not Auth.current_local_id or not Auth.current_id_token:
+		return
+	
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	var url := "%s/users/%s" % [FIRESTORE_BASE_URL, uid]
+	var headers := [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+	
+	# Fetch current room_history array
+	var http_get := HTTPRequest.new()
+	add_child(http_get)
+	
+	http_get.request_completed.connect(func(_r, code, _h, body):
+		http_get.queue_free()
+		
+		if code != 200:
+			return
+		
+		var doc = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(doc) != TYPE_DICTIONARY:
+			return
+		
+		var fields = doc.get("fields", {})
+		if not fields.has("room_history"):
+			return
+		
+		var array_val = fields["room_history"].get("arrayValue", {}).get("values", [])
+		var updated := false
+		
+		# Get proper UTC timestamp
+		var now := Time.get_datetime_dict_from_system(true)
+		var timestamp := "%04d-%02d-%02dT%02d:%02d:%02dZ" % [
+			now.year, now.month, now.day, now.hour, now.minute, now.second
+		]
+		
+		# Find and update the room
+		for item in array_val:
+			if item.has("mapValue"):
+				var room_fields = item["mapValue"].get("fields", {})
+				if room_fields.has("room_code") and room_fields["room_code"].get("stringValue") == room_code:
+					room_fields["status"] = {"stringValue": "completed"}
+					room_fields["completed_at"] = {"timestampValue": timestamp}
+					updated = true
+					break
+		
+		if not updated:
+			return
+		
+		# Write back updated array
+		var update_doc := {
+			"fields": {
+				"room_history": {
+					"arrayValue": {"values": array_val}
+				}
+			}
+		}
+		
+		var http_patch := HTTPRequest.new()
+		add_child(http_patch)
+		http_patch.request_completed.connect(func(_r2, code2, _h2, _b2):
+			http_patch.queue_free()
+			if code2 == 200:
+				print("[RoomHistory] ✅ Marked room %s as completed" % room_code)
+		)
+		
+		var patch_url := "%s?updateMask.fieldPaths=room_history" % url
+		var json_body := JSON.stringify(update_doc)
+		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, json_body)
+	)
+	
+	http_get.request(url, headers, HTTPClient.METHOD_GET)
+
+## Load all rooms from user's Firestore document
+func _load_room_history() -> void:
+	if not Auth or not Auth.current_local_id or not Auth.current_id_token:
+		push_warning("[RoomHistory] No Auth — cannot load room history")
+		return
+	
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	var url := "%s/users/%s" % [FIRESTORE_BASE_URL, uid]
+	var headers := [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % token
+	]
+	
+	if not _history_http:
+		_history_http = HTTPRequest.new()
+		add_child(_history_http)
+	
+	if _history_http.request_completed.is_connected(_on_room_history_loaded):
+		_history_http.request_completed.disconnect(_on_room_history_loaded)
+	_history_http.request_completed.connect(_on_room_history_loaded)
+	
+	_history_http.request(url, headers, HTTPClient.METHOD_GET)
+	
+	print("[RoomHistory] 🔄 Loading room history from user doc: %s" % uid)
+
+func _on_room_history_loaded(_result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if _history_http and _history_http.request_completed.is_connected(_on_room_history_loaded):
+		_history_http.request_completed.disconnect(_on_room_history_loaded)
+	
+	if code != 200:
+		push_warning("[RoomHistory] Failed to load history: HTTP %d" % code)
+		return
+	
+	var text := body.get_string_from_utf8()
+	var doc = JSON.parse_string(text)
+	
+	if typeof(doc) != TYPE_DICTIONARY:
+		push_warning("[RoomHistory] Unexpected response format")
+		return
+	
+	room_history.clear()
+	
+	# Extract room_history array from user document
+	var fields: Dictionary = doc.get("fields", {})
+	if not fields.has("room_history"):
+		print("[RoomHistory] No room_history field in user doc")
+		_refresh_room_list()
+		return
+	
+	var array_val = fields["room_history"].get("arrayValue", {}).get("values", [])
+	
+	for item in array_val:
+		if not item.has("mapValue"):
+			continue
+		
+		var room_fields: Dictionary = item["mapValue"].get("fields", {})
+		
+		var history_item := {
+			"room_code": str(room_fields.get("room_code", {}).get("stringValue", "")),
+			"room_name": str(room_fields.get("room_name", {}).get("stringValue", "Untitled")),
+			"category": str(room_fields.get("category", {}).get("stringValue", "game_mode")),
+			"game_name": str(room_fields.get("game_name", {}).get("stringValue", "")),
+			"difficulty": str(room_fields.get("difficulty", {}).get("stringValue", "")),
+			"player_count": int(room_fields.get("player_count", {}).get("integerValue", "10")),
+			"status": str(room_fields.get("status", {}).get("stringValue", "active")),
+			"created_at": str(room_fields.get("created_at", {}).get("timestampValue", ""))
+		}
+		
+		room_history.append(history_item)
+	
+	print("[RoomHistory] ✅ Loaded %d rooms from user doc" % room_history.size())
+	_refresh_room_list()
+

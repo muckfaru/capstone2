@@ -58,6 +58,7 @@ func _ready() -> void:
 	sc.offset_right  = slot_grid.offset_right
 	sc.offset_bottom = slot_grid.offset_bottom
 	sc.vertical_scroll_mode   = ScrollContainer.SCROLL_MODE_AUTO
+	sc.vertical_scroll_mode   = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	panel_bg.remove_child(slot_grid)
 	panel_bg.add_child(sc)
@@ -386,34 +387,48 @@ func _build_slots(count: int) -> void:
 	for i in count:
 		var slot := PanelContainer.new()
 		slot.name = "Slot%d" % (i + 1)
-		slot.custom_minimum_size = Vector2(0, 150)
+		slot.custom_minimum_size = Vector2(0, 250)
 		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		slot.add_theme_stylebox_override("panel", _slot_style(false))
 
-		var vbox := VBoxContainer.new()
+		# Use plain Control with absolute positioning — matches Slot1 tscn layout
+		var vbox := Control.new()
 		vbox.name = "VBox"
-		vbox.add_theme_constant_override("separation", 6)
-		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		slot.add_child(vbox)
 
+		# AvatarPanel — offset_left=35, offset_top=21, offset_right=114, offset_bottom=99
 		var avatar_pan := PanelContainer.new()
 		avatar_pan.name = "AvatarPanel"
 		avatar_pan.custom_minimum_size = Vector2(56, 56)
+		avatar_pan.layout_mode = 0  # Absolute/anchored
+		avatar_pan.offset_left   = 36.0
+		avatar_pan.offset_top    = 21.0
+		avatar_pan.offset_right  = 114.0
+		avatar_pan.offset_bottom = 99.0
 		avatar_pan.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		avatar_pan.add_theme_stylebox_override("panel", _avatar_style(false))
 		vbox.add_child(avatar_pan)
 
 		var avatar_tex := TextureRect.new()
 		avatar_tex.name = "AvatarTexture"
+		avatar_tex.layout_mode = 2
 		avatar_tex.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		avatar_tex.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		avatar_tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		avatar_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		avatar_pan.add_child(avatar_tex)
 
+		# NameLabel — offset_top=117, offset_right=150, offset_bottom=137
 		var name_lbl := Label.new()
 		name_lbl.name = "NameLabel"
 		name_lbl.custom_minimum_size = Vector2(90, 0)
+		name_lbl.layout_mode = 0
+		name_lbl.offset_left   = 0.0
+		name_lbl.offset_top    = 117.0
+		name_lbl.offset_right  = 150.0
+		name_lbl.offset_bottom = 137.0
 		name_lbl.add_theme_color_override("font_color", Color(0.7, 0.85, 1, 0.45))
 		name_lbl.add_theme_font_size_override("font_size", 12)
 		name_lbl.text = "Name"
@@ -421,14 +436,22 @@ func _build_slots(count: int) -> void:
 		name_lbl.clip_text = true
 		vbox.add_child(name_lbl)
 
+		# RankPanel — offset_left=39, offset_top=157, offset_right=114, offset_bottom=220
 		var rank_pan := PanelContainer.new()
 		rank_pan.name = "RankPanel"
 		rank_pan.custom_minimum_size = Vector2(70, 24)
+		rank_pan.layout_mode = 0
+		rank_pan.offset_left   = 39.0
+		rank_pan.offset_top    = 157.0
+		rank_pan.offset_right  = 114.0
+		rank_pan.offset_bottom = 220.0
 		rank_pan.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		rank_pan.add_theme_stylebox_override("panel", _rank_style())
 		vbox.add_child(rank_pan)
 
 		var rank_tex := TextureRect.new()
 		rank_tex.name = "RankTexture"
+		rank_tex.layout_mode = 2
 		rank_tex.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		rank_tex.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		rank_tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
@@ -441,7 +464,7 @@ func _build_slots(count: int) -> void:
 func _refresh_all_slots() -> void:
 	for idx in _slot_nodes.size():
 		var slot: PanelContainer = _slot_nodes[idx]
-		var vbox: VBoxContainer = slot.get_child(0)
+		var vbox: Control = slot.get_child(0)
 		var avatar_pan: PanelContainer = vbox.get_node("AvatarPanel")
 		var avatar_tex: TextureRect = avatar_pan.get_node("AvatarTexture")
 		var name_lbl: Label = vbox.get_node("NameLabel")
@@ -484,22 +507,19 @@ func _refresh_player_count_label() -> void:
 # ─────────────────────────────────────────────────────────────────────────────
 func _slot_style(filled: bool) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
-	s.border_width_left = 2
-	s.border_width_top = 2
-	s.border_width_right = 2
-	s.border_width_bottom = 2
+	s.border_width_left = 0
+	s.border_width_top = 0
+	s.border_width_right = 0
+	s.border_width_bottom = 0
 	s.corner_radius_top_left = 8
 	s.corner_radius_top_right = 8
 	s.corner_radius_bottom_left = 8
 	s.corner_radius_bottom_right = 8
+	s.bg_color = Color("#00367D")
 	if filled:
-		s.bg_color = Color(0.0, 0.18, 0.28, 0.95)
-		s.border_color = Color(0.0, 0.85, 1.0, 0.85)
 		s.shadow_color = Color(0.0, 1.0, 1.0, 0.35)
 		s.shadow_size = 6
 	else:
-		s.bg_color = Color(0.04, 0.07, 0.18, 0.92)
-		s.border_color = Color(0.14, 0.58, 0.75, 0.5)
 		s.shadow_size = 0
 	return s
 
@@ -509,16 +529,29 @@ func _avatar_style(filled: bool) -> StyleBoxFlat:
 	s.border_width_top = 2
 	s.border_width_right = 2
 	s.border_width_bottom = 2
-	s.corner_radius_top_left = 4
-	s.corner_radius_top_right = 4
-	s.corner_radius_bottom_left = 4
-	s.corner_radius_bottom_right = 4
+	s.corner_radius_top_left = 40
+	s.corner_radius_top_right = 40
+	s.corner_radius_bottom_left = 40
+	s.corner_radius_bottom_right = 40
 	s.bg_color = Color(0.04, 0.1, 0.24, 0.85)
 	s.border_color = Color(0.0, 0.85, 1.0, 0.85) if filled else Color(0.14, 0.58, 0.75, 0.5)
 	s.shadow_color = Color(0.0, 1.0, 1.0, 0.3)
 	s.shadow_size = 4 if filled else 0
 	return s
 
+func _rank_style() -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = Color(0.04, 0.12, 0.28, 0.9)
+	s.border_width_left = 1
+	s.border_width_top = 1
+	s.border_width_right = 1
+	s.border_width_bottom = 1
+	s.border_color = Color(0.14, 0.58, 0.75, 0.6)
+	s.corner_radius_top_left = 4
+	s.corner_radius_top_right = 4
+	s.corner_radius_bottom_left = 4
+	s.corner_radius_bottom_right = 4
+	return s
 # ─────────────────────────────────────────────────────────────────────────────
 # BUTTON HANDLERS
 # ─────────────────────────────────────────────────────────────────────────────

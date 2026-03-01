@@ -1,26 +1,32 @@
-[gd_scene load_steps=8 format=3 uid="uid://yfarxf2di6ej"]
+[gd_scene load_steps=19 format=3 uid="uid://yfarxf2di6ej"]
 
 [ext_resource type="Script" uid="uid://chmrq2q3rn56y" path="res://script/TeacherLobby.gd" id="1_lobby"]
+[ext_resource type="Texture2D" uid="uid://batbgvw03em3o" path="res://asset/newUIlandingupdate/message-square-dots_svgrepo.com.png" id="2_msa84"]
+[ext_resource type="FontFile" uid="uid://cqfcxnj3ofmyk" path="res://TEACHERCREATEROOMUI/Inter-VariableFont_opsz,wght.ttf" id="2_xjs2v"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="10_ttatp"]
+[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="12_a4gcc"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lobby_bg"]
-bg_color = Color(0, 0.08, 0.2, 0.92)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.145098, 0.878431, 0.992157, 0.4)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_msa84"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_isoly"]
+font = ExtResource("10_ttatp")
+
+[sub_resource type="LabelSettings" id="LabelSettings_evarh"]
+font = ExtResource("2_xjs2v")
+font_size = 25
+
+[sub_resource type="LabelSettings" id="LabelSettings_xv1sv"]
+font = ExtResource("12_a4gcc")
+font_color = Color(0.145098, 0.878431, 0.992157, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot_empty"]
-bg_color = Color(0.04, 0.07, 0.18, 0.92)
+bg_color = Color(0, 0.211765, 0.490196, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.14, 0.58, 0.75, 0.5)
+border_blend = true
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -33,10 +39,13 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.14, 0.58, 0.75, 0.5)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+
+[sub_resource type="LabelSettings" id="LabelSettings_msa84"]
+font = ExtResource("2_xjs2v")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rank_bg"]
 bg_color = Color(0.04, 0.12, 0.28, 0.9)
@@ -51,11 +60,17 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chat_input"]
-content_margin_left = 10.0
+content_margin_left = 50.0
 content_margin_top = 4.0
 content_margin_right = 10.0
 content_margin_bottom = 4.0
-bg_color = Color(0, 0.098, 0.224, 1)
+bg_color = Color(0, 0.211765, 0.490196, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
 corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
@@ -64,8 +79,37 @@ shadow_color = Color(0, 0, 0, 0.25)
 shadow_size = 4
 shadow_offset = Vector2(0, 4)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xjs2v"]
+bg_color = Color(0.72202, 0, 0.134399, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_msa84"]
+bg_color = Color(0.031, 0.082, 0.208, 0.674)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2q1ol"]
+bg_color = Color(0.72202, 0, 0.134399, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(4, 0)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_btn"]
-bg_color = Color(0.145, 0.878, 0.992, 0.531)
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -76,8 +120,9 @@ corner_radius_top_left = 5
 corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
-shadow_color = Color(0, 0.211765, 0.490196, 1)
-shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_offset = Vector2(4, 4)
 
 [node name="TeacherRoomPanel" type="Control"]
 layout_mode = 3
@@ -89,30 +134,32 @@ grow_vertical = 2
 script = ExtResource("1_lobby")
 
 [node name="PanelBg" type="Panel" parent="."]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -420.0
-offset_top = -280.0
-offset_right = 420.0
-offset_bottom = 280.0
+offset_left = -407.0
+offset_top = -275.0
+offset_right = 433.0
+offset_bottom = 264.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_lobby_bg")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_msa84")
 
-[node name="TopBar" type="HBoxContainer" parent="PanelBg"]
-layout_mode = 0
+[node name="TopBar" type="Control" parent="PanelBg"]
+anchors_preset = 0
 offset_left = 12.0
 offset_top = 12.0
-offset_right = 816.0
-offset_bottom = 50.0
-theme_override_constants/separation = 12
+offset_right = 815.0
+offset_bottom = 51.0
 
 [node name="BackButton" type="Button" parent="PanelBg/TopBar"]
 custom_minimum_size = Vector2(36, 36)
 layout_mode = 2
+offset_right = 36.0
+offset_bottom = 39.0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 22
 text = "←"
@@ -120,25 +167,41 @@ flat = true
 
 [node name="RoomNameLabel" type="Label" parent="PanelBg/TopBar"]
 layout_mode = 2
+offset_left = 34.0
+offset_top = 9.0
+offset_right = 92.0
+offset_bottom = 32.0
 size_flags_horizontal = 3
 text = "Quiz-1"
+label_settings = SubResource("LabelSettings_isoly")
 horizontal_alignment = 1
 
 [node name="RoomCodeLabel" type="Label" parent="PanelBg/TopBar"]
 layout_mode = 2
+offset_left = 244.0
+offset_top = 1.0
+offset_right = 580.0
+offset_bottom = 36.0
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.145098, 0.878431, 0.992157, 1)
 text = "HDBF6734JGLLS"
+label_settings = SubResource("LabelSettings_evarh")
 horizontal_alignment = 1
 
 [node name="PlayerCountLabel" type="Label" parent="PanelBg/TopBar"]
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
+offset_left = 743.0
+offset_top = 8.0
+offset_right = 803.0
+offset_bottom = 31.0
 theme_override_colors/font_color = Color(0.7, 0.9, 1, 0.8)
 text = "0 / 10"
+label_settings = SubResource("LabelSettings_xv1sv")
 horizontal_alignment = 2
 
 [node name="HSeparator" type="HSeparator" parent="PanelBg"]
+visible = false
 self_modulate = Color(0.145098, 0.878431, 0.992157, 0.5)
 layout_mode = 0
 offset_left = 12.0
@@ -159,19 +222,21 @@ theme_override_constants/v_separation = 10
 columns = 5
 
 [node name="Slot1" type="PanelContainer" parent="PanelBg/SlotGrid"]
-custom_minimum_size = Vector2(0, 150)
+custom_minimum_size = Vector2(0, 250)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
 
-[node name="VBox" type="VBoxContainer" parent="PanelBg/SlotGrid/Slot1"]
+[node name="VBox" type="Control" parent="PanelBg/SlotGrid/Slot1"]
 layout_mode = 2
-theme_override_constants/separation = 6
-alignment = 1
 
 [node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot1/VBox"]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
+offset_left = 36.0
+offset_top = 21.0
+offset_right = 115.0
+offset_bottom = 99.0
 size_flags_horizontal = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
 
@@ -185,15 +250,23 @@ stretch_mode = 5
 [node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot1/VBox"]
 custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
+offset_top = 117.0
+offset_right = 150.0
+offset_bottom = 137.0
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.45)
 theme_override_font_sizes/font_size = 12
 text = "Teacher: Name"
+label_settings = SubResource("LabelSettings_msa84")
 horizontal_alignment = 1
 clip_text = true
 
 [node name="RankPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot1/VBox"]
 custom_minimum_size = Vector2(70, 24)
 layout_mode = 2
+offset_left = 39.0
+offset_top = 157.0
+offset_right = 114.0
+offset_bottom = 220.0
 size_flags_horizontal = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_rank_bg")
 
@@ -621,10 +694,10 @@ stretch_mode = 5
 
 [node name="BottomBar" type="HBoxContainer" parent="PanelBg"]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 472.0
-offset_right = 509.0
-offset_bottom = 516.0
+offset_left = 15.0
+offset_top = 510.0
+offset_right = 508.0
+offset_bottom = 554.0
 theme_override_constants/separation = 30
 
 [node name="ChatInput" type="LineEdit" parent="PanelBg/BottomBar"]
@@ -633,11 +706,22 @@ size_flags_horizontal = 3
 theme_override_styles/focus = SubResource("StyleBoxFlat_chat_input")
 theme_override_styles/read_only = SubResource("StyleBoxFlat_chat_input")
 theme_override_styles/normal = SubResource("StyleBoxFlat_chat_input")
-placeholder_text = "Type a message..."
+
+[node name="TextureRect" type="TextureRect" parent="PanelBg/BottomBar/ChatInput"]
+layout_mode = 0
+offset_right = 47.0
+offset_bottom = 44.0
+texture = ExtResource("2_msa84")
 
 [node name="StartQuizButton" type="Button" parent="PanelBg/BottomBar"]
 custom_minimum_size = Vector2(160, 40)
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0.211765, 0.490196, 1)
+theme_override_fonts/font = ExtResource("2_xjs2v")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("StyleBoxFlat_xjs2v")
+theme_override_styles/hover = SubResource("StyleBoxFlat_msa84")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_2q1ol")
 theme_override_styles/normal = SubResource("StyleBoxFlat_start_btn")
 text = "Start Quiz"
