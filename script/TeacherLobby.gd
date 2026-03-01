@@ -52,7 +52,6 @@ func _ready() -> void:
 	var panel_bg: Control = slot_grid.get_parent()
 	var sc := ScrollContainer.new()
 	sc.name = "SlotScroll"
-	sc.layout_mode = 0
 	sc.offset_left   = slot_grid.offset_left
 	sc.offset_top    = slot_grid.offset_top
 	sc.offset_right  = slot_grid.offset_right
@@ -63,9 +62,7 @@ func _ready() -> void:
 	panel_bg.remove_child(slot_grid)
 	panel_bg.add_child(sc)
 	sc.add_child(slot_grid)
-	# Switch SlotGrid to container-based layout so it fills the scroll width
-	# and grows vertically with its content.
-	slot_grid.layout_mode          = 2
+	# SlotGrid fills the scroll width and grows vertically.
 	slot_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	slot_grid.size_flags_vertical   = Control.SIZE_SHRINK_BEGIN
 
@@ -239,8 +236,8 @@ func _sync_players_from_server(server_players: Array) -> void:
 ## Load avatar texture from filename (e.g., "avatar1.png")
 func _load_avatar_texture(avatar_file: String) -> Texture2D:
 	print("[Lobby] _load_avatar_texture called with: '%s'" % avatar_file)
-	if avatar_file.is_empty() or avatar_file == "default.png":
-		print("[Lobby]   → skipping (empty or default)")
+	if avatar_file.is_empty():
+		print("[Lobby]   → skipping (empty)")
 		return null
 	# Handle different avatar path formats
 	var path: String
@@ -418,7 +415,6 @@ func _build_slots(count: int) -> void:
 
 		var avatar_tex := TextureRect.new()
 		avatar_tex.name = "AvatarTexture"
-		avatar_tex.layout_mode = 2
 		avatar_tex.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		avatar_tex.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		avatar_tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
@@ -449,7 +445,6 @@ func _build_slots(count: int) -> void:
 
 		var rank_tex := TextureRect.new()
 		rank_tex.name = "RankTexture"
-		rank_tex.layout_mode = 2
 		rank_tex.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		rank_tex.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		rank_tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL

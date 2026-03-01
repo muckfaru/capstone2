@@ -115,6 +115,7 @@ var _viewing_room_code: String = ""  # Currently viewing room's code
 
 func _ready() -> void:
 	_show_screen("main")
+	_wrap_room_list_in_scroll()  # Add scrollable room history
 	_load_room_history()  # Load room history from Firestore
 	_refresh_room_list()
 	_build_minigame_cards()
@@ -652,6 +653,40 @@ func _on_copy_code_pressed() -> void:
 	copy_button.text = "Copied!"
 	await get_tree().create_timer(1.5).timeout
 	copy_button.text = "Copy"
+
+## Wrap room_list_container in a ScrollContainer with hidden scrollbar
+func _wrap_room_list_in_scroll() -> void:
+	var parent := room_list_container.get_parent()
+	if not parent: return
+
+	var scroll := ScrollContainer.new()
+	scroll.name = "RoomListScroll"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	# Copy position from the VBox
+	scroll.offset_left = room_list_container.offset_left
+	scroll.offset_top = room_list_container.offset_top
+	scroll.offset_right = room_list_container.offset_right
+	scroll.offset_bottom = room_list_container.offset_bottom
+
+	# Insert scroll at same index as room_list_container
+	var idx := room_list_container.get_index()
+	parent.remove_child(room_list_container)
+	parent.add_child(scroll)
+	parent.move_child(scroll, idx)
+
+	# Reset VBox positioning inside scroll
+	room_list_container.offset_left = 0
+	room_list_container.offset_top = 0
+	room_list_container.offset_right = scroll.offset_right - scroll.offset_left
+	room_list_container.offset_bottom = 0
+	room_list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	room_list_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.add_child(room_list_container)
+
+	# Hide scrollbar for cleaner UI
+	var v_bar := scroll.get_v_scroll_bar()
+	if v_bar:
+		v_bar.modulate = Color(1, 1, 1, 0)
 
 func _refresh_room_list() -> void:
 	for child in room_list_container.get_children():
