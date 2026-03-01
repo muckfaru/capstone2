@@ -410,6 +410,7 @@ func _build_slots(count: int) -> void:
 		var avatar_pan := PanelContainer.new()
 		avatar_pan.name = "AvatarPanel"
 		avatar_pan.custom_minimum_size = Vector2(72, 72)
+		avatar_pan.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
 		avatar_pan.add_theme_stylebox_override("panel", _avatar_style(false))
 		avatar_center.add_child(avatar_pan)
 
@@ -419,7 +420,35 @@ func _build_slots(count: int) -> void:
 		avatar_tex.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		avatar_tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		avatar_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		avatar_tex.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
 		avatar_pan.add_child(avatar_tex)
+
+		# Border overlay panel (child of AvatarPanel, after AvatarTexture)
+		var border_style := StyleBoxFlat.new()
+		border_style.draw_center = false
+		border_style.border_width_left = 2
+		border_style.border_width_top = 2
+		border_style.border_width_right = 2
+		border_style.border_width_bottom = 2
+		border_style.border_color = Color("#25e0fd")
+		border_style.corner_radius_top_left = 40
+		border_style.corner_radius_top_right = 40
+		border_style.corner_radius_bottom_left = 40
+		border_style.corner_radius_bottom_right = 40
+
+		var border_pan := Panel.new()
+		border_pan.name = "border"
+		border_pan.layout_mode = 1  # Anchors mode
+		border_pan.anchor_left = 0.0
+		border_pan.anchor_top = 0.0
+		border_pan.anchor_right = 1.0
+		border_pan.anchor_bottom = 1.0
+		border_pan.offset_left = 0
+		border_pan.offset_top = 0
+		border_pan.offset_right = 0
+		border_pan.offset_bottom = 0
+		border_pan.add_theme_stylebox_override("panel", border_style)
+		avatar_pan.add_child(border_pan)
 
 		# NameLabel centered
 		var name_lbl := Label.new()
@@ -453,7 +482,7 @@ func _build_slots(count: int) -> void:
 
 		slot_grid.add_child(slot)
 		_slot_nodes.append(slot)
-
+		
 func _refresh_all_slots() -> void:
 	for idx in _slot_nodes.size():
 		var slot: PanelContainer = _slot_nodes[idx]

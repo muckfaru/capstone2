@@ -1,4 +1,4 @@
-[gd_scene load_steps=113 format=3 uid="uid://bh7u33b2fgi20"]
+[gd_scene load_steps=116 format=3 uid="uid://bh7u33b2fgi20"]
 
 [ext_resource type="Script" uid="uid://tcqud0h0ly6x" path="res://script/TeacherCreateRoom.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://cfv84307hubxo" path="res://TEACHERCREATEROOMUI/cyber ct 2.png" id="2_33jw7"]
@@ -602,6 +602,12 @@ font = ExtResource("9_87rh8")
 
 [sub_resource type="LabelSettings" id="LabelSettings_3mlsb"]
 font = ExtResource("9_87rh8")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jsaon"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nka0c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_m3t20"]
 
 [node name="CreateRoom2" type="Control"]
 layout_mode = 3
@@ -1475,6 +1481,9 @@ vertical_alignment = 1
 
 [node name="SeeAllButton" type="Button" parent="CanvasLayer/StatisticsPanel/StatsGrid/RightColumn"]
 layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_jsaon")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_nka0c")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_m3t20")
 text = "See all"
 flat = true
 

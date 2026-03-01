@@ -1,8 +1,9 @@
-[gd_scene load_steps=19 format=3 uid="uid://yfarxf2di6ej"]
+[gd_scene load_steps=21 format=3 uid="uid://yfarxf2di6ej"]
 
 [ext_resource type="Script" uid="uid://chmrq2q3rn56y" path="res://script/TeacherLobby.gd" id="1_lobby"]
 [ext_resource type="Texture2D" uid="uid://batbgvw03em3o" path="res://asset/newUIlandingupdate/message-square-dots_svgrepo.com.png" id="2_msa84"]
 [ext_resource type="FontFile" uid="uid://cqfcxnj3ofmyk" path="res://TEACHERCREATEROOMUI/Inter-VariableFont_opsz,wght.ttf" id="2_xjs2v"]
+[ext_resource type="Texture2D" uid="uid://cxatgao3su3ku" path="res://asset/avatars/avatar2.png" id="5_isoly"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="10_ttatp"]
 [ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="12_a4gcc"]
 
@@ -39,6 +40,18 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.14, 0.58, 0.75, 0.5)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xv1sv"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
 corner_radius_top_left = 40
 corner_radius_top_right = 40
 corner_radius_bottom_right = 40
@@ -231,6 +244,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_slot_empty")
 layout_mode = 2
 
 [node name="AvatarPanel" type="PanelContainer" parent="PanelBg/SlotGrid/Slot1/VBox"]
+clip_children = 1
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 offset_left = 36.0
@@ -241,11 +255,17 @@ size_flags_horizontal = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_avatar_bg")
 
 [node name="AvatarTexture" type="TextureRect" parent="PanelBg/SlotGrid/Slot1/VBox/AvatarPanel"]
+clip_children = 2
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+texture = ExtResource("5_isoly")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="border" type="Panel" parent="PanelBg/SlotGrid/Slot1/VBox/AvatarPanel"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_xv1sv")
 
 [node name="NameLabel" type="Label" parent="PanelBg/SlotGrid/Slot1/VBox"]
 custom_minimum_size = Vector2(90, 0)
