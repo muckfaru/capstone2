@@ -681,7 +681,7 @@ app.get('/health', (req, res) => {
 
   res.json({
     status: 'ok',
-    code_version: 'avatar-xp-v2',
+    code_version: 'question-stats-v1',
     uptime: process.uptime(),
     rooms: {
       total: rooms.size,
@@ -1120,7 +1120,7 @@ app.post('/api/quiz/:code/submit', (req, res) => {
   });
 });
 
-// GET /api/quiz/:code/results — Get final leaderboard
+// GET /api/quiz/:code/results — Get final leaderboard + per-question stats
 app.get('/api/quiz/:code/results', (req, res) => {
   const code = req.params.code.toUpperCase();
   const qr = quizRooms.get(code);
@@ -1144,12 +1144,37 @@ app.get('/api/quiz/:code/results', (req, res) => {
       total_questions: qr.quiz_data.questions.length
     }));
 
+  // Per-question statistics: how many students got each question correct/wrong
+  const questions = qr.quiz_data.questions || [];
+  const finishedPlayers = qr.players.filter(p => p.finished);
+  const question_stats = questions.map((q, i) => {
+    let correct = 0;
+    let wrong = 0;
+    for (const p of finishedPlayers) {
+      const rawCorrect = (q.correct_answer || '').trim().replace(/\s+/g, ' ').toLowerCase();
+      const rawStudent = ((p.answers || [])[i] || '').trim().replace(/\s+/g, ' ').toLowerCase();
+      if (rawStudent.length > 0 && rawStudent === rawCorrect) {
+        correct++;
+      } else if (p.finished) {
+        wrong++;
+      }
+    }
+    return {
+      question_index: i + 1,
+      question_text: q.question || `Q${i + 1}`,
+      correct,
+      wrong,
+      total: finishedPlayers.length
+    };
+  });
+
   res.json({
     ok: true,
     room_name: qr.room_name,
     status: qr.status,
     total_questions: qr.quiz_data.questions.length,
-    leaderboard
+    leaderboard,
+    question_stats
   });
 });
 
