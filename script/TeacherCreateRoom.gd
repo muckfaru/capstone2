@@ -2109,28 +2109,34 @@ func _on_room_history_loaded(_result: int, code: int, _headers: PackedStringArra
 	_refresh_room_list()
 
 # ════════════════════════════════════════════════════════════════════════════
-# QUIZ RESULTS — FIRESTORE CACHE (per room)
+# QUIZ RESULTS — FIRESTORE CACHE (stored in user doc field "room_results")
 # ════════════════════════════════════════════════════════════════════════════
 
-## Save quiz/gamemode results to Firestore for persistence across server restarts
+## Save quiz/gamemode results to the user doc's "room_results" map field.
+## Path: users/{uid}.room_results.{safe_code} = JSON string
 func _save_results_to_firestore(room_code: String, data: Dictionary) -> void:
 	if not Auth or not Auth.current_local_id or not Auth.current_id_token:
 		return
 	var uid := Auth.current_local_id
 	var token := Auth.current_id_token
 	var safe_code := room_code.replace("/", "_")
-	var url := "%s/users/%s/quiz_results/%s" % [FIRESTORE_BASE_URL, uid, safe_code]
+	var field_path := "room_results.%s" % safe_code
+	var url := "%s/users/%s?updateMask.fieldPaths=%s" % [FIRESTORE_BASE_URL, uid, field_path]
 	var headers := [
 		"Content-Type: application/json",
 		"Authorization: Bearer %s" % token
 	]
-	# Serialize the entire results dict as a JSON string
+	# Serialize the entire results dict as a JSON string value
 	var json_str := JSON.stringify(data)
 	var doc := {
 		"fields": {
-			"room_code": {"stringValue": room_code},
-			"results_json": {"stringValue": json_str},
-			"updated_at": {"timestampValue": _utc_now()}
+			"room_results": {
+				"mapValue": {
+					"fields": {
+						safe_code: {"stringValue": json_str}
+					}
+				}
+			}
 		}
 	}
 	var http := HTTPRequest.new()
@@ -2144,14 +2150,13 @@ func _save_results_to_firestore(room_code: String, data: Dictionary) -> void:
 	)
 	http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(doc))
 
-## Load quiz/gamemode results from Firestore when server no longer has them
+## Load quiz/gamemode results from user doc's "room_results" map field
 func _load_results_from_firestore(room_code: String, category: String) -> void:
 	if not Auth or not Auth.current_local_id or not Auth.current_id_token:
 		return
 	var uid := Auth.current_local_id
 	var token := Auth.current_id_token
-	var safe_code := room_code.replace("/", "_")
-	var url := "%s/users/%s/quiz_results/%s" % [FIRESTORE_BASE_URL, uid, safe_code]
+	var url := "%s/users/%s" % [FIRESTORE_BASE_URL, uid]
 	var headers := [
 		"Content-Type: application/json",
 		"Authorization: Bearer %s" % token
@@ -2161,13 +2166,17 @@ func _load_results_from_firestore(room_code: String, category: String) -> void:
 	http.request_completed.connect(func(_r, code, _h, resp_body):
 		http.queue_free()
 		if code != 200:
-			print("[ResultsCache] No cached results for %s" % room_code)
+			print("[ResultsCache] Failed to read user doc: HTTP %d" % code)
 			return
 		var text: String = resp_body.get_string_from_utf8()
 		var doc = JSON.parse_string(text)
 		if typeof(doc) != TYPE_DICTIONARY: return
 		var fields: Dictionary = doc.get("fields", {})
-		var json_str: String = fields.get("results_json", {}).get("stringValue", "")
+		if not fields.has("room_results"): return
+		var results_map: Dictionary = fields["room_results"].get("mapValue", {}).get("fields", {})
+		var safe_code := room_code.replace("/", "_")
+		if not results_map.has(safe_code): return
+		var json_str: String = results_map[safe_code].get("stringValue", "")
 		if json_str.is_empty(): return
 		var data = JSON.parse_string(json_str)
 		if typeof(data) != TYPE_DICTIONARY: return
