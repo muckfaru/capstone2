@@ -656,6 +656,8 @@ func _show_debrief():
 	var xp_awarded = TutorialManager.award_minigame_xp("security_guardian", total_xp_earned, final_score)
 	if xp_awarded == 0:
 		print("  ⚠️ Replay - No XP awarded (game still playable!)")
+	elif xp_awarded > 0:
+		MinigameRewards.try_grant_rewards("security_guardian", final_score, xp_awarded, self)
 	
 	# ✅ GameMode: skip debrief panel, go straight to leaderboard
 	if _is_gamemode:

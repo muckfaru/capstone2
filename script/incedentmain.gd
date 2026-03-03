@@ -816,6 +816,8 @@ func show_completion_screen():
 	var xp_awarded = TutorialManager.award_minigame_xp("cmd_defender", total_xp_earned, score)
 	if xp_awarded == 0:
 		print("  ⚠️ Replay - No XP awarded (game still playable!)")
+	elif xp_awarded > 0:
+		MinigameRewards.try_grant_rewards("cmd_defender", score, xp_awarded, self)
 	
 	if tutorial_mode:
 		add_terminal_line("TUTORIAL COMPLETE!", Color.GREEN)

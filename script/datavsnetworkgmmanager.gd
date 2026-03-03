@@ -934,6 +934,8 @@ func show_victory():
 	var xp_awarded = TutorialManager.award_minigame_xp("drop_zone_defender", total_xp_earned, score)
 	if xp_awarded == 0:
 		print("  ⚠️ Replay - No XP awarded (game still playable!)")
+	elif xp_awarded > 0:
+		MinigameRewards.try_grant_rewards("drop_zone_defender", score, xp_awarded, self)
 	
 	# In GameMode, submit score and go to leaderboard
 	if _is_gamemode:

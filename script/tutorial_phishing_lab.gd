@@ -582,6 +582,8 @@ Click OK to return to menu.""" % [
 	style.corner_radius_bottom_right = 10
 	feedback_popup.add_theme_stylebox_override("panel", style)
 	
+	# Check first-time before saving
+	var _first_clear: bool = MinigameRewards.is_first_completion(TUTORIAL_ID)
 	# Save results to TutorialManager
 	print("📊 Saving tutorial results...")
 	print("   Tutorial ID: %s" % TUTORIAL_ID)
@@ -598,6 +600,10 @@ Click OK to return to menu.""" % [
 			print("✅ Tutorial results saved successfully!")
 	else:
 		push_error("❌ TutorialManager not found!")
+	
+	# Show reward popup on first completion
+	if _first_clear and not _is_gamemode:
+		MinigameRewards.try_grant_rewards(TUTORIAL_ID, score, xp_earned, self)
 	
 	# In GameMode, submit score and go to leaderboard
 	if _is_gamemode:

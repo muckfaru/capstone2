@@ -596,11 +596,17 @@ func _on_next_pressed() -> void:
 					get_tree().change_scene_to_file("res://scene/landing.tscn")
 				return
 			
+			# Check first-time before saving
+			var _first_clear: bool = MinigameRewards.is_first_completion("beginner_encryption")
 			# Save tutorial result
 			var tutorial_mgr = get_node("/root/TutorialManager")
 			if tutorial_mgr:
 				tutorial_mgr.save_tutorial_result("beginner_encryption", score, 200)
 				await tutorial_mgr.save_completed
+			
+			# Show reward popup on first completion
+			if _first_clear and not _is_gamemode:
+				MinigameRewards.try_grant_rewards("beginner_encryption", score, score, self)
 			
 			if _is_gamemode:
 				_submit_gamemode_score()

@@ -1064,6 +1064,8 @@ func victory():
 	var xp_awarded = TutorialManager.award_minigame_xp("incident_commander", total_xp_earned, score)
 	if xp_awarded == 0:
 		print("  ⚠️ Replay - No XP awarded (game still playable!)")
+	elif xp_awarded > 0:
+		MinigameRewards.try_grant_rewards("incident_commander", score, xp_awarded, self)
 	
 	if _is_gamemode:
 		_submit_gamemode_score(score, 500)

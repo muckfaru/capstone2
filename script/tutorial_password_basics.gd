@@ -645,6 +645,8 @@ func _on_next_pressed() -> void:
 			_submit_gamemode_score(player_score, max_score)
 			return
 		
+		# Check first-time before saving
+		var _first_clear: bool = MinigameRewards.is_first_completion("beginner_password")
 		var tutorial_mgr = get_node("/root/TutorialManager")
 		if tutorial_mgr:
 			print("[TUTORIAL] TutorialManager found, saving result...")
@@ -654,6 +656,10 @@ func _on_next_pressed() -> void:
 			print("[TUTORIAL] Save confirmed, navigating to landing...")
 		else:
 			push_error("[TUTORIAL] TutorialManager not found!")
+		
+		# Show reward popup on first completion
+		if _first_clear:
+			MinigameRewards.try_grant_rewards("beginner_password", player_score, player_score, self)
 		
 		get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 		return

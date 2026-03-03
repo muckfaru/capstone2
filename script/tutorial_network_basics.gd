@@ -548,6 +548,8 @@ func _on_next_pressed() -> void:
 			print("[TUTORIAL] START DEFENSE GAME button pressed!")
 			print("[TUTORIAL] XP Earned: %d" % xp_earned)
 			
+			# Check first-time before saving (save marks it complete)
+			var _first_clear: bool = MinigameRewards.is_first_completion("beginner_network")
 			# Save tutorial result with XP
 			var tutorial_mgr = get_node_or_null("/root/TutorialManager")
 			if tutorial_mgr:
@@ -560,6 +562,10 @@ func _on_next_pressed() -> void:
 					print("[TUTORIAL] Save confirmed!")
 			else:
 				push_error("[TUTORIAL] TutorialManager not found!")
+			
+			# Show reward popup on first completion
+			if _first_clear and not _is_gamemode:
+				MinigameRewards.try_grant_rewards("beginner_network", xp_earned, xp_earned, self)
 			
 			# Transition to Network Defense game
 			get_tree().change_scene_to_file("res://scene/network_defense_game.tscn")

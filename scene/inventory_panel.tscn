@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://7tjwuknii5ij"]
+[gd_scene load_steps=44 format=3 uid="uid://7tjwuknii5ij"]
 
 [ext_resource type="Script" uid="uid://7gmira7sv3on" path="res://script/inventory_panel.gd" id="1_inventory"]
 [ext_resource type="Texture2D" uid="uid://bsdt466q6oftp" path="res://asset/newUIlandingupdate/Group 115.png" id="1_puhy8"]
@@ -22,6 +22,18 @@ font_size = 28
 shadow_size = 10
 shadow_color = Color(0, 0, 0, 1)
 shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n1str"]
+bg_color = Color(0.101961, 0.2, 0.301961, 0.901961)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76, 0, 0.192, 0.603)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cat_hover"]
 bg_color = Color(0, 0.6, 0.7, 1)
@@ -47,11 +59,71 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h2m10"]
+bg_color = Color(0.101961, 0.2, 0.301961, 0.901961)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76, 0, 0.192, 0.603)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fltij"]
+bg_color = Color(0.101961, 0.2, 0.301961, 0.901961)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76, 0, 0.192, 0.603)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ermur"]
+bg_color = Color(0.101961, 0.2, 0.301961, 0.901961)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76, 0, 0.192, 0.603)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mopil"]
+bg_color = Color(0.101961, 0.2, 0.301961, 0.901961)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76, 0, 0.192, 0.603)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
 [sub_resource type="LabelSettings" id="LabelSettings_sort"]
 font = ExtResource("4_jw66u")
 font_color = Color(0, 1, 0, 1)
 shadow_size = 5
 shadow_color = Color(0.193, 0.517, 0.739, 0.735)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ng5l"]
+bg_color = Color(0.101961, 0.2, 0.301961, 0.901961)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.648, 0.07, 1, 0.609)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sort_hover"]
 bg_color = Color(0, 0.5, 0.6, 1)
@@ -76,6 +148,30 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mpwu3"]
+bg_color = Color(0.101961, 0.2, 0.301961, 0.901961)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76, 0, 0.192, 0.603)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jxv0f"]
+bg_color = Color(0.101961, 0.2, 0.301961, 0.901961)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.021, 0.648, 0, 0.6)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_item_card"]
 bg_color = Color(0.1, 0.1, 0.15, 0.9)
@@ -145,6 +241,8 @@ shadow_size = 12
 font = ExtResource("9_n1str")
 font_size = 22
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n1str"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_detail"]
 bg_color = Color(0, 0, 0, 0)
 
@@ -171,6 +269,12 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6qaqe"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ptj7g"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_r8uh5"]
 
 [node name="InventoryPanel" type="Panel"]
 custom_minimum_size = Vector2(800, 600)
@@ -218,6 +322,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxFlat_n1str")
 theme_override_styles/hover = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_cat_normal")
@@ -230,6 +335,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxFlat_h2m10")
 theme_override_styles/hover = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_cat_normal")
@@ -242,6 +348,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxFlat_fltij")
 theme_override_styles/hover = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_cat_normal")
@@ -254,6 +361,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxFlat_ermur")
 theme_override_styles/hover = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_cat_normal")
@@ -266,6 +374,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxFlat_mopil")
 theme_override_styles/hover = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_cat_normal")
@@ -295,6 +404,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 0.8, 1, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxFlat_8ng5l")
 theme_override_styles/hover = SubResource("StyleBoxFlat_sort_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_sort_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_sort_normal")
@@ -307,6 +417,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 0.8, 1, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxFlat_mpwu3")
 theme_override_styles/hover = SubResource("StyleBoxFlat_sort_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_sort_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_sort_normal")
@@ -319,6 +430,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 0.8, 1, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxFlat_jxv0f")
 theme_override_styles/hover = SubResource("StyleBoxFlat_sort_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_sort_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_sort_normal")
@@ -859,7 +971,7 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 16.0
+offset_left = 17.0
 offset_top = 14.0
 offset_right = -16.0
 offset_bottom = -14.0
@@ -881,7 +993,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 22
-text = "Item Name"
+text = "			Item Name"
 label_settings = SubResource("LabelSettings_h7hmr")
 horizontal_alignment = 1
 
@@ -891,6 +1003,7 @@ layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 0, 0, 1)
 theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("StyleBoxEmpty_n1str")
 theme_override_styles/hover = SubResource("StyleBoxFlat_close_detail")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_close_detail")
 theme_override_styles/normal = SubResource("StyleBoxFlat_close_detail")
@@ -913,7 +1026,6 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [node name="DetailEquipButton" type="Button" parent="ItemDetailPanel/DetailRoot/DetailVBox"]
-visible = false
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -976,4 +1088,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_hover_color = Color(1, 0.5, 0.5, 1)
 theme_override_colors/font_color = Color(1, 0, 0, 1)
 theme_override_font_sizes/font_size = 24
+theme_override_styles/focus = SubResource("StyleBoxFlat_6qaqe")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_ptj7g")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_r8uh5")
 text = "✕"

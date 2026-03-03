@@ -349,6 +349,8 @@ func _on_next_pressed() -> void:
 		Section.THREAT_MODEL:
 			_start_section(Section.COMPLETE)
 		Section.COMPLETE:
+			# Check first-time before saving (save marks it complete)
+			var _first_clear: bool = MinigameRewards.is_first_completion("beginner_fundamentals")
 			# Save progress with XP
 			var tutorial_mgr = get_node_or_null("/root/TutorialManager")
 			if tutorial_mgr:
@@ -356,6 +358,9 @@ func _on_next_pressed() -> void:
 				if tutorial_mgr.has_signal("save_completed"):
 					await tutorial_mgr.save_completed
 				await get_tree().process_frame
+			# Show reward popup on first completion
+			if _first_clear and not _is_gamemode:
+				MinigameRewards.try_grant_rewards("beginner_fundamentals", xp_earned, xp_earned, self)
 			if _is_gamemode:
 				_submit_gamemode_score()
 			else:

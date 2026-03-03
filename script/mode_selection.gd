@@ -59,6 +59,8 @@ const ICON_INCIDENT_COMMANDER := preload("res://asset/icons/incident_commander_i
 const ICON_SECURITY_GUARDIAN := preload("res://asset/icons/security_guardian_icon.png")
 const ICON_MALWARE_DEFENSE := preload("res://asset/icons/malware_defense_icon.png")
 const ICON_INCIDENT_RESPONSE := preload("res://asset/icons/incident_response_icon.png")
+const ICON_CRYPTO_SORTER := preload("res://asset/icons/encryicon.png")
+const ICON_RSA_KEY_LAB := preload("res://asset/icons/crypt_contract_icon.png")
 
 # Tutorial metadata
 const TUTORIAL_METADATA := {
@@ -73,7 +75,49 @@ const TUTORIAL_METADATA := {
 	"intermediate_lab": {"time": "20-30 min", "xp_range": "100-200 XP", "difficulty": 4},
 	"advanced_scenarios": {"time": "25-35 min", "xp_range": "100-200 XP", "difficulty": 5},
 	"advanced_encryption": {"time": "20-25 min", "xp_range": "100-200 XP", "difficulty": 4},
-	"advanced_lab": {"time": "25-40 min", "xp_range": "100-200 XP", "difficulty": 5}
+	"advanced_lab": {"time": "25-40 min", "xp_range": "100-200 XP", "difficulty": 5},
+	"advanced_crypto_sorter": {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 4},
+	"advanced_rsa_key_lab": {"time": "20-30 min", "xp_range": "100-200 XP", "difficulty": 5}
+}
+
+# ── Prerequisites for progressive unlocking ──────────────────────────────
+# Each key maps to a dict with optional "requires" (array of tutorial IDs
+# that must be completed) and/or "min_xp" (minimum total XP needed).
+# An empty dict (or missing key) means no prerequisite — always unlocked.
+const PREREQUISITES := {
+	# ── Beginner: linear chain ─────────────────────────────────────────
+	"beginner_fundamentals": {},  # Entry point — always open
+	"beginner_network": {"requires": ["beginner_fundamentals"]},
+	"advanced_encryption": {"requires": ["beginner_network"]},
+	"beginner_password": {"requires": ["advanced_encryption"]},
+	"beginner_malware": {"requires": ["beginner_password"]},
+	# ── Intermediate: must finish last beginner, then chain ────────────
+	"beginner_drop_zone": {"requires": ["beginner_malware"]},
+	"intermediate_phishing": {"requires": ["beginner_drop_zone"]},
+	"intermediate_assetandthreat": {"requires": ["intermediate_phishing"]},
+	"intermediate_crypt_contract": {"requires": ["intermediate_assetandthreat"]},
+	"intermediate_incident_commander": {"requires": ["intermediate_crypt_contract"]},
+	# ── Advanced: must finish last intermediate, then chain ────────────
+	"advanced_crypto_sorter": {"requires": ["intermediate_incident_commander"]},
+	"advanced_rsa_key_lab": {"requires": ["advanced_crypto_sorter"]},
+	"advanced_security_guardian": {"requires": ["advanced_rsa_key_lab"]},
+}
+
+# Human-readable names for prerequisite lock messages
+const TUTORIAL_DISPLAY_NAMES := {
+	"beginner_fundamentals": "Cybersecurity Fundamentals",
+	"beginner_network": "Network Basics",
+	"advanced_encryption": "Encryption",
+	"beginner_password": "Password Fortress Defender",
+	"beginner_malware": "Malware Types Overview",
+	"beginner_drop_zone": "Drop Zone Defender",
+	"intermediate_phishing": "Phishing Detection Lab",
+	"intermediate_assetandthreat": "Asset vs Threats",
+	"intermediate_crypt_contract": "Crypt Contract",
+	"intermediate_incident_commander": "Incident Commander",
+	"advanced_crypto_sorter": "Crypto Sorter",
+	"advanced_rsa_key_lab": "RSA Key Lab",
+	"advanced_security_guardian": "Security Guardian",
 }
 
 
@@ -294,6 +338,51 @@ func _on_level_selected(level: String) -> void:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# PREREQUISITE HELPERS
+# ─────────────────────────────────────────────────────────────────────────────
+const _MINIGAME_IDS := [
+	"beginner_drop_zone",
+	"intermediate_assetandthreat",
+	"intermediate_crypt_contract",
+	"intermediate_incident_commander",
+	"advanced_crypto_sorter",
+	"advanced_rsa_key_lab",
+	"advanced_security_guardian",
+	"advanced_malware_defense",
+	"advanced_incident_response"
+]
+
+## Returns true if the given tutorial/minigame has been completed.
+func _is_tutorial_completed(tid: String) -> bool:
+	if tid in _MINIGAME_IDS:
+		return TutorialManager.completed_minigames.has(tid)
+	else:
+		return TutorialManager.completed_tutorials.has(tid)
+
+
+## Checks whether a tutorial's prerequisites are met.
+## Returns {"unlocked": bool, "reason": String}.
+func _check_unlocked(tutorial_id: String) -> Dictionary:
+	var prereq: Dictionary = PREREQUISITES.get(tutorial_id, {})
+	if prereq.is_empty():
+		return {"unlocked": true, "reason": ""}
+
+	# Check min_xp (optional additional gate)
+	var min_xp: int = prereq.get("min_xp", 0)
+	if min_xp > 0 and TutorialManager.total_xp < min_xp:
+		return {"unlocked": false, "reason": "Requires %d XP (you have %d)" % [min_xp, TutorialManager.total_xp]}
+
+	# Check required completions
+	var required: Array = prereq.get("requires", [])
+	for req_id in required:
+		if not _is_tutorial_completed(req_id):
+			var req_name: String = TUTORIAL_DISPLAY_NAMES.get(req_id, req_id)
+			return {"unlocked": false, "reason": "Complete \"%s\" first" % req_name}
+
+	return {"unlocked": true, "reason": ""}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # TUTORIAL MENU  (instantiates tutorial_menu_overlay.tscn)
 # ─────────────────────────────────────────────────────────────────────────────
 func _show_tutorial_menu(level: String) -> void:
@@ -322,9 +411,9 @@ func _show_tutorial_menu(level: String) -> void:
 		"advanced":
 			level_int = 3
 			tutorials = [
+				{"name": "Crypto Sorter: Symmetric vs Asymmetric", "scene": "res://scene/crypto_sorter.tscn", "id": "advanced_crypto_sorter"},
+				{"name": "RSA Key Lab: Public-Key Cryptography", "scene": "res://scene/rsa_key_lab.tscn", "id": "advanced_rsa_key_lab"},
 				{"name": "Security Guardian", "scene": "res://scene/authgmMain.tscn", "id": "advanced_security_guardian"},
-				{"name": "Malware Defense & Removal", "scene": "res://scene/DigitalForensicsScene.tscn", "id": "advanced_malware_defense"},
-				{"name": "CMD Defender: Incident Response Training", "scene": "res://scene/incedentmain.tscn", "id": "advanced_incident_response"},
 			]
 
 	Auth.current_level = level_int
@@ -376,16 +465,7 @@ func _show_tutorial_menu(level: String) -> void:
 func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Control) -> PanelContainer:
 	var tutorial_id: String = tutorial["id"]
 
-	var minigame_ids = [
-		"beginner_drop_zone",
-		"intermediate_assetandthreat",
-		"intermediate_crypt_contract",
-		"intermediate_incident_commander",
-		"advanced_security_guardian",
-		"advanced_malware_defense",
-		"advanced_incident_response"
-	]
-	var is_minigame: bool = tutorial_id in minigame_ids
+	var is_minigame: bool = tutorial_id in _MINIGAME_IDS
 
 	var is_completed: bool = false
 	var completion_data: Dictionary = {}
@@ -398,6 +478,10 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 		if is_completed:
 			completion_data = TutorialManager.completed_tutorials[tutorial_id]
 
+	# ── Prerequisite check ───────────────────────────────────────────────
+	var unlock_info: Dictionary = _check_unlocked(tutorial_id)
+	var is_locked: bool = not unlock_info["unlocked"]
+
 	var metadata = TUTORIAL_METADATA.get(tutorial_id, {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3})
 
 	# Load card scene
@@ -408,9 +492,12 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 
 	var card = card_scene.instantiate()
 
-	# ── Colour the card panel based on completion ──────────────────────────
+	# ── Colour the card panel based on state ──────────────────────────────
 	var card_style = StyleBoxFlat.new()
-	if is_completed:
+	if is_locked:
+		card_style.bg_color = Color(0.06, 0.06, 0.08, 0.95)
+		card_style.border_color = Color(0.35, 0.35, 0.4, 0.6)
+	elif is_completed:
 		card_style.bg_color = Color(0.05, 0.2, 0.1, 0.9)
 		card_style.border_color = Color(0, 1, 0.5, 1.0)
 		card_style.shadow_color = Color(0, 1, 0.5, 0.4)
@@ -443,6 +530,8 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 		"intermediate_crypt_contract": ICON_CRYPT_CONTRACT,
 		"intermediate_incident_commander": ICON_INCIDENT_COMMANDER,
 		# Advanced minigames
+		"advanced_crypto_sorter": ICON_CRYPTO_SORTER,
+		"advanced_rsa_key_lab": ICON_RSA_KEY_LAB,
 		"advanced_security_guardian": ICON_SECURITY_GUARDIAN,
 		"advanced_malware_defense": ICON_MALWARE_DEFENSE,
 		"advanced_incident_response": ICON_INCIDENT_RESPONSE,
@@ -457,11 +546,17 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	var category_icon = card.get_node("CardMargin/MainHBox/CategoryIcon")
 	if category_icon:
 		category_icon.texture = icon_map.get(tutorial_id, ICON_FUNDAMENTALS)
+		if is_locked:
+			category_icon.modulate = Color(0.4, 0.4, 0.4)
 
 	# ── Title ─────────────────────────────────────────────────────────────
 	var title_lbl = card.get_node("CardMargin/MainHBox/CardVBox/TitleLabel")
 	if title_lbl:
-		title_lbl.text = tutorial["name"]
+		if is_locked:
+			title_lbl.text = "🔒 " + tutorial["name"]
+			title_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+		else:
+			title_lbl.text = tutorial["name"]
 
 	# ── Time / XP labels ──────────────────────────────────────────────────
 	var time_lbl = card.get_node("CardMargin/MainHBox/CardVBox/InfoHBox/TimeContainer/TimeLabel")
@@ -490,6 +585,29 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	var status_lbl = card.get_node("CardMargin/MainHBox/CardVBox/StatusRow/StatusLabel")
 	var action_btn = card.get_node("CardMargin/MainHBox/CardVBox/StatusRow/ActionButton")
 	var no_xp_lbl = card.get_node("CardMargin/MainHBox/CardVBox/StatusRow/NoXPLabel")
+
+	# ── LOCKED state ─────────────────────────────────────────────────────
+	if is_locked:
+		if status_lbl:
+			status_lbl.text = "🔒 " + unlock_info["reason"]
+			status_lbl.add_theme_color_override("font_color", Color(1, 0.6, 0.3))
+			status_lbl.visible = true
+		if no_xp_lbl:
+			no_xp_lbl.visible = false
+		if action_btn:
+			action_btn.text = "LOCKED 🔒"
+			action_btn.disabled = true
+			action_btn.add_theme_color_override("font_color", Color(0.45, 0.45, 0.5))
+			var locked_style = StyleBoxFlat.new()
+			locked_style.bg_color = Color(0.12, 0.12, 0.15, 0.6)
+			locked_style.border_width_left = 2; locked_style.border_width_top = 2
+			locked_style.border_width_right = 2; locked_style.border_width_bottom = 2
+			locked_style.border_color = Color(0.35, 0.35, 0.4, 0.5)
+			locked_style.corner_radius_top_left = 5; locked_style.corner_radius_top_right = 5
+			locked_style.corner_radius_bottom_left = 5; locked_style.corner_radius_bottom_right = 5
+			action_btn.add_theme_stylebox_override("normal", locked_style)
+			action_btn.add_theme_stylebox_override("disabled", locked_style)
+		return card
 
 	if is_completed:
 		if status_lbl:
