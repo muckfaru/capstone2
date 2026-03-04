@@ -261,6 +261,8 @@ func _show_feedback():
 	var xp_awarded = TutorialManager.award_minigame_xp("malware_defense", total_xp_earned, final_score)
 	if xp_awarded == 0:
 		print("  ⚠️ Replay - No XP awarded (game still playable!)")
+	elif xp_awarded > 0:
+		MinigameRewards.try_grant_rewards("malware_defense", final_score, xp_awarded, self)
 	
 	# If tutorial just completed for first time, prepare mode selection
 	if tutorial_mode and not tutorial_ever_completed:

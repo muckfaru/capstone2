@@ -1,6 +1,7 @@
-[gd_scene load_steps=140 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=174 format=3 uid="uid://5o3qtaqdnl8s"]
 
 [ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_86hhj"]
+[ext_resource type="Texture2D" uid="uid://dv07o70iijuox" path="res://asset/newUIlandingupdate/cyber ct 2 (1).png" id="2_1sd5v"]
 [ext_resource type="PackedScene" uid="uid://bohnaxmk78jfw" path="res://scene/friend_list.tscn" id="3_hlv06"]
 [ext_resource type="Texture2D" uid="uid://c6fmkmwhj0wtt" path="res://asset/icons/defuse the trojan 22.png" id="3_ie1g5"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_nicomoji"]
@@ -43,21 +44,210 @@ bg_color = Color(0.164706, 0.164706, 0.164706, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hlv06"]
 bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
-border_color = Color(0.490196, 0.654902, 1, 0.545098)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
-shadow_size = 10
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.0156863, 0.643137, 0.709804, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.216, 0.394, 0.989, 0.442)
+shadow_size = 5
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1dlu4"]
 bg_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
+corner_radius_top_left = 15
+corner_radius_top_right = 15
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ie1g5"]
 bg_color = Color(0.243137, 0.243137, 0.243137, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6jpks"]
+bg_color = Color(0, 0.0392157, 0.0823529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.339639, 0.307252, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0.0392157, 0.0823529, 1)
+shadow_size = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_s4m5r"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sdvo8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ya78t"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kkq4t"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_huurn"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_01m1f"]
+bg_color = Color(0, 0.0392157, 0.0823529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.339639, 0.307252, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0.0392157, 0.0823529, 1)
+shadow_size = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wqdda"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u1pn2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ns4v7"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1sd5v"]
+bg_color = Color(0, 0.0392157, 0.0823529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.0196078, 0.729412, 0.8, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0.0392157, 0.0823529, 1)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7oonc"]
+bg_color = Color(0, 0.0392157, 0.0823529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.678431, 0.984314, 0.396078, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0.0392157, 0.0823529, 1)
+shadow_size = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dutpe"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n4b3v"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vv2er"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_x3pgb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7jryw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hhbjp"]
+bg_color = Color(0, 0.0392157, 0.0823529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.678431, 0.984314, 0.396078, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0.0392157, 0.0823529, 1)
+shadow_size = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n5xlq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_73adr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ef2ow"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dcb43"]
+bg_color = Color(0, 0.0392157, 0.0823529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.0196078, 0.729412, 0.8, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0.0392157, 0.0823529, 1)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3jmaa"]
+bg_color = Color(0, 0.0392157, 0.0823529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.713726, 0.317647, 1, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0.0392157, 0.0823529, 1)
+shadow_size = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hhbjp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dcb43"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lg8db"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jtayv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7ddat"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dvp65"]
+bg_color = Color(0, 0.0392157, 0.0823529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.713726, 0.317647, 1, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0.0392157, 0.0823529, 1)
+shadow_size = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_av1qa"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_88iuw"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ixq5g"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fth8t"]
+bg_color = Color(0, 0.0392157, 0.0823529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.0196078, 0.729412, 0.8, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0.0392157, 0.0823529, 1)
+shadow_size = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qdyf0"]
 bg_color = Color(0.164706, 0.164706, 0.164706, 0)
@@ -172,11 +362,11 @@ corner_radius_bottom_right = 15
 shadow_color = Color(0.0117647, 0.0196078, 0.329412, 0.662745)
 
 [sub_resource type="LabelSettings" id="LabelSettings_k8628"]
-font = ExtResource("16_8k3g4")
+font = ExtResource("9_ld5je")
 font_size = 12
 font_color = Color(0, 0, 0, 1)
 outline_size = 5
-outline_color = Color(0, 0.8, 1, 1)
+outline_color = Color(0.937255, 0.235294, 0.207843, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_w34e0"]
 
@@ -408,7 +598,7 @@ shadow_offset = Vector2(2, 2)
 
 [sub_resource type="LabelSettings" id="LabelSettings_qseta"]
 font = ExtResource("9_ld5je")
-font_size = 28
+font_size = 25
 font_color = Color(1, 0.839216, 0, 1)
 shadow_size = 3
 shadow_color = Color(1, 0.839216, 0, 0.4)
@@ -470,7 +660,7 @@ shadow_color = Color(0.6, 0.4, 1, 0.4)
 shadow_size = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q33pn"]
-bg_color = Color(0, 0, 0, 0.764706)
+bg_color = Color(0.0313726, 0.0823529, 0.207843, 1)
 shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
 
 [sub_resource type="Theme" id="Theme_qdyf0"]
@@ -544,9 +734,9 @@ expand_margin_bottom = 4.0
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_76yyg"]
 texture = ExtResource("31_6jpks")
-expand_margin_left = 5.0
+expand_margin_left = 10.0
 expand_margin_top = 4.0
-expand_margin_right = 5.0
+expand_margin_right = 10.0
 expand_margin_bottom = 4.0
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_y0g3t"]
@@ -628,6 +818,14 @@ grow_vertical = 2
 expand = true
 buffering_msec = 800
 
+[node name="TextureRect" type="TextureRect" parent="VideoStreamPlayer"]
+visible = false
+layout_mode = 0
+offset_right = 1153.0
+offset_bottom = 648.0
+texture = ExtResource("2_1sd5v")
+expand_mode = 1
+
 [node name="ViewPlayerProfileModal" parent="VideoStreamPlayer" instance=ExtResource("10_xyz99")]
 size = Vector2i(700, 400)
 visible = false
@@ -650,6 +848,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_hlv06")
 
 [node name="Panel" type="Panel" parent="VideoStreamPlayer/HomePanel/NewsPanel"]
 layout_mode = 0
+offset_top = -3.0
 offset_right = 409.0
 offset_bottom = 51.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_1dlu4")
@@ -673,28 +872,28 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_ie1g5")
 
 [node name="DefuseTheTrojan" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
 layout_mode = 0
-offset_left = -13.0
-offset_top = 14.0
-offset_right = 236.0
-offset_bottom = 338.0
+offset_left = -48.0
+offset_top = 3.0
+offset_right = 251.0
+offset_bottom = 385.0
 mouse_filter = 0
 texture = ExtResource("3_ie1g5")
 
 [node name="AkashicTCG" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
 layout_mode = 0
-offset_left = 249.0
+offset_left = 242.0
 offset_top = 22.0
-offset_right = 498.0
-offset_bottom = 336.0
+offset_right = 524.0
+offset_bottom = 400.0
 mouse_filter = 0
 texture = ExtResource("4_ie1g5")
 
 [node name="CodeBreaker" type="NinePatchRect" parent="VideoStreamPlayer/GameSelectPanel/allgame"]
 layout_mode = 0
 offset_left = 517.0
-offset_top = 10.0
-offset_right = 765.0
-offset_bottom = 337.0
+offset_top = 8.0
+offset_right = 803.0
+offset_bottom = 389.0
 mouse_filter = 0
 texture = ExtResource("5_ie1g5")
 
@@ -709,37 +908,76 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_irntn")
 
 [node name="AkashicTgcRank" type="Button" parent="VideoStreamPlayer/RankingPanel"]
 layout_mode = 0
-offset_left = 100.0
-offset_top = 80.0
-offset_right = 261.0
-offset_bottom = 132.0
+offset_left = 111.0
+offset_top = 83.0
+offset_right = 272.0
+offset_bottom = 128.0
 mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_styles/focus = SubResource("StyleBoxFlat_6jpks")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_s4m5r")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_sdvo8")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_ya78t")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_kkq4t")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_huurn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_01m1f")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_wqdda")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_u1pn2")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_ns4v7")
+theme_override_styles/normal = SubResource("StyleBoxFlat_1sd5v")
 text = "Akashic TCG"
 
 [node name="CodeBreakerRank" type="Button" parent="VideoStreamPlayer/RankingPanel"]
 layout_mode = 0
-offset_left = 278.0
-offset_top = 80.0
-offset_right = 445.0
-offset_bottom = 132.0
+offset_left = 288.0
+offset_top = 83.0
+offset_right = 449.0
+offset_bottom = 128.0
 mouse_default_cursor_shape = 2
-text = "Code Breaker"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_styles/focus = SubResource("StyleBoxFlat_7oonc")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_dutpe")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_n4b3v")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_vv2er")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_x3pgb")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_7jryw")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hhbjp")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_n5xlq")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_73adr")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_ef2ow")
+theme_override_styles/normal = SubResource("StyleBoxFlat_dcb43")
+text = " Code Breaker "
 
 [node name="DefuseTrojanRank" type="Button" parent="VideoStreamPlayer/RankingPanel"]
 layout_mode = 0
 offset_left = 462.0
-offset_top = 80.0
-offset_right = 650.0
-offset_bottom = 132.0
+offset_top = 83.0
+offset_right = 623.0
+offset_bottom = 128.0
 mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_styles/focus = SubResource("StyleBoxFlat_3jmaa")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_hhbjp")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_dcb43")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_lg8db")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_jtayv")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_7ddat")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dvp65")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_av1qa")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_88iuw")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_ixq5g")
+theme_override_styles/normal = SubResource("StyleBoxFlat_fth8t")
 text = "Defuse Trojan"
 
 [node name="list" type="Panel" parent="VideoStreamPlayer/RankingPanel"]
 layout_mode = 0
-offset_left = 143.0
+offset_left = 86.0
 offset_top = 146.0
-offset_right = 774.0
-offset_bottom = 574.0
+offset_right = 792.0
+offset_bottom = 587.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hlv06")
 
 [node name="ProfilePanel" type="Panel" parent="VideoStreamPlayer"]
@@ -757,7 +995,7 @@ layout_mode = 0
 offset_left = -9.0
 offset_top = 152.0
 offset_right = 819.0
-offset_bottom = 681.0
+offset_bottom = 711.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_kbofv")
 
 [node name="TextureRect" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/PanelContainer"]
@@ -776,7 +1014,7 @@ layout_mode = 0
 offset_left = -11.0
 offset_top = 153.0
 offset_right = 376.0
-offset_bottom = 680.0
+offset_bottom = 710.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_bsyjm")
 
 [node name="usernameLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
@@ -936,10 +1174,10 @@ vertical_alignment = 1
 [node name="RankIconRect" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 0
-offset_left = -113.0
-offset_top = 184.0
-offset_right = 506.0
-offset_bottom = 504.0
+offset_left = -68.0
+offset_top = 206.0
+offset_right = 468.0
+offset_bottom = 462.0
 mouse_filter = 2
 texture = ExtResource("11_w34e0")
 expand_mode = 1
@@ -947,42 +1185,45 @@ stretch_mode = 5
 
 [node name="1stachievmentslot" type="PanelContainer" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect"]
 layout_mode = 0
-offset_left = 84.0
-offset_top = 228.0
-offset_right = 305.0
-offset_bottom = 341.0
+offset_left = 40.0
+offset_top = 207.0
+offset_right = 261.0
+offset_bottom = 320.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_1sd5v")
 
 [node name="1stachievementpicture" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect/1stachievmentslot"]
 layout_mode = 2
 texture = ExtResource("13_6jpks")
 expand_mode = 1
+stretch_mode = 5
 
 [node name="2ndachievementslot" type="PanelContainer" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect"]
 layout_mode = 0
-offset_left = 202.0
-offset_top = 228.0
-offset_right = 423.0
-offset_bottom = 341.0
+offset_left = 161.0
+offset_top = 208.0
+offset_right = 382.0
+offset_bottom = 321.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_w34e0")
 
 [node name="2ndachievementpicture" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect/2ndachievementslot"]
 layout_mode = 2
 texture = ExtResource("13_6jpks")
 expand_mode = 1
+stretch_mode = 5
 
 [node name="3rdachievementslot" type="PanelContainer" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect"]
 layout_mode = 0
-offset_left = 320.0
-offset_top = 228.0
-offset_right = 541.0
-offset_bottom = 341.0
+offset_left = 282.0
+offset_top = 208.0
+offset_right = 503.0
+offset_bottom = 321.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_6jpks")
 
 [node name="3rdachievementpicture" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect/3rdachievementslot"]
 layout_mode = 2
 texture = ExtResource("13_6jpks")
 expand_mode = 1
+stretch_mode = 5
 
 [node name="ProfilePic" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 custom_minimum_size = Vector2(80, 80)
@@ -1106,15 +1347,15 @@ layout_mode = 0
 offset_left = 376.0
 offset_top = 153.0
 offset_right = 820.0
-offset_bottom = 680.0
+offset_bottom = 710.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_wbnsf")
 
 [node name="XPProgressBar" type="TextureProgressBar" parent="VideoStreamPlayer/ProfilePanel/MatchHistoyPanel"]
 layout_mode = 0
-offset_left = 5.0
-offset_top = 284.0
-offset_right = 424.0
-offset_bottom = 504.0
+offset_left = -18.0
+offset_top = 282.0
+offset_right = 444.0
+offset_bottom = 533.0
 max_value = 1000.0
 value = 100.0
 fill_mode = 4
@@ -1122,7 +1363,7 @@ nine_patch_stretch = true
 texture_under = ExtResource("14_70c5x")
 texture_over = ExtResource("15_y5vp8")
 texture_progress = ExtResource("14_70c5x")
-tint_under = Color(0.411433, 3.44135e-06, 0.270724, 0.759)
+tint_under = Color(0.947944, 0, 0.208252, 1)
 tint_over = Color(0.51781, 0.918427, 0.995654, 1)
 
 [node name="XPLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/MatchHistoyPanel/XPProgressBar"]
@@ -1131,9 +1372,9 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 3.0
-offset_top = 28.0
+offset_top = 32.0
 offset_right = 3.0
-offset_bottom = 28.0
+offset_bottom = 32.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "0 / 1000 XP"
@@ -1143,10 +1384,10 @@ vertical_alignment = 1
 
 [node name="expiconlvl" type="TextureRect" parent="VideoStreamPlayer/ProfilePanel/MatchHistoyPanel/XPProgressBar"]
 layout_mode = 0
-offset_left = 106.0
-offset_top = 54.0
-offset_right = 314.0
-offset_bottom = 146.0
+offset_left = 126.0
+offset_top = 68.0
+offset_right = 334.0
+offset_bottom = 160.0
 texture = ExtResource("16_y5vp8")
 expand_mode = 1
 
@@ -1508,6 +1749,7 @@ custom_minimum_size = Vector2(0, 50)
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
+offset_right = -340.0
 offset_bottom = 50.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_q33pn")
@@ -1517,9 +1759,11 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 94.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_qdyf0")
+theme_override_constants/separation = 12
 
 [node name="LogoButton" type="TextureButton" parent="NavigationPanel/HBoxContainer"]
 custom_minimum_size = Vector2(50, 50)
@@ -1559,7 +1803,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="LogoSpacer" type="Control" parent="NavigationPanel/HBoxContainer"]
-custom_minimum_size = Vector2(55, 0)
+custom_minimum_size = Vector2(30, 0)
 layout_mode = 2
 
 [node name="HomeNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
@@ -1629,11 +1873,13 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Bag"
 
 [node name="Spacer" type="Control" parent="NavigationPanel/HBoxContainer"]
+visible = false
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="MenuButton" type="Button" parent="NavigationPanel/HBoxContainer"]
+visible = false
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
 size_flags_vertical = 4
@@ -1645,22 +1891,22 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_menu_focus")
 theme_override_styles/hover = SubResource("StyleBoxFlat_menu_focus")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_menu_pressed")
 theme_override_styles/normal = SubResource("StyleBoxFlat_menu")
-text = "☰              "
+text = "     "
 
 [node name="ChatPanel" parent="." instance=ExtResource("9_1dlu4")]
 visible = false
 layout_mode = 0
-offset_left = 36.0
-offset_top = 401.0
-offset_right = 362.0
-offset_bottom = 625.0
+offset_left = 17.0
+offset_top = 237.0
+offset_right = 569.0
+offset_bottom = 638.0
 
 [node name="FriendListPanel" parent="." instance=ExtResource("3_hlv06")]
 layout_mode = 0
-offset_left = 871.0
-offset_top = 75.0
-offset_right = 1105.0
-offset_bottom = 592.0
+offset_left = 915.0
+offset_top = -2.0
+offset_right = 1154.0
+offset_bottom = 650.0
 
 [node name="MenuPanel" parent="." instance=ExtResource("13_aar1m")]
 visible = false

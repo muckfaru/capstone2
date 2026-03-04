@@ -1,0 +1,1428 @@
+[gd_scene load_steps=100 format=3 uid="uid://qfyke7t01nil"]
+
+[ext_resource type="Script" uid="uid://tcqud0h0ly6x" path="res://script/TeacherCreateRoom.gd" id="1_0dav4"]
+[ext_resource type="Texture2D" uid="uid://cfv84307hubxo" path="res://TEACHERCREATEROOMUI/cyber ct 2.png" id="2_msu28"]
+[ext_resource type="Shader" uid="uid://bhfjciu5yf2vs" path="res://shader/blur_panel.gdshader" id="3_s60h5"]
+[ext_resource type="Texture2D" uid="uid://bttci7b1t1fch" path="res://TEACHERCREATEROOMUI/arrow-back-long_svgrepo.com.png" id="4_w2np2"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="5_qe1mu"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="6_w5wbj"]
+[ext_resource type="Texture2D" uid="uid://cjbj4s556fviw" path="res://TEACHERCREATEROOMUI/Rectangle 48.png" id="7_tmprv"]
+[ext_resource type="Texture2D" uid="uid://bt42jb2so5bw7" path="res://TEACHERCREATEROOMUI/Group 46.png" id="8_x28kd"]
+[ext_resource type="FontFile" uid="uid://cqfcxnj3ofmyk" path="res://TEACHERCREATEROOMUI/Inter-VariableFont_opsz,wght.ttf" id="9_2d5kl"]
+[ext_resource type="Texture2D" uid="uid://dwqolbjt7ppqx" path="res://asset/Group 44.png" id="10_s15o2"]
+[ext_resource type="PackedScene" uid="uid://yfarxf2di6ej" path="res://scene/TeacherRoomPanel.tscn" id="11_cw0nt"]
+[ext_resource type="PackedScene" uid="uid://e5eddy1e6lws" path="res://scene/quiz_creation_panel.tscn" id="12_32wi3"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="12_w2np2"]
+[ext_resource type="PackedScene" uid="uid://c2yy3h13d6xt7" path="res://scene/QuizPreviewPanel.tscn" id="13_c2n05"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vngf0"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_main"]
+shader = ExtResource("3_s60h5")
+shader_parameter/blur_amount = 1.5
+shader_parameter/tint_color = Color(0, 0.212, 0.49, 0.414)
+shader_parameter/corner_radius = 0.05
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3wnox"]
+texture = ExtResource("4_w2np2")
+region_rect = Rect2(0, 0, 45, 42)
+
+[sub_resource type="LabelSettings" id="LabelSettings_7jrwp"]
+font = ExtResource("5_qe1mu")
+font_size = 25
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1bmxr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_i5unp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g2skq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3wnox"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7jrwp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_87rh8"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vngf0"]
+bg_color = Color(0.004, 0.238, 0.275, 0.629)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n2n0l"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f1r1v"]
+bg_color = Color(0.966628, 0.0677985, 0.102811, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 5
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_juhxy"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ttatp"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.608)
+shadow_size = 5
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a4gcc"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_87rh8"]
+texture = ExtResource("7_tmprv")
+expand_margin_left = 20.0
+expand_margin_top = 20.0
+expand_margin_right = 20.0
+expand_margin_bottom = 20.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_form"]
+shader = ExtResource("3_s60h5")
+shader_parameter/blur_amount = 1.5
+shader_parameter/tint_color = Color(0, 0.08, 0.2, 0.55)
+shader_parameter/corner_radius = 0.05
+
+[sub_resource type="LabelSettings" id="LabelSettings_87rh8"]
+font = ExtResource("5_qe1mu")
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lineedit"]
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0.098, 0.224, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_player_input"]
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0.098, 0.224, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="LabelSettings" id="LabelSettings_validation"]
+font = ExtResource("6_w5wbj")
+font_size = 11
+font_color = Color(1, 0.55, 0.1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_vngf0"]
+font = ExtResource("5_qe1mu")
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a4gcc"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3mlsb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tw40h"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u02q1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vqmoe"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ephe"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lfd0h"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u02q1"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7jrwp"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qoqnn"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lfd0h"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ow5nd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_aor2d"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qh26l"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3nlsp"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ni4av"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ogcox"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b487h"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_r4yfs"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_87rh8"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="LabelSettings" id="LabelSettings_choosegame"]
+font = ExtResource("5_qe1mu")
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e2kxa"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xe64f"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_15kuk"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4h5wi"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ij0sc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nr4ms"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2m7a8"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rj5ho"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bqdr5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h24wu"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m3t20"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ttatp"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mc_input"]
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+bg_color = Color(0, 0.055, 0.145, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_juhxy"]
+bg_color = Color(0, 0.094, 0.216, 0.829)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mc_create"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.254)
+shadow_size = 5
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2q8xq"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_blend = true
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3mlsb"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mc_view"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_f1r1v"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ib7iv"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fs36a"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fs36a"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b487h"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vqmoe"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wnwxd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qoqnn"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ephe"]
+bg_color = Color(0.145, 0.878, 0.992, 0.503)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ni4av"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wnwxd"]
+bg_color = Color(0.145, 0.878, 0.992, 0.503)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tw40h"]
+bg_color = Color(0.145, 0.878, 0.992, 0.531)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.211765, 0.490196, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0, 0.211765, 0.490196, 1)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_root_panel"]
+bg_color = Color(0, 0.211765, 0.490196, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.211765, 0.490196, 0.396078)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0.145, 0.878, 0.992, 0.69)
+shadow_size = 2
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e2kxa"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ow5nd"]
+bg_color = Color(0.145, 0.878, 0.992, 0.503)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jsaon"]
+bg_color = Color(0.145, 0.878, 0.992, 0.503)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.72202, 0, 0.134399, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w2noi"]
+bg_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_size = 2
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_code"]
+shader = ExtResource("3_s60h5")
+shader_parameter/blur_amount = 1.5
+shader_parameter/tint_color = Color(0, 0.08, 0.2, 0.55)
+shader_parameter/corner_radius = 0.05
+
+[sub_resource type="LabelSettings" id="LabelSettings_qe1mu"]
+font = ExtResource("12_w2np2")
+font_size = 20
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_w5wbj"]
+color = Color(0.145098, 0.878431, 0.992157, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_msu28"]
+font = ExtResource("9_2d5kl")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_stats"]
+shader = ExtResource("3_s60h5")
+shader_parameter/blur_amount = 1.5
+shader_parameter/tint_color = Color(0, 0.08, 0.2, 0.55)
+shader_parameter/corner_radius = 0.05
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_room_item"]
+bg_color = Color(0.06, 0.1, 0.22, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.85, 1, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="CreateRoom" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0dav4")
+
+[node name="VideoBackground" type="VideoStreamPlayer" parent="."]
+layout_mode = 0
+offset_right = 1152.0
+offset_bottom = 648.0
+volume_db = -80.0
+autoplay = true
+expand = true
+loop = true
+
+[node name="OverlayPanel" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_msu28")
+expand_mode = 1
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="MainPanel" type="Panel" parent="CanvasLayer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -370.0
+offset_top = -240.0
+offset_right = 370.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_vngf0")
+
+[node name="BlurBackBuffer" type="BackBufferCopy" parent="CanvasLayer/MainPanel"]
+copy_mode = 2
+
+[node name="BlurRect" type="ColorRect" parent="CanvasLayer/MainPanel"]
+material = SubResource("ShaderMaterial_main")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -7.0
+offset_right = 9.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0)
+
+[node name="TopBar" type="HBoxContainer" parent="CanvasLayer/MainPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 730.0
+offset_bottom = 50.0
+theme_override_constants/separation = 0
+
+[node name="BackButton" type="Button" parent="CanvasLayer/MainPanel/TopBar"]
+custom_minimum_size = Vector2(60, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxTexture_3wnox")
+text = "←"
+flat = true
+
+[node name="TitleSpacer" type="Control" parent="CanvasLayer/MainPanel/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.8
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer/MainPanel/TopBar"]
+visible = false
+layout_mode = 2
+text = "Room"
+label_settings = SubResource("LabelSettings_7jrwp")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TitleSpacer2" type="Control" parent="CanvasLayer/MainPanel/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.6
+
+[node name="CreateButton" type="Button" parent="CanvasLayer/MainPanel/TopBar"]
+custom_minimum_size = Vector2(130, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.192157, 0, 0.00392157, 1)
+theme_override_fonts/font = ExtResource("6_w5wbj")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_1bmxr")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_i5unp")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_g2skq")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_3wnox")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_7jrwp")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_87rh8")
+theme_override_styles/hover = SubResource("StyleBoxFlat_vngf0")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_n2n0l")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_f1r1v")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_juhxy")
+theme_override_styles/normal = SubResource("StyleBoxFlat_ttatp")
+text = "Create"
+
+[node name="Divider" type="HSeparator" parent="CanvasLayer/MainPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 55.0
+offset_right = 730.0
+offset_bottom = 60.0
+theme_override_styles/separator = SubResource("StyleBoxEmpty_a4gcc")
+
+[node name="RoomListContainer" type="VBoxContainer" parent="CanvasLayer/MainPanel"]
+visible = false
+layout_mode = 0
+offset_left = 15.0
+offset_top = 70.0
+offset_right = 725.0
+offset_bottom = 465.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="EmptyLabel" type="Label" parent="CanvasLayer/MainPanel/RoomListContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "No rooms yet. Click 'Create' to make one!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CreateFormPanel" type="Panel" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -377.0
+offset_top = -300.0
+offset_right = 363.0
+offset_bottom = 310.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_87rh8")
+
+[node name="topradiusdesg" type="TextureRect" parent="CanvasLayer/CreateFormPanel"]
+layout_mode = 0
+offset_left = 596.0
+offset_top = -14.0
+offset_right = 759.0
+offset_bottom = 128.0
+texture = ExtResource("8_x28kd")
+expand_mode = 1
+
+[node name="BlurBackBuffer" type="BackBufferCopy" parent="CanvasLayer/CreateFormPanel"]
+copy_mode = 2
+
+[node name="BlurRect" type="ColorRect" parent="CanvasLayer/CreateFormPanel"]
+visible = false
+material = SubResource("ShaderMaterial_form")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/CreateFormPanel"]
+self_modulate = Color(0.145098, 0.878431, 0.992157, 1)
+layout_mode = 0
+offset_left = 28.0
+offset_top = 44.0
+offset_right = 724.0
+offset_bottom = 48.0
+
+[node name="FormTopBar" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = -6.0
+offset_right = 692.0
+offset_bottom = 44.0
+
+[node name="FormBackButton" type="Button" parent="CanvasLayer/CreateFormPanel/FormTopBar"]
+custom_minimum_size = Vector2(40, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 30
+text = "←"
+flat = true
+
+[node name="FormContent" type="VBoxContainer" parent="CanvasLayer/CreateFormPanel"]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 60.0
+offset_right = 710.0
+offset_bottom = 590.0
+theme_override_constants/separation = 20
+
+[node name="RoomNameRow" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="RoomNameLabel" type="Label" parent="CanvasLayer/CreateFormPanel/FormContent/RoomNameRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+text = "Room name"
+label_settings = SubResource("LabelSettings_87rh8")
+vertical_alignment = 1
+
+[node name="RoomNameInput" type="LineEdit" parent="CanvasLayer/CreateFormPanel/FormContent/RoomNameRow"]
+custom_minimum_size = Vector2(380, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxFlat_lineedit")
+theme_override_styles/read_only = SubResource("StyleBoxFlat_lineedit")
+theme_override_styles/normal = SubResource("StyleBoxFlat_lineedit")
+text = "Quiz-1"
+placeholder_text = "Quiz-1"
+
+[node name="PlayerRow" type="VBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PlayerInputRow" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent/PlayerRow"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="PlayerLabel" type="Label" parent="CanvasLayer/CreateFormPanel/FormContent/PlayerRow/PlayerInputRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+text = "Player"
+label_settings = SubResource("LabelSettings_87rh8")
+vertical_alignment = 1
+
+[node name="PlayerCountInput" type="LineEdit" parent="CanvasLayer/CreateFormPanel/FormContent/PlayerRow/PlayerInputRow"]
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_player_input")
+theme_override_styles/read_only = SubResource("StyleBoxFlat_player_input")
+theme_override_styles/normal = SubResource("StyleBoxFlat_player_input")
+text = "10"
+placeholder_text = "1 – 50"
+max_length = 2
+
+[node name="PlayerHint" type="Label" parent="CanvasLayer/CreateFormPanel/FormContent/PlayerRow/PlayerInputRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 1, 0.7)
+theme_override_font_sizes/font_size = 11
+text = "(max 50)"
+vertical_alignment = 1
+
+[node name="PlayerValidationLabel" type="Label" parent="CanvasLayer/CreateFormPanel/FormContent/PlayerRow"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Enter a value between 1 and 50."
+label_settings = SubResource("LabelSettings_validation")
+
+[node name="CategoryRow" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="CategoryLabel" type="Label" parent="CanvasLayer/CreateFormPanel/FormContent/CategoryRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+text = "Categories"
+label_settings = SubResource("LabelSettings_vngf0")
+vertical_alignment = 1
+
+[node name="CategoryButtons" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent/CategoryRow"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="GameModeButton" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/CategoryRow/CategoryButtons"]
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_a4gcc")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_3mlsb")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_tw40h")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_u02q1")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_vqmoe")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_8ephe")
+theme_override_styles/hover = SubResource("StyleBoxFlat_lfd0h")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_u02q1")
+theme_override_styles/normal = SubResource("StyleBoxFlat_7jrwp")
+toggle_mode = true
+text = "Game Mode"
+
+[node name="MultipleChoiceButton" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/CategoryRow/CategoryButtons"]
+custom_minimum_size = Vector2(145, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_qoqnn")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_lfd0h")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_ow5nd")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_aor2d")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_qh26l")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_3nlsp")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ni4av")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_ogcox")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_b487h")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_r4yfs")
+theme_override_styles/normal = SubResource("StyleBoxFlat_87rh8")
+toggle_mode = true
+text = "Multiple Choice"
+
+[node name="ChooseGameRow" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ChooseGameHint" type="Label" parent="CanvasLayer/CreateFormPanel/FormContent/ChooseGameRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Game Mode — pick a minigame for the room:"
+label_settings = SubResource("LabelSettings_choosegame")
+vertical_alignment = 1
+
+[node name="ChooseGameButton" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/ChooseGameRow"]
+custom_minimum_size = Vector2(140, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_e2kxa")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_xe64f")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_15kuk")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_4h5wi")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_ij0sc")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_nr4ms")
+theme_override_styles/hover = SubResource("StyleBoxFlat_2m7a8")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_rj5ho")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_bqdr5")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_h24wu")
+theme_override_styles/normal = SubResource("StyleBoxFlat_m3t20")
+text = "Choose Game"
+
+[node name="MCSection" type="PanelContainer" parent="CanvasLayer/CreateFormPanel/FormContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_ttatp")
+
+[node name="MCSectionInner" type="VBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection"]
+layout_mode = 2
+theme_override_constants/separation = 25
+
+[node name="MCQuestionsRow" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="MCQuestionsLabel" type="Label" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCQuestionsRow"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "Questions"
+label_settings = SubResource("LabelSettings_87rh8")
+vertical_alignment = 1
+
+[node name="MCQuestionsInput" type="LineEdit" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCQuestionsRow"]
+custom_minimum_size = Vector2(100, 36)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_mc_input")
+theme_override_styles/read_only = SubResource("StyleBoxFlat_mc_input")
+theme_override_styles/normal = SubResource("StyleBoxFlat_mc_input")
+placeholder_text = "e.g. 15"
+max_length = 3
+
+[node name="MCCreateSpacer" type="Control" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCQuestionsRow"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MCCreateRow" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCQuestionsRow"]
+layout_mode = 2
+
+[node name="MCCreateButton" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCQuestionsRow/MCCreateRow"]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.05, 0.05, 0.1, 1)
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_juhxy")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ttatp")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ttatp")
+theme_override_styles/normal = SubResource("StyleBoxFlat_mc_create")
+disabled = true
+text = "Create"
+
+[node name="MCQuestionsValidation" type="Label" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Enter a positive number."
+label_settings = SubResource("LabelSettings_validation")
+
+[node name="MCTimeRow" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner"]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="MCTimeLabel" type="Label" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCTimeRow"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "Timer Per Question"
+label_settings = SubResource("LabelSettings_87rh8")
+vertical_alignment = 1
+
+[node name="Panel" type="Panel" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCTimeRow/MCTimeLabel"]
+layout_mode = 0
+offset_left = 212.0
+offset_top = -12.0
+offset_right = 555.0
+offset_bottom = 31.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_2q8xq")
+
+[node name="MCTime30s" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCTimeRow"]
+custom_minimum_size = Vector2(52, 34)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_3mlsb")
+theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_f1r1v")
+text = "30s"
+
+[node name="MCTime60s" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCTimeRow"]
+custom_minimum_size = Vector2(52, 34)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_ib7iv")
+theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_fs36a")
+text = "60s"
+
+[node name="MCTime120s" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCTimeRow"]
+custom_minimum_size = Vector2(60, 34)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_fs36a")
+theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_b487h")
+text = "120s"
+
+[node name="MCTime240s" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCTimeRow"]
+custom_minimum_size = Vector2(60, 34)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxFlat_vqmoe")
+theme_override_styles/hover = SubResource("StyleBoxFlat_mc_view")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_view")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_wnwxd")
+text = "240s"
+
+[node name="BottomSpacer" type="Control" parent="CanvasLayer/CreateFormPanel/FormContent"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GenerateButtonRow" type="HBoxContainer" parent="CanvasLayer/CreateFormPanel/FormContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="GenerateRowSpacer" type="Control" parent="CanvasLayer/CreateFormPanel/FormContent/GenerateButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MCViewButton" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/GenerateButtonRow"]
+custom_minimum_size = Vector2(110, 44)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_qoqnn")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_8ephe")
+theme_override_styles/hover = SubResource("StyleBoxFlat_mc_create")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_mc_create")
+theme_override_styles/normal = SubResource("StyleBoxFlat_mc_view")
+disabled = true
+text = "View"
+
+[node name="GenerateButton" type="Button" parent="CanvasLayer/CreateFormPanel/FormContent/GenerateButtonRow"]
+custom_minimum_size = Vector2(140, 44)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ni4av")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_wnwxd")
+theme_override_styles/normal = SubResource("StyleBoxFlat_tw40h")
+text = "Generate"
+
+[node name="ChooseGamePopup" type="Control" parent="CanvasLayer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Backdrop" type="ColorRect" parent="CanvasLayer/ChooseGamePopup"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+color = Color(0, 0, 0, 0.72)
+
+[node name="PopupPanel" type="Panel" parent="CanvasLayer/ChooseGamePopup"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -430.0
+offset_top = -275.0
+offset_right = 451.0
+offset_bottom = 275.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_root_panel")
+
+[node name="PopupVBox" type="VBoxContainer" parent="CanvasLayer/ChooseGamePopup/PopupPanel"]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 14.0
+offset_right = 863.0
+offset_bottom = 532.0
+theme_override_constants/separation = 15
+
+[node name="PopupHeaderRow" type="HBoxContainer" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox"]
+layout_mode = 2
+
+[node name="PopupTitle" type="Label" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/PopupHeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Choose a Minigame for This Room"
+label_settings = SubResource("LabelSettings_7jrwp")
+
+[node name="PopupCloseButton" type="Button" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/PopupHeaderRow"]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "X"
+flat = true
+
+[node name="PopupDivider" type="HSeparator" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox"]
+self_modulate = Color(0.145098, 0.878431, 0.992157, 1)
+layout_mode = 2
+
+[node name="SelectedLabel" type="Label" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox"]
+layout_mode = 2
+text = "No game selected yet — click a card below."
+label_settings = SubResource("LabelSettings_vngf0")
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MinigameGrid" type="GridContainer" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 3
+
+[node name="ConfirmRow" type="HBoxContainer" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ConfirmSpacer" type="Control" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/ConfirmRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ConfirmButton" type="Button" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/ConfirmRow"]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_2d5kl")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_e2kxa")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_ow5nd")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jsaon")
+theme_override_styles/normal = SubResource("StyleBoxFlat_w2noi")
+text = "Confirm & Create Room"
+
+[node name="RoomCodePanel" type="Panel" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -210.0
+offset_right = 350.0
+offset_bottom = 210.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_root_panel")
+
+[node name="BlurBackBuffer" type="BackBufferCopy" parent="CanvasLayer/RoomCodePanel"]
+copy_mode = 2
+
+[node name="BlurRect" type="ColorRect" parent="CanvasLayer/RoomCodePanel"]
+visible = false
+material = SubResource("ShaderMaterial_code")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 150.0
+offset_right = 87.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/RoomCodePanel"]
+layout_mode = 0
+offset_left = 588.0
+offset_top = -5.0
+offset_right = 710.0
+offset_bottom = 82.0
+texture = ExtResource("10_s15o2")
+expand_mode = 1
+
+[node name="CodeTopBar" type="HBoxContainer" parent="CanvasLayer/RoomCodePanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 646.0
+offset_bottom = 50.0
+
+[node name="CodeBackButton" type="Button" parent="CanvasLayer/RoomCodePanel/CodeTopBar"]
+custom_minimum_size = Vector2(40, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 30
+text = "←"
+flat = true
+
+[node name="CodeTitleSpacer1" type="Control" parent="CanvasLayer/RoomCodePanel/CodeTopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CodeRoomNameLabel" type="Label" parent="CanvasLayer/RoomCodePanel/CodeTopBar"]
+layout_mode = 2
+text = "Quiz-1"
+label_settings = SubResource("LabelSettings_qe1mu")
+horizontal_alignment = 1
+
+[node name="CodeTitleSpacer2" type="Control" parent="CanvasLayer/RoomCodePanel/CodeTopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CodeDivider" type="HSeparator" parent="CanvasLayer/RoomCodePanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 55.0
+offset_right = 682.0
+offset_bottom = 60.0
+theme_override_styles/separator = SubResource("StyleBoxLine_w5wbj")
+
+[node name="CodeContent" type="VBoxContainer" parent="CanvasLayer/RoomCodePanel"]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 80.0
+offset_right = 670.0
+offset_bottom = 400.0
+theme_override_constants/separation = 20
+
+[node name="CodeHeading" type="Label" parent="CanvasLayer/RoomCodePanel/CodeContent"]
+layout_mode = 2
+text = "CODE"
+label_settings = SubResource("LabelSettings_msu28")
+horizontal_alignment = 1
+
+[node name="CodeRow" type="HBoxContainer" parent="CanvasLayer/RoomCodePanel/CodeContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="CodeDisplayLabel" type="Label" parent="CanvasLayer/RoomCodePanel/CodeContent/CodeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "HDBF6734JGLLS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panel" type="Panel" parent="CanvasLayer/RoomCodePanel/CodeContent/CodeRow/CodeDisplayLabel"]
+visible = false
+layout_mode = 0
+offset_left = 75.0
+offset_top = -6.0
+offset_right = 561.0
+offset_bottom = 29.0
+
+[node name="CopyButton" type="Button" parent="CanvasLayer/RoomCodePanel/CodeContent/CodeRow"]
+custom_minimum_size = Vector2(70, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "Copy"
+
+[node name="CodeSpacer" type="Control" parent="CanvasLayer/RoomCodePanel/CodeContent"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="CreateRoomButton" type="Button" parent="CanvasLayer/RoomCodePanel/CodeContent"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_default_cursor_shape = 2
+text = "Create Room"
+
+[node name="StatisticsPanel" type="Panel" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -370.0
+offset_top = -220.0
+offset_right = 370.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_root_panel")
+
+[node name="BlurBackBuffer" type="BackBufferCopy" parent="CanvasLayer/StatisticsPanel"]
+copy_mode = 2
+
+[node name="BlurRect" type="ColorRect" parent="CanvasLayer/StatisticsPanel"]
+material = SubResource("ShaderMaterial_stats")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="StatsTopBar" type="HBoxContainer" parent="CanvasLayer/StatisticsPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 730.0
+offset_bottom = 50.0
+
+[node name="StatsBackButton" type="Button" parent="CanvasLayer/StatisticsPanel/StatsTopBar"]
+custom_minimum_size = Vector2(40, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "←"
+flat = true
+
+[node name="StatsTitleSpacer1" type="Control" parent="CanvasLayer/StatisticsPanel/StatsTopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StatsRoomNameLabel" type="Label" parent="CanvasLayer/StatisticsPanel/StatsTopBar"]
+layout_mode = 2
+text = "Quiz-1"
+horizontal_alignment = 1
+
+[node name="StatsTitleSpacer2" type="Control" parent="CanvasLayer/StatisticsPanel/StatsTopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StatsDivider" type="HSeparator" parent="CanvasLayer/StatisticsPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 55.0
+offset_right = 730.0
+offset_bottom = 60.0
+
+[node name="StatsGrid" type="HBoxContainer" parent="CanvasLayer/StatisticsPanel"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 75.0
+offset_right = 720.0
+offset_bottom = 430.0
+theme_override_constants/separation = 16
+
+[node name="GraphPanel" type="Panel" parent="CanvasLayer/StatisticsPanel/StatsGrid"]
+custom_minimum_size = Vector2(320, 320)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_room_item")
+
+[node name="GraphLabel" type="Label" parent="CanvasLayer/StatisticsPanel/StatsGrid/GraphPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Graph"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RightColumn" type="VBoxContainer" parent="CanvasLayer/StatisticsPanel/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="HighScorePanel" type="Panel" parent="CanvasLayer/StatisticsPanel/StatsGrid/RightColumn"]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_room_item")
+
+[node name="HighScoreLabel" type="Label" parent="CanvasLayer/StatisticsPanel/StatsGrid/RightColumn/HighScorePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "HighScore"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RankingsPanel" type="Panel" parent="CanvasLayer/StatisticsPanel/StatsGrid/RightColumn"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_room_item")
+
+[node name="RankingsLabel" type="Label" parent="CanvasLayer/StatisticsPanel/StatsGrid/RightColumn/RankingsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Rankings"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SeeAllButton" type="Button" parent="CanvasLayer/StatisticsPanel/StatsGrid/RightColumn"]
+layout_mode = 2
+text = "See all"
+flat = true
+
+[node name="LobbyPanel" parent="CanvasLayer" instance=ExtResource("11_cw0nt")]
+visible = false
+
+[node name="QuizCreationPanel" parent="CanvasLayer" instance=ExtResource("12_32wi3")]
+visible = false
+
+[node name="QuizPreviewPanel" parent="CanvasLayer" instance=ExtResource("13_c2n05")]
+visible = false
+
+[connection signal="pressed" from="CanvasLayer/MainPanel/TopBar/BackButton" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="CanvasLayer/MainPanel/TopBar/CreateButton" to="." method="_on_create_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/CreateFormPanel/FormTopBar/FormBackButton" to="." method="_on_form_back_pressed"]
+[connection signal="toggled" from="CanvasLayer/CreateFormPanel/FormContent/CategoryRow/CategoryButtons/GameModeButton" to="." method="_on_game_mode_toggled"]
+[connection signal="toggled" from="CanvasLayer/CreateFormPanel/FormContent/CategoryRow/CategoryButtons/MultipleChoiceButton" to="." method="_on_multiple_choice_toggled"]
+[connection signal="pressed" from="CanvasLayer/CreateFormPanel/FormContent/ChooseGameRow/ChooseGameButton" to="." method="_on_choose_game_btn_pressed"]
+[connection signal="pressed" from="CanvasLayer/CreateFormPanel/FormContent/MCSection/MCSectionInner/MCQuestionsRow/MCCreateRow/MCCreateButton" to="." method="_on_mc_create_pressed"]
+[connection signal="pressed" from="CanvasLayer/CreateFormPanel/FormContent/GenerateButtonRow/MCViewButton" to="." method="_on_mc_view_pressed"]
+[connection signal="pressed" from="CanvasLayer/CreateFormPanel/FormContent/GenerateButtonRow/GenerateButton" to="." method="_on_generate_pressed"]
+[connection signal="gui_input" from="CanvasLayer/ChooseGamePopup/Backdrop" to="." method="_on_backdrop_input"]
+[connection signal="pressed" from="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/PopupHeaderRow/PopupCloseButton" to="." method="_on_popup_close_pressed"]
+[connection signal="pressed" from="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/ConfirmRow/ConfirmButton" to="." method="_on_popup_confirm_pressed"]
+[connection signal="pressed" from="CanvasLayer/RoomCodePanel/CodeTopBar/CodeBackButton" to="." method="_on_code_back_pressed"]
+[connection signal="pressed" from="CanvasLayer/RoomCodePanel/CodeContent/CodeRow/CopyButton" to="." method="_on_copy_code_pressed"]
+[connection signal="pressed" from="CanvasLayer/RoomCodePanel/CodeContent/CreateRoomButton" to="." method="_on_lobby_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/StatisticsPanel/StatsTopBar/StatsBackButton" to="." method="_on_stats_back_pressed"]
+[connection signal="pressed" from="CanvasLayer/StatisticsPanel/StatsGrid/RightColumn/SeeAllButton" to="." method="_on_see_all_pressed"]

@@ -17,6 +17,16 @@ const PORT = process.env.PORT || 8080;
 const rooms = new Map();
 const players = new Map();
 
+// ═══════════════════════════════════════════════════════════════════════════
+// CyberQuiz — Quizizz-inspired quiz rooms (separate from game rooms)
+// ═══════════════════════════════════════════════════════════════════════════
+const quizRooms = new Map(); // Map<room_code, QuizRoomData>
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GameMode — Teacher-created minigame rooms (students play & submit scores)
+// ═══════════════════════════════════════════════════════════════════════════
+const gameModeRooms = new Map(); // Map<room_code, GameModeRoomData>
+
 // Room cleanup interval (remove inactive rooms every 60s)
 setInterval(() => {
   const now = Date.now();
@@ -25,6 +35,20 @@ setInterval(() => {
     if (now - room.last_heartbeat > 90000) {
       console.log(`[Cleanup] Removing inactive room: ${room_id}`);
       rooms.delete(room_id);
+    }
+  }
+  // CyberQuiz room cleanup (5 min timeout)
+  for (const [code, qr] of quizRooms.entries()) {
+    if (now - qr.last_heartbeat > 300000) {
+      console.log(`[Cleanup] Removing inactive quiz room: ${code}`);
+      quizRooms.delete(code);
+    }
+  }
+  // GameMode room cleanup (5 min timeout)
+  for (const [code, gr] of gameModeRooms.entries()) {
+    if (now - gr.last_heartbeat > 300000) {
+      console.log(`[Cleanup] Removing inactive game mode room: ${code}`);
+      gameModeRooms.delete(code);
     }
   }
 }, 60000);
@@ -520,7 +544,7 @@ app.post('/api/rooms/:room_id/leave', (req, res) => {
       const remaining = (room.client ? 1 : 0) + (room.client2 ? 1 : 0);
       room.current_players = 1 + remaining;
       room.last_heartbeat = Date.now();
-      
+
       // Send relay notification to new host about promotion
       broadcastToRoom(room_id, {
         type: 'host_promotion',
@@ -529,9 +553,9 @@ app.post('/api/rooms/:room_id/leave', (req, res) => {
         old_host_id: player_id,
         message: 'You are now the host!'
       });
-      
-      res.json({ 
-        ok: true, 
+
+      res.json({
+        ok: true,
         promoted_to_host: true,
         new_host_id: new_host.player_id,
         message: 'You are now the host'
@@ -540,9 +564,9 @@ app.post('/api/rooms/:room_id/leave', (req, res) => {
       // SCENARIO 2: Host is only player, delete room
       rooms.delete(room_id);
       console.log(`[Lobby] Room deleted (host left, no client): ${room_id}`);
-      
-      res.json({ 
-        ok: true, 
+
+      res.json({
+        ok: true,
         room_deleted: true,
         message: 'Room closed'
       });
@@ -562,7 +586,7 @@ app.post('/api/rooms/:room_id/leave', (req, res) => {
     const remaining = (room.client ? 1 : 0) + (room.client2 ? 1 : 0);
     room.current_players = 1 + remaining;
     room.last_heartbeat = Date.now();
-    
+
     // Notify host via relay
     broadcastToRoom(room_id, {
       type: 'player_left',
@@ -570,8 +594,8 @@ app.post('/api/rooms/:room_id/leave', (req, res) => {
       username: client_username,
       message: 'Client has left the room'
     });
-    
-    res.json({ 
+
+    res.json({
       ok: true,
       message: 'Left room successfully'
     });
@@ -657,6 +681,7 @@ app.get('/health', (req, res) => {
 
   res.json({
     status: 'ok',
+    code_version: 'question-stats-v1',
     uptime: process.uptime(),
     rooms: {
       total: rooms.size,
@@ -672,7 +697,7 @@ app.get('/health', (req, res) => {
  * Simple ping endpoint to wake up server from sleep
  */
 app.get('/ping', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'pong',
     timestamp: Date.now()
   });
@@ -717,14 +742,14 @@ app.ws('/ws/relay/:room_id', (ws, req) => {
   const { room_id } = req.params;
   const player_id = req.query.player_id || 'unknown';
   const username = req.query.username || 'Player';
-  
+
   console.log(`[WebSocket] ${username} (${player_id}) connecting to room ${room_id}`);
-  
+
   // Get or create connection set for this room
   if (!wsConnections.has(room_id)) {
     wsConnections.set(room_id, new Set());
   }
-  
+
   const roomConnections = wsConnections.get(room_id);
 
   // If the same player_id reconnects (e.g., reconnect from another device),
@@ -761,13 +786,13 @@ app.ws('/ws/relay/:room_id', (ws, req) => {
     ws.close();
     return;
   }
-  
+
   // Add connection to room
   const connection = { ws, player_id, username };
   roomConnections.add(connection);
 
   console.log(`[WebSocket] ${username} joined room ${room_id}. Players in room: ${roomConnections.size}/${maxPlayers}`);
-  
+
   // Notify all players in room about connection
   broadcastToRoom(room_id, {
     type: 'player_connected',
@@ -776,21 +801,21 @@ app.ws('/ws/relay/:room_id', (ws, req) => {
     players_count: roomConnections.size,
     max_players: maxPlayers
   }, connection);
-  
+
   // Handle incoming messages
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
       console.log(`[WebSocket] ${username}: ${data.type}`);
-      
+
       // Relay message to other player(s) in the same room
       broadcastToRoom(room_id, data, connection);
-      
+
     } catch (error) {
       console.error(`[WebSocket] Invalid message from ${username}:`, error);
     }
   });
-  
+
   // Handle disconnect
   ws.on('close', () => {
     console.log(`[WebSocket] ${username} disconnected from room ${room_id}`);
@@ -807,14 +832,14 @@ app.ws('/ws/relay/:room_id', (ws, req) => {
         max_players: maxPlayers
       });
     }
-    
+
     // Clean up empty rooms
     if (roomConnections.size === 0) {
       console.log(`[WebSocket] Room ${room_id} is empty, removing`);
       wsConnections.delete(room_id);
     }
   });
-  
+
   // Send welcome message
   ws.send(JSON.stringify({
     type: 'connected',
@@ -831,15 +856,611 @@ app.ws('/ws/relay/:room_id', (ws, req) => {
 function broadcastToRoom(room_id, message, excludeConnection = null) {
   const roomConnections = wsConnections.get(room_id);
   if (!roomConnections) return;
-  
+
   const messageStr = JSON.stringify(message);
-  
+
   for (const connection of roomConnections) {
     if (connection !== excludeConnection && connection.ws.readyState === 1) { // 1 = OPEN
       connection.ws.send(messageStr);
     }
   }
 }
+
+/**
+ * =============================================================================
+ * CYBERQUIZ API ENDPOINTS
+ * =============================================================================
+ */
+
+// POST /api/quiz/create — Teacher creates a quiz room
+app.post('/api/quiz/create', (req, res) => {
+  const { room_code, room_name, host_id, host_username, quiz_data, time_per_question, max_players } = req.body;
+
+  if (!room_code || !host_id || !quiz_data) {
+    return res.status(400).json({ error: 'Missing required fields: room_code, host_id, quiz_data' });
+  }
+
+  if (quizRooms.has(room_code)) {
+    return res.status(409).json({ error: 'Room code already exists' });
+  }
+
+  const questions = quiz_data.questions || [];
+  if (questions.length === 0) {
+    return res.status(400).json({ error: 'Quiz must have at least one question' });
+  }
+
+  const quizRoom = {
+    room_code,
+    room_name: room_name || 'CyberQuiz Room',
+    host_id,
+    host_username: host_username || 'Teacher',
+    quiz_data: {
+      questions,
+      time_per_question: time_per_question || 30
+    },
+    players: [],
+    max_players: Math.min(Math.max(2, max_players || 10), 10),
+    status: 'waiting', // waiting | active | finished
+    created_at: Date.now(),
+    last_heartbeat: Date.now()
+  };
+
+  quizRooms.set(room_code, quizRoom);
+  console.log(`[CyberQuiz] Room created: ${room_code} by ${host_username} (${questions.length} questions)`);
+  questions.forEach((q, i) => {
+    console.log(`[CyberQuiz DEBUG] Stored Q${i}: question="${q.question}" correct_answer="${q.correct_answer}" choices=${JSON.stringify(q.choices)}`);
+  });
+
+  res.json({
+    ok: true,
+    room_code,
+    room_name: quizRoom.room_name,
+    question_count: questions.length,
+    max_players: quizRoom.max_players
+  });
+});
+
+// GET /api/quiz/:code/info — Get room info (player list, status)
+app.get('/api/quiz/:code/info', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const qr = quizRooms.get(code);
+
+  if (!qr) {
+    return res.status(404).json({ error: 'Quiz room not found' });
+  }
+
+  res.json({
+    ok: true,
+    room_code: qr.room_code,
+    room_name: qr.room_name,
+    host_username: qr.host_username,
+    status: qr.status,
+    max_players: qr.max_players,
+    question_count: qr.quiz_data.questions.length,
+    time_per_question: qr.quiz_data.time_per_question,
+    players: qr.players.map(p => ({
+      player_id: p.player_id,
+      username: p.username,
+      avatar: p.avatar || 'default.png',
+      xp: p.xp || 0,
+      finished: p.finished,
+      score: p.finished ? p.score : undefined
+    }))
+  });
+});
+
+// POST /api/quiz/:code/join — Student joins quiz room
+app.post('/api/quiz/:code/join', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { player_id, username, avatar, xp } = req.body;
+
+  if (!player_id || !username) {
+    return res.status(400).json({ error: 'Missing required fields: player_id, username' });
+  }
+
+  const qr = quizRooms.get(code);
+  if (!qr) {
+    return res.status(404).json({ error: 'Quiz room not found' });
+  }
+
+  if (qr.status !== 'waiting') {
+    return res.status(403).json({ error: 'Quiz has already started' });
+  }
+
+  if (qr.players.length >= qr.max_players) {
+    return res.status(403).json({ error: 'Room is full' });
+  }
+
+  // Check if player already joined (allow rejoin)
+  const existing = qr.players.find(p => p.player_id === player_id);
+  if (existing) {
+    // Update avatar/xp on rejoin
+    if (avatar) existing.avatar = avatar;
+    if (xp !== undefined) existing.xp = xp;
+    console.log(`[CyberQuiz] Player rejoined: ${username} in ${code}`);
+    return res.json({ ok: true, status: qr.status, rejoined: true });
+  }
+
+  qr.players.push({
+    player_id,
+    username,
+    avatar: avatar || 'default.png',
+    xp: xp || 0,
+    answers: [],
+    score: 0,
+    finished: false,
+    joined_at: Date.now()
+  });
+
+  qr.last_heartbeat = Date.now();
+  console.log(`[CyberQuiz] Player joined: ${username} in ${code} (${qr.players.length}/${qr.max_players})`);
+
+  res.json({
+    ok: true,
+    status: qr.status,
+    players_count: qr.players.length,
+    max_players: qr.max_players
+  });
+});
+
+// POST /api/quiz/:code/start — Teacher starts the quiz
+app.post('/api/quiz/:code/start', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { host_id } = req.body;
+
+  const qr = quizRooms.get(code);
+  if (!qr) {
+    return res.status(404).json({ error: 'Quiz room not found' });
+  }
+
+  if (host_id && qr.host_id !== host_id) {
+    return res.status(403).json({ error: 'Only the host can start the quiz' });
+  }
+
+  if (qr.status !== 'waiting') {
+    return res.status(400).json({ error: 'Quiz is not in waiting state' });
+  }
+
+  if (qr.players.length === 0) {
+    return res.status(400).json({ error: 'No students have joined yet' });
+  }
+
+  qr.status = 'active';
+  qr.started_at = Date.now();
+  qr.last_heartbeat = Date.now();
+  console.log(`[CyberQuiz] Quiz started: ${code} with ${qr.players.length} players`);
+
+  res.json({ ok: true, status: 'active', players_count: qr.players.length });
+});
+
+// GET /api/quiz/:code/questions — Student fetches questions (only when active)
+app.get('/api/quiz/:code/questions', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const qr = quizRooms.get(code);
+
+  if (!qr) {
+    return res.status(404).json({ error: 'Quiz room not found' });
+  }
+
+  if (qr.status !== 'active') {
+    return res.status(403).json({ error: 'Quiz has not started yet', status: qr.status });
+  }
+
+  // Send questions without correct answers (prevent cheating)
+  const sanitizedQuestions = qr.quiz_data.questions.map((q, i) => ({
+    index: i,
+    question: q.question,
+    choices: q.choices || q.options || [],
+    time_limit: q.time_limit || qr.quiz_data.time_per_question
+  }));
+
+  res.json({
+    ok: true,
+    room_name: qr.room_name,
+    time_per_question: qr.quiz_data.time_per_question,
+    questions: sanitizedQuestions
+  });
+});
+
+// POST /api/quiz/:code/submit — Student submits answers (score calculated server-side)
+app.post('/api/quiz/:code/submit', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { player_id, answers } = req.body;
+
+  if (!player_id) {
+    return res.status(400).json({ error: 'Missing player_id' });
+  }
+
+  const qr = quizRooms.get(code);
+  if (!qr) {
+    return res.status(404).json({ error: 'Quiz room not found' });
+  }
+
+  const player = qr.players.find(p => p.player_id === player_id);
+  if (!player) {
+    return res.status(404).json({ error: 'Player not found in this room' });
+  }
+
+  // Calculate score server-side by comparing answers to correct_answer
+  const submittedAnswers = answers || [];
+  const questions = qr.quiz_data.questions || [];
+  let score = 0;
+  console.log(`[CyberQuiz DEBUG] Scoring ${questions.length} questions for ${player.username}`);
+  console.log(`[CyberQuiz DEBUG] Raw submitted answers: ${JSON.stringify(submittedAnswers)}`);
+  for (let i = 0; i < questions.length; i++) {
+    const rawCorrect = questions[i].correct_answer || '';
+    const rawStudent = submittedAnswers[i] || '';
+    // Normalize: trim whitespace, collapse multiple spaces, lowercase
+    const correctAns = rawCorrect.trim().replace(/\s+/g, ' ').toLowerCase();
+    const studentAns = rawStudent.trim().replace(/\s+/g, ' ').toLowerCase();
+    const match = studentAns.length > 0 && studentAns === correctAns;
+    console.log(`[CyberQuiz DEBUG] Q${i}: `);
+    console.log(`  raw_correct="${rawCorrect}" raw_student="${rawStudent}"`);
+    console.log(`  normalized_correct="${correctAns}" normalized_student="${studentAns}"`);
+    console.log(`  match=${match}`);
+    if (match) {
+      score++;
+    }
+  }
+
+  player.answers = submittedAnswers;
+  player.score = score;
+  player.finished = true;
+  player.finished_at = Date.now();
+  qr.last_heartbeat = Date.now();
+
+  console.log(`[CyberQuiz] ${player.username} submitted in ${code}: score=${score}/${questions.length}`);
+
+  // Check if all players finished
+  const allFinished = qr.players.every(p => p.finished);
+  if (allFinished) {
+    qr.status = 'finished';
+    console.log(`[CyberQuiz] All players finished in ${code}`);
+  }
+
+  // Per-question results so client can show correct/wrong indicators
+  const question_results = questions.map((q, i) => {
+    const rawCorrect = (q.correct_answer || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const rawStudent = (submittedAnswers[i] || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const is_correct = rawStudent.length > 0 && rawStudent === rawCorrect;
+    return {
+      question_index: i,
+      is_correct,
+      correct_answer: q.correct_answer || '',
+      student_answer: submittedAnswers[i] || '',
+      question_text: q.question || `Q${i + 1}`,
+      choices: q.choices || []
+    };
+  });
+
+  res.json({
+    ok: true,
+    score: score,
+    total_questions: questions.length,
+    all_finished: allFinished,
+    status: qr.status,
+    question_results
+  });
+});
+
+// GET /api/quiz/:code/results — Get final leaderboard + per-question stats
+app.get('/api/quiz/:code/results', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const qr = quizRooms.get(code);
+
+  if (!qr) {
+    return res.status(404).json({ error: 'Quiz room not found' });
+  }
+
+  // Sort by score descending, then by finish time ascending
+  const leaderboard = [...qr.players]
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return (a.finished_at || Infinity) - (b.finished_at || Infinity);
+    })
+    .map((p, rank) => ({
+      rank: rank + 1,
+      player_id: p.player_id,
+      username: p.username,
+      score: p.score,
+      finished: p.finished,
+      total_questions: qr.quiz_data.questions.length
+    }));
+
+  // Per-question statistics: how many students got each question correct/wrong
+  const questions = qr.quiz_data.questions || [];
+  const finishedPlayers = qr.players.filter(p => p.finished);
+  const question_stats = questions.map((q, i) => {
+    let correct = 0;
+    let wrong = 0;
+    for (const p of finishedPlayers) {
+      const rawCorrect = (q.correct_answer || '').trim().replace(/\s+/g, ' ').toLowerCase();
+      const rawStudent = ((p.answers || [])[i] || '').trim().replace(/\s+/g, ' ').toLowerCase();
+      if (rawStudent.length > 0 && rawStudent === rawCorrect) {
+        correct++;
+      } else if (p.finished) {
+        wrong++;
+      }
+    }
+    return {
+      question_index: i + 1,
+      question_text: q.question || `Q${i + 1}`,
+      correct,
+      wrong,
+      total: finishedPlayers.length
+    };
+  });
+
+  res.json({
+    ok: true,
+    room_name: qr.room_name,
+    status: qr.status,
+    total_questions: qr.quiz_data.questions.length,
+    leaderboard,
+    question_stats
+  });
+});
+
+// POST /api/quiz/:code/heartbeat — Keep quiz room alive
+app.post('/api/quiz/:code/heartbeat', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const qr = quizRooms.get(code);
+
+  if (!qr) {
+    return res.status(404).json({ error: 'Quiz room not found' });
+  }
+
+  qr.last_heartbeat = Date.now();
+  res.json({ ok: true });
+});
+
+/**
+ * =============================================================================
+ * GAMEMODE API ENDPOINTS (Teacher-created minigame rooms)
+ * =============================================================================
+ */
+
+// POST /api/gamemode/create — Teacher creates a game mode room
+app.post('/api/gamemode/create', (req, res) => {
+  const { room_code, room_name, host_id, host_username, game_name, game_scene, difficulty, max_players } = req.body;
+
+  if (!room_code || !host_id || !game_name) {
+    return res.status(400).json({ error: 'Missing required fields: room_code, host_id, game_name' });
+  }
+
+  if (gameModeRooms.has(room_code)) {
+    return res.status(409).json({ error: 'Room code already exists' });
+  }
+
+  const gameRoom = {
+    room_code,
+    room_name: room_name || 'Game Room',
+    host_id,
+    host_username: host_username || 'Teacher',
+    game_name,
+    game_scene: game_scene || '',
+    difficulty: difficulty || '',
+    players: [],
+    max_players: Math.min(Math.max(2, max_players || 50), 50),
+    status: 'waiting', // waiting | active | finished
+    started_at: null,
+    created_at: Date.now(),
+    last_heartbeat: Date.now()
+  };
+
+  gameModeRooms.set(room_code, gameRoom);
+  console.log(`[GameMode] Room created: ${room_code} by ${host_username} — game: ${game_name}`);
+
+  res.json({
+    ok: true,
+    room_code,
+    room_name: gameRoom.room_name,
+    game_name,
+    max_players: gameRoom.max_players
+  });
+});
+
+// GET /api/gamemode/:code/info — Get room info (player list, status)
+app.get('/api/gamemode/:code/info', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const gr = gameModeRooms.get(code);
+
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  res.json({
+    ok: true,
+    room_code: gr.room_code,
+    room_name: gr.room_name,
+    host_username: gr.host_username,
+    game_name: gr.game_name,
+    game_scene: gr.game_scene,
+    difficulty: gr.difficulty,
+    status: gr.status,
+    max_players: gr.max_players,
+    players: gr.players.map(p => ({
+      player_id: p.player_id,
+      username: p.username,
+      avatar: p.avatar || 'default.png',
+      xp: p.xp || 0,
+      finished: p.finished,
+      score: p.finished ? p.score : undefined,
+      max_score: p.finished ? p.max_score : undefined,
+      time_taken_ms: p.finished ? p.time_taken_ms : undefined
+    }))
+  });
+});
+
+// POST /api/gamemode/:code/join — Student joins a game mode room
+app.post('/api/gamemode/:code/join', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { player_id, username, avatar, xp } = req.body;
+
+  if (!player_id || !username) {
+    return res.status(400).json({ error: 'Missing player_id or username' });
+  }
+
+  const gr = gameModeRooms.get(code);
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  // Check if already joined
+  const existing = gr.players.find(p => p.player_id === player_id);
+  if (existing) {
+    // Update avatar/xp if provided
+    if (avatar) existing.avatar = avatar;
+    if (xp !== undefined) existing.xp = xp;
+    console.log(`[GameMode] Player rejoined: ${username} in ${code}`);
+    return res.json({ ok: true, rejoined: true, status: gr.status, game_name: gr.game_name, game_scene: gr.game_scene });
+  }
+
+  if (gr.players.length >= gr.max_players) {
+    return res.status(403).json({ error: 'Room is full' });
+  }
+
+  gr.players.push({
+    player_id,
+    username,
+    avatar: avatar || 'default.png',
+    xp: xp || 0,
+    joined_at: Date.now(),
+    finished: false,
+    score: 0,
+    max_score: 0,
+    time_taken_ms: 0
+  });
+
+  gr.last_heartbeat = Date.now();
+  console.log(`[GameMode] Player joined: ${username} in ${code} (${gr.players.length}/${gr.max_players})`);
+
+  res.json({
+    ok: true,
+    status: gr.status,
+    game_name: gr.game_name,
+    game_scene: gr.game_scene,
+    players_count: gr.players.length
+  });
+});
+
+// POST /api/gamemode/:code/start — Teacher starts the game
+app.post('/api/gamemode/:code/start', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const gr = gameModeRooms.get(code);
+
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  if (gr.status !== 'waiting') {
+    return res.status(400).json({ error: 'Game is not in waiting state' });
+  }
+
+  if (gr.players.length === 0) {
+    return res.status(400).json({ error: 'No students have joined yet' });
+  }
+
+  gr.status = 'active';
+  gr.started_at = Date.now();
+  gr.last_heartbeat = Date.now();
+  console.log(`[GameMode] Game started: ${code} — ${gr.game_name} with ${gr.players.length} players`);
+
+  res.json({ ok: true, status: 'active', players_count: gr.players.length });
+});
+
+// POST /api/gamemode/:code/submit — Student submits score + time
+app.post('/api/gamemode/:code/submit', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { player_id, score, max_score, time_taken_ms } = req.body;
+
+  if (!player_id) {
+    return res.status(400).json({ error: 'Missing player_id' });
+  }
+
+  const gr = gameModeRooms.get(code);
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  const player = gr.players.find(p => p.player_id === player_id);
+  if (!player) {
+    return res.status(404).json({ error: 'Player not found in this room' });
+  }
+
+  player.score = score || 0;
+  player.max_score = max_score || 0;
+  player.time_taken_ms = time_taken_ms || 0;
+  player.finished = true;
+  player.finished_at = Date.now();
+  gr.last_heartbeat = Date.now();
+
+  console.log(`[GameMode] ${player.username} submitted in ${code}: score=${score}/${max_score} time=${time_taken_ms}ms`);
+
+  // Check if all players finished
+  const allFinished = gr.players.every(p => p.finished);
+  if (allFinished) {
+    gr.status = 'finished';
+    console.log(`[GameMode] All players finished in ${code}`);
+  }
+
+  res.json({
+    ok: true,
+    score: player.score,
+    max_score: player.max_score,
+    time_taken_ms: player.time_taken_ms,
+    all_finished: allFinished,
+    status: gr.status
+  });
+});
+
+// GET /api/gamemode/:code/results — Get leaderboard (sorted by score desc, then time asc)
+app.get('/api/gamemode/:code/results', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const gr = gameModeRooms.get(code);
+
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  // Sort: finished first, then by score desc, then by time asc (faster is better)
+  const sorted = [...gr.players].sort((a, b) => {
+    if (a.finished !== b.finished) return a.finished ? -1 : 1;
+    if (a.score !== b.score) return b.score - a.score;
+    return a.time_taken_ms - b.time_taken_ms;
+  });
+
+  const leaderboard = sorted.map((p, i) => ({
+    rank: i + 1,
+    player_id: p.player_id,
+    username: p.username,
+    finished: p.finished,
+    score: p.score,
+    max_score: p.max_score,
+    time_taken_ms: p.time_taken_ms
+  }));
+
+  res.json({
+    ok: true,
+    room_name: gr.room_name,
+    game_name: gr.game_name,
+    status: gr.status,
+    leaderboard
+  });
+});
+
+// POST /api/gamemode/:code/heartbeat — Keep room alive
+app.post('/api/gamemode/:code/heartbeat', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const gr = gameModeRooms.get(code);
+
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  gr.last_heartbeat = Date.now();
+  res.json({ ok: true });
+});
 
 /**
  * =============================================================================
@@ -853,7 +1474,7 @@ app.listen(PORT, '0.0.0.0', () => {
   const os = require('os');
   const networkInterfaces = os.networkInterfaces();
   let localIP = 'localhost';
-  
+
   // Find local IP address
   for (const name of Object.keys(networkInterfaces)) {
     for (const net of networkInterfaces[name]) {
@@ -864,7 +1485,7 @@ app.listen(PORT, '0.0.0.0', () => {
       }
     }
   }
-  
+
   console.log(`\n🎮 Code Breaker Lobby Server v2.1`);
   console.log(`   Architecture: WebSocket Relay (Option B)`);
   console.log(`   Port: ${PORT}`);
@@ -877,6 +1498,23 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`   POST   http://${localIP}:${PORT}/api/rooms/:id/leave`);
   console.log(`   POST   http://${localIP}:${PORT}/api/rooms/:id/heartbeat`);
   console.log(`   DELETE http://${localIP}:${PORT}/api/rooms/:id`);
+  console.log(`\n📝 CyberQuiz API:`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/quiz/create`);
+  console.log(`   GET    http://${localIP}:${PORT}/api/quiz/:code/info`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/quiz/:code/join`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/quiz/:code/start`);
+  console.log(`   GET    http://${localIP}:${PORT}/api/quiz/:code/questions`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/quiz/:code/submit`);
+  console.log(`   GET    http://${localIP}:${PORT}/api/quiz/:code/results`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/quiz/:code/heartbeat`);
+  console.log(`\n🎮 GameMode API:`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/create`);
+  console.log(`   GET    http://${localIP}:${PORT}/api/gamemode/:code/info`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/:code/join`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/:code/start`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/:code/submit`);
+  console.log(`   GET    http://${localIP}:${PORT}/api/gamemode/:code/results`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/:code/heartbeat`);
   console.log(`\n🔌 WebSocket Relay:`);
   console.log(`   WS     ws://${localIP}:${PORT}/ws/relay/:room_id`);
   console.log(`\n🔍 Monitoring:`);

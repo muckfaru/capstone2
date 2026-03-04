@@ -55,6 +55,12 @@ var current_email_index := 0
 var score := 0
 var max_score := 0  # Will be calculated based on total emails
 
+# GameMode multiplayer
+var _is_gamemode: bool = false
+var _gamemode_room_code: String = ""
+var _gamemode_lobby_url: String = ""
+var _gamemode_start_time_ms: int = 0
+
 # Email data with realistic Gmail formatting
 var emails := [
 	{
@@ -195,6 +201,17 @@ func _ready() -> void:
 	if not _verify_nodes():
 		push_error("Critical nodes missing! Check scene structure.")
 		return
+	
+	# GameMode detection
+	_is_gamemode = get_tree().has_meta("gamemode_room_code")
+	if _is_gamemode:
+		_gamemode_room_code = str(get_tree().get_meta("gamemode_room_code", ""))
+		_gamemode_lobby_url = str(get_tree().get_meta("gamemode_lobby_url", ""))
+		_gamemode_start_time_ms = int(get_tree().get_meta("gamemode_start_time_ms", 0))
+		print("[GameMode] Phishing Lab running in game mode (room: %s)" % _gamemode_room_code)
+		# Hide back button in GameMode
+		if back_button:
+			back_button.visible = false
 	
 	emails.shuffle()
 	
@@ -565,6 +582,8 @@ Click OK to return to menu.""" % [
 	style.corner_radius_bottom_right = 10
 	feedback_popup.add_theme_stylebox_override("panel", style)
 	
+	# Check first-time before saving
+	var _first_clear: bool = MinigameRewards.is_first_completion(TUTORIAL_ID)
 	# Save results to TutorialManager
 	print("📊 Saving tutorial results...")
 	print("   Tutorial ID: %s" % TUTORIAL_ID)
@@ -581,6 +600,19 @@ Click OK to return to menu.""" % [
 			print("✅ Tutorial results saved successfully!")
 	else:
 		push_error("❌ TutorialManager not found!")
+	
+	# Show reward popup on first completion
+	if _first_clear and not _is_gamemode:
+		MinigameRewards.try_grant_rewards(TUTORIAL_ID, score, xp_earned, self)
+	
+	# In GameMode, submit score and go to leaderboard
+	if _is_gamemode:
+		# Reconnect OK button to submit
+		if ok_button and ok_button.pressed.is_connected(_on_ok_pressed):
+			ok_button.pressed.disconnect(_on_ok_pressed)
+		if ok_button:
+			ok_button.pressed.connect(func(): _submit_gamemode_score(score, max_score))
+		return
 	
 	# Reconnect OK button to return to menu
 	if ok_button and ok_button.pressed.is_connected(_on_ok_pressed):
@@ -603,6 +635,8 @@ func _on_time_expired() -> void:
 	_show_final_results()
 
 func _on_back_pressed() -> void:
+	if _is_gamemode:
+		return  # Block quitting in GameMode
 	get_tree().change_scene_to_file("res://scene/phishing_intro.tscn")
 
 func _on_form_field_changed(_new_text: String) -> void:
@@ -639,3 +673,37 @@ func _disconnect_form_signals() -> void:
 		address_input.text_changed.disconnect(_on_form_field_changed)
 	if password_input and password_input.text_changed.is_connected(_on_form_field_changed):
 		password_input.text_changed.disconnect(_on_form_field_changed)
+
+
+# ============================================
+# GAMEMODE MULTIPLAYER
+# ============================================
+
+func _submit_gamemode_score(final_score: int, final_max_score: int) -> void:
+	var time_taken_ms := Time.get_ticks_msec() - _gamemode_start_time_ms
+	var url := _gamemode_lobby_url + "/api/gamemode/%s/submit" % _gamemode_room_code
+	var body := JSON.stringify({
+		"player_id": Auth.current_local_id,
+		"score": final_score,
+		"max_score": final_max_score,
+		"time_taken_ms": time_taken_ms
+	})
+
+	if ok_button:
+		ok_button.disabled = true
+		ok_button.text = "Submitting..."
+
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		print("[GameMode] Score submitted: %d/%d (time: %dms) → status %d" % [final_score, final_max_score, time_taken_ms, code])
+		_go_to_leaderboard()
+	)
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
+
+
+func _go_to_leaderboard() -> void:
+	get_tree().set_meta("gamemode_leaderboard_room_code", _gamemode_room_code)
+	get_tree().set_meta("gamemode_leaderboard_lobby_url", _gamemode_lobby_url)
+	get_tree().change_scene_to_file("res://scene/gamemode_leaderboard.tscn")

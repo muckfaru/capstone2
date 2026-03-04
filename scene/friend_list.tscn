@@ -1,59 +1,381 @@
-[gd_scene load_steps=12 format=3 uid="uid://bohnaxmk78jfw"]
+[gd_scene load_steps=103 format=3 uid="uid://bohnaxmk78jfw"]
 
 [ext_resource type="Script" uid="uid://q2bbcw5bdvqc" path="res://script/friend_list.gd" id="1_30j1j"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_2r4jo"]
 [ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="3_js1fy"]
+[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="4_44a1m"]
+[ext_resource type="FontFile" uid="uid://c1y55nmycr726" path="res://asset/fonts/Orbitron-VariableFont_wght.ttf" id="5_e1816"]
+[ext_resource type="Texture2D" uid="uid://decyckmi2tpdr" path="res://asset/newUIlandingupdate/Group (3).png" id="6_6dare"]
+[ext_resource type="Texture2D" uid="uid://db5r2sk5k80r7" path="res://asset/newUIlandingupdate/Line 4.png" id="7_o4l4v"]
+[ext_resource type="Texture2D" uid="uid://b47emtsgrvmvf" path="res://asset/newUIlandingupdate/Vector (1).png" id="7_oiw84"]
+[ext_resource type="Texture2D" uid="uid://buqy2u2rbcxta" path="res://asset/newUIlandingupdate/close-sm_svgrepo.com.png" id="8_mtigq"]
+[ext_resource type="FontFile" uid="uid://dmwkpwnxp48dl" path="res://asset/fonts/Roboto-Regular.ttf" id="8_w2qa0"]
+[ext_resource type="Texture2D" uid="uid://bv37hngxnf75r" path="res://asset/newUIlandingupdate/settings_svgrepo.com.png" id="9_byix6"]
+[ext_resource type="Texture2D" uid="uid://d3x87b1st3j10" path="res://asset/newUIlandingupdate/remove_svgrepo.com.png" id="10_ctvm5"]
+[ext_resource type="Texture2D" uid="uid://ckwimeesd6wk0" path="res://asset/newUIlandingupdate/Group 56.png" id="14_33krg"]
+[ext_resource type="Texture2D" uid="uid://d1c73yjw2yi0j" path="res://asset/newUIlandingupdate/Vector (2).png" id="15_eq2f8"]
+[ext_resource type="Texture2D" uid="uid://bjd14dspq7mgb" path="res://asset/newUIlandingupdate/chat.png" id="16_v3f3o"]
+[ext_resource type="Texture2D" uid="uid://cxfwwn0k4imj" path="res://asset/newUIlandingupdate/remove.png" id="17_v3f3o"]
+[ext_resource type="Texture2D" uid="uid://bqjkgaue2seol" path="res://asset/newUIlandingupdate/accept.png" id="18_5fel2"]
+[ext_resource type="Texture2D" uid="uid://dpynh6qomqe5i" path="res://asset/newUIlandingupdate/decline.png" id="19_5fel2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hlv06"]
-bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
-border_color = Color(0.490196, 0.654902, 1, 0.545098)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-shadow_color = Color(1, 0.313726, 0.247059, 0.611765)
-shadow_size = 10
+bg_color = Color(0.031, 0.082, 0.208, 0.707)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.8, 0)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_js1fy"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e1816"]
-bg_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.992157, 0.145098, 0.145098, 1)
+border_blend = true
+corner_radius_top_left = 80
+corner_radius_top_right = 80
+corner_radius_bottom_right = 80
+corner_radius_bottom_left = 80
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o4l4v"]
-bg_color = Color(0, 0, 0, 0.317647)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_byix6"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.992157, 0.145098, 0.145098, 1)
+border_blend = true
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_30j1j"]
+[sub_resource type="LabelSettings" id="LabelSettings_e1816"]
+font = ExtResource("4_44a1m")
+
+[sub_resource type="LabelSettings" id="LabelSettings_o4l4v"]
+font = ExtResource("5_e1816")
+font_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ctvm5"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.992157, 0.145098, 0.145098, 1)
+border_blend = true
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mtigq"]
+bg_color = Color(4.86121e-06, 0.716896, 0.386495, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.992157, 0.145098, 0.145098, 1)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scroll_bg"]
+bg_color = Color(0.02, 0.04, 0.1, 0.5)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ctvm5"]
+font = ExtResource("2_2r4jo")
+font_size = 13
+font_color = Color(0.145098, 0.878431, 0.992157, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_v3f3o"]
+texture = ExtResource("6_6dare")
+modulate_color = Color(0.913725, 0, 0.168627, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yxm0k"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u7loa"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wcsar"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_s6d3x"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nln14"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7wdwn"]
+texture = ExtResource("6_6dare")
+modulate_color = Color(0.490196, 0.490196, 0.490196, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_iudng"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ytmjx"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nai0e"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_eq2f8"]
+texture = ExtResource("6_6dare")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_kg8ib"]
+texture = ExtResource("7_oiw84")
+modulate_color = Color(0.145098, 0.878431, 0.992157, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t1waq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_po868"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ppvt1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dyo4f"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_c8qb4"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yxm0k"]
+texture = ExtResource("7_oiw84")
+modulate_color = Color(0.490196, 0.490196, 0.490196, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_i64je"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a5n5g"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qpvit"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_u7loa"]
+texture = ExtResource("7_oiw84")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qd8yo"]
+bg_color = Color(0.0313726, 0.0823529, 0.207843, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.913725, 0, 0.168627, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5fel2"]
+bg_color = Color(0.0313726, 0.0823529, 0.207843, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1rg6q"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_mtigq"]
+texture = ExtResource("7_o4l4v")
+expand_margin_top = 5.0
+expand_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_33krg"]
+texture = ExtResource("8_mtigq")
+modulate_color = Color(0.914691, 0, 0.169022, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_m7qd2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_c7lt0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_we1v5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_adnb5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2bj4c"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_t1waq"]
+texture = ExtResource("8_mtigq")
+modulate_color = Color(0.490196, 0.490196, 0.490196, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hcft0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_m38l2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_se8jt"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_byix6"]
+texture = ExtResource("8_mtigq")
+modulate_color = Color(0.913725, 0, 0.168627, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_w2qa0"]
+texture = ExtResource("9_byix6")
+modulate_color = Color(0.726642, 0, 0.248879, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7gjhr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a0awe"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_iiw08"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j5o4d"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_aod0y"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_m7qd2"]
+texture = ExtResource("9_byix6")
+modulate_color = Color(0.490196, 0.490196, 0.490196, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7nwa0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_m0tre"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_70kxb"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ctvm5"]
+texture = ExtResource("9_byix6")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_oiw84"]
+texture = ExtResource("10_ctvm5")
+modulate_color = Color(0.490196, 0.490196, 0.490196, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_w2qa0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_33krg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_eq2f8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kg8ib"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_v3f3o"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7gjhr"]
+texture = ExtResource("10_ctvm5")
+modulate_color = Color(0.489622, 0.489622, 0.489622, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5fel2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qd8yo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_umn00"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_6dare"]
+texture = ExtResource("10_ctvm5")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5fel2"]
+texture = ExtResource("14_33krg")
+
+[sub_resource type="LabelSettings" id="LabelSettings_qd8yo"]
+font = ExtResource("8_w2qa0")
+font_size = 10
+font_color = Color(0.145098, 0.878431, 0.992157, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_row_item"]
+bg_color = Color(0.05, 0.09, 0.18, 0.75)
+border_width_bottom = 1
+border_color = Color(0.145098, 0.878431, 0.992157, 0.2)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+expand_margin_left = 2.0
+expand_margin_right = 2.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_v3f3o"]
+font = ExtResource("4_44a1m")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_action_btn_empty"]
 draw_center = false
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2r4jo"]
-bg_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-corner_detail = 20
-expand_margin_left = 8.0
-expand_margin_right = 8.0
+[sub_resource type="LabelSettings" id="LabelSettings_7gjhr"]
+font = ExtResource("4_44a1m")
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_js1fy"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-draw_center = false
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7wdwn"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3d7hl"]
-bg_color = Color(0.0509804, 0.0784314, 0.109804, 0.705882)
-expand_margin_left = 8.0
-expand_margin_right = 8.0
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2jdqn"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_44a1m"]
-bg_color = Color(0.0313726, 0.054902, 0.0784314, 0.803922)
-expand_margin_left = 8.0
-expand_margin_right = 8.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_search_normal"]
+bg_color = Color(0.03, 0.07, 0.15, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.145098, 0.878431, 0.992157, 0.7)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popup_bg"]
+bg_color = Color(0.04, 0.07, 0.16, 0.97)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="LabelSettings" id="LabelSettings_popup_title"]
+font_size = 12
+font_color = Color(0.9, 0.9, 0.9, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exit_yes"]
+bg_color = Color(0.75, 0.08, 0.1, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.3, 0.3, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exit_yes_hover"]
+bg_color = Color(0.9, 0.1, 0.12, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.5, 0.5, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exit_no"]
+bg_color = Color(0.06, 0.3, 0.6, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exit_no_hover"]
+bg_color = Color(0.1, 0.45, 0.85, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.9, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="FriendListPanel" type="Panel"]
 offset_left = 861.0
 offset_top = 76.0
 offset_right = 1095.0
-offset_bottom = 593.0
+offset_bottom = 647.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_hlv06")
 script = ExtResource("1_30j1j")
 
@@ -67,73 +389,187 @@ script = ExtResource("1_30j1j")
 
 [node name="HTTPRequest_Presence" type="HTTPRequest" parent="."]
 
-[node name="FriendLabel" type="Panel" parent="."]
+[node name="user profile and status" type="Panel" parent="."]
 layout_mode = 0
 offset_right = 234.0
 offset_bottom = 51.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_js1fy")
+
+[node name="userprofile" type="PanelContainer" parent="user profile and status"]
+clip_children = 1
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 84.0
+offset_bottom = 82.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_e1816")
 
-[node name="FriendListLabel" type="Label" parent="FriendLabel"]
-layout_mode = 0
-offset_left = 14.0
-offset_top = 3.0
-offset_right = 216.0
-offset_bottom = 43.0
-theme_override_fonts/font = ExtResource("2_2r4jo")
-theme_override_font_sizes/font_size = 15
-text = "Friends"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="FriendListVBox" type="VBoxContainer" parent="."]
+[node name="profilepicture" type="TextureRect" parent="user profile and status/userprofile"]
+clip_children = 2
 clip_contents = true
-layout_mode = 0
-offset_left = 2.0
-offset_top = 54.0
-offset_right = 224.0
-offset_bottom = 326.0
-theme_override_constants/separation = 6
-
-[node name="FriendRequestPanel" type="Panel" parent="."]
 layout_mode = 2
-offset_left = -2.0
-offset_top = 323.0
-offset_right = 233.0
-offset_bottom = 362.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_o4l4v")
+expand_mode = 1
 
-[node name="FriendRequestLabel" type="Label" parent="FriendRequestPanel"]
-layout_mode = 0
-offset_left = 15.0
-offset_top = -1.0
-offset_right = 217.0
+[node name="circleborder" type="Panel" parent="user profile and status/userprofile"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_byix6")
+
+[node name="Usernamelabel" type="Label" parent="user profile and status"]
+layout_mode = 2
+offset_left = 12.0
+offset_top = 23.0
+offset_right = 246.0
 offset_bottom = 39.0
 theme_override_fonts/font = ExtResource("2_2r4jo")
-text = "Friend Request"
+theme_override_font_sizes/font_size = 15
+text = "NAME"
+label_settings = SubResource("LabelSettings_e1816")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="FriendRequestsVBox" type="VBoxContainer" parent="."]
+[node name="statuslabel" type="Label" parent="user profile and status"]
 layout_mode = 0
-offset_left = 11.0
-offset_top = 365.0
-offset_right = 236.0
-offset_bottom = 475.0
+offset_left = 102.0
+offset_top = 41.0
+offset_right = 151.0
+offset_bottom = 72.0
+text = "STATUS
+"
+label_settings = SubResource("LabelSettings_o4l4v")
+
+[node name="CIRCLEBrd" type="Panel" parent="user profile and status"]
+layout_mode = 2
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 84.0
+offset_bottom = 82.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_ctvm5")
+
+[node name="status" type="PanelContainer" parent="user profile and status"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 64.0
+offset_right = 34.0
+offset_bottom = 84.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_mtigq")
+
+[node name="FriendsLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 165.0
+offset_right = 180.0
+offset_bottom = 183.0
+theme_override_colors/font_color = Color(0.4, 0.75, 0.9, 1)
+theme_override_fonts/font = ExtResource("8_w2qa0")
+theme_override_font_sizes/font_size = 10
+text = "FRIENDS"
+
+[node name="FriendListScroll" type="ScrollContainer" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 185.0
+offset_right = 232.0
+offset_bottom = 388.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_scroll_bg")
+
+[node name="FriendListVBox" type="VBoxContainer" parent="FriendListScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="sociallabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 100.0
+offset_right = 80.0
+offset_bottom = 123.0
+text = "SOCIALS"
+label_settings = SubResource("LabelSettings_ctvm5")
+
+[node name="addfriendbutton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 213.0
+offset_top = 101.0
+offset_right = 230.0
+offset_bottom = 116.0
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxTexture_v3f3o")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_yxm0k")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_u7loa")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_wcsar")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_s6d3x")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_nln14")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7wdwn")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_iudng")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_ytmjx")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_nai0e")
+theme_override_styles/normal = SubResource("StyleBoxTexture_eq2f8")
+
+[node name="searchfriends" type="Button" parent="."]
+layout_mode = 0
+offset_left = 187.0
+offset_top = 101.0
+offset_right = 205.0
+offset_bottom = 116.0
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxTexture_kg8ib")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_t1waq")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_po868")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_ppvt1")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_dyo4f")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_c8qb4")
+theme_override_styles/hover = SubResource("StyleBoxTexture_yxm0k")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_i64je")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_a5n5g")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_qpvit")
+theme_override_styles/normal = SubResource("StyleBoxTexture_u7loa")
+
+[node name="RequestsSeparator" type="HSeparator" parent="."]
+layout_mode = 0
+offset_left = 3.0
+offset_top = 385.0
+offset_right = 231.0
+offset_bottom = 389.0
+
+[node name="RequestsLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 396.0
+offset_right = 220.0
+offset_bottom = 414.0
+theme_override_colors/font_color = Color(0.4, 0.75, 0.9, 1)
+theme_override_fonts/font = ExtResource("8_w2qa0")
+theme_override_font_sizes/font_size = 10
+text = "FRIEND REQUESTS"
+
+[node name="FriendRequestsScroll" type="ScrollContainer" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 416.0
+offset_right = 232.0
+offset_bottom = 619.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_scroll_bg")
+
+[node name="FriendRequestsVBox" type="VBoxContainer" parent="FriendRequestsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
 
 [node name="AddFriendHBox" type="HBoxContainer" parent="."]
+visible = false
 layout_mode = 0
-offset_left = 8.0
-offset_top = 478.0
-offset_right = 226.0
-offset_bottom = 517.0
-theme_override_constants/separation = 17
+offset_left = 6.0
+offset_top = 126.0
+offset_right = 227.0
+offset_bottom = 162.0
+theme_override_constants/separation = 10
 
 [node name="FriendUIDInput" type="LineEdit" parent="AddFriendHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.55
-theme_override_styles/focus = SubResource("StyleBoxFlat_30j1j")
-theme_override_styles/normal = SubResource("StyleBoxFlat_2r4jo")
+theme_override_styles/focus = SubResource("StyleBoxFlat_qd8yo")
+theme_override_styles/normal = SubResource("StyleBoxFlat_5fel2")
 placeholder_text = "Enter Username"
 caret_blink = true
 caret_blink_interval = 1.35
@@ -141,12 +577,295 @@ caret_blink_interval = 1.35
 [node name="AddFriendButton" type="Button" parent="AddFriendHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.35
+size_flags_stretch_ratio = 0.0
 mouse_default_cursor_shape = 2
 theme_override_fonts/font = ExtResource("3_js1fy")
-theme_override_styles/focus = SubResource("StyleBoxFlat_js1fy")
-theme_override_styles/hover = SubResource("StyleBoxFlat_3d7hl")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_44a1m")
-theme_override_styles/normal = SubResource("StyleBoxFlat_2r4jo")
-text = "ADD
+theme_override_styles/normal = SubResource("StyleBoxEmpty_1rg6q")
+text = "
 "
+icon = ExtResource("6_6dare")
+
+[node name="DIVERDRUSERINFO" type="HSeparator" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 95.0
+offset_right = 233.0
+offset_bottom = 99.0
+theme_override_styles/separator = SubResource("StyleBoxTexture_mtigq")
+
+[node name="closebutton" type="Button" parent="."]
+layout_mode = 0
+offset_left = 214.0
+offset_right = 234.0
+offset_bottom = 20.0
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxTexture_33krg")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_m7qd2")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_c7lt0")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_we1v5")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_adnb5")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_2bj4c")
+theme_override_styles/hover = SubResource("StyleBoxTexture_t1waq")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_hcft0")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_m38l2")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_se8jt")
+theme_override_styles/normal = SubResource("StyleBoxTexture_byix6")
+
+[node name="settings" type="Button" parent="."]
+layout_mode = 0
+offset_left = 200.0
+offset_top = 4.0
+offset_right = 214.0
+offset_bottom = 16.0
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxTexture_w2qa0")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_7gjhr")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_a0awe")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_iiw08")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_j5o4d")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_aod0y")
+theme_override_styles/hover = SubResource("StyleBoxTexture_m7qd2")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_7nwa0")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_m0tre")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_70kxb")
+theme_override_styles/normal = SubResource("StyleBoxTexture_ctvm5")
+
+[node name="minimize" type="Button" parent="."]
+layout_mode = 0
+offset_left = 181.0
+offset_top = 4.0
+offset_right = 194.0
+offset_bottom = 16.0
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxTexture_oiw84")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_w2qa0")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_33krg")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_eq2f8")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_kg8ib")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_v3f3o")
+theme_override_styles/hover = SubResource("StyleBoxTexture_7gjhr")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_5fel2")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_qd8yo")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_umn00")
+theme_override_styles/normal = SubResource("StyleBoxTexture_6dare")
+
+[node name="systemversion" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 3.0
+offset_top = 624.0
+offset_right = 225.0
+offset_bottom = 652.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_5fel2")
+
+[node name="systemversionlabel1_1" type="Label" parent="systemversion"]
+layout_mode = 0
+offset_left = 73.0
+offset_top = 9.0
+offset_right = 171.0
+offset_bottom = 25.0
+text = "SYSTEM VERSION 1.1"
+label_settings = SubResource("LabelSettings_qd8yo")
+
+[node name="_TemplateFriendRow" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 228.0
+offset_bottom = 28.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_row_item")
+
+[node name="RowHBox" type="HBoxContainer" parent="_TemplateFriendRow"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="PresenceIcon" type="Label" parent="_TemplateFriendRow/RowHBox"]
+custom_minimum_size = Vector2(16, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = " 34"
+
+[node name="NameLabel" type="Label" parent="_TemplateFriendRow/RowHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "friend_name"
+label_settings = SubResource("LabelSettings_v3f3o")
+
+[node name="ProfileBtn" type="Button" parent="_TemplateFriendRow/RowHBox"]
+custom_minimum_size = Vector2(22, 20)
+layout_mode = 2
+tooltip_text = "View Profile"
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_action_btn_empty")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_empty")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_empty")
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_empty")
+icon = ExtResource("15_eq2f8")
+
+[node name="ProfileIcon" type="TextureRect" parent="_TemplateFriendRow/RowHBox/ProfileBtn"]
+visible = false
+modulate = Color(0.145098, 0.878431, 0.992157, 1)
+layout_mode = 2
+texture = ExtResource("15_eq2f8")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ChatBtn" type="Button" parent="_TemplateFriendRow/RowHBox"]
+custom_minimum_size = Vector2(22, 20)
+layout_mode = 2
+tooltip_text = "Chat"
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_action_btn_empty")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_empty")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_empty")
+icon = ExtResource("16_v3f3o")
+
+[node name="ChatIcon" type="TextureRect" parent="_TemplateFriendRow/RowHBox/ChatBtn"]
+visible = false
+modulate = Color(0.145098, 0.878431, 0.992157, 1)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UnfriendBtn" type="Button" parent="_TemplateFriendRow/RowHBox"]
+custom_minimum_size = Vector2(22, 20)
+layout_mode = 2
+tooltip_text = "Unfriend"
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_action_btn_empty")
+theme_override_styles/hover = SubResource("StyleBoxFlat_action_btn_empty")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_action_btn_empty")
+theme_override_styles/normal = SubResource("StyleBoxFlat_action_btn_empty")
+icon = ExtResource("17_v3f3o")
+
+[node name="UnfriendIcon" type="TextureRect" parent="_TemplateFriendRow/RowHBox/UnfriendBtn"]
+visible = false
+modulate = Color(0.992157, 0.145098, 0.145098, 1)
+layout_mode = 2
+texture = ExtResource("10_ctvm5")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="_TemplateRequestRow" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 228.0
+offset_bottom = 28.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_row_item")
+
+[node name="RowHBox" type="HBoxContainer" parent="_TemplateRequestRow"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SenderLabel" type="Label" parent="_TemplateRequestRow/RowHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "sender_name"
+label_settings = SubResource("LabelSettings_7gjhr")
+
+[node name="AcceptBtn" type="Button" parent="_TemplateRequestRow/RowHBox"]
+custom_minimum_size = Vector2(26, 20)
+layout_mode = 2
+tooltip_text = "Accept"
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_7wdwn")
+icon = ExtResource("18_5fel2")
+
+[node name="AcceptIcon" type="TextureRect" parent="_TemplateRequestRow/RowHBox/AcceptBtn"]
+modulate = Color(0.8, 1, 0.8, 1)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DeclineBtn" type="Button" parent="_TemplateRequestRow/RowHBox"]
+custom_minimum_size = Vector2(26, 20)
+layout_mode = 2
+tooltip_text = "Decline"
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_2jdqn")
+icon = ExtResource("19_5fel2")
+
+[node name="DeclineIcon" type="TextureRect" parent="_TemplateRequestRow/RowHBox/DeclineBtn"]
+modulate = Color(0.992157, 0.145098, 0.145098, 1)
+layout_mode = 2
+texture = ExtResource("10_ctvm5")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SearchInputField" type="LineEdit" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 6.0
+offset_top = 128.0
+offset_right = 230.0
+offset_bottom = 159.0
+size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxFlat_search_normal")
+theme_override_styles/normal = SubResource("StyleBoxFlat_search_normal")
+placeholder_text = " Search friends "
+clear_button_enabled = true
+
+[node name="ExitConfirmPopup" type="Panel" parent="."]
+visible = false
+z_index = 20
+layout_mode = 0
+offset_left = -476.0
+offset_top = 184.0
+offset_right = -276.0
+offset_bottom = 314.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_popup_bg")
+
+[node name="TitleLabel" type="Label" parent="ExitConfirmPopup"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 14.0
+offset_right = -12.0
+offset_bottom = -58.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Are you sure you
+want to exit?"
+label_settings = SubResource("LabelSettings_popup_title")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="ExitConfirmPopup"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = -50.0
+offset_right = -14.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="YesButton" type="Button" parent="ExitConfirmPopup/ButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_exit_yes")
+theme_override_styles/hover = SubResource("StyleBoxFlat_exit_yes_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_exit_yes_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_exit_yes")
+text = "YES"
+
+[node name="NoButton" type="Button" parent="ExitConfirmPopup/ButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_exit_no")
+theme_override_styles/hover = SubResource("StyleBoxFlat_exit_no_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_exit_no_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_exit_no")
+text = "NO"

@@ -5,8 +5,16 @@ extends Control
 @onready var start_button: Button = $ScrollContainer/MainContainer/VBox/ButtonContainer/StartButton
 @onready var back_button: Button = $ScrollContainer/MainContainer/VBox/ButtonContainer/BackButton
 
+# GameMode multiplayer
+var _is_gamemode: bool = false
+
 func _ready() -> void:
 	print("📚 Phishing Introduction Scene Loaded")
+	
+	# GameMode detection
+	_is_gamemode = get_tree().has_meta("gamemode_room_code")
+	if _is_gamemode:
+		print("[GameMode] Phishing Intro running in game mode")
 	
 	if start_button:
 		start_button.pressed.connect(_on_start_button_pressed)
@@ -16,7 +24,10 @@ func _ready() -> void:
 		push_error("Start button not found!")
 	
 	if back_button:
-		back_button.pressed.connect(_on_back_button_pressed)
+		if _is_gamemode:
+			back_button.visible = false  # Hide back button in GameMode
+		else:
+			back_button.pressed.connect(_on_back_button_pressed)
 	else:
 		push_error("Back button not found!")
 
@@ -25,6 +36,8 @@ func _on_start_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scene/tutorial_phishing_lab.tscn")
 
 func _on_back_button_pressed() -> void:
+	if _is_gamemode:
+		return  # Block quitting in GameMode
 	print("Returning to mode selection...")
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 

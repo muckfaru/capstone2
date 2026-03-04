@@ -39,6 +39,14 @@ var card_textures := {
 }
 
 @onready var rank_icon_rect: TextureRect = $VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect
+# Achievement slots (Profile) — names start with digits so we use get_node()
+var _ach_slot_0: PanelContainer
+var _ach_slot_1: PanelContainer
+var _ach_slot_2: PanelContainer
+var _ach_pic_0: TextureRect
+var _ach_pic_1: TextureRect
+var _ach_pic_2: TextureRect
+var _equipped_achievements: Array = ["", "", ""]  # slot 0/1/2
 # Match history (Profile)
 @onready var match_history_panel: Panel = $VideoStreamPlayer/ProfilePanel/MatchHistoyPanel
 @onready var winrate_input: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/winrateInput
@@ -76,6 +84,11 @@ var welcome_bonus_awarded: bool = false
 
 # Starter reward state (cached from Firestore)
 var _starter_reward_claimed_cache: bool = false
+
+# Cached stats computed from match history (more accurate than Firestore win/loss fields alone)
+var _history_match_count: int = -1   # -1 = not yet loaded
+var _history_win_count:   int = 0
+var _history_loss_count:  int = 0
 
 # Resume retry guard (prevents infinite loops if server is down)
 var _code_breaker_resume_retries: int = 0
@@ -161,6 +174,9 @@ func _ready() -> void:
 	if defuse_trojan_card:
 		defuse_trojan_card.gui_input.connect(_on_defuse_trojan_card_input)
 		print("[Landing] ✅ DefuseTheTrojan card click handler connected")
+	
+	# Achievement slots
+	_setup_achievement_slots()
 
 
 # Replace these functions in your landing.gd script
@@ -226,7 +242,7 @@ func _setup_match_history_tabs() -> void:
 	_on_tab_stats()
 
 
-func _set_active_tab(active: Button, all_tabs: Array) -> void:
+func _set_active_tab(_active: Button, _all_tabs: Array) -> void:
 	pass # All styling is handled in the .tscn file
 
 func _on_tab_match_history() -> void:
@@ -269,13 +285,100 @@ func _on_tab_stats() -> void:
 		return
 	stats_content.visible = true
 
-	# ✅ Compute winrate
-	var w = int(wins_input.text) if wins_input and wins_input.text.is_valid_int() else 0
-	var l = int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else 0
-	var total = w + l
-	var wr_text = ("%.1f%%" % (float(w) / float(total) * 100.0)) if total > 0 else "0%"
+	# Show cached data immediately (uses history counts if already loaded)
+	_apply_stats_from_local()
+	# Fetch real-time stats from Firestore (user doc for level/wins/losses)
+	_fetch_stats_realtime()
+	# If match history hasn't been loaded yet, load it now so match_played is accurate
+	if _history_match_count < 0:
+		_load_match_history()
 
-	# ✅ Update free-floating value labels
+
+# ─────────────────────────────────────────────────────────────────────────────
+# REAL-TIME STATS HELPERS
+# ─────────────────────────────────────────────────────────────────────────────
+
+func _fetch_stats_realtime() -> void:
+	"""Fetch level from Firestore, then redraw the Stats panel using history-derived counts."""
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		print("[Stats] ⚠️ No auth — showing cached stats")
+		_apply_stats_from_local()
+		return
+
+	_show_stats_loading(true)
+
+	var url := "%s/%s" % [firestore_base_url, Auth.current_local_id]
+	var headers := PackedStringArray(["Authorization: Bearer %s" % Auth.current_id_token])
+
+	var http_stats := HTTPRequest.new()
+	http_stats.timeout = 10.0
+	add_child(http_stats)
+
+	http_stats.request_completed.connect(func(_r, code, _h, body):
+		if is_instance_valid(http_stats):
+			http_stats.queue_free()
+
+		_show_stats_loading(false)
+
+		if code != 200:
+			print("[Stats] ⚠️ Firestore returned %d — using cached data" % code)
+			_apply_stats_from_local()
+			return
+
+		var data = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(data) != TYPE_DICTIONARY or not data.has("fields"):
+			_apply_stats_from_local()
+			return
+
+		var f: Dictionary = data["fields"]
+
+		# Only update level from Firestore — wins/losses are unreliable there.
+		# Win/Loss counts are always derived from match history (more accurate).
+		var lv := 0
+		if f.has("level"):
+			lv = int(str(f["level"].get("integerValue", 0)))
+			if level_input:
+				level_input.text = str(lv)
+
+		# Use history-derived wins/losses; fall back to label cache if history not loaded yet.
+		var w := _history_win_count  if _history_match_count >= 0 else \
+				 (int(wins_input.text) if wins_input and wins_input.text.is_valid_int() else 0)
+		var l := _history_loss_count if _history_match_count >= 0 else \
+				 (int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else 0)
+
+		print("[Stats] ✅ Refreshed — W:%d L:%d Lv:%d (from history)" % [w, l, lv])
+		_apply_stats_to_panel(w, l, lv)
+	)
+
+	http_stats.request(url, headers, HTTPClient.METHOD_GET)
+
+
+func _apply_stats_from_local() -> void:
+	"""Populate the Stats panel — always prefer history-derived counts."""
+	# Wins/losses from history are the most accurate source (covers all game types).
+	var w  := _history_win_count  if _history_match_count >= 0 else \
+			  (int(wins_input.text) if wins_input and wins_input.text.is_valid_int() else 0)
+	var l  := _history_loss_count if _history_match_count >= 0 else \
+			  (int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else 0)
+	var lv := int(level_input.text) if level_input and level_input.text.is_valid_int() else 0
+	_apply_stats_to_panel(w, l, lv)
+
+
+func _apply_stats_to_panel(w: int, l: int, lv: int) -> void:
+	"""Write computed stats into the StatsContent child nodes."""
+	var stats_content = match_history_panel.get_node_or_null("StatsContent")
+	if not stats_content or not stats_content.visible:
+		return
+
+	# WIN / LOSE come from history counts (passed in as w, l).
+	# WIN RATE = wins / (wins + losses) for PvP matches only.
+	var pvp_total := w + l
+	var wr_pct    := (float(w) / float(pvp_total) * 100.0) if pvp_total > 0 else 0.0
+	var wr_text   := ("%.1f%%" % wr_pct) if pvp_total > 0 else "0%"
+
+	# MATCH PLAYED — total history count (PvP + PvE like Defuse the Trojan).
+	var display_total := _history_match_count if _history_match_count >= 0 else pvp_total
+
 	var wins_val = stats_content.get_node_or_null("WinsPanel/WinsValue")
 	if wins_val: wins_val.text = str(w)
 
@@ -286,10 +389,39 @@ func _on_tab_stats() -> void:
 	if wr_val: wr_val.text = wr_text
 
 	var mp_val = stats_content.get_node_or_null("MatchPlayedPanel/MatchPlayedValue")
-	if mp_val: mp_val.text = str(total)
+	if mp_val: mp_val.text = str(display_total)
 
 	var lv_val = stats_content.get_node_or_null("LevelPanel/LevelValue")
-	if lv_val: lv_val.text = level_input.text if level_input else "0"
+	if lv_val: lv_val.text = str(lv) if lv > 0 else (level_input.text if level_input else "0")
+
+	# ── Winrate progress bar (optional — if a ProgressBar node exists) ──
+	var wr_bar = stats_content.get_node_or_null("WinRatePanel/WinRateBar")
+	if wr_bar and wr_bar is ProgressBar:
+		wr_bar.value = wr_pct
+
+
+func _show_stats_loading(loading: bool) -> void:
+	"""Show/hide a subtle 'Refreshing…' hint inside the StatsContent panel."""
+	var stats_content = match_history_panel.get_node_or_null("StatsContent")
+	if not stats_content:
+		return
+
+	var lbl = stats_content.get_node_or_null("StatsLoadingLabel")
+	if loading:
+		if not lbl:
+			lbl = Label.new()
+			lbl.name = "StatsLoadingLabel"
+			lbl.text = "⟳ Refreshing…"
+			lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			lbl.add_theme_color_override("font_color", Color(0, 1, 1, 0.55))
+			lbl.add_theme_font_size_override("font_size", 11)
+			lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			stats_content.add_child(lbl)
+		lbl.visible = true
+	else:
+		if lbl:
+			lbl.visible = false
 
 func _on_tab_inventory_panel() -> void:
 	var tab_bar = match_history_panel.get_node_or_null("TabBar")
@@ -506,6 +638,40 @@ func _doc_timestamp_ms(doc: Dictionary) -> int:
 func _render_match_history(items: Array) -> void:
 	_clear_match_history_rows()
 
+	# ── Compute stats from history items (covers PvE games Firestore fields miss) ──
+	var h_wins   := 0
+	var h_losses := 0
+	var my_uname := Auth.current_username
+	for _doc in items:
+		var _f: Dictionary = _doc.get("fields", {})
+		var _gt := _fs_string(_f, "game_type", "")
+		if _gt == "defuse_trojan":
+			# PvE — counts as a match played, not a win or loss
+			pass
+		else:
+			var _winner := _fs_string(_f, "winner", "")
+			var _loser  := _fs_string(_f, "loser",  "")
+			var _result := _fs_string(_f, "result", "")
+			if _winner == my_uname or _result.to_upper() == "WIN":
+				h_wins += 1
+			elif _loser == my_uname or _result.to_upper() == "LOSE":
+				h_losses += 1
+	_history_match_count = items.size()
+	_history_win_count   = h_wins
+	_history_loss_count  = h_losses
+	# Sync the hidden profile labels so _apply_stats_from_local stays accurate
+	if wins_input   and h_wins   > 0: wins_input.text   = str(h_wins)
+	if losses_input and h_losses > 0: losses_input.text = str(h_losses)
+	if match_played_input: match_played_input.text = str(items.size())
+	# If the Stats tab is already open, refresh it with the newly computed counts
+	var _sc = match_history_panel.get_node_or_null("StatsContent") if match_history_panel else null
+	if _sc and _sc.visible:
+		# Use Firestore wins/losses (authoritative) + history total for match played
+		var _w  := int(wins_input.text)   if wins_input   and wins_input.text.is_valid_int()   else h_wins
+		var _l  := int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else h_losses
+		var _lv := int(level_input.text)  if level_input  and level_input.text.is_valid_int()  else 0
+		_apply_stats_to_panel(_w, _l, _lv)
+
 	if items.is_empty():
 		_add_match_history_placeholder("No matches yet")
 		return
@@ -643,6 +809,39 @@ func _render_match_history(items: Array) -> void:
 		row.add_child(right)
 		_match_history_vbox.add_child(row)
 
+	# Publish simplified history to RTDB so friends can view it on the profile modal
+	_publish_match_history_to_rtdb(items)
+
+
+func _publish_match_history_to_rtdb(items: Array) -> void:
+	var username := Auth.current_username
+	var token := Auth.current_id_token
+	if username == "" or token == "":
+		return
+	const _RTDB := "https://capstone-823dc-default-rtdb.firebaseio.com"
+	var history_data := []
+	var count := mini(items.size(), 20)
+	for i in range(count):
+		var doc = items[i]
+		var f: Dictionary = doc.get("fields", {})
+		history_data.append({
+			"game_type": _fs_string(f, "game_type", ""),
+			"result":    _fs_string(f, "result",    ""),
+			"winner":    _fs_string(f, "winner",    ""),
+			"loser":     _fs_string(f, "loser",     ""),
+			"opponent":  _fs_string(f, "opponent",  ""),
+			"host":      _fs_string(f, "host",      ""),
+			"client":    _fs_string(f, "client",    ""),
+			"timestamp":    _fs_int(f, "timestamp",    0),
+			"wave_reached": _fs_int(f, "wave_reached", 0),
+			"top_score":    _fs_int(f, "top_score",    0),
+			"mode":      _fs_string(f, "mode",      "")
+		})
+	var url := "%s/public_profiles/%s/recent_matches.json?auth=%s" % [_RTDB, username.uri_encode(), token]
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(func(_r, _c, _h, _b): req.queue_free())
+	req.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, JSON.stringify(history_data))
 
 func _load_match_history_from_user_doc() -> void:
 	if Auth.current_local_id == "" or Auth.current_id_token == "":
@@ -2306,6 +2505,14 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 		else:
 			Auth.current_card_bg_path = ""
 
+	# Load equipped achievement badges
+	if f.has("equipped_achievements"):
+		var arr = f["equipped_achievements"].get("arrayValue", {}).get("values", [])
+		for i in range(min(arr.size(), 3)):
+			_equipped_achievements[i] = arr[i].get("stringValue", "")
+	for i in range(3):
+		_refresh_achievement_slot(i)
+
 	if f.has("level"):
 		var lvl := int(f["level"]["integerValue"])
 		level_input.text = str(lvl)
@@ -2322,6 +2529,15 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
 		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
 		match_played_input.text = str(wins + losses)
+
+	# Publish public profile to RTDB so friends can view it (bypasses Firestore 403)
+	var _pub_w := int(wins_input.text) if wins_input and wins_input.text.is_valid_int() else 0
+	var _pub_l := int(losses_input.text) if losses_input and losses_input.text.is_valid_int() else 0
+	Auth.publish_public_profile({
+		"wins": _pub_w,
+		"losses": _pub_l,
+		"total_xp": TutorialManager.total_xp
+	})
 	
 	# Check welcome tutorial
 	var welcome_completed := true
@@ -2367,8 +2583,8 @@ func _show_starter_reward_popup(welcome_completed: bool) -> void:
 	_apply_font_to_children(popup, custom_font, 20)
 
 	var guide_icon: Texture2D = null
-	if ResourceLoader.exists("res://asset/newUIlandingupdate/example trophu.png"):
-		guide_icon = load("res://asset/newUIlandingupdate/example trophu.png")
+	if ResourceLoader.exists("res://asset/newUIlandingupdate/beginnerbadgdes.png"):
+		guide_icon = load("res://asset/newUIlandingupdate/beginnerbadgdes.png")
 
 	var chariot_path := "res://asset/reward_background_cards/the chariot 7 card.jpeg"
 	var chariot_icon: Texture2D = null
@@ -2396,7 +2612,7 @@ func _show_starter_reward_claimed_async(welcome_completed: bool) -> void:
 			"type": "badge",
 			"rarity": "common",
 			"description": "Your quick-start guide.",
-			"icon_path": "res://asset/icons/hologram_guide.png",
+			"icon_path": "res://asset/newUIlandingupdate/beginnerbadgdes.png",
 			"amount": 1,
 		})
 
@@ -2796,10 +3012,18 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
 		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0
 		match_played_input.text = str(wins + losses)
-	
+
+	# ── Load equipped achievement badges (cached-path fix) ──
+	if f.has("equipped_achievements"):
+		var arr = f["equipped_achievements"].get("arrayValue", {}).get("values", [])
+		for i in range(min(arr.size(), 3)):
+			_equipped_achievements[i] = arr[i].get("stringValue", "")
+	for i in range(3):
+		_refresh_achievement_slot(i)
+
 	original_avatar = selected_avatar
 
-	# Load match history after we have username/uid
+	# Load match history after we have username/uid (also populates _history_match_count)
 	_ensure_match_history_ui()
 	_load_match_history()
 
@@ -3351,10 +3575,10 @@ func _show_locked_game_dialog(game_name: String, required_xp: int) -> void:
 func _setup_profile_picture_constraints() -> void:
 	if not profile_pic:
 		return
-		# ONLY set how the texture renders, NOT position or size
-		profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# ONLY set how the texture renders, NOT position or size
+	profile_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	profile_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	profile_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _setup_inventory_system() -> void:
 	"""Load and setup the inventory panel"""
@@ -4105,11 +4329,11 @@ static func update_leaderboard_rtdb(game_type: String, uid: String, username: St
 		"https://capstone-823dc-default-rtdb.firebaseio.com", game_type, uid, token
 	]
 	
-	var http := HTTPRequest.new()
-	Engine.get_main_loop().root.add_child(http)
+	var lb_http := HTTPRequest.new()
+	Engine.get_main_loop().root.add_child(lb_http)
 	
-	http.request_completed.connect(func(_r, code, _h, _b):
-		http.queue_free()
+	lb_http.request_completed.connect(func(_r, code, _h, _b):
+		lb_http.queue_free()
 		if code == 200:
 			print("[Landing] ✅ Leaderboard updated for %s (%s)" % [username, game_type])
 		else:
@@ -4117,7 +4341,7 @@ static func update_leaderboard_rtdb(game_type: String, uid: String, username: St
 	)
 	
 	var headers := PackedStringArray(["Content-Type: application/json"])
-	http.request(url, headers, HTTPClient.METHOD_PUT, JSON.stringify(entry))
+	lb_http.request(url, headers, HTTPClient.METHOD_PUT, JSON.stringify(entry))
 
 func _setup_game_card_hovers() -> void:
 		var defuse = $VideoStreamPlayer/GameSelectPanel/allgame/DefuseTheTrojan
@@ -4195,3 +4419,105 @@ func _setup_game_sfx() -> void:
 		print("[Landing] ✅ Click sound loaded: ", click_sound.resource_path)
 	else:
 		push_error("[Landing] ❌ Failed to load click sound!")
+
+
+# =============================================================================
+# ACHIEVEMENT PICKER — slot click setup, picker popup, Firestore save
+# =============================================================================
+func _setup_achievement_slots() -> void:
+	var base := "VideoStreamPlayer/ProfilePanel/UserPanel/RankIconRect/"
+	_ach_slot_0 = get_node_or_null(base + "1stachievmentslot")
+	_ach_slot_1 = get_node_or_null(base + "2ndachievementslot")
+	_ach_slot_2 = get_node_or_null(base + "3rdachievementslot")
+	_ach_pic_0  = get_node_or_null(base + "1stachievmentslot/1stachievementpicture")
+	_ach_pic_1  = get_node_or_null(base + "2ndachievementslot/2ndachievementpicture")
+	_ach_pic_2  = get_node_or_null(base + "3rdachievementslot/3rdachievementpicture")
+
+	var raw_slots: Array = [_ach_slot_0, _ach_slot_1, _ach_slot_2]
+	for i in range(raw_slots.size()):
+		var slot: PanelContainer = raw_slots[i] as PanelContainer
+		if not is_instance_valid(slot):
+			continue
+		slot.mouse_filter = Control.MOUSE_FILTER_STOP
+		slot.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		var idx := i  # capture for lambda
+		slot.gui_input.connect(func(event: InputEvent):
+			if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+				_open_achievement_picker(idx)
+		)
+
+
+func _open_achievement_picker(slot_index: int) -> void:
+	var picker: AchievementPickerPopup = preload("res://scene/achievement_picker_popup.tscn").instantiate()
+	add_child(picker)
+	picker.achievement_picked.connect(func(ach_id: String):
+		_on_achievement_pick_confirmed(ach_id, slot_index)
+	)
+	picker.slot_cleared.connect(func():
+		_on_achievement_slot_cleared(slot_index)
+	)
+	picker.show_picker(slot_index, _equipped_achievements[slot_index])
+
+
+func _on_achievement_pick_confirmed(ach_id: String, slot_index: int) -> void:
+	_equipped_achievements[slot_index] = ach_id
+	_refresh_achievement_slot(slot_index)
+	_save_equipped_achievements()
+
+
+func _on_achievement_slot_cleared(slot_index: int) -> void:
+	_equipped_achievements[slot_index] = ""
+	_refresh_achievement_slot(slot_index)
+	_save_equipped_achievements()
+
+
+func _refresh_achievement_slot(slot_index: int) -> void:
+	var pics := [_ach_pic_0, _ach_pic_1, _ach_pic_2]
+	if slot_index < 0 or slot_index >= pics.size():
+		return
+	var pic: TextureRect = pics[slot_index]
+	if not is_instance_valid(pic):
+		return
+	var ach_id: String = _equipped_achievements[slot_index]
+	if ach_id == "" or not AchievementPickerPopup.ACHIEVEMENT_DEFS.has(ach_id):
+		pic.texture = null
+		pic.modulate = Color(1, 1, 1, 1)
+		return
+	var badge_path: String = AchievementPickerPopup.ACHIEVEMENT_DEFS[ach_id]["badge"]
+	if ResourceLoader.exists(badge_path):
+		pic.texture = load(badge_path)
+		pic.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		pic.modulate = Color(1, 1, 1, 1)
+	else:
+		pic.texture = null
+
+
+func _save_equipped_achievements() -> void:
+	var user_id := Auth.current_local_id
+	var id_token := Auth.current_id_token
+	if user_id == "" or id_token == "":
+		return
+	var url := "%s/%s?updateMask.fieldPaths=equipped_achievements" % [firestore_base_url, user_id]
+	var values := []
+	for id in _equipped_achievements:
+		values.append({"stringValue": id})
+	var body := {
+		"fields": {
+			"equipped_achievements": {"arrayValue": {"values": values}}
+		}
+	}
+	var headers := [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	var save_http := HTTPRequest.new()
+	add_child(save_http)
+	save_http.request_completed.connect(func(_r, code, _h, _b):
+		save_http.queue_free()
+		if code == 200:
+			print("[Landing] ✅ Achievement badges saved.")
+		else:
+			push_error("[Landing] ❌ Failed to save achievement badges: %d" % code)
+	)
+	save_http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))

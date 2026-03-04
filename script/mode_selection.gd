@@ -9,7 +9,7 @@ extends Control
 # ── Multiplayer buttons ───────────────────────────────────────────────────
 @onready var create_room_btn: Button = $CanvasLayer/CreateRoomButton
 @onready var join_lobby_btn: Button = $CanvasLayer/JoinLobbyButton
-@onready var join_lobby_popup: Control = null  # instantiated at runtime
+@onready var join_lobby_popup: Control = null # instantiated at runtime
 # ── XP / Rank display (now scene nodes) ──────────────────────────────────
 @onready var xp_label: Label = $CanvasLayer/XPLabel
 @onready var xp_progress_bar: ProgressBar = $CanvasLayer/XPProgressBar
@@ -59,6 +59,8 @@ const ICON_INCIDENT_COMMANDER := preload("res://asset/icons/incident_commander_i
 const ICON_SECURITY_GUARDIAN := preload("res://asset/icons/security_guardian_icon.png")
 const ICON_MALWARE_DEFENSE := preload("res://asset/icons/malware_defense_icon.png")
 const ICON_INCIDENT_RESPONSE := preload("res://asset/icons/incident_response_icon.png")
+const ICON_CRYPTO_SORTER := preload("res://asset/icons/encryicon.png")
+const ICON_RSA_KEY_LAB := preload("res://asset/icons/crypt_contract_icon.png")
 
 # Tutorial metadata
 const TUTORIAL_METADATA := {
@@ -73,7 +75,49 @@ const TUTORIAL_METADATA := {
 	"intermediate_lab": {"time": "20-30 min", "xp_range": "100-200 XP", "difficulty": 4},
 	"advanced_scenarios": {"time": "25-35 min", "xp_range": "100-200 XP", "difficulty": 5},
 	"advanced_encryption": {"time": "20-25 min", "xp_range": "100-200 XP", "difficulty": 4},
-	"advanced_lab": {"time": "25-40 min", "xp_range": "100-200 XP", "difficulty": 5}
+	"advanced_lab": {"time": "25-40 min", "xp_range": "100-200 XP", "difficulty": 5},
+	"advanced_crypto_sorter": {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 4},
+	"advanced_rsa_key_lab": {"time": "20-30 min", "xp_range": "100-200 XP", "difficulty": 5}
+}
+
+# ── Prerequisites for progressive unlocking ──────────────────────────────
+# Each key maps to a dict with optional "requires" (array of tutorial IDs
+# that must be completed) and/or "min_xp" (minimum total XP needed).
+# An empty dict (or missing key) means no prerequisite — always unlocked.
+const PREREQUISITES := {
+	# ── Beginner: linear chain ─────────────────────────────────────────
+	"beginner_fundamentals": {},  # Entry point — always open
+	"beginner_network": {"requires": ["beginner_fundamentals"]},
+	"advanced_encryption": {"requires": ["beginner_network"]},
+	"beginner_password": {"requires": ["advanced_encryption"]},
+	"beginner_malware": {"requires": ["beginner_password"]},
+	# ── Intermediate: must finish last beginner, then chain ────────────
+	"beginner_drop_zone": {"requires": ["beginner_malware"]},
+	"intermediate_phishing": {"requires": ["beginner_drop_zone"]},
+	"intermediate_assetandthreat": {"requires": ["intermediate_phishing"]},
+	"intermediate_crypt_contract": {"requires": ["intermediate_assetandthreat"]},
+	"intermediate_incident_commander": {"requires": ["intermediate_crypt_contract"]},
+	# ── Advanced: must finish last intermediate, then chain ────────────
+	"advanced_crypto_sorter": {"requires": ["intermediate_incident_commander"]},
+	"advanced_rsa_key_lab": {"requires": ["advanced_crypto_sorter"]},
+	"advanced_security_guardian": {"requires": ["advanced_rsa_key_lab"]},
+}
+
+# Human-readable names for prerequisite lock messages
+const TUTORIAL_DISPLAY_NAMES := {
+	"beginner_fundamentals": "Cybersecurity Fundamentals",
+	"beginner_network": "Network Basics",
+	"advanced_encryption": "Encryption",
+	"beginner_password": "Password Fortress Defender",
+	"beginner_malware": "Malware Types Overview",
+	"beginner_drop_zone": "Drop Zone Defender",
+	"intermediate_phishing": "Phishing Detection Lab",
+	"intermediate_assetandthreat": "Asset vs Threats",
+	"intermediate_crypt_contract": "Crypt Contract",
+	"intermediate_incident_commander": "Incident Commander",
+	"advanced_crypto_sorter": "Crypto Sorter",
+	"advanced_rsa_key_lab": "RSA Key Lab",
+	"advanced_security_guardian": "Security Guardian",
 }
 
 
@@ -294,6 +338,51 @@ func _on_level_selected(level: String) -> void:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# PREREQUISITE HELPERS
+# ─────────────────────────────────────────────────────────────────────────────
+const _MINIGAME_IDS := [
+	"beginner_drop_zone",
+	"intermediate_assetandthreat",
+	"intermediate_crypt_contract",
+	"intermediate_incident_commander",
+	"advanced_crypto_sorter",
+	"advanced_rsa_key_lab",
+	"advanced_security_guardian",
+	"advanced_malware_defense",
+	"advanced_incident_response"
+]
+
+## Returns true if the given tutorial/minigame has been completed.
+func _is_tutorial_completed(tid: String) -> bool:
+	if tid in _MINIGAME_IDS:
+		return TutorialManager.completed_minigames.has(tid)
+	else:
+		return TutorialManager.completed_tutorials.has(tid)
+
+
+## Checks whether a tutorial's prerequisites are met.
+## Returns {"unlocked": bool, "reason": String}.
+func _check_unlocked(tutorial_id: String) -> Dictionary:
+	var prereq: Dictionary = PREREQUISITES.get(tutorial_id, {})
+	if prereq.is_empty():
+		return {"unlocked": true, "reason": ""}
+
+	# Check min_xp (optional additional gate)
+	var min_xp: int = prereq.get("min_xp", 0)
+	if min_xp > 0 and TutorialManager.total_xp < min_xp:
+		return {"unlocked": false, "reason": "Requires %d XP (you have %d)" % [min_xp, TutorialManager.total_xp]}
+
+	# Check required completions
+	var required: Array = prereq.get("requires", [])
+	for req_id in required:
+		if not _is_tutorial_completed(req_id):
+			var req_name: String = TUTORIAL_DISPLAY_NAMES.get(req_id, req_id)
+			return {"unlocked": false, "reason": "Complete \"%s\" first" % req_name}
+
+	return {"unlocked": true, "reason": ""}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # TUTORIAL MENU  (instantiates tutorial_menu_overlay.tscn)
 # ─────────────────────────────────────────────────────────────────────────────
 func _show_tutorial_menu(level: String) -> void:
@@ -322,9 +411,9 @@ func _show_tutorial_menu(level: String) -> void:
 		"advanced":
 			level_int = 3
 			tutorials = [
+				{"name": "Crypto Sorter: Symmetric vs Asymmetric", "scene": "res://scene/crypto_sorter.tscn", "id": "advanced_crypto_sorter"},
+				{"name": "RSA Key Lab: Public-Key Cryptography", "scene": "res://scene/rsa_key_lab.tscn", "id": "advanced_rsa_key_lab"},
 				{"name": "Security Guardian", "scene": "res://scene/authgmMain.tscn", "id": "advanced_security_guardian"},
-				{"name": "Malware Defense & Removal", "scene": "res://scene/DigitalForensicsScene.tscn", "id": "advanced_malware_defense"},
-				{"name": "CMD Defender: Incident Response Training", "scene": "res://scene/incedentmain.tscn", "id": "advanced_incident_response"},
 			]
 
 	Auth.current_level = level_int
@@ -376,16 +465,7 @@ func _show_tutorial_menu(level: String) -> void:
 func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Control) -> PanelContainer:
 	var tutorial_id: String = tutorial["id"]
 
-	var minigame_ids = [
-		"beginner_drop_zone",
-		"intermediate_assetandthreat",
-		"intermediate_crypt_contract",
-		"intermediate_incident_commander",
-		"advanced_security_guardian",
-		"advanced_malware_defense",
-		"advanced_incident_response"
-	]
-	var is_minigame: bool = tutorial_id in minigame_ids
+	var is_minigame: bool = tutorial_id in _MINIGAME_IDS
 
 	var is_completed: bool = false
 	var completion_data: Dictionary = {}
@@ -398,6 +478,10 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 		if is_completed:
 			completion_data = TutorialManager.completed_tutorials[tutorial_id]
 
+	# ── Prerequisite check ───────────────────────────────────────────────
+	var unlock_info: Dictionary = _check_unlocked(tutorial_id)
+	var is_locked: bool = not unlock_info["unlocked"]
+
 	var metadata = TUTORIAL_METADATA.get(tutorial_id, {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3})
 
 	# Load card scene
@@ -408,9 +492,12 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 
 	var card = card_scene.instantiate()
 
-	# ── Colour the card panel based on completion ──────────────────────────
+	# ── Colour the card panel based on state ──────────────────────────────
 	var card_style = StyleBoxFlat.new()
-	if is_completed:
+	if is_locked:
+		card_style.bg_color = Color(0.06, 0.06, 0.08, 0.95)
+		card_style.border_color = Color(0.35, 0.35, 0.4, 0.6)
+	elif is_completed:
 		card_style.bg_color = Color(0.05, 0.2, 0.1, 0.9)
 		card_style.border_color = Color(0, 1, 0.5, 1.0)
 		card_style.shadow_color = Color(0, 1, 0.5, 0.4)
@@ -443,6 +530,8 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 		"intermediate_crypt_contract": ICON_CRYPT_CONTRACT,
 		"intermediate_incident_commander": ICON_INCIDENT_COMMANDER,
 		# Advanced minigames
+		"advanced_crypto_sorter": ICON_CRYPTO_SORTER,
+		"advanced_rsa_key_lab": ICON_RSA_KEY_LAB,
 		"advanced_security_guardian": ICON_SECURITY_GUARDIAN,
 		"advanced_malware_defense": ICON_MALWARE_DEFENSE,
 		"advanced_incident_response": ICON_INCIDENT_RESPONSE,
@@ -457,11 +546,17 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	var category_icon = card.get_node("CardMargin/MainHBox/CategoryIcon")
 	if category_icon:
 		category_icon.texture = icon_map.get(tutorial_id, ICON_FUNDAMENTALS)
+		if is_locked:
+			category_icon.modulate = Color(0.4, 0.4, 0.4)
 
 	# ── Title ─────────────────────────────────────────────────────────────
 	var title_lbl = card.get_node("CardMargin/MainHBox/CardVBox/TitleLabel")
 	if title_lbl:
-		title_lbl.text = tutorial["name"]
+		if is_locked:
+			title_lbl.text = "🔒 " + tutorial["name"]
+			title_lbl.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+		else:
+			title_lbl.text = tutorial["name"]
 
 	# ── Time / XP labels ──────────────────────────────────────────────────
 	var time_lbl = card.get_node("CardMargin/MainHBox/CardVBox/InfoHBox/TimeContainer/TimeLabel")
@@ -490,6 +585,29 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	var status_lbl = card.get_node("CardMargin/MainHBox/CardVBox/StatusRow/StatusLabel")
 	var action_btn = card.get_node("CardMargin/MainHBox/CardVBox/StatusRow/ActionButton")
 	var no_xp_lbl = card.get_node("CardMargin/MainHBox/CardVBox/StatusRow/NoXPLabel")
+
+	# ── LOCKED state ─────────────────────────────────────────────────────
+	if is_locked:
+		if status_lbl:
+			status_lbl.text = "🔒 " + unlock_info["reason"]
+			status_lbl.add_theme_color_override("font_color", Color(1, 0.6, 0.3))
+			status_lbl.visible = true
+		if no_xp_lbl:
+			no_xp_lbl.visible = false
+		if action_btn:
+			action_btn.text = "LOCKED 🔒"
+			action_btn.disabled = true
+			action_btn.add_theme_color_override("font_color", Color(0.45, 0.45, 0.5))
+			var locked_style = StyleBoxFlat.new()
+			locked_style.bg_color = Color(0.12, 0.12, 0.15, 0.6)
+			locked_style.border_width_left = 2; locked_style.border_width_top = 2
+			locked_style.border_width_right = 2; locked_style.border_width_bottom = 2
+			locked_style.border_color = Color(0.35, 0.35, 0.4, 0.5)
+			locked_style.corner_radius_top_left = 5; locked_style.corner_radius_top_right = 5
+			locked_style.corner_radius_bottom_left = 5; locked_style.corner_radius_bottom_right = 5
+			action_btn.add_theme_stylebox_override("normal", locked_style)
+			action_btn.add_theme_stylebox_override("disabled", locked_style)
+		return card
 
 	if is_completed:
 		if status_lbl:
@@ -641,9 +759,9 @@ func _on_join_lobby_pressed() -> void:
 		tween.tween_property(join_lobby_btn, "scale", Vector2(0.92, 0.92), 0.08)
 		tween.tween_property(join_lobby_btn, "scale", Vector2(1.0, 1.0), 0.15)
 
-	var popup_scene = load("res://scene/JoinLobbyPopup.tscn")
+	var popup_scene = load("res://scene/JoinRoomPopup.tscn")
 	if not popup_scene:
-		push_error("❌ Could not load JoinLobbyPopup.tscn")
+		push_error("❌ Could not load JoinRoomPopup.tscn")
 		return
 	join_lobby_popup = popup_scene.instantiate()
 	$CanvasLayer.add_child(join_lobby_popup)
@@ -657,14 +775,99 @@ func _on_join_popup_closed() -> void:
 		join_lobby_popup = null
 
 func _on_join_code_submitted(room_code: String) -> void:
-	# For now just transition to TeacherLobby reusing existing lobby panel
-	# Later: validate code against Firestore/multiplayer server
 	print("[Join] Student attempting to join room: %s" % room_code)
-	if join_lobby_popup:
-		join_lobby_popup.queue_free()
-		join_lobby_popup = null
-	# TODO: validate code and load student lobby view
-	# get_tree().change_scene_to_file("res://scene/StudentLobby.tscn")
+	var lobby_url := _get_lobby_url()
+	var xp_val: int = TutorialManager.total_xp if TutorialManager else 0
+	var body := {
+		"player_id": Auth.current_local_id,
+		"username": Auth.current_username,
+		"avatar": Auth.current_avatar if Auth.current_avatar != "" else "default.png",
+		"xp": xp_val,
+	}
+	var headers := ["Content-Type: application/json"]
+
+	# Try CyberQuiz join first
+	var url := lobby_url + "/api/quiz/%s/join" % room_code
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _resp_body):
+		http.queue_free()
+		if code == 200:
+			print("[Join] ✅ Successfully joined quiz room: %s" % room_code)
+			if join_lobby_popup:
+				join_lobby_popup.queue_free()
+				join_lobby_popup = null
+			get_tree().set_meta("cyber_quiz_room_code", room_code)
+			get_tree().set_meta("cyber_quiz_lobby_url", lobby_url)
+			get_tree().change_scene_to_file("res://scene/StudentQuizScene.tscn")
+		else:
+			# Quiz join failed — try GameMode join
+			_try_gamemode_join(room_code, lobby_url, body, headers)
+	)
+	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	if err != OK:
+		push_error("[Join] HTTP request failed: %d" % err)
+		http.queue_free()
+		# Fallback: try game mode
+		_try_gamemode_join(room_code, lobby_url, body, headers)
+
+func _try_gamemode_join(room_code: String, lobby_url: String, _body: Dictionary, headers: Array) -> void:
+	# Build body with avatar + xp for the room panel
+	var xp_val: int = TutorialManager.total_xp if TutorialManager else 0
+	var gm_body := {
+		"player_id": Auth.current_local_id,
+		"username": Auth.current_username,
+		"avatar": Auth.current_avatar if Auth.current_avatar != "" else "default.png",
+		"xp": xp_val,
+	}
+	var url := lobby_url + "/api/gamemode/%s/join" % room_code
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code == 200:
+			print("[Join] ✅ Successfully joined game mode room: %s" % room_code)
+			if join_lobby_popup:
+				join_lobby_popup.queue_free()
+				join_lobby_popup = null
+			var text: String = resp_body.get_string_from_utf8()
+			var data = JSON.parse_string(text)
+			var game_name := ""
+			var game_scene := ""
+			if typeof(data) == TYPE_DICTIONARY:
+				game_name = str(data.get("game_name", ""))
+				game_scene = str(data.get("game_scene", ""))
+			# Store meta for student waiting screen
+			get_tree().set_meta("gamemode_room_code", room_code)
+			get_tree().set_meta("gamemode_lobby_url", lobby_url)
+			get_tree().set_meta("gamemode_game_name", game_name)
+			get_tree().set_meta("gamemode_game_scene", game_scene)
+			get_tree().change_scene_to_file("res://scene/gamemode_student_waiting.tscn")
+		else:
+			var err_text: String = resp_body.get_string_from_utf8() if resp_body.size() > 0 else ""
+			var err_data = JSON.parse_string(err_text)
+			var msg := "Room not found. Check the code and try again."
+			if typeof(err_data) == TYPE_DICTIONARY:
+				msg = err_data.get("error", msg)
+			print("[Join] ❌ Join failed (both quiz + gamemode): %s" % msg)
+			if join_lobby_popup and join_lobby_popup.has_method("show_error"):
+				join_lobby_popup.show_error(msg)
+	)
+	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(gm_body))
+	if err != OK:
+		push_error("[Join] GameMode HTTP request failed: %d" % err)
+		http.queue_free()
+		if join_lobby_popup and join_lobby_popup.has_method("show_error"):
+			join_lobby_popup.show_error("Connection error. Try again.")
+
+func _get_lobby_url() -> String:
+	if has_node("/root/MultiplayerConfig"):
+		return get_node("/root/MultiplayerConfig").get_lobby_url()
+	var cfg_script = load("res://script/MultiplayerConfig.gd")
+	if cfg_script:
+		var cfg = cfg_script.new()
+		return cfg.get_lobby_url()
+	return "https://codebreaker-lobby.onrender.com"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

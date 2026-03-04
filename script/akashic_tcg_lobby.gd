@@ -182,6 +182,44 @@ func _add_room_row(entry: Dictionary) -> void:
 	action_btn.size_flags_horizontal = 0
 	action_btn.text = "JOIN"
 	action_btn.disabled = not bool(entry.get("joinable", false))
+
+	# Normal style
+	var btn_normal := StyleBoxFlat.new()
+	btn_normal.bg_color = Color("bd0003")
+	btn_normal.set_corner_radius_all(15)
+	btn_normal.content_margin_left = 8.0
+	btn_normal.content_margin_right = 8.0
+	action_btn.add_theme_stylebox_override("normal", btn_normal)
+
+	# Hover style
+	var btn_hover := StyleBoxFlat.new()
+	btn_hover.bg_color = Color("bd0003")
+	btn_hover.set_corner_radius_all(15)
+	btn_hover.content_margin_left = 8.0
+	btn_hover.content_margin_right = 8.0
+	action_btn.add_theme_stylebox_override("hover", btn_hover)
+
+	# Pressed style
+	var btn_pressed := StyleBoxFlat.new()
+	btn_pressed.bg_color = Color("bd0003")
+	btn_pressed.set_corner_radius_all(15)
+	btn_pressed.content_margin_left = 8.0
+	btn_pressed.content_margin_right = 8.0
+	action_btn.add_theme_stylebox_override("pressed", btn_pressed)
+
+	# Disabled style
+	var btn_disabled := StyleBoxFlat.new()
+	btn_disabled.bg_color = Color(0.25, 0.25, 0.25, 0.7)
+	btn_disabled.set_corner_radius_all(15)
+	btn_disabled.content_margin_left = 8.0
+	btn_disabled.content_margin_right = 8.0
+	action_btn.add_theme_stylebox_override("disabled", btn_disabled)
+
+	action_btn.add_theme_color_override("font_color", Color(0.05, 0.05, 0.05))
+	action_btn.add_theme_color_override("font_hover_color", Color(0.05, 0.05, 0.05))
+	action_btn.add_theme_color_override("font_pressed_color", Color(0.05, 0.05, 0.05))
+	action_btn.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.5))
+
 	action_btn.pressed.connect(func():
 		_join_room_via_lobby(str(entry.get("id", "")))
 	)

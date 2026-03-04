@@ -1,9 +1,34 @@
 extends Panel
 
-@onready var friend_container: VBoxContainer = $FriendListVBox
-@onready var requests_container: VBoxContainer = $FriendRequestsVBox
+@onready var friend_container: VBoxContainer = $FriendListScroll/FriendListVBox
+@onready var requests_container: VBoxContainer = $FriendRequestsScroll/FriendRequestsVBox
+@onready var _friend_row_template: PanelContainer = $_TemplateFriendRow
+@onready var _request_row_template: PanelContainer = $_TemplateRequestRow
 @onready var add_input: LineEdit = $AddFriendHBox/FriendUIDInput
 @onready var add_button: Button = $AddFriendHBox/AddFriendButton
+
+# Header buttons
+@onready var close_button: Button = $closebutton
+@onready var settings_button: Button = $settings
+@onready var minimize_button: Button = $minimize
+@onready var add_friend_toggle_btn: Button = $addfriendbutton
+@onready var search_friends_btn: Button = $searchfriends
+@onready var add_friend_hbox: HBoxContainer = $AddFriendHBox
+@onready var exit_confirm_popup: Panel = $ExitConfirmPopup
+
+# Own profile nodes
+@onready var own_profile_pic: TextureRect = $"user profile and status/userprofile/profilepicture"
+@onready var own_username_label: Label = $"user profile and status/Usernamelabel"
+@onready var own_status_label: Label = $"user profile and status/statuslabel"
+@onready var own_presence_dot: PanelContainer = $"user profile and status/status"
+
+# Search state
+var search_input_field: LineEdit = null
+var search_active: bool = false
+var unfiltered_friends: Array = []
+
+# Own presence timer
+var own_presence_timer := Timer.new()
 
 # 🔹 Firebase Config
 const PROJECT_ID: String = "capstone-823dc"
@@ -34,21 +59,15 @@ func _ready():
 	# Create transparent button style
 	transparent_button_style = StyleBoxFlat.new()
 	transparent_button_style.bg_color = Color(0, 0, 0, 0)  # Fully transparent
-	
-	# Wait longer for ChatManager to initialize
-	await get_tree().create_timer(3.0).timeout
-	if ChatManager:
-		ChatManager.set_current_user(Auth.current_username)
-		print("[FriendList] ChatManager initialized, user set")
-	else:
-		print("[FriendList] ChatManager not ready, will retry on chat open")
 
+	# Wire up timers and buttons immediately (before any await)
 	refresh_timer.wait_time = 5.0
 	refresh_timer.autostart = true
 	refresh_timer.timeout.connect(func():
 		load_friend_requests()
 		_load_friend_accepts_rtdb()
 		load_friend_list()
+		_load_own_profile()
 	)
 	add_child(refresh_timer)
 
@@ -69,17 +88,265 @@ func _ready():
 			return
 		add_button.disabled = true
 		send_friend_request(target)
-		# Safety re-enable in case request fails early / no callback.
 		await get_tree().create_timer(1.0).timeout
 		add_button.disabled = false
 	)
 
+	_setup_header_buttons()
+	_setup_search_input()
+	_load_own_profile()
+	_start_own_presence_polling()
+
 	load_friend_requests()
 	load_friend_list()
 
+	# ChatManager needs extra time — defer so _ready() has no await
+	call_deferred("_init_chat_manager")
+
+
+func _init_chat_manager() -> void:
+	await get_tree().create_timer(3.0).timeout
+	if ChatManager:
+		ChatManager.set_current_user(Auth.current_username)
+		print("[FriendList] ChatManager initialized, user set")
+	else:
+		print("[FriendList] ChatManager not ready, will retry on chat open")
+
 
 # ======================================================
-# 📥 LOAD FRIEND REQUESTS
+# � HEADER BUTTONS (Close / Settings / Minimize / AddFriend / Search)
+# ======================================================
+func _setup_header_buttons() -> void:
+	# ── Close: show exit confirmation popup
+	close_button.pressed.connect(func():
+		exit_confirm_popup.visible = true
+	)
+
+	# ── Exit popup — YES quits the game, NO dismisses
+	exit_confirm_popup.get_node("ButtonRow/YesButton").pressed.connect(func():
+		get_tree().quit()
+	)
+	exit_confirm_popup.get_node("ButtonRow/NoButton").pressed.connect(func():
+		exit_confirm_popup.visible = false
+	)
+
+	# ── Settings: open landing's MenuPanel exactly like the MenuButton does,
+	#    and hide the landing MenuButton to avoid duplicates while the panel is open
+	settings_button.pressed.connect(func():
+		var menu_panel = get_tree().root.find_child("MenuPanel", true, false)
+		if menu_panel:
+			menu_panel.visible = true
+			menu_panel.move_to_front()
+		var menu_btn = get_tree().root.find_child("MenuButton", true, false)
+		if menu_btn:
+			menu_btn.visible = false
+			# Restore the button once the menu panel closes
+			if menu_panel and not menu_panel.has_meta("_fl_restore_connected"):
+				menu_panel.set_meta("_fl_restore_connected", true)
+				menu_panel.visibility_changed.connect(func():
+					if not menu_panel.visible:
+						menu_btn.visible = true
+						menu_panel.set_meta("_fl_restore_connected", false)
+				)
+	)
+
+	# ── Minimize: collapse the OS window
+	minimize_button.pressed.connect(func():
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MINIMIZED)
+	)
+
+	# ── Add Friend toggle: show/hide the AddFriendHBox input row
+	add_friend_toggle_btn.pressed.connect(func():
+		add_friend_hbox.visible = not add_friend_hbox.visible
+		if add_friend_hbox.visible:
+			add_input.grab_focus()
+		else:
+			add_input.text = ""
+	)
+
+
+# ======================================================
+# 🔍 SEARCH INPUT (filter friend list in real-time)
+# ======================================================
+func _setup_search_input() -> void:
+	# Use the pre-built SearchInputField node from the scene (fully editable in the editor)
+	search_input_field = $SearchInputField
+	search_input_field.text_changed.connect(_on_search_text_changed)
+
+	# Wire search button to toggle the LineEdit
+	search_friends_btn.pressed.connect(func():
+		search_active = not search_active
+		search_input_field.visible = search_active
+		if search_active:
+			search_input_field.grab_focus()
+		else:
+			search_input_field.text = ""
+			_on_search_text_changed("")   # restore full list
+	)
+
+
+func _on_search_text_changed(text: String) -> void:
+	var filter := text.strip_edges().to_lower()
+	if filter == "":
+		# Show all friends
+		_update_friend_ui(unfiltered_friends if unfiltered_friends.size() > 0 else last_friend_list)
+		return
+
+	var filtered: Array = []
+	for f in last_friend_list:
+		if str(f).to_lower().contains(filter):
+			filtered.append(f)
+	_update_friend_ui(filtered)
+
+
+# ======================================================
+# 👤 OWN PROFILE — realtime fetch (avatar + username + presence)
+# ======================================================
+func _load_own_profile() -> void:
+	var uid   := Auth.current_local_id
+	var token := Auth.current_id_token
+	if uid == "" or token == "":
+		# Not authenticated yet; show cached username if available
+		if Auth.current_username != "":
+			own_username_label.text = str(Auth.current_username).to_upper()
+		return
+
+	# Update username label from cache immediately
+	if Auth.current_username != "":
+		own_username_label.text = str(Auth.current_username).to_upper()
+
+	# Load avatar from Auth cache first (instant)
+	_apply_own_avatar(str(Auth.current_avatar))
+
+	# Then fetch fresh data from Firestore
+	var url     := "%s/users/%s" % [BASE_URL, uid]
+	var headers := ["Authorization: Bearer %s" % token]
+	var http    := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		if code != 200:
+			return
+		var data = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(data) != TYPE_DICTIONARY or not data.has("fields"):
+			return
+		var fields: Dictionary = data["fields"]
+
+		# Username
+		var uname: String = fields.get("username", {}).get("stringValue", str(Auth.current_username))
+		if uname != "":
+			# Keep Auth cache in sync
+			Auth.current_username = uname
+			own_username_label.text = uname.to_upper()
+
+		# Avatar
+		var avatar_file: String = fields.get("avatar", {}).get("stringValue", "")
+		if avatar_file != "":
+			# Keep Auth cache in sync so instant-apply never reverts to stale data
+			Auth.current_avatar = avatar_file
+			_apply_own_avatar(avatar_file)
+	)
+	http.request(url, headers, HTTPClient.METHOD_GET)
+
+
+func _apply_own_avatar(avatar_file: String) -> void:
+	if not is_instance_valid(own_profile_pic):
+		return
+	if avatar_file == "" or avatar_file == "default.png":
+		return
+
+	var tex: Texture2D = null
+	if avatar_file.begins_with("res://"):
+		tex = load(avatar_file) as Texture2D
+	elif avatar_file.begins_with("user://"):
+		var img := Image.new()
+		if img.load(avatar_file) == OK:
+			img.resize(80, 80)
+			tex = ImageTexture.create_from_image(img)
+	else:
+		var path := "res://asset/avatars/%s" % avatar_file
+		if ResourceLoader.exists(path):
+			tex = load(path) as Texture2D
+
+	if tex:
+		own_profile_pic.texture = tex
+
+
+# ── Own presence polling ──────────────────────────────
+func _start_own_presence_polling() -> void:
+	own_presence_timer.wait_time = 5.0
+	own_presence_timer.autostart = true
+	own_presence_timer.timeout.connect(_poll_own_presence)
+	add_child(own_presence_timer)
+	# Immediate first check
+	_poll_own_presence()
+
+
+func _poll_own_presence() -> void:
+	var uid   := Auth.current_local_id
+	var token := Auth.current_id_token
+	if uid == "" or token == "":
+		_apply_own_presence("offline")
+		return
+
+	var url  := "%s/presence/%s.json?auth=%s" % [RTDB_BASE, uid, token]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		if code != 200:
+			_apply_own_presence("offline")
+			return
+		var txt: String = body.get_string_from_utf8()
+		var state: String = "offline"
+		if txt != "null" and txt != "":
+			var parsed = JSON.parse_string(txt)
+			if typeof(parsed) == TYPE_DICTIONARY and parsed.has("state"):
+				state = str(parsed["state"])
+			elif typeof(parsed) == TYPE_STRING:
+				state = parsed.strip_edges().trim_prefix("\"").trim_suffix("\"")
+		_apply_own_presence(state)
+	)
+	http.request(url, [], HTTPClient.METHOD_GET)
+
+
+func _apply_own_presence(state: String) -> void:
+	if not is_instance_valid(own_presence_dot) or not is_instance_valid(own_status_label):
+		return
+
+	match state:
+		"online":
+			# Green dot
+			var sbox := StyleBoxFlat.new()
+			sbox.bg_color = Color(0.0, 0.85, 0.45, 1.0)
+			sbox.corner_radius_top_left    = 40
+			sbox.corner_radius_top_right   = 40
+			sbox.corner_radius_bottom_right = 40
+			sbox.corner_radius_bottom_left  = 40
+			own_presence_dot.add_theme_stylebox_override("panel", sbox)
+			own_status_label.text = "🟢 Online"
+		"away":
+			var sbox := StyleBoxFlat.new()
+			sbox.bg_color = Color(1.0, 0.75, 0.0, 1.0)
+			sbox.corner_radius_top_left    = 40
+			sbox.corner_radius_top_right   = 40
+			sbox.corner_radius_bottom_right = 40
+			sbox.corner_radius_bottom_left  = 40
+			own_presence_dot.add_theme_stylebox_override("panel", sbox)
+			own_status_label.text = "🟡 Away"
+		_:
+			var sbox := StyleBoxFlat.new()
+			sbox.bg_color = Color(0.55, 0.0, 0.1, 1.0)
+			sbox.corner_radius_top_left    = 40
+			sbox.corner_radius_top_right   = 40
+			sbox.corner_radius_bottom_right = 40
+			sbox.corner_radius_bottom_left  = 40
+			own_presence_dot.add_theme_stylebox_override("panel", sbox)
+			own_status_label.text = "🔴 Offline"
+
+
+# ======================================================
+# �📥 LOAD FRIEND REQUESTS
 # ======================================================
 func load_friend_requests() -> void:
 	var uid = Auth.current_local_id
@@ -185,8 +452,13 @@ func load_friend_list() -> void:
 
 		if new_friends != last_friend_list:
 			last_friend_list = new_friends.duplicate()
+			unfiltered_friends = new_friends.duplicate()
 			print("[UI] 🔄 Friend list changed → refreshing UI")
-			_update_friend_ui(new_friends)
+			# Respect active search filter
+			if search_active and is_instance_valid(search_input_field) and search_input_field.text.strip_edges() != "":
+				_on_search_text_changed(search_input_field.text)
+			else:
+				_update_friend_ui(new_friends)
 	)
 	http.request(url, headers, HTTPClient.METHOD_GET)
 
@@ -199,31 +471,23 @@ func _update_request_ui(requests: Array) -> void:
 		child.queue_free()
 
 	for sender in requests:
-		var hbox = HBoxContainer.new()
-		var lbl = Label.new()
-		lbl.text = sender
-		hbox.add_child(lbl)
+		var row: PanelContainer = _request_row_template.duplicate()
+		row.visible = true
+		row.get_node("RowHBox/SenderLabel").text = sender
 
-		var accept_btn = Button.new()
-		accept_btn.text = "✅"
-		accept_btn.pressed.connect(func():
+		row.get_node("RowHBox/AcceptBtn").pressed.connect(func():
 			accept_friend_request(sender)
-			hbox.queue_free()
+			row.queue_free()
 		)
-		hbox.add_child(accept_btn)
-
-		var decline_btn = Button.new()
-		decline_btn.text = "❌"
-		decline_btn.pressed.connect(func():
+		row.get_node("RowHBox/DeclineBtn").pressed.connect(func():
 			decline_friend_request(sender)
-			hbox.queue_free()
+			row.queue_free()
 		)
-		hbox.add_child(decline_btn)
 
-		hbox.modulate.a = 0
-		requests_container.add_child(hbox)
+		row.modulate.a = 0
+		requests_container.add_child(row)
 		var tween = create_tween()
-		tween.tween_property(hbox, "modulate:a", 1.0, 0.25)
+		tween.tween_property(row, "modulate:a", 1.0, 0.25)
 
 
 # ======================================================
@@ -235,93 +499,41 @@ func _update_friend_ui(friends: Array) -> void:
 	friend_label_map.clear()
 
 	for friend_name in friends:
-		var hbox = HBoxContainer.new()
-		hbox.add_theme_constant_override("separation", 2)
-		hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var row: PanelContainer = _friend_row_template.duplicate()
+		row.visible = true
+		row.get_node("RowHBox/NameLabel").text = friend_name
 
-		# Small presence icon label (wrapped in a MarginContainer for top offset)
-		var icon_lbl := Label.new()
-		icon_lbl.add_theme_font_size_override("font_size", PRESENCE_ICON_SIZE)
-		icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		# Presence icon — the script controls its text (🟢/🔴)
+		var icon_lbl: Label = row.get_node("RowHBox/PresenceIcon")
 		icon_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_set_presence_label(icon_lbl, friend_name, "offline")
 
-		var icon_wrap := MarginContainer.new()
-		icon_wrap.add_theme_constant_override("margin_top", PRESENCE_ICON_TOP_OFFSET)
-		icon_wrap.custom_minimum_size = Vector2(16, 0) # fixed width for the dot area
-		icon_wrap.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		icon_wrap.add_child(icon_lbl)
-		hbox.add_child(icon_wrap)
-
-		# Username label (centered vertically like buttons)
-		var name_lbl := Label.new()
-		name_lbl.text = friend_name
-		name_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		name_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		hbox.add_child(name_lbl)
-
-		var view_profile_btn = Button.new()
-		view_profile_btn.text = "🎫"
-		view_profile_btn.tooltip_text = "View Profile"
-		view_profile_btn.custom_minimum_size = Vector2(18, 10)
-		view_profile_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		view_profile_btn.add_theme_stylebox_override("normal", transparent_button_style)
-		view_profile_btn.add_theme_stylebox_override("hover", transparent_button_style)
-		view_profile_btn.add_theme_stylebox_override("pressed", transparent_button_style)
-		view_profile_btn.add_theme_stylebox_override("focus", transparent_button_style)
-		# Use friend_name directly from loop
-		view_profile_btn.pressed.connect(func():
+		# Connect action buttons
+		row.get_node("RowHBox/ProfileBtn").pressed.connect(func():
 			_on_view_profile_button_pressed(friend_name)
 		)
-		hbox.add_child(view_profile_btn)
-
-		var chat_btn = Button.new()
-		chat_btn.text = "💬"
-		chat_btn.tooltip_text = "Chat"
-		chat_btn.custom_minimum_size = Vector2(18, 10)
-		chat_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		chat_btn.add_theme_stylebox_override("normal", transparent_button_style)
-		chat_btn.add_theme_stylebox_override("hover", transparent_button_style)
-		chat_btn.add_theme_stylebox_override("pressed", transparent_button_style)
-		chat_btn.add_theme_stylebox_override("focus", transparent_button_style)
-		# Use friend_name directly from loop
+		var chat_btn: Button = row.get_node("RowHBox/ChatBtn")
 		chat_btn.pressed.connect(func():
 			_on_chat_button_pressed(friend_name)
 		)
-		hbox.add_child(chat_btn)
-		
-		# Defer badge creation to next frame (don't block rendering)
-		if is_instance_valid(ChatManager):
-			var chat_btn_ref = chat_btn
-			await get_tree().process_frame
-			_create_badge_for_chat_button(chat_btn_ref, friend_name)
-
-		var unfriend_btn = Button.new()
-		unfriend_btn.text = "❌"
-		unfriend_btn.tooltip_text = "Unfriend"
-		unfriend_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		unfriend_btn.add_theme_stylebox_override("normal", transparent_button_style)
-		unfriend_btn.add_theme_stylebox_override("hover", transparent_button_style)
-		unfriend_btn.add_theme_stylebox_override("pressed", transparent_button_style)
-		unfriend_btn.add_theme_stylebox_override("focus", transparent_button_style)
-		# Use friend_name directly from loop
-		unfriend_btn.pressed.connect(func():
+		row.get_node("RowHBox/UnfriendBtn").pressed.connect(func():
 			unfriend_user(friend_name)
-			hbox.queue_free()
+			row.queue_free()
 		)
-		hbox.add_child(unfriend_btn)
 
-		# Store the ICON label for presence updates
+		# Store icon label for presence polling
 		friend_label_map[friend_name] = icon_lbl
 		_start_presence_check(friend_name, icon_lbl)
 
-		hbox.modulate.a = 0
-		friend_container.add_child(hbox)
+		row.modulate.a = 0
+		friend_container.add_child(row)
 		var tween = create_tween()
-		tween.tween_property(hbox, "modulate:a", 1.0, 0.25)
+		tween.tween_property(row, "modulate:a", 1.0, 0.25)
+
+		# Defer badge creation to next frame (don't block rendering)
+		if is_instance_valid(ChatManager):
+			await get_tree().process_frame
+			_create_badge_for_chat_button(chat_btn, friend_name)
 
 
 # -------------------------
@@ -362,63 +574,39 @@ func refresh_presence_all() -> void:
 
 
 # -------------------------
-# Resolve username -> uid (cached) and then fetch RTDB presence
+# Fetch presence directly by username from RTDB /presence_by_name/{username}
+# No uid resolution needed — Auth writes this path alongside /presence/{uid}
 # -------------------------
 func _start_presence_check(username: String, label: Control) -> void:
-	# Check if label is still valid before proceeding
 	if not is_instance_valid(label):
 		return
-	
+
 	var token = Auth.current_id_token
 	if token == "" or username == "":
 		_set_presence_label(label, username, "offline")
 		return
 
-	# if cached uid exists, fetch presence directly
-	if username_to_uid.has(username):
-		var cached_uid: String = str(username_to_uid[username])
-		_fetch_presence_for_uid(cached_uid, label, username, token)
-		return
-
-	# else resolve uid via runQuery and cache it
-	var query_url = "%s:runQuery" % BASE_URL
-	var query_body = {
-		"structuredQuery": {
-			"from": [{"collectionId": "users"}],
-			"where": {
-				"fieldFilter": {
-					"field": {"fieldPath": "username"},
-					"op": "EQUAL",
-					"value": {"stringValue": username}
-				}
-			},
-			"limit": 1
-		}
-	}
-	var headers = [
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % token
-	]
-
-	var http_q := HTTPRequest.new()
-	add_child(http_q)
-	http_q.request_completed.connect(func(_r, code, _h, body):
-		http_q.queue_free()
+	var url := "%s/presence_by_name/%s.json?auth=%s" % [RTDB_BASE, username.uri_encode(), token]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		http.queue_free()
+		if not is_instance_valid(label):
+			return
 		if code != 200:
 			_set_presence_label(label, username, "offline")
 			return
-
-		var arr = JSON.parse_string(body.get_string_from_utf8())
-		if typeof(arr) != TYPE_ARRAY or arr.size() == 0:
+		var txt := body.get_string_from_utf8()
+		if txt == "" or txt == "null":
 			_set_presence_label(label, username, "offline")
 			return
-
-		var friend_uid = arr[0]["document"]["name"].get_file()
-		# cache uid for future checks (store as String explicitly)
-		username_to_uid[username] = str(friend_uid)
-		_fetch_presence_for_uid(friend_uid, label, username, token)
+		var parsed = JSON.parse_string(txt)
+		var state := "offline"
+		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("state"):
+			state = str(parsed["state"])
+		_set_presence_label(label, username, state)
 	)
-	http_q.request(query_url, headers, HTTPClient.METHOD_POST, JSON.stringify(query_body))
+	http.request(url, [], HTTPClient.METHOD_GET)
 
 
 # -------------------------
@@ -1075,21 +1263,17 @@ func debug_print_tree(node: Node, depth: int) -> void:
 # ======================================================
 func _on_view_profile_button_pressed(friend_username: String) -> void:
 	print("[FriendList] View profile pressed for: ", friend_username)
-	
-	# Try to find ViewPlayerProfileModal in the scene tree
-	var modal = get_tree().root.find_child("ViewPlayerProfileModal", true, false)
-	
-	if not modal:
-		push_error("[FriendList] ViewPlayerProfileModal not found in scene tree")
-		debug_print_tree(get_tree().root, 0)
+
+	var modal_scene := load("res://scene/view_player_profile.tscn")
+	if not modal_scene:
+		push_error("[FriendList] view_player_profile.tscn not found")
 		return
-	
-	# Call display_player_profile on the modal
+
+	var modal = modal_scene.instantiate()
+	get_tree().root.add_child(modal)
+
+	# Fetch data — popup updates live when HTTP responds
 	if modal.has_method("display_player_profile"):
-		print("[FriendList] Displaying profile for: ", friend_username)
 		modal.display_player_profile(friend_username)
-		# Wait for profile data to load before showing
-		await get_tree().create_timer(0.5).timeout
-		modal.popup_centered()
-	else:
-		push_error("[FriendList] Modal doesn't have 'display_player_profile' method")
+
+	modal.popup_centered()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=71 format=3 uid="uid://iskq8vfxcwm1"]
+[gd_scene load_steps=72 format=3 uid="uid://iskq8vfxcwm1"]
 
 [ext_resource type="Script" uid="uid://dpn2fg7mjjx55" path="res://script/mode_selection.gd" id="1_mode"]
 [ext_resource type="VideoStream" uid="uid://dtdwmmtpj8uia" path="res://asset/minigamesuite/7e0f9999-9b44-4b49-b3f5-8bde4a5a8aee (1).ogv" id="2_rqr7f"]
@@ -27,7 +27,20 @@ corner_radius_bottom_left = 21
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_an838"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mfesm"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_anre4"]
+bg_color = Color(0.0666667, 0.0745098, 0.203922, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.937255, 0.235294, 0.207843, 1)
+border_blend = true
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0.966628, 0.0677985, 0.102811, 1)
+shadow_size = 16
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e3y5h"]
 
@@ -46,12 +59,12 @@ border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
 border_color = Color(0, 0.901961, 1, 1)
+border_blend = true
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 shadow_color = Color(0, 0.901961, 1, 0.513726)
-shadow_size = 16
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jqb01"]
 
@@ -76,6 +89,8 @@ shadow_size = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4hln6"]
 draw_center = false
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mfesm"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_usa3j"]
 texture = ExtResource("10_t1w3r")
@@ -359,7 +374,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("8_4hln6")
 theme_override_font_sizes/font_size = 25
-theme_override_styles/focus = SubResource("StyleBoxEmpty_mfesm")
+theme_override_styles/focus = SubResource("StyleBoxFlat_anre4")
 theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_e3y5h")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_5ry8m")
 theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_1lb30")
@@ -376,10 +391,10 @@ text = "Back"
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -60.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = 60.0
+offset_left = -49.0
+offset_top = 15.0
+offset_right = -9.0
+offset_bottom = 59.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_font")
@@ -391,9 +406,9 @@ text = "≡"
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -390.0
+offset_left = -393.0
 offset_top = 20.0
-offset_right = -220.0
+offset_right = -223.0
 offset_bottom = 55.0
 grow_horizontal = 0
 mouse_default_cursor_shape = 2
@@ -503,18 +518,19 @@ stretch_mode = 6
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 296.0
+offset_left = 287.0
 offset_top = -167.0
-offset_right = 466.0
+offset_right = 455.0
 offset_bottom = -137.0
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.984475, 0.991507, 0.908535, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 25
-text = "Iron"
+theme_override_font_sizes/font_size = 20
+text = "BRONZE"
 vertical_alignment = 1
+autowrap_mode = 2
 
 [node name="UnlockProgressPanel" type="Panel" parent="CanvasLayer"]
 visible = false

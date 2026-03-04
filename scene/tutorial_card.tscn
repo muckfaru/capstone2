@@ -30,6 +30,8 @@ outline_color = Color(0, 0, 0, 1)
 
 [node name="TutorialCard" type="PanelContainer"]
 custom_minimum_size = Vector2(600, 95)
+offset_right = 710.0
+offset_bottom = 124.0
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_card_normal")
 
@@ -168,6 +170,7 @@ theme_override_font_sizes/font_size = 14
 [node name="ActionButton" type="Button" parent="CardMargin/MainHBox/CardVBox/StatusRow"]
 custom_minimum_size = Vector2(200, 35)
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 1, 1, 1)
 theme_override_fonts/font = ExtResource("9_as0hk")
 theme_override_font_sizes/font_size = 14

@@ -57,6 +57,12 @@ var attacks_blocked: int = 0
 var total_attacks: int = 0
 var false_denials: int = 0
 
+# GameMode multiplayer
+var _is_gamemode: bool = false
+var _gamemode_room_code: String = ""
+var _gamemode_lobby_url: String = ""
+var _gamemode_start_time_ms: int = 0
+
 # UI References
 @onready var hud = $HUD
 @onready var metrics_panel = $HUD/MetricsPanel
@@ -117,6 +123,16 @@ func _ready():
 	if exit_button:
 		exit_button.z_index = 1000
 		exit_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	
+	# ✅ GameMode detection
+	if get_tree().has_meta("gamemode_room_code"):
+		_is_gamemode = true
+		_gamemode_room_code = get_tree().get_meta("gamemode_room_code")
+		_gamemode_lobby_url = get_tree().get_meta("gamemode_lobby_url")
+		_gamemode_start_time_ms = get_tree().get_meta("gamemode_start_time_ms")
+		print("[Security Guardian] 🎮 GameMode detected — room: %s" % _gamemode_room_code)
+		if exit_button:
+			exit_button.visible = false
 	
 	# Start with intro
 	_show_intro()
@@ -591,6 +607,12 @@ func _show_game_over():
 	# Award XP but DON'T mark as completed
 	TutorialManager.add_xp(partial_xp, "Security Guardian (Attempt)")
 	
+	# ✅ GameMode: skip debrief panel, go straight to leaderboard
+	if _is_gamemode:
+		var computed_score = correct_decisions * 10 + attacks_blocked * 5
+		_submit_gamemode_score(computed_score, 500)
+		return
+	
 	debrief_screen.visible = true
 	metrics_panel.visible = false
 	debrief_screen.show_debrief(
@@ -634,6 +656,14 @@ func _show_debrief():
 	var xp_awarded = TutorialManager.award_minigame_xp("security_guardian", total_xp_earned, final_score)
 	if xp_awarded == 0:
 		print("  ⚠️ Replay - No XP awarded (game still playable!)")
+	elif xp_awarded > 0:
+		MinigameRewards.try_grant_rewards("security_guardian", final_score, xp_awarded, self)
+	
+	# ✅ GameMode: skip debrief panel, go straight to leaderboard
+	if _is_gamemode:
+		var computed_score = correct_decisions * 10 + attacks_blocked * 5
+		_submit_gamemode_score(computed_score, 500)
+		return
 	
 	# Victory sound
 	_play_sfx(audio_victory, 0, 1.0)
@@ -652,9 +682,15 @@ func _show_debrief():
 func _on_continue_pressed():
 	_play_sfx(audio_ui_click, 0, 1.0)
 	await _fade_out_bgm(0.5)
+	if _is_gamemode:
+		var computed_score = correct_decisions * 10 + attacks_blocked * 5
+		_submit_gamemode_score(computed_score, 500)
+		return
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 func _on_replay_pressed():
+	if _is_gamemode:
+		return  # No replay in GameMode
 	_play_sfx(audio_ui_click, 0, 1.0)
 	debrief_screen.visible = false
 	metrics_panel.visible = true
@@ -689,10 +725,14 @@ func _update_hud():
 func _input(event):
 	# Press ESC to quit
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		if _is_gamemode:
+			return  # Block ESC in GameMode
 		_on_exit_pressed()
 
 func _on_exit_pressed() -> void:
 	"""Return to mode selection from anywhere in the game"""
+	if _is_gamemode:
+		return  # Block quit in GameMode
 	print("[Gatekeeper Protocol] Exit button pressed, returning to mode selection...")
 	
 	# Play exit sound
@@ -704,3 +744,31 @@ func _on_exit_pressed() -> void:
 	print("[DEBUG] About to change scene...")
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 	print("[DEBUG] Scene change called")
+
+# ============================================================================
+# GAMEMODE MULTIPLAYER
+# ============================================================================
+
+func _submit_gamemode_score(final_score: int, max_score: int) -> void:
+	var time_taken_ms = Time.get_ticks_msec() - _gamemode_start_time_ms
+	var url := _gamemode_lobby_url + "/api/gamemode/%s/submit" % _gamemode_room_code
+	var body := {
+		"player_id": Auth.current_local_id if Auth.current_local_id else "unknown",
+		"score": final_score,
+		"max_score": max_score,
+		"time_taken_ms": time_taken_ms
+	}
+	print("[Security Guardian] 📡 Submitting GameMode score: %d/%d in %dms" % [final_score, max_score, time_taken_ms])
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(body))
+	http.request_completed.connect(func(_result, _code, _headers, _body_bytes):
+		print("[Security Guardian] ✅ Score submitted (HTTP %d)" % _code)
+		http.queue_free()
+		_go_to_leaderboard()
+	)
+
+func _go_to_leaderboard() -> void:
+	get_tree().set_meta("gamemode_leaderboard_room_code", _gamemode_room_code)
+	get_tree().set_meta("gamemode_leaderboard_lobby_url", _gamemode_lobby_url)
+	get_tree().change_scene_to_file("res://scene/gamemode_leaderboard.tscn")

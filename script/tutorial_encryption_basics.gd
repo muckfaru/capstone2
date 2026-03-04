@@ -18,6 +18,10 @@ var current_phase = Phase.INTRO
 var score := 0
 var practice_completed := 0
 var challenge_attempts := 0
+var _is_gamemode: bool = false
+var _gamemode_room_code: String = ""
+var _gamemode_lobby_url: String = ""
+var _gamemode_start_time_ms: int = 0
 
 # Cipher wheel state
 var current_shift := 3
@@ -78,6 +82,14 @@ const ALPHABET := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 func _ready() -> void:
 	print("🔐 Cipher Wheel Tutorial Ready")
+	
+	# Detect multiplayer game mode
+	_is_gamemode = get_tree().has_meta("gamemode_room_code")
+	if _is_gamemode:
+		_gamemode_room_code = str(get_tree().get_meta("gamemode_room_code", ""))
+		_gamemode_lobby_url = str(get_tree().get_meta("gamemode_lobby_url", ""))
+		_gamemode_start_time_ms = int(get_tree().get_meta("gamemode_start_time_ms", 0))
+		print("[GameMode] Encryption Basics running in multiplayer game mode (room: %s)" % _gamemode_room_code)
 	
 	# Wait for nodes to be ready
 	await get_tree().process_frame
@@ -302,7 +314,10 @@ You've completed the Caesar Cipher tutorial!
 
 Click FINISH to return to menu →""" % score
 			
-			next_button.text = "FINISH"
+			if _is_gamemode:
+				next_button.text = "SUBMIT & FINISH"
+			else:
+				next_button.text = "FINISH"
 
 
 func _update_alphabet_display() -> void:
@@ -575,21 +590,35 @@ func _on_next_pressed() -> void:
 			
 			if score <= 0:
 				print("[TUTORIAL] Score too low, redirecting...")
-				get_tree().change_scene_to_file("res://scene/landing.tscn")
+				if _is_gamemode:
+					_submit_gamemode_score()
+				else:
+					get_tree().change_scene_to_file("res://scene/landing.tscn")
 				return
 			
+			# Check first-time before saving
+			var _first_clear: bool = MinigameRewards.is_first_completion("beginner_encryption")
 			# Save tutorial result
 			var tutorial_mgr = get_node("/root/TutorialManager")
 			if tutorial_mgr:
 				tutorial_mgr.save_tutorial_result("beginner_encryption", score, 200)
 				await tutorial_mgr.save_completed
 			
-			get_tree().change_scene_to_file("res://scene/landing.tscn")
+			# Show reward popup on first completion
+			if _first_clear and not _is_gamemode:
+				MinigameRewards.try_grant_rewards("beginner_encryption", score, score, self)
+			
+			if _is_gamemode:
+				_submit_gamemode_score()
+			else:
+				get_tree().change_scene_to_file("res://scene/landing.tscn")
 
 
 func _on_back_pressed() -> void:
 	match current_phase:
 		Phase.INTRO:
+			if _is_gamemode:
+				return  # Cannot quit during multiplayer game
 			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 		Phase.LEARN_WHEEL:
 			_start_phase(Phase.INTRO)
@@ -601,3 +630,34 @@ func _on_back_pressed() -> void:
 			_start_phase(Phase.CHALLENGE_MODE)
 		Phase.COMPLETE:
 			_start_phase(Phase.RANSOMWARE_EXPLANATION)
+
+
+func _submit_gamemode_score() -> void:
+	var time_taken_ms := Time.get_ticks_msec() - _gamemode_start_time_ms
+	var url := _gamemode_lobby_url + "/api/gamemode/%s/submit" % _gamemode_room_code
+	# Encryption is time-only — send score as 0
+	var body := JSON.stringify({
+		"player_id": Auth.current_local_id,
+		"score": 0,
+		"max_score": 0,
+		"time_taken_ms": time_taken_ms
+	})
+	
+	if next_button:
+		next_button.disabled = true
+		next_button.text = "Submitting..."
+	
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		print("[GameMode] Time submitted: %dms → status %d" % [time_taken_ms, code])
+		_go_to_leaderboard()
+	)
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
+
+
+func _go_to_leaderboard() -> void:
+	get_tree().set_meta("gamemode_leaderboard_room_code", _gamemode_room_code)
+	get_tree().set_meta("gamemode_leaderboard_lobby_url", _gamemode_lobby_url)
+	get_tree().change_scene_to_file("res://scene/gamemode_leaderboard.tscn")

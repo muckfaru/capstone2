@@ -14,6 +14,10 @@ enum Section {
 
 var current_section = Section.INTRO
 var xp_earned := 100
+var _is_gamemode: bool = false
+var _gamemode_room_code: String = ""
+var _gamemode_lobby_url: String = ""
+var _gamemode_start_time_ms: int = 0
 
 # Node references
 @onready var section_label: Label = $WindowDialog/VBox/TitleBar/MarginContainer/HBox/SectionLabel
@@ -37,10 +41,24 @@ var typing_tween: Tween = null
 func _ready() -> void:
 	print("🛡️ Cybersecurity Fundamentals Ready")
 	
+	# Detect multiplayer game mode
+	_is_gamemode = get_tree().has_meta("gamemode_room_code")
+	if _is_gamemode:
+		_gamemode_room_code = str(get_tree().get_meta("gamemode_room_code", ""))
+		_gamemode_lobby_url = str(get_tree().get_meta("gamemode_lobby_url", ""))
+		_gamemode_start_time_ms = int(get_tree().get_meta("gamemode_start_time_ms", 0))
+		print("[GameMode] Running in multiplayer game mode (room: %s)" % _gamemode_room_code)
+	
 	interaction_panel.visible = false
 	
 	_setup_cmd_interface()
 	_start_section(Section.INTRO)
+	
+	# Hide close/back button in multiplayer mode
+	if _is_gamemode:
+		var close_btn = get_node_or_null("WindowDialog/VBox/TitleBar/MarginContainer/HBox/CloseButton")
+		if close_btn:
+			close_btn.visible = false
 
 
 func _setup_cmd_interface() -> void:
@@ -311,7 +329,10 @@ You now understand cybersecurity fundamentals:
 [b]Next up: Practice applying the CIA Triad![/b]
 
 [color=#55ff55]Press NEXT to continue to interactive CIA training →[/color]""" % xp_earned
-			next_button.text = "CONTINUE"
+			if _is_gamemode:
+				next_button.text = "SUBMIT & FINISH"
+			else:
+				next_button.text = "CONTINUE"
 			next_button.disabled = false
 	
 	if not section_text.is_empty():
@@ -328,6 +349,8 @@ func _on_next_pressed() -> void:
 		Section.THREAT_MODEL:
 			_start_section(Section.COMPLETE)
 		Section.COMPLETE:
+			# Check first-time before saving (save marks it complete)
+			var _first_clear: bool = MinigameRewards.is_first_completion("beginner_fundamentals")
 			# Save progress with XP
 			var tutorial_mgr = get_node_or_null("/root/TutorialManager")
 			if tutorial_mgr:
@@ -335,13 +358,21 @@ func _on_next_pressed() -> void:
 				if tutorial_mgr.has_signal("save_completed"):
 					await tutorial_mgr.save_completed
 				await get_tree().process_frame
-			# Transition to CIA Triad tutorial
-			get_tree().change_scene_to_file("res://scene/tutorial_cia_triad.tscn")
+			# Show reward popup on first completion
+			if _first_clear and not _is_gamemode:
+				MinigameRewards.try_grant_rewards("beginner_fundamentals", xp_earned, xp_earned, self)
+			if _is_gamemode:
+				_submit_gamemode_score()
+			else:
+				# Transition to CIA Triad tutorial
+				get_tree().change_scene_to_file("res://scene/tutorial_cia_triad.tscn")
 
 
 func _on_back_pressed() -> void:
 	match current_section:
 		Section.INTRO:
+			if _is_gamemode:
+				return  # Cannot quit during multiplayer game
 			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 		Section.CIA_TRIAD:
 			_start_section(Section.INTRO)
@@ -352,6 +383,8 @@ func _on_back_pressed() -> void:
 
 
 func _on_close_button_pressed() -> void:
+	if _is_gamemode:
+		return  # Cannot quit during multiplayer game
 	confirm_overlay.visible = true
 	confirm_popup.scale = Vector2.ZERO
 	confirm_popup.pivot_offset = confirm_popup.size / 2
@@ -363,6 +396,8 @@ func _on_close_button_pressed() -> void:
 
 
 func _on_confirm_yes_pressed() -> void:
+	if _is_gamemode:
+		return
 	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 
@@ -371,3 +406,32 @@ func _on_confirm_no_pressed() -> void:
 	tween.tween_property(confirm_popup, "scale", Vector2.ZERO, 0.2)
 	await tween.finished
 	confirm_overlay.visible = false
+
+
+func _submit_gamemode_score() -> void:
+	var time_taken_ms := Time.get_ticks_msec() - _gamemode_start_time_ms
+	var url := _gamemode_lobby_url + "/api/gamemode/%s/submit" % _gamemode_room_code
+	var body := JSON.stringify({
+		"player_id": Auth.current_local_id,
+		"score": xp_earned,
+		"max_score": xp_earned,
+		"time_taken_ms": time_taken_ms
+	})
+	
+	next_button.disabled = true
+	next_button.text = "Submitting..."
+	
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		print("[GameMode] Score submitted: %d (time: %dms) → status %d" % [xp_earned, time_taken_ms, code])
+		_go_to_leaderboard()
+	)
+	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
+
+
+func _go_to_leaderboard() -> void:
+	get_tree().set_meta("gamemode_leaderboard_room_code", _gamemode_room_code)
+	get_tree().set_meta("gamemode_leaderboard_lobby_url", _gamemode_lobby_url)
+	get_tree().change_scene_to_file("res://scene/gamemode_leaderboard.tscn")

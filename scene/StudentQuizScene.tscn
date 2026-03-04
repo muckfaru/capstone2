@@ -1,7 +1,15 @@
-[gd_scene load_steps=10 format=3 uid="uid://c1qyh7dlnmra4"]
+[gd_scene load_steps=13 format=3 uid="uid://c1qyh7dlnmra4"]
 
 [ext_resource type="Script" uid="uid://b3hdslbq7og65" path="res://script/StudentQuizScene.gd" id="1_script"]
+[ext_resource type="Shader" uid="uid://bhfjciu5yf2vs" path="res://shader/blur_panel.gdshader" id="2_60yu4"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
+[ext_resource type="Texture2D" uid="uid://dwqolbjt7ppqx" path="res://asset/Group 44.png" id="3_1r818"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_iruua"]
+shader = ExtResource("2_60yu4")
+shader_parameter/blur_amount = 1.5
+shader_parameter/tint_color = Color(0, 0.212, 0.49, 0.708)
+shader_parameter/corner_radius = 0.05
 
 [sub_resource type="StyleBoxEmpty" id="SBE_flat"]
 
@@ -50,7 +58,7 @@ shadow_color = Color(0.145, 0.878, 0.992, 0.45)
 shadow_size = 8
 
 [sub_resource type="StyleBoxFlat" id="SB_score_panel"]
-bg_color = Color(0.03, 0.08, 0.22, 1)
+bg_color = Color(0, 0.211765, 0.490196, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -78,6 +86,7 @@ grow_vertical = 2
 script = ExtResource("1_script")
 
 [node name="BG" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_iruua")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -98,10 +107,11 @@ grow_vertical = 2
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 20.0
+offset_left = 101.0
 offset_top = 14.0
-offset_right = -20.0
+offset_right = -73.0
 offset_bottom = 50.0
+grow_horizontal = 2
 theme_override_constants/separation = 0
 
 [node name="BackButton" type="Button" parent="GridScreen/TopBar"]
@@ -143,6 +153,10 @@ anchor_left = 0.05
 anchor_top = 0.1
 anchor_right = 0.95
 anchor_bottom = 0.85
+offset_left = 169.4
+offset_top = 52.2
+offset_right = -152.4
+offset_bottom = -32.8
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/h_separation = 12
@@ -164,7 +178,7 @@ offset_bottom = -16.0
 grow_horizontal = 0
 grow_vertical = 0
 mouse_default_cursor_shape = 2
-theme_override_colors/font_color = Color(0.03, 0.05, 0.12, 1)
+theme_override_colors/font_color = Color(0.0313726, 0.0823529, 0.207843, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/focus = SubResource("SBE_flat")
@@ -190,6 +204,7 @@ offset_left = 20.0
 offset_top = 14.0
 offset_right = -20.0
 offset_bottom = 50.0
+grow_horizontal = 2
 theme_override_constants/separation = 0
 
 [node name="BackButton" type="Button" parent="QuestionScreen/TopBar"]
@@ -224,7 +239,11 @@ anchors_preset = -1
 anchor_left = 0.03
 anchor_top = 0.1
 anchor_right = 0.97
-anchor_bottom = 0.85
+anchor_bottom = 0.87
+offset_left = 0.440002
+offset_top = 0.199997
+offset_right = 0.559937
+offset_bottom = 7.23999
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("SB_card")
@@ -252,13 +271,13 @@ vertical_alignment = 1
 
 [node name="QuestionLabel" type="Label" parent="QuestionScreen/Card"]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
 anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 24.0
-offset_right = -24.0
-offset_bottom = -24.0
+anchor_bottom = 0.42
+offset_left = 90.0
+offset_top = -20.0
+offset_right = -95.8801
+offset_bottom = -31.5632
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.88, 0.94, 1, 1)
@@ -269,6 +288,21 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
+[node name="ChoicesVBox" type="VBoxContainer" parent="QuestionScreen/Card"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.42
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 8.4368
+offset_right = -19.8801
+offset_bottom = -25.96
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
 [node name="NextButton" type="Button" parent="QuestionScreen"]
 custom_minimum_size = Vector2(110, 42)
 layout_mode = 1
@@ -277,7 +311,7 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -130.0
+offset_left = -140.0
 offset_top = -58.0
 offset_right = -20.0
 offset_bottom = -16.0
@@ -310,6 +344,7 @@ offset_left = 20.0
 offset_top = 14.0
 offset_right = -20.0
 offset_bottom = 50.0
+grow_horizontal = 2
 
 [node name="BackButton" type="Button" parent="ScoreScreen/TopBar"]
 custom_minimum_size = Vector2(40, 36)
@@ -325,20 +360,24 @@ theme_override_styles/normal = SubResource("SBE_flat")
 text = "←"
 flat = true
 
-[node name="ContentRow" type="HBoxContainer" parent="ScoreScreen"]
+[node name="ContentRow" type="Control" parent="ScoreScreen"]
 layout_mode = 1
-anchors_preset = -1
 anchor_left = 0.03
 anchor_top = 0.12
 anchor_right = 0.97
 anchor_bottom = 0.75
+offset_left = 0.440002
+offset_top = 0.240005
+offset_right = 0.559937
+offset_bottom = -88.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 30
 
 [node name="ScorePanel" type="Panel" parent="ScoreScreen/ContentRow"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
+offset_right = 411.0
+offset_bottom = 320.0
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("SB_score_panel")
 
@@ -354,10 +393,10 @@ text = "SCORE"
 
 [node name="ScoreNumber" type="Label" parent="ScoreScreen/ContentRow/ScorePanel"]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 40.0
-offset_right = 184.0
-offset_bottom = 140.0
+offset_left = 126.44
+offset_top = 36.24
+offset_right = 294.44
+offset_bottom = 136.24
 theme_override_colors/font_color = Color(0.9, 0.96, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 72
@@ -367,16 +406,29 @@ vertical_alignment = 1
 
 [node name="PctLabel" type="Label" parent="ScoreScreen/ContentRow/ScorePanel"]
 layout_mode = 0
-offset_left = 16.0
-offset_top = 145.0
-offset_right = 184.0
-offset_bottom = 175.0
+offset_left = 16.44
+offset_top = 162.24
+offset_right = 184.44
+offset_bottom = 192.24
 theme_override_colors/font_color = Color(0.65, 0.8, 1, 0.8)
 theme_override_font_sizes/font_size = 13
 text = "Percentage: 0%"
 
+[node name="cornerb" type="TextureRect" parent="ScoreScreen/ContentRow/ScorePanel"]
+layout_mode = 0
+offset_left = 294.44
+offset_top = -6.75999
+offset_right = 419.44
+offset_bottom = 95.24
+texture = ExtResource("3_1r818")
+expand_mode = 1
+
 [node name="ResultGrid" type="GridContainer" parent="ScoreScreen/ContentRow"]
 layout_mode = 2
+offset_left = 490.0
+offset_top = 8.0
+offset_right = 1050.0
+offset_bottom = 323.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/h_separation = 10
@@ -389,6 +441,10 @@ anchors_preset = -1
 anchor_top = 0.78
 anchor_right = 1.0
 anchor_bottom = 0.88
+offset_left = 131.0
+offset_top = -210.44
+offset_right = -812.0
+offset_bottom = -210.24
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.88, 0.94, 1, 1)
@@ -406,9 +462,9 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -130.0
+offset_left = -145.0
 offset_top = -58.0
-offset_right = -20.0
+offset_right = -35.0
 offset_bottom = -16.0
 grow_horizontal = 0
 grow_vertical = 0

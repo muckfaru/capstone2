@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://dqratbpuqls7b"]
 
-[ext_resource type="Script" path="res://script/defuse_trojan_mode_popup.gd" id="1_popup"]
+[ext_resource type="Script" uid="uid://d12qd7oj4xlqd" path="res://script/defuse_trojan_mode_popup.gd" id="1_popup"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
