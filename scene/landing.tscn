@@ -18,7 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://cokg85h7pt2rg" path="res://asset/newUIlandingupdate/topleft.png" id="11_p3l0o"]
 [ext_resource type="PackedScene" uid="uid://clvghcukrtua8" path="res://scene/akashic_tcg_lobby.tscn" id="11_tgc"]
 [ext_resource type="Texture2D" uid="uid://bjkci8oobkta" path="res://asset/rankicon/MASTER.png" id="11_w34e0"]
-[ext_resource type="PackedScene" uid="uid://by8pxsiunowkt" path="res://scene/defuse_trojan_lobby.tscn" id="12_defuse"]
+[ext_resource type="PackedScene" path="res://scene/defuse_trojan_lobby.tscn" id="12_defuse"]
 [ext_resource type="Texture2D" uid="uid://c1p5w4nvx1i1l" path="res://asset/newUIlandingupdate/bottomleft.png" id="12_kbofv"]
 [ext_resource type="Texture2D" uid="uid://bpkxbcgeecepa" path="res://asset/newUIlandingupdate/rankframer.png" id="12_w34e0"]
 [ext_resource type="Texture2D" uid="uid://b53xk27ilwwy5" path="res://asset/newUIlandingupdate/example trophu.png" id="13_6jpks"]
@@ -815,7 +815,6 @@ offset_right = 3.0
 offset_bottom = 2.0
 grow_horizontal = 2
 grow_vertical = 2
-volume_db = -80.0
 expand = true
 buffering_msec = 800
 

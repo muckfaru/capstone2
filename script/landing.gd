@@ -3523,7 +3523,7 @@ func _setup_video_and_music() -> void:
 	# Setup background music
 	audio_player = AudioStreamPlayer.new()
 	audio_player.name = "BackgroundMusicPlayer"
-	audio_player.volume_db = -15.0
+	audio_player.volume_db = 0.0  # Full volume - SettingsManager controls Master bus
 	audio_player.finished.connect(_on_music_finished)
 	add_child(audio_player)
 	
@@ -3612,7 +3612,7 @@ func _fade_loop_music() -> void:
 	var tween_in = create_tween()
 	tween_in.set_ease(Tween.EASE_IN_OUT)
 	tween_in.set_trans(Tween.TRANS_SINE)
-	tween_in.tween_property(audio_player, "volume_db", -15.0, music_fade_duration)
+	tween_in.tween_property(audio_player, "volume_db", 0.0, music_fade_duration)  # Full volume
 	await tween_in.finished
 	
 	print("[Landing] ✅ Music loop complete")
