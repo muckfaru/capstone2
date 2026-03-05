@@ -147,6 +147,7 @@ func _ready() -> void:
 	_setup_ui()
 	_setup_multiplayer_from_meta()
 	_start_game()
+	_apply_shop_cosmetics()
 	
 	# Connect menu button
 	if menu_button:
@@ -164,6 +165,45 @@ func _ready() -> void:
 		_setup_relay_for_arena()
 		_announce_arena_ready()
 	
+func _apply_shop_cosmetics() -> void:
+	# Background swap
+	var bg_val: String = ShopManager.get_equipped_value(ShopManager.SLOT_BG_DEFUSE_TROJAN)
+	if bg_val != "" and ResourceLoader.exists(bg_val):
+		var bg_sprite = $ParallaxBackground/ParallaxLayer/Background
+		if bg_sprite and bg_sprite is Sprite2D:
+			bg_sprite.texture = load(bg_val)
+			print("[DT Arena] 🎨 Shop background applied: ", bg_val)
+
+	# Skin swap (player ship)
+	var skin_val: String = ShopManager.get_equipped_value(ShopManager.SLOT_SKIN_DEFUSE_TROJAN)
+	if skin_val != "" and ResourceLoader.exists(skin_val):
+		if skin_val.ends_with(".tres"):
+			# SpriteFrames resource
+			var anim_sprite = player_sprite.get_node_or_null("AnimatedSprite2D")
+			if anim_sprite and anim_sprite is AnimatedSprite2D:
+				var frames = load(skin_val)
+				if frames is SpriteFrames:
+					anim_sprite.sprite_frames = frames
+					anim_sprite.play("idle")
+					# Non-default skins use PNG with real transparency — remove the
+					# white/black background-removal shader so dark pixels aren't stripped.
+					if skin_val != "res://asset/defuse_trojan/player_frames.tres":
+						anim_sprite.material = null
+					print("[DT Arena] 🎨 Shop ship skin applied: ", skin_val)
+		else:
+			# Static texture (e.g. player_computer.jpg)
+			var anim_sprite = player_sprite.get_node_or_null("AnimatedSprite2D")
+			if anim_sprite and anim_sprite is AnimatedSprite2D:
+				# Replace with a static Sprite2D
+				var tex = load(skin_val) as Texture2D
+				if tex:
+					var static_sprite := Sprite2D.new()
+					static_sprite.texture = tex
+					static_sprite.scale = anim_sprite.scale
+					static_sprite.position = anim_sprite.position
+					anim_sprite.replace_by(static_sprite)
+					print("[DT Arena] 🎨 Shop ship texture applied: ", skin_val)
+
 func _setup_ui() -> void:
 	health_bar.max_value = max_health
 	health_bar.value = health

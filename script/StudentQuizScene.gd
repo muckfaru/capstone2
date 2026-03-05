@@ -25,6 +25,7 @@ var _q_timer_running: bool = false
 var _is_cyber_quiz: bool = false
 var _cyber_quiz_room_code: String = ""
 var _cyber_quiz_lobby_url: String = ""
+var _cyber_quiz_room_name: String = ""
 var _wait_poll_timer: Timer = null
 var _answer_buttons: Array[Button] = []
 
@@ -561,6 +562,10 @@ func _poll_quiz_status() -> void:
 		var data = JSON.parse_string(text)
 		if typeof(data) != TYPE_DICTIONARY: return
 		var status: String = data.get("status", "waiting")
+		# Capture quiz room name for match history
+		var rn: String = data.get("room_name", "")
+		if rn != "":
+			_cyber_quiz_room_name = rn
 		if status == "active":
 			print("[CyberQuiz] Quiz is active! Fetching questions...")
 			if _wait_poll_timer:
@@ -693,6 +698,13 @@ func _submit_and_update_score() -> void:
 		# Color grid and enable wrong-answer review
 		_update_score_grid_from_results()
 
+		# Save quiz result to Firestore match history
+		_save_quiz_to_match_history(server_score, server_total)
+
+		# Award CyberCoins for quiz performance
+		if CyberCoinManager:
+			CyberCoinManager.award_quiz_coins(server_score, _cyber_quiz_room_name)
+
 		done_btn.text = "View Leaderboard →"
 		done_btn.disabled = false
 	)
@@ -721,6 +733,80 @@ func _update_score_grid_from_results() -> void:
 
 func _on_review_btn_pressed(index: int) -> void:
 	_show_question_review(index)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MATCH HISTORY — Save quiz result to Firestore
+# ─────────────────────────────────────────────────────────────────────────────
+func _save_quiz_to_match_history(score: int, total: int) -> void:
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		push_error("[CyberQuiz] No auth — skipping match history save")
+		return
+
+	var now_unix_ms: int = int(Time.get_unix_time_from_system() * 1000.0)
+	var match_id := "%d_%s" % [now_unix_ms, Auth.current_local_id]
+	var pct := (float(score) / float(total)) * 100.0 if total > 0 else 0.0
+	var quiz_title := _cyber_quiz_room_name if _cyber_quiz_room_name != "" else ("Quiz " + _cyber_quiz_room_code)
+
+	var match_data := {
+		"participant_ids": [Auth.current_local_id],
+		"game_type": "cyber_quiz",
+		"quiz_title": quiz_title,
+		"quiz_room_code": _cyber_quiz_room_code,
+		"score": score,
+		"total_questions": total,
+		"percentage": pct,
+		"player_id": Auth.current_local_id,
+		"player_name": Auth.current_username,
+		"timestamp": now_unix_ms,
+	}
+
+	var payload := _format_firestore_payload(match_data)
+	var firestore_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/match_history?documentId=%s" % match_id
+	var headers := PackedStringArray([
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % Auth.current_id_token
+	])
+
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _body):
+		http.queue_free()
+		if code == 200 or code == 201:
+			print("[CyberQuiz] ✅ Quiz history saved! ID: %s" % match_id)
+		else:
+			var resp_text: String = _body.get_string_from_utf8() if _body.size() > 0 else ""
+			print("[CyberQuiz] ⚠️ Failed to save quiz history: %d\n%s" % [code, resp_text])
+	)
+	http.request(firestore_url, headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+
+func _format_firestore_payload(data: Dictionary) -> Dictionary:
+	var fields: Dictionary = {}
+	for key in data.keys():
+		fields[key] = _to_firestore_value(data[key])
+	return {"fields": fields}
+
+func _to_firestore_value(value) -> Dictionary:
+	if value == null:
+		return {"nullValue": "NULL_VALUE"}
+	if value is String:
+		return {"stringValue": value}
+	if value is int:
+		return {"integerValue": str(value)}
+	if value is float:
+		return {"doubleValue": value}
+	if value is bool:
+		return {"booleanValue": value}
+	if value is Array:
+		var values: Array = []
+		for item in value:
+			values.append(_to_firestore_value(item))
+		return {"arrayValue": {"values": values}}
+	if value is Dictionary:
+		var map_fields: Dictionary = {}
+		for k in value.keys():
+			map_fields[str(k)] = _to_firestore_value(value[k])
+		return {"mapValue": {"fields": map_fields}}
+	return {"stringValue": str(value)}
 
 func _show_question_review(index: int) -> void:
 	if index >= _question_results.size(): return

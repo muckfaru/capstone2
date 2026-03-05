@@ -328,14 +328,15 @@ text = "Log in
 
 [node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer/FillUpForm"]
 layout_mode = 0
-offset_left = 235.0
+offset_left = 268.0
 offset_top = 350.0
-offset_right = 283.0
+offset_right = 317.0
 offset_bottom = 398.0
 mouse_default_cursor_shape = 2
 texture_normal = ExtResource("4_7yur4")
 
 [node name="FacebookLoginButton" type="TextureButton" parent="VideoStreamPlayer/FillUpForm"]
+visible = false
 layout_mode = 0
 offset_left = 292.0
 offset_top = 350.0

@@ -60,6 +60,7 @@ func _ready():
 		signup_button.pressed.connect(_on_signup_pressed)
 	
 	google_signup_btn.pressed.connect(_on_google_signup_pressed)
+	$VideoStreamPlayer/BackButton.pressed.connect(_on_back_button_pressed)
 
 	email_regex.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 	email_input.text_changed.connect(_validate_inputs)

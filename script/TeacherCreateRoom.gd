@@ -16,8 +16,8 @@ const ICON_ASSET_THREAT := preload("res://asset/icons/asset_threat_icon.png")
 const ICON_CRYPT_CONTRACT := preload("res://asset/icons/crypt_contract_icon.png")
 const ICON_INCIDENT_COMMANDER := preload("res://asset/icons/incident_commander_icon.png")
 const ICON_SECURITY_GUARDIAN := preload("res://asset/icons/security_guardian_icon.png")
-const ICON_MALWARE_DEFENSE := preload("res://asset/icons/malware_defense_icon.png")
-const ICON_INCIDENT_RESPONSE := preload("res://asset/icons/incident_response_icon.png")
+const ICON_CRYPTO_SORTER := preload("res://asset/icons/encryicon.png")
+const ICON_RSA_KEY_LAB := preload("res://asset/icons/crypt_contract_icon.png")
 
 const ALL_MINIGAMES := [
 	{"name": "Cybersecurity Fundamentals", "scene": "res://scene/tutorial_cyber_fundamentals.tscn", "id": "beginner_fundamentals", "level": "Beginner", "icon": "FUNDAMENTALS"},
@@ -31,8 +31,8 @@ const ALL_MINIGAMES := [
 	{"name": "Crypt Contract", "scene": "res://scene/PhoneEncryption.tscn", "id": "intermediate_crypt_contract", "level": "Intermediate", "icon": "CRYPT_CONTRACT"},
 	{"name": "Incident Commander", "scene": "res://scene/SOCMain.tscn", "id": "intermediate_incident_commander", "level": "Intermediate", "icon": "INCIDENT_COMMANDER"},
 	{"name": "Security Guardian", "scene": "res://scene/authgmMain.tscn", "id": "advanced_security_guardian", "level": "Advanced", "icon": "SECURITY_GUARDIAN"},
-	{"name": "Malware Defense & Removal", "scene": "res://scene/DigitalForensicsScene.tscn", "id": "advanced_malware_defense", "level": "Advanced", "icon": "MALWARE_DEFENSE"},
-	{"name": "CMD Defender: Incident Response", "scene": "res://scene/incedentmain.tscn", "id": "advanced_incident_response", "level": "Advanced", "icon": "INCIDENT_RESPONSE"},
+	{"name": "Crypto Sorter: Symmetric vs Asymmetric", "scene": "res://scene/crypto_sorter.tscn", "id": "advanced_crypto_sorter", "level": "Advanced", "icon": "CRYPTO_SORTER"},
+	{"name": "RSA Key Lab: Public-Key Cryptography", "scene": "res://scene/rsa_key_lab.tscn", "id": "advanced_rsa_key_lab", "level": "Advanced", "icon": "RSA_KEY_LAB"},
 ]
 
 const LEVEL_COLORS := {
@@ -644,8 +644,8 @@ func _get_icon(key: String) -> Texture2D:
 		"CRYPT_CONTRACT": return ICON_CRYPT_CONTRACT
 		"INCIDENT_COMMANDER": return ICON_INCIDENT_COMMANDER
 		"SECURITY_GUARDIAN": return ICON_SECURITY_GUARDIAN
-		"MALWARE_DEFENSE": return ICON_MALWARE_DEFENSE
-		"INCIDENT_RESPONSE": return ICON_INCIDENT_RESPONSE
+		"CRYPTO_SORTER": return ICON_CRYPTO_SORTER
+		"RSA_KEY_LAB": return ICON_RSA_KEY_LAB
 		_: return ICON_FUNDAMENTALS
 
 func _on_copy_code_pressed() -> void:

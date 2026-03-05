@@ -188,6 +188,7 @@ func _ready() -> void:
 	if _battle_music and ResourceLoader.exists("res://asset/background/code breaker new bgm.mp3"):
 		_battle_music.stream = load("res://asset/background/code breaker new bgm.mp3")
 		print("[Arena] 🎵 Using BGM: res://asset/background/code breaker new bgm.mp3")
+	_apply_shop_cosmetics()
 	
 	# Load init data from loading screen
 	var init: Dictionary = {}
@@ -1512,6 +1513,40 @@ func _end_game_timeout() -> void:
 	await get_tree().create_timer(5.0).timeout
 	_leave_arena()
 
+func _apply_shop_cosmetics() -> void:
+	# Background swap
+	var bg_val: String = ShopManager.get_equipped_value(ShopManager.SLOT_BG_CODE_BREAKER)
+	if bg_val != "" and ResourceLoader.exists(bg_val):
+		var bg_node = get_node_or_null("NinePatchRect")
+		if bg_node and bg_node is NinePatchRect:
+			bg_node.texture = load(bg_val)
+			print("[CB Arena] 🎨 Shop background applied: ", bg_val)
+
+	# Break effect skin — swap shader parameters on all panels
+	var skin_val: String = ShopManager.get_equipped_value(ShopManager.SLOT_SKIN_CODE_BREAKER)
+	if skin_val != "" and skin_val != "default":
+		var glow_color := Vector3(0.0, 0.8, 1.0)  # default cyan
+		var crack_intensity := 1.0
+		var piece_count := 8.0
+		var explosion_strength := 0.8
+		var glow_intensity := 0.8
+		match skin_val:
+			"crimson":
+				glow_color = Vector3(1.0, 0.2, 0.1)
+				crack_intensity = 1.5
+				piece_count = 12.0
+				explosion_strength = 1.2
+				glow_intensity = 1.2
+		var all_panels = [_default_panel, _heal_panel, _freeze_panel, _extend_panel, _defensive_panel]
+		for panel in all_panels:
+			if panel and panel.material:
+				panel.material.set_shader_parameter("edge_glow_color", glow_color)
+				panel.material.set_shader_parameter("crack_intensity", crack_intensity)
+				panel.material.set_shader_parameter("piece_count", piece_count)
+				panel.material.set_shader_parameter("explosion_strength", explosion_strength)
+				panel.material.set_shader_parameter("edge_glow_intensity", glow_intensity)
+		print("[CB Arena] 🎨 Shop break effect applied: ", skin_val)
+
 func _leave_arena() -> void:
 	"""Clean up and transition to PostGame screen"""
 	var total_typing_time = Time.get_ticks_msec() / 1000.0 - _game_start_time
@@ -1587,6 +1622,10 @@ func _leave_arena() -> void:
 		
 		# Save to match_history collection (now with proper permissions)
 		_save_match_history(winner_name, loser_name, winner_id, loser_id, host_id, client_id, player_score, _opponent_score, duration_seconds, game_duration_str, _powerups_used)
+
+		# Award CyberCoins for PvP win
+		if we_won and not _is_draw and CyberCoinManager:
+			CyberCoinManager.award_pvp_win("Code Breaker")
 
 		# Also save to users/<uid>/recent_matches as backup/cache
 		var result_text := "DRAW" if _is_draw else ("WIN" if we_won else "LOSE")

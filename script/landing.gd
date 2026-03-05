@@ -59,6 +59,7 @@ var _leaderboard_vbox: VBoxContainer = null
 var _current_leaderboard_game: String = "code_breaker"
 
 @onready var inventory_panel: Panel = null
+var shop_panel_instance: Control = null
 # Dynamic UI elements (created at runtime)
 var file_dialog: FileDialog
 @onready var xp_progress: TextureProgressBar = $VideoStreamPlayer/ProfilePanel/MatchHistoyPanel/XPProgressBar
@@ -66,7 +67,7 @@ var file_dialog: FileDialog
 # === Avatars & User Data ===
 var original_username: String = ""
 var original_avatar: String = ""
-var edit_profile_popup: Panel = null
+var edit_profile_popup: Control = null
 var has_unsaved_changes: bool = false
 var confirmation_popup: Panel = null
 var avatars: Dictionary = {}
@@ -78,6 +79,9 @@ var firestore_base_url := "https://firestore.googleapis.com/v1/projects/capstone
 var match_history_base_url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents:runQuery"
 var http: HTTPRequest
 var ui_initialized: bool = false
+
+# === CyberCoin UI ===
+var _cybercoin_label: Label = null
 
 # ✅ CRITICAL: Flag to prevent duplicate welcome bonus
 var welcome_bonus_awarded: bool = false
@@ -132,6 +136,7 @@ func _ready() -> void:
 	_ensure_match_history_ui()
 	_instantiate_chat_panel()
 	_setup_inventory_system() # ✅ Initialize inventory system
+	_setup_shop_system() # ✅ Initialize shop system
 	Auth.set_user_online()
 	
 	# Connect XP signals
@@ -146,6 +151,17 @@ func _ready() -> void:
 	TutorialManager.load_user_data()
 	await get_tree().create_timer(0.5).timeout
 	_update_xp_display()
+
+	# Load CyberCoin balance and claim daily bonus
+	CyberCoinManager.load_from_firestore()
+	if not CyberCoinManager.balance_changed.is_connected(_on_cybercoin_balance_changed):
+		CyberCoinManager.balance_changed.connect(_on_cybercoin_balance_changed)
+	_setup_cybercoin_display()
+	await get_tree().create_timer(1.0).timeout
+	CyberCoinManager.claim_daily_bonus()
+
+	# Load shop data from Firestore
+	ShopManager.load_from_firestore()
 
 	_setup_navigation()
 	_setup_mission_system()
@@ -645,8 +661,8 @@ func _render_match_history(items: Array) -> void:
 	for _doc in items:
 		var _f: Dictionary = _doc.get("fields", {})
 		var _gt := _fs_string(_f, "game_type", "")
-		if _gt == "defuse_trojan":
-			# PvE — counts as a match played, not a win or loss
+		if _gt == "defuse_trojan" or _gt == "cyber_quiz":
+			# PvE / Solo quiz — counts as a match played, not a win or loss
 			pass
 		else:
 			var _winner := _fs_string(_f, "winner", "")
@@ -701,15 +717,33 @@ func _render_match_history(items: Array) -> void:
 				game_label = "AKASHIC TCG"
 			"defuse_trojan":
 				game_label = "DEFUSE TROJAN"
+			"cyber_quiz":
+				game_label = "CYBER QUIZ"
 			_:
 				game_label = game_type.to_upper().replace("_", " ")
 
 		var my_username := Auth.current_username
 		var title_suffix := ""
 		var subtitle_text := ""
-		
+
+		# Handle CyberQuiz entries (solo quiz)
+		if game_type == "cyber_quiz":
+			var quiz_title := _fs_string(fields, "quiz_title", "Quiz")
+			var q_score := _fs_int(fields, "score", 0)
+			var q_total := _fs_int(fields, "total_questions", 0)
+			var q_pct := 0.0
+			if fields.has("percentage"):
+				var pct_raw = fields["percentage"]
+				if typeof(pct_raw) == TYPE_DICTIONARY:
+					if pct_raw.has("doubleValue"):
+						q_pct = float(pct_raw["doubleValue"])
+					elif pct_raw.has("integerValue"):
+						q_pct = float(pct_raw["integerValue"])
+			title_suffix = "%d/%d (%.0f%%)" % [q_score, q_total, q_pct]
+			subtitle_text = quiz_title
+
 		# Handle Defuse the Trojan differently (PvE game)
-		if game_type == "defuse_trojan":
+		elif game_type == "defuse_trojan":
 			var wave_reached := _fs_int(fields, "wave_reached", 0)
 			var mode := _fs_string(fields, "mode", "solo")
 			var top_score := _fs_int(fields, "top_score", 0)
@@ -770,7 +804,7 @@ func _render_match_history(items: Array) -> void:
 		var opp_score := _fs_int(fields, "opp_score", -1)
 		if my_score < 0:
 			my_score = _fs_int(fields, my_username, -1)
-		if game_type != "defuse_trojan":
+		if game_type != "defuse_trojan" and game_type != "cyber_quiz":
 			var host := _fs_string(fields, "host", "")
 			var client := _fs_string(fields, "client", "")
 			var opponent := client if host == my_username else host
@@ -1013,6 +1047,38 @@ func _update_xp_display() -> void:
 			rank_label.text = "%s\n%s" % [icon_path, rank_name]
 		
 		rank_label.add_theme_color_override("font_color", color)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CYBERCOIN DISPLAY
+# ─────────────────────────────────────────────────────────────────────────────
+func _setup_cybercoin_display() -> void:
+	"""Create CyberCoin balance label next to XP in the profile panel."""
+	if _cybercoin_label and is_instance_valid(_cybercoin_label):
+		return  # Already created
+
+	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
+	if not user_panel:
+		return
+
+	_cybercoin_label = Label.new()
+	_cybercoin_label.name = "CyberCoinLabel"
+	_cybercoin_label.text = "🪙 %d CyberCoins" % CyberCoinManager.get_balance()
+	_cybercoin_label.add_theme_color_override("font_color", Color(1, 0.85, 0, 1))  # Gold
+	_cybercoin_label.add_theme_font_size_override("font_size", 14)
+	_cybercoin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+
+	# Place it below XP input
+	if xp_input and xp_input.get_parent() == user_panel:
+		var idx := xp_input.get_index() + 1
+		user_panel.add_child(_cybercoin_label)
+		user_panel.move_child(_cybercoin_label, idx)
+	else:
+		user_panel.add_child(_cybercoin_label)
+
+
+func _on_cybercoin_balance_changed(new_balance: int) -> void:
+	if _cybercoin_label and is_instance_valid(_cybercoin_label):
+		_cybercoin_label.text = "🪙 %d CyberCoins" % new_balance
 		
 func _exit_tree() -> void:
 	"""Cleanup when leaving the scene"""
@@ -1091,335 +1157,90 @@ func _create_edit_profile_button() -> void:
 	print("[Landing] ✅ Edit Profile button created")
 
 func _open_edit_profile_popup() -> void:
-	"""Show the Edit Profile popup panel"""
+	"""Show the Edit Profile popup (scene-based, responsive to any resolution)."""
 	if edit_profile_popup and is_instance_valid(edit_profile_popup):
-		return # Already open
-	
-	# Store original values
+		return  # Already open
+
+	# Store original values for cancel/restore
 	original_username = username_input.text
 	original_avatar = selected_avatar
-	
-	# Create popup panel
-	edit_profile_popup = Panel.new()
-	edit_profile_popup.custom_minimum_size = Vector2(500, 600)
-	edit_profile_popup.position = Vector2(
-		(get_viewport().size.x - 500) / 2,
-		(get_viewport().size.y - 600) / 2
-	)
-	edit_profile_popup.z_index = 1000
-	
-	# Neon style
-	var panel_style = StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.02, 0.05, 0.08, 0.98)
-	panel_style.border_width_left = 3
-	panel_style.border_width_top = 3
-	panel_style.border_width_right = 3
-	panel_style.border_width_bottom = 3
-	panel_style.border_color = Color(0, 1, 1, 0.9)
-	panel_style.corner_radius_top_left = 10
-	panel_style.corner_radius_top_right = 10
-	panel_style.corner_radius_bottom_left = 10
-	panel_style.corner_radius_bottom_right = 10
-	panel_style.shadow_color = Color(0, 1, 1, 0.6)
-	panel_style.shadow_size = 25
-	edit_profile_popup.add_theme_stylebox_override("panel", panel_style)
-	
-	# === TITLE ===
-	var title = Label.new()
-	title.text = "EDIT PROFILE"
-	title.position = Vector2(0, 15)
-	title.size = Vector2(500, 35)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", Color(0, 1, 1, 1))
-	title.add_theme_font_size_override("font_size", 24)
-	edit_profile_popup.add_child(title)
-	
-	# === DIVIDER ===
-	var divider1 = ColorRect.new()
-	divider1.color = Color(0, 1, 1, 0.3)
-	divider1.size = Vector2(460, 2)
-	divider1.position = Vector2(20, 55)
-	edit_profile_popup.add_child(divider1)
-	
-	# === PROFILE PICTURE SECTION ===
-	var avatar_label = Label.new()
-	avatar_label.text = "Profile Picture"
-	avatar_label.position = Vector2(30, 70)
-	avatar_label.size = Vector2(440, 25)
-	avatar_label.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
-	avatar_label.add_theme_font_size_override("font_size", 16)
-	edit_profile_popup.add_child(avatar_label)
-	
-	# Current avatar preview
-	var avatar_preview = TextureRect.new()
-	avatar_preview.name = "AvatarPreview"
-	avatar_preview.texture = profile_pic.texture
-	avatar_preview.custom_minimum_size = Vector2(100, 100)
-	avatar_preview.position = Vector2(200, 100)
-	avatar_preview.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	avatar_preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	edit_profile_popup.add_child(avatar_preview)
-	
-	# Change Avatar Button
-	var change_avatar_btn = Button.new()
-	change_avatar_btn.text = "Change Avatar"
-	change_avatar_btn.custom_minimum_size = Vector2(200, 40)
-	change_avatar_btn.position = Vector2(150, 215)
-	change_avatar_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
+	# Instantiate the scene-based popup
+	var popup_scene := preload("res://scene/edit_profile_popup.tscn")
+	edit_profile_popup = popup_scene.instantiate()
+	edit_profile_popup.z_index = 1000
+	add_child(edit_profile_popup)
+
+	# --- Grab references inside the popup ---
+	var avatar_preview: TextureRect = edit_profile_popup.get_node("CenterContainer/PopupPanel/VBoxContent/AvatarSection/AvatarVBox/AvatarCenter/AvatarPreview")
+	var change_avatar_btn: Button = edit_profile_popup.get_node("CenterContainer/PopupPanel/VBoxContent/AvatarSection/AvatarVBox/ButtonCenter/ButtonVBox/ChangeAvatarBtn")
+	var preset_btn: Button = edit_profile_popup.get_node("CenterContainer/PopupPanel/VBoxContent/AvatarSection/AvatarVBox/ButtonCenter/ButtonVBox/PresetAvatarsBtn")
+	var username_edit: LineEdit = edit_profile_popup.get_node("CenterContainer/PopupPanel/VBoxContent/UsernameSection/UsernameVBox/UsernameEdit")
+	var char_count: Label = edit_profile_popup.get_node("CenterContainer/PopupPanel/VBoxContent/UsernameSection/UsernameVBox/CharCount")
+	var save_button: Button = edit_profile_popup.get_node("CenterContainer/PopupPanel/VBoxContent/ButtonSection/ButtonHBox/SaveButton")
+	var cancel_button: Button = edit_profile_popup.get_node("CenterContainer/PopupPanel/VBoxContent/ButtonSection/ButtonHBox/CancelButton")
+	var dimmer: Panel = edit_profile_popup.get_node("Dimmer")
+
+	# --- Populate with current data ---
+	if profile_pic and profile_pic.texture:
+		avatar_preview.texture = profile_pic.texture
+	username_edit.text = username_input.text
+	char_count.text = "%d / 20" % username_edit.text.length()
+
+	# --- Load button icons ---
 	var folder_icon = load("res://asset/icons/folder_icon.png")
 	if folder_icon:
 		var img = folder_icon.get_image()
 		if img:
 			img.resize(24, 24, Image.INTERPOLATE_LANCZOS)
 			folder_icon = ImageTexture.create_from_image(img)
-		
 		change_avatar_btn.icon = folder_icon
-		# ✅ CENTER alignment
-		change_avatar_btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		change_avatar_btn.expand_icon = false
 
-	
-	var avatar_btn_style = StyleBoxFlat.new()
-	avatar_btn_style.bg_color = Color(0.1, 0.2, 0.3, 0.9)
-	avatar_btn_style.border_width_left = 2
-	avatar_btn_style.border_width_right = 2
-	avatar_btn_style.border_width_top = 2
-	avatar_btn_style.border_width_bottom = 2
-	avatar_btn_style.border_color = Color(0, 0.9, 1, 0.6)
-	avatar_btn_style.corner_radius_top_left = 5
-	avatar_btn_style.corner_radius_top_right = 5
-	avatar_btn_style.corner_radius_bottom_left = 5
-	avatar_btn_style.corner_radius_bottom_right = 5
-	avatar_btn_style.content_margin_left = 10
-	avatar_btn_style.content_margin_right = 10
-	avatar_btn_style.content_margin_top = 10
-	avatar_btn_style.content_margin_bottom = 10
+	var palette_icon = load("res://asset/icons/palette_icon.png")
+	if palette_icon:
+		var img = palette_icon.get_image()
+		if img:
+			img.resize(24, 24, Image.INTERPOLATE_LANCZOS)
+			palette_icon = ImageTexture.create_from_image(img)
+		preset_btn.icon = palette_icon
 
-	var avatar_btn_hover = avatar_btn_style.duplicate()
-	avatar_btn_hover.border_color = Color(0, 1, 1, 1)
-	avatar_btn_hover.shadow_color = Color(0, 1, 1, 0.3)
-	avatar_btn_hover.shadow_size = 5
-
-	change_avatar_btn.add_theme_stylebox_override("normal", avatar_btn_style)
-	change_avatar_btn.add_theme_stylebox_override("hover", avatar_btn_hover)
-	change_avatar_btn.add_theme_color_override("font_color", Color(0, 1, 1, 1))
-	change_avatar_btn.add_theme_font_size_override("font_size", 14)
-	# ✅ Minimal gap
-	change_avatar_btn.add_theme_constant_override("h_separation", 4)
-	change_avatar_btn.add_theme_constant_override("icon_max_width", 24)
-
+	# --- Wire signals ---
 	change_avatar_btn.pressed.connect(func():
 		file_dialog.popup_centered(Vector2(700, 500))
 	)
-	edit_profile_popup.add_child(change_avatar_btn)
-	
-	# Preset avatars button
-	var preset_btn = Button.new()
-	preset_btn.text = "Preset Avatars"
-	preset_btn.custom_minimum_size = Vector2(200, 40)
-	preset_btn.position = Vector2(150, 265)
-	preset_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-
-	var preset_icon = load("res://asset/icons/palette_icon.png")
-	if preset_icon:
-		var img = preset_icon.get_image()
-		if img:
-			img.resize(24, 24, Image.INTERPOLATE_LANCZOS)
-			preset_icon = ImageTexture.create_from_image(img)
-		
-		preset_btn.icon = preset_icon
-		# ✅ CENTER alignment
-		preset_btn.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		preset_btn.expand_icon = false
-
-	preset_btn.add_theme_stylebox_override("normal", avatar_btn_style)
-	preset_btn.add_theme_stylebox_override("hover", avatar_btn_hover)
-	preset_btn.add_theme_color_override("font_color", Color(0, 1, 1, 1))
-	preset_btn.add_theme_font_size_override("font_size", 14)
-	# ✅ Minimal gap
-	preset_btn.add_theme_constant_override("h_separation", 4)
-	preset_btn.add_theme_constant_override("icon_max_width", 24)
-
 	preset_btn.pressed.connect(func():
 		avatar_picker.popup_centered()
 	)
-	edit_profile_popup.add_child(preset_btn)
-	
-	# === DIVIDER ===
-	var divider2 = ColorRect.new()
-	divider2.color = Color(0, 1, 1, 0.3)
-	divider2.size = Vector2(460, 2)
-	divider2.position = Vector2(20, 325)
-	edit_profile_popup.add_child(divider2)
-	
-	# === USERNAME SECTION ===
-	var username_label = Label.new()
-	username_label.text = "Username"
-	username_label.position = Vector2(30, 345)
-	username_label.size = Vector2(440, 25)
-	username_label.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
-	username_label.add_theme_font_size_override("font_size", 16)
-	edit_profile_popup.add_child(username_label)
-	
-	# Username input field
-	var username_edit = LineEdit.new()
-	username_edit.name = "UsernameEdit"
-	username_edit.text = username_input.text
-	username_edit.placeholder_text = "Enter new username"
-	username_edit.max_length = 20
-	username_edit.position = Vector2(30, 375)
-	username_edit.size = Vector2(440, 45)
-	
-	var input_style = StyleBoxFlat.new()
-	input_style.bg_color = Color(0.05, 0.1, 0.15, 0.9)
-	input_style.border_width_left = 2
-	input_style.border_width_right = 2
-	input_style.border_width_top = 2
-	input_style.border_width_bottom = 2
-	input_style.border_color = Color(0, 0.9, 1, 0.6)
-	input_style.corner_radius_top_left = 5
-	input_style.corner_radius_top_right = 5
-	input_style.corner_radius_bottom_left = 5
-	input_style.corner_radius_bottom_right = 5
-	
-	var input_focus = input_style.duplicate()
-	input_focus.border_color = Color(0, 1, 1, 1)
-	input_focus.shadow_color = Color(0, 1, 1, 0.4)
-	input_focus.shadow_size = 8
-	
-	username_edit.add_theme_stylebox_override("normal", input_style)
-	username_edit.add_theme_stylebox_override("focus", input_focus)
-	username_edit.add_theme_color_override("font_color", Color(0, 1, 1, 1))
-	username_edit.add_theme_color_override("font_placeholder_color", Color(0, 0.5, 0.6, 0.5))
-	username_edit.add_theme_font_size_override("font_size", 18)
-	
-	edit_profile_popup.add_child(username_edit)
-	
-	# Character count
-	var char_count = Label.new()
-	char_count.name = "CharCount"
-	char_count.text = "%d / 20" % username_edit.text.length()
-	char_count.position = Vector2(30, 425)
-	char_count.size = Vector2(440, 20)
-	char_count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	char_count.add_theme_color_override("font_color", Color(0, 0.7, 0.8, 0.8))
-	char_count.add_theme_font_size_override("font_size", 12)
-	edit_profile_popup.add_child(char_count)
-	
+	dimmer.gui_input.connect(func(ev: InputEvent):
+		if ev is InputEventMouseButton and ev.pressed:
+			_close_edit_profile_popup()
+	)
+
 	username_edit.text_changed.connect(func(new_text: String):
 		char_count.text = "%d / 20" % new_text.length()
-		# Change color if too long
 		if new_text.length() >= 18:
 			char_count.add_theme_color_override("font_color", Color(1, 0.5, 0, 1))
 		else:
 			char_count.add_theme_color_override("font_color", Color(0, 0.7, 0.8, 0.8))
 	)
-	
-	# Validation hint
-	var hint_label = Label.new()
-	hint_label.text = "Username must be 3-20 characters"
-	hint_label.position = Vector2(30, 450)
-	hint_label.size = Vector2(440, 25)
-	hint_label.add_theme_color_override("font_color", Color(0.5, 0.7, 0.8, 0.7))
-	hint_label.add_theme_font_size_override("font_size", 12)
-	edit_profile_popup.add_child(hint_label)
-	
-	# === DIVIDER ===
-	var divider3 = ColorRect.new()
-	divider3.color = Color(0, 1, 1, 0.3)
-	divider3.size = Vector2(460, 2)
-	divider3.position = Vector2(20, 490)
-	edit_profile_popup.add_child(divider3)
-	
-	# === BUTTONS ===
-	# SAVE Button
-	var save_button = Button.new()
-	save_button.text = "✓ SAVE CHANGES"
-	save_button.custom_minimum_size = Vector2(210, 45)
-	save_button.position = Vector2(35, 520)
-	save_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	
-	var save_style_normal = StyleBoxFlat.new()
-	save_style_normal.bg_color = Color(0, 0.5, 0.6, 0.9)
-	save_style_normal.border_width_left = 2
-	save_style_normal.border_width_top = 2
-	save_style_normal.border_width_right = 2
-	save_style_normal.border_width_bottom = 2
-	save_style_normal.border_color = Color(0, 1, 1, 0.9)
-	save_style_normal.corner_radius_top_left = 8
-	save_style_normal.corner_radius_top_right = 8
-	save_style_normal.corner_radius_bottom_left = 8
-	save_style_normal.corner_radius_bottom_right = 8
-	
-	var save_style_hover = save_style_normal.duplicate()
-	save_style_hover.bg_color = Color(0, 0.7, 0.8, 1)
-	save_style_hover.shadow_color = Color(0, 1, 1, 0.6)
-	save_style_hover.shadow_size = 12
-	
-	save_button.add_theme_stylebox_override("normal", save_style_normal)
-	save_button.add_theme_stylebox_override("hover", save_style_hover)
-	save_button.add_theme_stylebox_override("pressed", save_style_hover)
-	save_button.add_theme_color_override("font_color", Color.WHITE)
-	save_button.add_theme_font_size_override("font_size", 16)
-	
+
 	save_button.pressed.connect(func():
 		var new_username = username_edit.text.strip_edges()
-		
-		# Validate username
 		if new_username.length() < 3:
 			_show_error_message("Username must be at least 3 characters!")
 			return
 		if new_username.length() > 20:
 			_show_error_message("Username must be 20 characters or less!")
 			return
-		
-		# Update values
 		username_input.text = new_username
 		Auth.current_username = new_username
-		
-		# Save to Firestore
 		_save_profile_changes()
 		_close_edit_profile_popup()
 	)
-	edit_profile_popup.add_child(save_button)
-	
-	# CANCEL Button
-	var cancel_button = Button.new()
-	cancel_button.text = "✕ CANCEL"
-	cancel_button.custom_minimum_size = Vector2(210, 45)
-	cancel_button.position = Vector2(255, 520)
-	cancel_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	
-	var cancel_style_normal = StyleBoxFlat.new()
-	cancel_style_normal.bg_color = Color(0.4, 0, 0, 0.9)
-	cancel_style_normal.border_width_left = 2
-	cancel_style_normal.border_width_top = 2
-	cancel_style_normal.border_width_right = 2
-	cancel_style_normal.border_width_bottom = 2
-	cancel_style_normal.border_color = Color(1, 0, 0, 0.8)
-	cancel_style_normal.corner_radius_top_left = 8
-	cancel_style_normal.corner_radius_top_right = 8
-	cancel_style_normal.corner_radius_bottom_left = 8
-	cancel_style_normal.corner_radius_bottom_right = 8
-	
-	var cancel_style_hover = cancel_style_normal.duplicate()
-	cancel_style_hover.bg_color = Color(0.6, 0, 0, 1)
-	cancel_style_hover.shadow_color = Color(1, 0, 0, 0.5)
-	cancel_style_hover.shadow_size = 12
-	
-	cancel_button.add_theme_stylebox_override("normal", cancel_style_normal)
-	cancel_button.add_theme_stylebox_override("hover", cancel_style_hover)
-	cancel_button.add_theme_stylebox_override("pressed", cancel_style_hover)
-	cancel_button.add_theme_color_override("font_color", Color.WHITE)
-	cancel_button.add_theme_font_size_override("font_size", 16)
-	
+
 	cancel_button.pressed.connect(func():
-		# Restore original values
 		username_input.text = original_username
 		selected_avatar = original_avatar
-		
-		# Restore avatar
 		if selected_avatar.begins_with("user://") and FileAccess.file_exists(selected_avatar):
 			var img = Image.load_from_file(selected_avatar)
 			if img:
@@ -1427,63 +1248,65 @@ func _open_edit_profile_popup() -> void:
 				profile_pic.texture = ImageTexture.create_from_image(img)
 		elif avatars.has(selected_avatar):
 			profile_pic.texture = avatars[selected_avatar]
-		
 		_close_edit_profile_popup()
 	)
-	edit_profile_popup.add_child(cancel_button)
-	
-	add_child(edit_profile_popup)
-	
+
 	# Animate entrance
 	edit_profile_popup.modulate.a = 0
-	edit_profile_popup.scale = Vector2(0.85, 0.85)
+	var popup_panel = edit_profile_popup.get_node("CenterContainer/PopupPanel")
+	popup_panel.scale = Vector2(0.85, 0.85)
+	popup_panel.pivot_offset = popup_panel.size / 2.0
 	var tween = create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(edit_profile_popup, "modulate:a", 1.0, 0.3)
-	tween.tween_property(edit_profile_popup, "scale", Vector2(1, 1), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	
+	tween.tween_property(popup_panel, "scale", Vector2(1, 1), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
 	# Focus on username input
 	await get_tree().create_timer(0.1).timeout
-	username_edit.grab_focus()
+	if is_instance_valid(username_edit):
+		username_edit.grab_focus()
+
 
 func _close_edit_profile_popup() -> void:
 	"""Close the edit profile popup with animation"""
 	if not edit_profile_popup or not is_instance_valid(edit_profile_popup):
 		return
-	
+
+	var popup_panel = edit_profile_popup.get_node_or_null("CenterContainer/PopupPanel")
 	var tween = create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(edit_profile_popup, "modulate:a", 0.0, 0.2)
-	tween.tween_property(edit_profile_popup, "scale", Vector2(0.85, 0.85), 0.2)
+	if popup_panel:
+		tween.tween_property(popup_panel, "scale", Vector2(0.85, 0.85), 0.2)
 	await tween.finished
-	edit_profile_popup.queue_free()
+	if is_instance_valid(edit_profile_popup):
+		edit_profile_popup.queue_free()
 	edit_profile_popup = null
 
 func _show_error_message(message: String) -> void:
 	"""Show temporary error message in the popup"""
-	if not edit_profile_popup:
+	if not edit_profile_popup or not is_instance_valid(edit_profile_popup):
 		return
-	
-	var error_label = edit_profile_popup.get_node_or_null("ErrorMessage")
+
+	var error_panel = edit_profile_popup.get_node_or_null("CenterContainer/PopupPanel/VBoxContent/UsernameSection/UsernameVBox/ErrorMessage")
+	if not error_panel:
+		return
+	var error_label = error_panel.get_node_or_null("ErrorLabel")
 	if not error_label:
-		error_label = Label.new()
-		error_label.name = "ErrorMessage"
-		error_label.position = Vector2(30, 475)
-		error_label.size = Vector2(440, 25)
-		error_label.add_theme_font_size_override("font_size", 13)
-		edit_profile_popup.add_child(error_label)
-	
+		return
+
 	error_label.text = "⚠ " + message
-	error_label.add_theme_color_override("font_color", Color(1, 0.3, 0.3, 1))
-	error_label.visible = true
-	
+	error_panel.visible = true
+	error_panel.modulate.a = 1.0
+
 	# Fade out after 3 seconds
 	await get_tree().create_timer(3.0).timeout
-	if error_label and is_instance_valid(error_label):
+	if is_instance_valid(error_panel):
 		var fade = create_tween()
-		fade.tween_property(error_label, "modulate:a", 0.0, 0.5)
+		fade.tween_property(error_panel, "modulate:a", 0.0, 0.5)
 		await fade.finished
-		error_label.visible = false
+		if is_instance_valid(error_panel):
+			error_panel.visible = false
 
 func _save_profile_changes() -> void:
 	"""Save profile changes to Firestore"""
@@ -3085,6 +2908,7 @@ func _setup_navigation() -> void:
 	$NavigationPanel/HBoxContainer/ProfileNavigate.pressed.connect(func(): _show_panel(panel_paths, "profile"))
 	$NavigationPanel/HBoxContainer/LogoButton.pressed.connect(func(): _show_panel(panel_paths, "home"))
 	$NavigationPanel/HBoxContainer/BagNavigate.pressed.connect(open_inventory)
+	_add_shop_nav_button()
 	$NavigationPanel/HBoxContainer/MenuButton.pressed.connect(_on_menu_button_pressed)
 	
 	# ✅ Module button navigation
@@ -3206,6 +3030,8 @@ func _on_logout_pressed() -> void:
 	print("Logging out...")
 	Auth.set_user_offline()
 	TutorialManager.reset_data()
+	CyberCoinManager.reset_data()
+	ShopManager.reset_data()
 	get_tree().change_scene_to_file("res://scene/login.tscn")
 
 
@@ -3612,6 +3438,62 @@ func open_inventory() -> void:
 		inventory_panel.show_inventory()
 	else:
 		push_error("[Landing] Inventory panel not initialized!")
+
+
+func _setup_shop_system() -> void:
+	"""Load and setup the shop panel as overlay"""
+	if shop_panel_instance and is_instance_valid(shop_panel_instance):
+		return
+	var shop_scene = load("res://scene/shop_panel.tscn")
+	if shop_scene:
+		shop_panel_instance = shop_scene.instantiate()
+		add_child(shop_panel_instance)
+		shop_panel_instance.z_index = 999
+		if shop_panel_instance.has_signal("shop_closed"):
+			shop_panel_instance.shop_closed.connect(func(): print("[Landing] Shop panel closed"))
+		print("[Landing] ✅ Shop system initialized")
+	else:
+		push_error("[Landing] ❌ Failed to load shop_panel.tscn")
+
+
+func open_shop() -> void:
+	"""Open the shop panel"""
+	if shop_panel_instance and is_instance_valid(shop_panel_instance):
+		shop_panel_instance.show_shop()
+	else:
+		push_error("[Landing] Shop panel not initialized!")
+
+
+func _add_shop_nav_button() -> void:
+	"""Add a Shop button next to the Bag button in the navbar"""
+	var hbox = $NavigationPanel/HBoxContainer
+	var bag_btn = $NavigationPanel/HBoxContainer/BagNavigate
+	if not hbox or not bag_btn:
+		return
+	var shop_btn := Button.new()
+	shop_btn.name = "ShopNavigate"
+	shop_btn.text = "Shop"
+	shop_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	shop_btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	shop_btn.add_theme_font_size_override("font_size", 16)
+	# Copy style from BagNavigate
+	var bag_font = bag_btn.get_theme_font("font")
+	if bag_font:
+		shop_btn.add_theme_font_override("font", bag_font)
+	var normal_sb = bag_btn.get_theme_stylebox("normal")
+	if normal_sb:
+		shop_btn.add_theme_stylebox_override("normal", normal_sb.duplicate())
+	var hover_sb = bag_btn.get_theme_stylebox("hover")
+	if hover_sb:
+		shop_btn.add_theme_stylebox_override("hover", hover_sb.duplicate())
+	var focus_sb = bag_btn.get_theme_stylebox("focus")
+	if focus_sb:
+		shop_btn.add_theme_stylebox_override("focus", focus_sb.duplicate())
+	# Insert right after BagNavigate
+	var bag_idx := bag_btn.get_index()
+	hbox.add_child(shop_btn)
+	hbox.move_child(shop_btn, bag_idx + 1)
+	shop_btn.pressed.connect(open_shop)
 
 
 func _setup_video_and_music() -> void:

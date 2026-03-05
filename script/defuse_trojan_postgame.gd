@@ -220,6 +220,10 @@ func _apply_results() -> void:
 	# Save match history to Firestore
 	_save_match_history_to_firestore(mode, duration_ms, wave_reached, players, stats_by_pid)
 
+	# Award CyberCoins for Defuse Trojan completion
+	if CyberCoinManager:
+		CyberCoinManager.award_minigame_coins("defuse_trojan")
+
 	# Host card
 	if player_count >= 1:
 		_apply_card(_host_card, true, players[0], mode, duration_ms, wave_reached, stats_by_pid)

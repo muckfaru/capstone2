@@ -27,6 +27,8 @@ GlobalState="*res://script/GlobalState.gd"
 InventoryHelper="*res://script/InventoryHelper.gd"
 MinigameRewards="*res://script/MinigameRewards.gd"
 SettingsManager="*res://script/SettingsManager.gd"
+CyberCoinManager="*res://script/CyberCoinManager.gd"
+ShopManager="*res://script/ShopManager.gd"
 
 [display]
 

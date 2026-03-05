@@ -1,11 +1,16 @@
 extends Node  # Gumagamit tayo ng Node bilang base script
 
 signal token_received(code: String)  # Signal na maglalabas ng authorization code kapag nakuha na
+signal login_timed_out  # Emitted when the OAuth wait times out (user closed tab / took too long)
 
 # Gumagawa ng simpleng local TCP server para tanggapin ang redirect ni Google
 var server: TCPServer = TCPServer.new()
 var port: int = 8765                    # Port kung saan makikinig ang server (same sa redirect URI)
 var is_listening: bool = false          # Flag kung active ang pakikinig
+
+# Timeout: how long (seconds) to wait for the redirect before giving up
+const OAUTH_TIMEOUT_SEC: float = 120.0
+var _listen_elapsed: float = 0.0
 
 # Client ID mo sa Google Cloud / Firebase (Web type dapat)
 const CLIENT_ID: String = "1055956713490-tr6mh6pd994opb1hm2rmtmar1eilb3rm.apps.googleusercontent.com"
@@ -15,12 +20,17 @@ const CLIENT_ID: String = "1055956713490-tr6mh6pd994opb1hm2rmtmar1eilb3rm.apps.g
 # START GOOGLE LOGIN
 # -------------------------
 func start_google_login() -> void:
+	# If already listening from a previous attempt, cancel it first
+	if is_listening:
+		cancel_login()
+
 	var err = server.listen(port)  # Subukang magbukas ng TCP server sa port 8765
 	if err != OK:
 		push_error("❌ Failed to start TCP server: %s" % err)
 		return
 
 	print("✅ Listening on http://127.0.0.1:%d" % port)
+	_listen_elapsed = 0.0
 	set_process(true)       # I-activate ang _process() loop
 	is_listening = true      # Mark na active ang pakikinig
 
@@ -52,8 +62,25 @@ func start_google_login() -> void:
 # -------------------------
 # MAIN LOOP (tumatakbo habang nakikinig ang server)
 # -------------------------
+## Call this to abort a pending OAuth wait (e.g. user wants to retry)
+func cancel_login() -> void:
+	if is_listening:
+		server.stop()
+		is_listening = false
+		set_process(false)
+		_listen_elapsed = 0.0
+		print("[AuthHelper] ⛔ OAuth login cancelled / timed out.")
+
+
 func _process(_delta: float) -> void:
 	if not is_listening:  # Kung hindi naman nakikinig, wala tayong gagawin
+		return
+
+	# Timeout check — if the user closed the browser tab the redirect never arrives
+	_listen_elapsed += _delta
+	if _listen_elapsed >= OAUTH_TIMEOUT_SEC:
+		cancel_login()
+		emit_signal("login_timed_out")
 		return
 
 	if server.is_connection_available():  # Kapag may bagong connection (redirect mula sa Google)

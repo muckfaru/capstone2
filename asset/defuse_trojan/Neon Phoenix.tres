@@ -1,0 +1,67 @@
+[gd_resource type="SpriteFrames" load_steps=10 format=3 uid="uid://kpgmohljplp"]
+
+[ext_resource type="Texture2D" uid="uid://c5wpiyx3e4ass" path="res://asset/defuse_trojan/Neon Phoenixs.png" id="1_1s4bj"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pivw3"]
+atlas = ExtResource("1_1s4bj")
+region = Rect2(0, 0, 320, 349)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_28ufd"]
+atlas = ExtResource("1_1s4bj")
+region = Rect2(320, 0, 320, 349)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_51ith"]
+atlas = ExtResource("1_1s4bj")
+region = Rect2(640, 0, 320, 349)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_go8tw"]
+atlas = ExtResource("1_1s4bj")
+region = Rect2(960, 0, 320, 349)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_amgie"]
+atlas = ExtResource("1_1s4bj")
+region = Rect2(0, 349, 320, 349)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6tlew"]
+atlas = ExtResource("1_1s4bj")
+region = Rect2(320, 349, 320, 349)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rh2q4"]
+atlas = ExtResource("1_1s4bj")
+region = Rect2(640, 349, 320, 349)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l3knr"]
+atlas = ExtResource("1_1s4bj")
+region = Rect2(960, 349, 320, 349)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pivw3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_28ufd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_51ith")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_go8tw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_amgie")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6tlew")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rh2q4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l3knr")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 8.0
+}]

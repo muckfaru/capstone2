@@ -1,8 +1,8 @@
 [gd_scene load_steps=46 format=3 uid="uid://is1i2pruqde7"]
 
 [ext_resource type="Script" uid="uid://45tavck3ofgm" path="res://script/network_defense_game.gd" id="1_defense"]
+[ext_resource type="Texture2D" uid="uid://dden4kvuvpn8t" path="res://asset/minigamesicon/newnetworksbg.png" id="2_dr2xa"]
 [ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="2_font"]
-[ext_resource type="Texture2D" uid="uid://drnc473qryco6" path="res://asset/minigamesicon/Gemini_Generated_Image_id9deid9deid9dei.png" id="2_xc4th"]
 [ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_bris7"]
 [ext_resource type="Texture2D" uid="uid://bcog7wq365a7y" path="res://asset/minigamesicon/Gemini_Generated_Image_de9s1de9s1de9s1d-removebg-preview.png" id="3_vlvk8"]
 [ext_resource type="Texture2D" uid="uid://bab7c013cai2q" path="res://asset/minigamesicon/bartlt.png" id="4_f7d7f"]
@@ -284,7 +284,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_xc4th")
+texture = ExtResource("2_dr2xa")
 expand_mode = 1
 
 [node name="Quit" type="Button" parent="TextureRect"]
@@ -591,7 +591,7 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 92.0
-offset_top = 56.0
+offset_top = 77.0
 offset_right = -82.0
 offset_bottom = 63.0
 grow_horizontal = 2

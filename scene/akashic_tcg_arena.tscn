@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://fos8p31kcd7"]
+[gd_scene load_steps=33 format=3 uid="uid://fos8p31kcd7"]
 
 [ext_resource type="Script" uid="uid://b5eu73w6tq6cj" path="res://script/akashic_tcg_arena.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2"]
@@ -32,7 +32,22 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar"]
-bg_color = Color(0.02, 0.06, 0.12, 0.85)
+bg_color = Color(0.00392157, 0.101961, 0.180392, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.00784314, 0.709804, 0.988235, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="LabelSettings" id="LabelSettings_nhjvu"]
+font = ExtResource("5")
+font_size = 19
+font_color = Color(0.937255, 0.235294, 0.207843, 1)
 
 [sub_resource type="Shader" id="Shader_timer_gradient"]
 code = "shader_type canvas_item;
@@ -53,8 +68,56 @@ shader = SubResource("Shader_timer_gradient")
 shader_parameter/top_color = Color(0, 1, 1, 1)
 shader_parameter/bottom_color = Color(0, 1, 0.45, 1)
 
+[sub_resource type="LabelSettings" id="LabelSettings_j46th"]
+font = ExtResource("5")
+font_color = Color(0.207843, 0.937255, 0.231373, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_dgk3p"]
+font = ExtResource("5")
+font_size = 18
+font_color = Color(0, 0.996078, 0.992157, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_zone"]
 bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n6wxh"]
+bg_color = Color(0, 0, 0, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_color = Color(0.683327, 0.0926008, 0.148412, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_njmka"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1m8a6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yy47f"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4rn7g"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4v5rx"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_x4m4s"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nfqk3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vv0xh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hqx1g"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_te0gu"]
+draw_center = false
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o8crs"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_iyl16"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_edg5o"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xyj36"]
 
 [node name="AkashicTCGArena" type="Control"]
 layout_mode = 3
@@ -344,6 +407,7 @@ offset_bottom = 49.0
 rotation = 1.5708
 theme_override_font_sizes/font_size = 16
 text = "OPP"
+label_settings = SubResource("LabelSettings_nhjvu")
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true
@@ -358,9 +422,7 @@ offset_top = 250.0
 offset_right = -2.0
 offset_bottom = 420.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0.85, 1, 0.55)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0.207843, 0.937255, 0.231373, 1)
 theme_override_constants/paragraph_spacing = 0
 theme_override_constants/shadow_offset_y = 0
 theme_override_fonts/font = ExtResource("5")
@@ -368,6 +430,7 @@ theme_override_font_sizes/font_size = 15
 text = "00
 ..
 00"
+label_settings = SubResource("LabelSettings_j46th")
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true
@@ -385,6 +448,7 @@ grow_vertical = 0
 rotation = -1.5708
 theme_override_font_sizes/font_size = 16
 text = "YOU"
+label_settings = SubResource("LabelSettings_dgk3p")
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true
@@ -533,7 +597,7 @@ theme_override_constants/separation = 6
 [node name="Header" type="Panel" parent="HUD/ArenaChat/VBoxContainer"]
 custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar")
+theme_override_styles/panel = SubResource("StyleBoxFlat_n6wxh")
 
 [node name="HeaderHBox" type="HBoxContainer" parent="HUD/ArenaChat/VBoxContainer/Header"]
 layout_mode = 1
@@ -561,6 +625,9 @@ custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_njmka")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_1m8a6")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_yy47f")
 text = "─"
 
 [node name="CloseButton" type="Button" parent="HUD/ArenaChat/VBoxContainer/Header/HeaderHBox"]
@@ -568,6 +635,10 @@ custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4rn7g")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_4v5rx")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_x4m4s")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_nfqk3")
 text = "X"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HUD/ArenaChat/VBoxContainer"]
@@ -586,11 +657,18 @@ layout_mode = 2
 [node name="LineEdit" type="LineEdit" parent="HUD/ArenaChat/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxEmpty_vv0xh")
+theme_override_styles/read_only = SubResource("StyleBoxEmpty_hqx1g")
+theme_override_styles/normal = SubResource("StyleBoxFlat_te0gu")
 placeholder_text = "Type a message..."
 
 [node name="SendButton" type="Button" parent="HUD/ArenaChat/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_o8crs")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_iyl16")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_edg5o")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_xyj36")
 text = "Send"
 
 [node name="MenuButton" type="Button" parent="."]

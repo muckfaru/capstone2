@@ -1,0 +1,376 @@
+[gd_scene load_steps=13 format=3]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popup_bg"]
+bg_color = Color(0.02, 0.05, 0.08, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 1, 1, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+shadow_color = Color(0, 1, 1, 0.6)
+shadow_size = 25
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_avatar_btn_normal"]
+bg_color = Color(0.1, 0.2, 0.3, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 0.6)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_avatar_btn_hover"]
+bg_color = Color(0.1, 0.2, 0.3, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
+shadow_color = Color(0, 1, 1, 0.3)
+shadow_size = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input_normal"]
+bg_color = Color(0.05, 0.1, 0.15, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 0.6)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input_focus"]
+bg_color = Color(0.05, 0.1, 0.15, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+shadow_color = Color(0, 1, 1, 0.4)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_save_normal"]
+bg_color = Color(0, 0.5, 0.6, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 1, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_save_hover"]
+bg_color = Color(0, 0.7, 0.8, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 1, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_color = Color(0, 1, 1, 0.6)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_normal"]
+bg_color = Color(0.4, 0, 0, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_hover"]
+bg_color = Color(0.6, 0, 0, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+shadow_color = Color(1, 0, 0, 0.5)
+shadow_size = 12
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dimmer_focus"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_error_bg"]
+bg_color = Color(0.15, 0.02, 0.02, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.3, 0.3, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dimmer"]
+bg_color = Color(0, 0, 0, 0.5)
+
+[node name="EditProfilePopup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Dimmer" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dimmer")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PopupPanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(500, 620)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_popup_bg")
+
+[node name="VBoxContent" type="VBoxContainer" parent="CenterContainer/PopupPanel"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="TopMargin" type="MarginContainer" parent="CenterContainer/PopupPanel/VBoxContent"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 5
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/PopupPanel/VBoxContent/TopMargin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "EDIT PROFILE"
+horizontal_alignment = 1
+
+[node name="Divider1" type="ColorRect" parent="CenterContainer/PopupPanel/VBoxContent"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+size_flags_horizontal = 3
+color = Color(0, 1, 1, 0.3)
+
+[node name="AvatarSection" type="MarginContainer" parent="CenterContainer/PopupPanel/VBoxContent"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 5
+
+[node name="AvatarVBox" type="VBoxContainer" parent="CenterContainer/PopupPanel/VBoxContent/AvatarSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AvatarSectionLabel" type="Label" parent="CenterContainer/PopupPanel/VBoxContent/AvatarSection/AvatarVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Profile Picture"
+
+[node name="AvatarCenter" type="CenterContainer" parent="CenterContainer/PopupPanel/VBoxContent/AvatarSection/AvatarVBox"]
+layout_mode = 2
+
+[node name="AvatarPreview" type="TextureRect" parent="CenterContainer/PopupPanel/VBoxContent/AvatarSection/AvatarVBox/AvatarCenter"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+expand_mode = 3
+stretch_mode = 5
+
+[node name="ButtonCenter" type="CenterContainer" parent="CenterContainer/PopupPanel/VBoxContent/AvatarSection/AvatarVBox"]
+layout_mode = 2
+
+[node name="ButtonVBox" type="VBoxContainer" parent="CenterContainer/PopupPanel/VBoxContent/AvatarSection/AvatarVBox/ButtonCenter"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ChangeAvatarBtn" type="Button" parent="CenterContainer/PopupPanel/VBoxContent/AvatarSection/AvatarVBox/ButtonCenter/ButtonVBox"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_constants/h_separation = 4
+theme_override_constants/icon_max_width = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_avatar_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_avatar_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_avatar_btn_hover")
+text = "Change Avatar"
+icon_alignment = 0
+expand_icon = true
+
+[node name="PresetAvatarsBtn" type="Button" parent="CenterContainer/PopupPanel/VBoxContent/AvatarSection/AvatarVBox/ButtonCenter/ButtonVBox"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_constants/h_separation = 4
+theme_override_constants/icon_max_width = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_avatar_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_avatar_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_avatar_btn_hover")
+text = "Preset Avatars"
+icon_alignment = 0
+expand_icon = true
+
+[node name="Divider2" type="ColorRect" parent="CenterContainer/PopupPanel/VBoxContent"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+size_flags_horizontal = 3
+color = Color(0, 1, 1, 0.3)
+
+[node name="UsernameSection" type="MarginContainer" parent="CenterContainer/PopupPanel/VBoxContent"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 5
+
+[node name="UsernameVBox" type="VBoxContainer" parent="CenterContainer/PopupPanel/VBoxContent/UsernameSection"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="UsernameSectionLabel" type="Label" parent="CenterContainer/PopupPanel/VBoxContent/UsernameSection/UsernameVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Username"
+
+[node name="UsernameEdit" type="LineEdit" parent="CenterContainer/PopupPanel/VBoxContent/UsernameSection/UsernameVBox"]
+custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_colors/font_placeholder_color = Color(0, 0.5, 0.6, 0.5)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_input_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_input_focus")
+placeholder_text = "Enter new username"
+max_length = 20
+
+[node name="CharCount" type="Label" parent="CenterContainer/PopupPanel/VBoxContent/UsernameSection/UsernameVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.7, 0.8, 0.8)
+theme_override_font_sizes/font_size = 12
+text = "0 / 20"
+horizontal_alignment = 2
+
+[node name="HintLabel" type="Label" parent="CenterContainer/PopupPanel/VBoxContent/UsernameSection/UsernameVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.7, 0.8, 0.7)
+theme_override_font_sizes/font_size = 12
+text = "Username must be 3-20 characters"
+
+[node name="ErrorMessage" type="Panel" parent="CenterContainer/PopupPanel/VBoxContent/UsernameSection/UsernameVBox"]
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_error_bg")
+
+[node name="ErrorLabel" type="Label" parent="CenterContainer/PopupPanel/VBoxContent/UsernameSection/UsernameVBox/ErrorMessage"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 13
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Divider3" type="ColorRect" parent="CenterContainer/PopupPanel/VBoxContent"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+size_flags_horizontal = 3
+color = Color(0, 1, 1, 0.3)
+
+[node name="ButtonSection" type="MarginContainer" parent="CenterContainer/PopupPanel/VBoxContent"]
+layout_mode = 2
+size_flags_vertical = 10
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 20
+
+[node name="ButtonHBox" type="HBoxContainer" parent="CenterContainer/PopupPanel/VBoxContent/ButtonSection"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="SaveButton" type="Button" parent="CenterContainer/PopupPanel/VBoxContent/ButtonSection/ButtonHBox"]
+custom_minimum_size = Vector2(210, 45)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_save_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_save_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_save_hover")
+text = "✓ SAVE CHANGES"
+
+[node name="CancelButton" type="Button" parent="CenterContainer/PopupPanel/VBoxContent/ButtonSection/ButtonHBox"]
+custom_minimum_size = Vector2(210, 45)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cancel_hover")
+text = "✕ CANCEL"

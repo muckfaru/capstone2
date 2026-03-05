@@ -351,14 +351,15 @@ offset_bottom = 603.0
 
 [node name="GoogleLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
 layout_mode = 2
-offset_left = 466.0
-offset_top = 493.0
-offset_right = 514.0
-offset_bottom = 541.0
+offset_left = 495.0
+offset_top = 498.0
+offset_right = 543.0
+offset_bottom = 546.0
 mouse_default_cursor_shape = 2
 texture_normal = ExtResource("5_uyhdp")
 
 [node name="FacebookLoginButton" type="TextureButton" parent="VideoStreamPlayer"]
+visible = false
 layout_mode = 0
 offset_left = 525.0
 offset_top = 493.0
@@ -396,6 +397,7 @@ sprite_frames = SubResource("SpriteFrames_s68ax")
 autoplay = "default"
 frame_progress = 0.744939
 
+[connection signal="mouse_exited" from="VideoStreamPlayer/BackButton" to="." method="_on_back_button_mouse_exited"]
 [connection signal="toggled" from="VideoStreamPlayer/TermsCheckBox" to="." method="_on_terms_check_box_toggled"]
 [connection signal="pressed" from="VideoStreamPlayer/TermsLink" to="." method="_on_terms_link_pressed"]
 [connection signal="pressed" from="VideoStreamPlayer/PrivacyLink" to="." method="_on_privacy_link_pressed"]

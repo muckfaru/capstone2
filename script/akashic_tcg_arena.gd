@@ -659,7 +659,7 @@ const _TEX := {
 	"firewall": preload("res://asset/cards for AkashicTGC/firewall shield 3.png"),
 }
 
-const _BACK_TEX: Texture2D = preload("res://asset/cards for AkashicTGC/back cards.png")
+var _BACK_TEX: Texture2D = preload("res://asset/cards for AkashicTGC/back cards.png")
 
 const _CARD_DB := {
 	# Defense
@@ -776,6 +776,7 @@ func _ready() -> void:
 
 
 	_status.text = "Connecting…"
+	_apply_shop_cosmetics()
 	if _is_host:
 		_try_init_host_state_if_possible()
 	else:
@@ -790,6 +791,24 @@ func _on_menu_button_pressed() -> void:
 	_menu_panel.visible = not _menu_panel.visible
 	if _menu_panel.visible:
 		_menu_panel.move_to_front()
+
+
+func _apply_shop_cosmetics() -> void:
+	# Background swap
+	var bg_val: String = ShopManager.get_equipped_value(ShopManager.SLOT_BG_AKASHIC_TCG)
+	if bg_val != "" and ResourceLoader.exists(bg_val):
+		var bg_node = $NinePatchRect
+		if bg_node and bg_node is NinePatchRect:
+			bg_node.texture = load(bg_val)
+			print("[ATCG Arena] 🎨 Shop background applied: ", bg_val)
+
+	# Card back skin swap
+	var skin_val: String = ShopManager.get_equipped_value(ShopManager.SLOT_SKIN_AKASHIC_TCG)
+	if skin_val != "" and ResourceLoader.exists(skin_val):
+		var tex = load(skin_val) as Texture2D
+		if tex:
+			_BACK_TEX = tex
+			print("[ATCG Arena] 🎨 Shop card back applied: ", skin_val)
 
 
 func _init_arena_chat() -> void:

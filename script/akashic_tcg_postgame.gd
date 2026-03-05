@@ -102,6 +102,10 @@ func _award_total_xp_best_effort() -> void:
 	elif _winner_id == _player_id:
 		local_won = true
 
+	# Award CyberCoins for PvP win
+	if local_won and CyberCoinManager:
+		CyberCoinManager.award_pvp_win("Akashic TCG")
+
 	var delta_xp: int = XP_WIN if local_won else XP_LOSE
 	if delta_xp == 0:
 		return

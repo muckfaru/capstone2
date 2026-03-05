@@ -1,0 +1,67 @@
+[gd_resource type="SpriteFrames" load_steps=10 format=3 uid="uid://btxfmbeh4nt1n"]
+
+[ext_resource type="Texture2D" uid="uid://6rgm22rsjghv" path="res://asset/defuse_trojan/Gemini_Generated_Image_mjq2pymjq2pymjq2-Photoroom.png" id="1_rti7x"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iiq8x"]
+atlas = ExtResource("1_rti7x")
+region = Rect2(0, 0, 320, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4npxv"]
+atlas = ExtResource("1_rti7x")
+region = Rect2(320, 0, 320, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ijvts"]
+atlas = ExtResource("1_rti7x")
+region = Rect2(640, 0, 320, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5ysi3"]
+atlas = ExtResource("1_rti7x")
+region = Rect2(960, 0, 320, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gd16x"]
+atlas = ExtResource("1_rti7x")
+region = Rect2(0, 640, 320, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_we2nc"]
+atlas = ExtResource("1_rti7x")
+region = Rect2(320, 640, 320, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w8qy6"]
+atlas = ExtResource("1_rti7x")
+region = Rect2(640, 640, 320, 640)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pdh7r"]
+atlas = ExtResource("1_rti7x")
+region = Rect2(960, 640, 320, 640)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iiq8x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4npxv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ijvts")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5ysi3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gd16x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_we2nc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w8qy6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pdh7r")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 8.0
+}]

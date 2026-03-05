@@ -135,6 +135,11 @@ func save_tutorial_result(tutorial_id: String, score: int, max_score: int) -> vo
 		# ✅ Add XP
 		total_xp += xp_earned
 		print("[TutorialManager] New XP: %d (+%d)" % [total_xp, xp_earned])
+
+		# Award CyberCoins: tutorial completion + XP conversion
+		if xp_earned > 0 and CyberCoinManager:
+			CyberCoinManager.award_tutorial_coins(tutorial_id)
+			CyberCoinManager.award_xp_conversion(xp_earned, tutorial_id)
 		
 		# ✅ Check for rank up
 		var new_rank := get_rank(total_xp)
@@ -415,7 +420,12 @@ func award_minigame_xp(minigame_id: String, xp_amount: int, score: int = 0) -> i
 	
 	# Award XP using existing system
 	add_xp(xp_amount, minigame_id)
-	
+
+	# Award CyberCoins: minigame completion + XP conversion
+	if CyberCoinManager:
+		CyberCoinManager.award_minigame_coins(minigame_id)
+		CyberCoinManager.award_xp_conversion(xp_amount, minigame_id)
+
 	# Save to Firestore
 	_save_minigame_data()
 	

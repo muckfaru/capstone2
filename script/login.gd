@@ -13,9 +13,12 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 
 var email_regex := RegEx.new()
 
+var _google_login_pending: bool = false
+
 func _ready():
 	add_child(oauth_helper)
 	oauth_helper.token_received.connect(_on_google_code_received)
+	oauth_helper.login_timed_out.connect(_on_google_login_timed_out)
 	Auth.auth_response.connect(_on_auth_response)
 
 	login_button.pressed.connect(_on_login_pressed)
@@ -47,12 +50,26 @@ func _on_login_pressed():
 # 🔹 Google OAuth Login Flow
 # ------------------------------------------------------
 func _on_google_login_pressed():
+	# If already waiting from a previous click, cancel and restart
+	if _google_login_pending:
+		oauth_helper.cancel_login()
+
+	_google_login_pending = true
+	google_login_btn.disabled = false
 	message_label.text = "⏳ Opening Google Sign-In..."
 	oauth_helper.start_google_login()
-	message_label.text = "🌐 Waiting for browser redirect..."
+	message_label.text = "🌐 Waiting for browser redirect... (click again to retry)"
+
+
+func _on_google_login_timed_out() -> void:
+	"""Called when OAuth helper times out (user probably closed the browser tab)."""
+	_google_login_pending = false
+	google_login_btn.disabled = false
+	message_label.text = "⚠️ Google Sign-In timed out. Click the button to try again."
 
 
 func _on_google_code_received(code: String):
+	_google_login_pending = false
 	message_label.text = "⏳ Exchanging code for token..."
 	Auth.exchange_google_code(code)
 	message_label.text = "⏳ Logging in with Google..."

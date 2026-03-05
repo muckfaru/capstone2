@@ -2,13 +2,13 @@
 
 [ext_resource type="Texture2D" uid="uid://euh1m1qdtuiw" path="res://asset/defuse_trojan/player_idle_spritesheet.jpg" id="1_sprite"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_6b4j3"]
-atlas = ExtResource("1_sprite")
-region = Rect2(35, 40, 222, 458)
-
 [sub_resource type="AtlasTexture" id="AtlasTexture_bwajb"]
 atlas = ExtResource("1_sprite")
 region = Rect2(279, 40, 222, 458)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6b4j3"]
+atlas = ExtResource("1_sprite")
+region = Rect2(35, 40, 222, 458)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_q04k0"]
 atlas = ExtResource("1_sprite")
@@ -38,10 +38,10 @@ region = Rect2(767, 526, 222, 458)
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_6b4j3")
+"texture": SubResource("AtlasTexture_bwajb")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_bwajb")
+"texture": SubResource("AtlasTexture_6b4j3")
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_q04k0")
