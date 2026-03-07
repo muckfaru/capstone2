@@ -20,20 +20,37 @@ const ICON_CRYPTO_SORTER := preload("res://asset/icons/encryicon.png")
 const ICON_RSA_KEY_LAB := preload("res://asset/icons/crypt_contract_icon.png")
 
 const ALL_MINIGAMES := [
-	{"name": "Cybersecurity Fundamentals", "scene": "res://scene/tutorial_cyber_fundamentals.tscn", "id": "beginner_fundamentals", "level": "Beginner", "icon": "FUNDAMENTALS"},
-	{"name": "Network Basics", "scene": "res://scene/tutorial_network_basics.tscn", "id": "beginner_network", "level": "Beginner", "icon": "NETWORK"},
-	{"name": "Encryption", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "advanced_encryption", "level": "Beginner", "icon": "ENCRYPTION"},
-	{"name": "Password Fortress Defender", "scene": "res://scene/tutorial_password_basics.tscn", "id": "beginner_password", "level": "Beginner", "icon": "PASSWORD"},
-	{"name": "Malware Types Overview", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware", "level": "Beginner", "icon": "MALWARE"},
-	{"name": "Drop Zone Defender", "scene": "res://scene/datavsnetwork.tscn", "id": "beginner_drop_zone", "level": "Intermediate", "icon": "DROP_ZONE"},
-	{"name": "Phishing Detection Lab", "scene": "res://scene/phishing_intro.tscn", "id": "intermediate_phishing", "level": "Intermediate", "icon": "PHISHING"},
-	{"name": "Asset vs Threats", "scene": "res://scene/Assetandthreat.tscn", "id": "intermediate_assetandthreat", "level": "Intermediate", "icon": "ASSET_THREAT"},
-	{"name": "Crypt Contract", "scene": "res://scene/PhoneEncryption.tscn", "id": "intermediate_crypt_contract", "level": "Intermediate", "icon": "CRYPT_CONTRACT"},
-	{"name": "Incident Commander", "scene": "res://scene/SOCMain.tscn", "id": "intermediate_incident_commander", "level": "Intermediate", "icon": "INCIDENT_COMMANDER"},
-	{"name": "Security Guardian", "scene": "res://scene/authgmMain.tscn", "id": "advanced_security_guardian", "level": "Advanced", "icon": "SECURITY_GUARDIAN"},
-	{"name": "Crypto Sorter: Symmetric vs Asymmetric", "scene": "res://scene/crypto_sorter.tscn", "id": "advanced_crypto_sorter", "level": "Advanced", "icon": "CRYPTO_SORTER"},
-	{"name": "RSA Key Lab: Public-Key Cryptography", "scene": "res://scene/rsa_key_lab.tscn", "id": "advanced_rsa_key_lab", "level": "Advanced", "icon": "RSA_KEY_LAB"},
+	# ── Lesson 1: Information Assurance & Networking ──
+	{"name": "Cybersecurity Fundamentals", "scene": "res://scene/tutorial_cyber_fundamentals.tscn", "id": "beginner_fundamentals", "level": "Beginner", "icon": "FUNDAMENTALS", "lesson": "Lesson 1"},
+	{"name": "Network Basics", "scene": "res://scene/tutorial_network_basics.tscn", "id": "beginner_network", "level": "Beginner", "icon": "NETWORK", "lesson": "Lesson 1"},
+	{"name": "Drop Zone Defender", "scene": "res://scene/datavsnetwork.tscn", "id": "beginner_drop_zone", "level": "Beginner", "icon": "DROP_ZONE", "lesson": "Lesson 1"},
+	# ── Lesson 2: Threats & Assets ──
+	{"name": "Threat Identification Lab", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware", "level": "Beginner", "icon": "MALWARE", "lesson": "Lesson 2"},
+	{"name": "Asset vs Threats", "scene": "res://scene/Assetandthreat.tscn", "id": "intermediate_assetandthreat", "level": "Beginner", "icon": "ASSET_THREAT", "lesson": "Lesson 2"},
+	# ── Lesson 3: Symmetric Encryption ──
+	{"name": "Encryption (Caesar Cipher)", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "advanced_encryption", "level": "Intermediate", "icon": "ENCRYPTION", "lesson": "Lesson 3"},
+	{"name": "Crypt Contract", "scene": "res://scene/PhoneEncryption.tscn", "id": "intermediate_crypt_contract", "level": "Intermediate", "icon": "CRYPT_CONTRACT", "lesson": "Lesson 3"},
+	# ── Lesson 4: DES, Triple DES & AES ──
+	{"name": "Encryption Audit Lab", "scene": "res://scene/phishing_intro.tscn", "id": "intermediate_phishing", "level": "Intermediate", "icon": "PHISHING", "lesson": "Lesson 4"},
+	{"name": "Cipher Defense Terminal", "scene": "res://scene/SOCMain.tscn", "id": "intermediate_incident_commander", "level": "Intermediate", "icon": "INCIDENT_COMMANDER", "lesson": "Lesson 4"},
+	# ── Lesson 5: Public-Key Cryptography ──
+	{"name": "Crypto Sorter", "scene": "res://scene/crypto_sorter.tscn", "id": "advanced_crypto_sorter", "level": "Advanced", "icon": "CRYPTO_SORTER", "lesson": "Lesson 5"},
+	# ── Lesson 6: RSA, Diffie-Hellman & Practice ──
+	{"name": "RSA Key Lab", "scene": "res://scene/rsa_key_lab.tscn", "id": "advanced_rsa_key_lab", "level": "Advanced", "icon": "RSA_KEY_LAB", "lesson": "Lesson 6"},
+	# ── Lesson 7: Authentication ──
+	{"name": "Password Fortress Defender", "scene": "res://scene/tutorial_password_basics.tscn", "id": "beginner_password", "level": "Advanced", "icon": "PASSWORD", "lesson": "Lesson 7"},
+	{"name": "Security Guardian", "scene": "res://scene/authgmMain.tscn", "id": "advanced_security_guardian", "level": "Advanced", "icon": "SECURITY_GUARDIAN", "lesson": "Lesson 7"},
 ]
+
+const LESSON_HEADERS := {
+	"Lesson 1": "Lesson 1 — Information Assurance & Networking",
+	"Lesson 2": "Lesson 2 — Threats & Assets",
+	"Lesson 3": "Lesson 3 — Symmetric Encryption",
+	"Lesson 4": "Lesson 4 — DES, Triple DES & AES",
+	"Lesson 5": "Lesson 5 — Public-Key Cryptography",
+	"Lesson 6": "Lesson 6 — RSA, Diffie-Hellman & Practice",
+	"Lesson 7": "Lesson 7 — Authentication",
+}
 
 const LEVEL_COLORS := {
 	"Beginner": Color(0.0, 0.85, 0.4, 1.0),
@@ -80,7 +97,7 @@ const PLAYER_MAX: int = 50
 
 @onready var popup_selected_label: Label = $CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/SelectedLabel
 @onready var popup_confirm_btn: Button = $CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/ConfirmRow/ConfirmButton
-@onready var minigame_grid: GridContainer = $CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/ScrollContainer/MinigameGrid
+@onready var minigame_grid: VBoxContainer = $CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/ScrollContainer/MinigameGrid
 
 @onready var code_room_name_label: Label = $CanvasLayer/RoomCodePanel/CodeTopBar/CodeRoomNameLabel
 @onready var code_display_label: Label = $CanvasLayer/RoomCodePanel/CodeContent/CodeRow/CodeDisplayLabel
@@ -563,7 +580,29 @@ func _on_popup_confirm_pressed() -> void:
 
 func _build_minigame_cards() -> void:
 	for c in minigame_grid.get_children(): c.queue_free()
-	for game in ALL_MINIGAMES: minigame_grid.add_child(_make_card(game))
+	var current_lesson := ""
+	for game in ALL_MINIGAMES:
+		var lesson: String = game.get("lesson", "")
+		if lesson != current_lesson:
+			current_lesson = lesson
+			minigame_grid.add_child(_make_lesson_header(lesson))
+		minigame_grid.add_child(_make_card(game))
+
+func _make_lesson_header(lesson_key: String) -> PanelContainer:
+	var panel := PanelContainer.new()
+	var s := StyleBoxFlat.new()
+	s.bg_color = Color(0.0, 0.55, 0.75, 0.25)
+	s.corner_radius_top_left = 6; s.corner_radius_top_right = 6
+	s.corner_radius_bottom_left = 6; s.corner_radius_bottom_right = 6
+	s.content_margin_left = 12; s.content_margin_right = 12
+	s.content_margin_top = 6; s.content_margin_bottom = 6
+	panel.add_theme_stylebox_override("panel", s)
+	var lbl := Label.new()
+	lbl.text = LESSON_HEADERS.get(lesson_key, lesson_key)
+	lbl.add_theme_color_override("font_color", Color(0.0, 0.9, 1.0, 1.0))
+	lbl.add_theme_font_size_override("font_size", 15)
+	panel.add_child(lbl)
+	return panel
 
 func _make_card(game: Dictionary) -> PanelContainer:
 	var card := PanelContainer.new()

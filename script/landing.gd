@@ -81,7 +81,7 @@ var http: HTTPRequest
 var ui_initialized: bool = false
 
 # === CyberCoin UI ===
-var _cybercoin_label: Label = null
+@onready var _cybercoin_label: Label = $VideoStreamPlayer/ProfilePanel/UserPanel/CyberCoinLabel
 
 # ✅ CRITICAL: Flag to prevent duplicate welcome bonus
 var welcome_bonus_awarded: bool = false
@@ -100,7 +100,8 @@ var _tgc_resume_retries: int = 0
 var _resume_routed: bool = false
 
 var current_video_index: int = 0
-
+# Add this with the other @onready vars at the top
+@onready var _shop_nav_btn: Button = $NavigationPanel/HBoxContainer/ShopNavigate
 @export var background_video: String = "res://asset/background/video_background_2.ogv"
 @export var transition_video: String = "res://asset/background/video_background_1.ogv"
 @export var background_music: String = "res://asset/background/LETHAL DOSE.mp3"
@@ -1052,33 +1053,12 @@ func _update_xp_display() -> void:
 # CYBERCOIN DISPLAY
 # ─────────────────────────────────────────────────────────────────────────────
 func _setup_cybercoin_display() -> void:
-	"""Create CyberCoin balance label next to XP in the profile panel."""
 	if _cybercoin_label and is_instance_valid(_cybercoin_label):
-		return  # Already created
-
-	var user_panel = $VideoStreamPlayer/ProfilePanel/UserPanel
-	if not user_panel:
-		return
-
-	_cybercoin_label = Label.new()
-	_cybercoin_label.name = "CyberCoinLabel"
-	_cybercoin_label.text = "🪙 %d CyberCoins" % CyberCoinManager.get_balance()
-	_cybercoin_label.add_theme_color_override("font_color", Color(1, 0.85, 0, 1))  # Gold
-	_cybercoin_label.add_theme_font_size_override("font_size", 14)
-	_cybercoin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-
-	# Place it below XP input
-	if xp_input and xp_input.get_parent() == user_panel:
-		var idx := xp_input.get_index() + 1
-		user_panel.add_child(_cybercoin_label)
-		user_panel.move_child(_cybercoin_label, idx)
-	else:
-		user_panel.add_child(_cybercoin_label)
-
+		_cybercoin_label.text = "%d CyberCoins" % CyberCoinManager.get_balance()
 
 func _on_cybercoin_balance_changed(new_balance: int) -> void:
 	if _cybercoin_label and is_instance_valid(_cybercoin_label):
-		_cybercoin_label.text = "🪙 %d CyberCoins" % new_balance
+		_cybercoin_label.text = "%d CyberCoins" % new_balance
 		
 func _exit_tree() -> void:
 	"""Cleanup when leaving the scene"""
@@ -3465,35 +3445,8 @@ func open_shop() -> void:
 
 
 func _add_shop_nav_button() -> void:
-	"""Add a Shop button next to the Bag button in the navbar"""
-	var hbox = $NavigationPanel/HBoxContainer
-	var bag_btn = $NavigationPanel/HBoxContainer/BagNavigate
-	if not hbox or not bag_btn:
-		return
-	var shop_btn := Button.new()
-	shop_btn.name = "ShopNavigate"
-	shop_btn.text = "Shop"
-	shop_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	shop_btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-	shop_btn.add_theme_font_size_override("font_size", 16)
-	# Copy style from BagNavigate
-	var bag_font = bag_btn.get_theme_font("font")
-	if bag_font:
-		shop_btn.add_theme_font_override("font", bag_font)
-	var normal_sb = bag_btn.get_theme_stylebox("normal")
-	if normal_sb:
-		shop_btn.add_theme_stylebox_override("normal", normal_sb.duplicate())
-	var hover_sb = bag_btn.get_theme_stylebox("hover")
-	if hover_sb:
-		shop_btn.add_theme_stylebox_override("hover", hover_sb.duplicate())
-	var focus_sb = bag_btn.get_theme_stylebox("focus")
-	if focus_sb:
-		shop_btn.add_theme_stylebox_override("focus", focus_sb.duplicate())
-	# Insert right after BagNavigate
-	var bag_idx := bag_btn.get_index()
-	hbox.add_child(shop_btn)
-	hbox.move_child(shop_btn, bag_idx + 1)
-	shop_btn.pressed.connect(open_shop)
+		if _shop_nav_btn:
+			_shop_nav_btn.pressed.connect(open_shop)
 
 
 func _setup_video_and_music() -> void:

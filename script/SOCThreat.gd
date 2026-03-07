@@ -20,16 +20,17 @@ var is_neutralized := false
 # Animation control
 var current_animation := "idle"
 
-# Sprite sheet mappings
+# Sprite sheet mappings (using alien sprites)
 var threat_sprite_frames := {
-	"port_scanner": "res://asset/alien/port_scanner_frames.tres",
-	"brute_force": "res://asset/alien/brute_force_frames.tres",
-	"sql_injection": "res://asset/alien/sql_injection_frames.tres",
-	"ddos_flood": "res://asset/alien/ddos_flood_frames.tres",
-	"malware_beacon": "res://asset/alien/malware_beacon_frames.tres",
-	"credential_stuffing": "res://asset/alien/credential_stuffing_frames.tres",
-	"data_exfiltration": "res://asset/alien/data_exfiltration_frames.tres",
-	"lateral_movement": "res://asset/alien/lateral_movement_frames.tres"
+	"weak_key": "res://asset/alien/brute_force_frames.tres",
+	"ecb_pattern": "res://asset/alien/sql_injection_frames.tres",
+	"des_legacy": "res://asset/alien/port_scanner_frames.tres",
+	"no_authentication": "res://asset/alien/credential_stuffing_frames.tres",
+	"iv_reuse": "res://asset/alien/ddos_flood_frames.tres",
+	"key_reuse": "res://asset/alien/malware_beacon_frames.tres",
+	"padding_oracle": "res://asset/alien/data_exfiltration_frames.tres",
+	"plaintext_keys": "res://asset/alien/lateral_movement_frames.tres",
+	"plaintext_transit": "res://asset/alien/port_scanner_frames.tres"
 }
 
 const COLLISION_SIZE := Vector2(80, 80)
@@ -85,7 +86,7 @@ func setup(type: String, data: Dictionary, is_tutorial: bool):
 	if tutorial_hint:
 		if tutorial_mode:
 			tutorial_hint.visible = true
-			tutorial_hint.text = "[color=cyan]Command: " + data.correct_command + "[/color]"
+			tutorial_hint.text = "[color=cyan]" + data.correct_command + "[/color]"
 			max_time = 20.0
 		else:
 			tutorial_hint.visible = false

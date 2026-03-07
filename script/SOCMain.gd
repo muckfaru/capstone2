@@ -1,18 +1,9 @@
 extends Node2D
 
 # ============================================================================
-# FIXES APPLIED + DEBUG VERSION
-# 1. ✅ Power-up drop rate: 70% → 25% (BALANCED)
-# 2. ✅ Power-up weights rebalanced (50/30/20 instead of 60/30/10)
-# 3. ✅ Time-stop nerfed: 8s → 5s
-# 4. ✅ Command reference always visible (just fades, never hides)
-# 5. ✅ Victory message clarified
-# 6. ✅ Quit button safety check added
-# 7. ✅ Restart audio delay added
-# 8. ✅ DebriefPanel RestartButton → RESTARTS game (FIXED)
-# 9. ✅ VictoryPanel RestartButton → EXITS to mode_selection (FIXED)
-# 10. ✅ Fixed scene change logic (IMMEDIATE, no await blocking)
-# 11. ✅ ADDED EXTENSIVE DEBUG LOGGING
+# CIPHER DEFENSE TERMINAL — Lesson 4.2: AES (Advanced Encryption Standard)
+# Re-themed from SOC Incident Command. Gameplay mechanics unchanged.
+# Type the correct encryption defense command to fix crypto vulnerabilities.
 # ============================================================================
 
 # Audio players
@@ -108,136 +99,146 @@ var powerup_types := {
 	}
 }
 
-# Command database
+# Command database — encryption defense commands
 var command_database := {
-	"block-source": {
-		"category": "PERIMETER",
-		"effective_against": ["port_scanner"],
-		"description": "Block attacking IP at firewall"
+	"enforce-aes256": {
+		"category": "ALGORITHM",
+		"effective_against": ["weak_key"],
+		"description": "Upgrade to AES-256 key strength"
 	},
-	"activate-scrubbing": {
-		"category": "PERIMETER",
-		"effective_against": ["ddos_flood"],
-		"description": "Enable DDoS mitigation service"
+	"upgrade-cipher": {
+		"category": "ALGORITHM",
+		"effective_against": ["des_legacy"],
+		"description": "Replace deprecated cipher with AES"
 	},
-	"rate-limit": {
-		"category": "ACCESS",
-		"effective_against": ["brute_force"],
-		"description": "Slow down authentication attempts"
+	"switch-to-cbc": {
+		"category": "MODE",
+		"effective_against": ["ecb_pattern"],
+		"description": "Use CBC mode to hide data patterns"
 	},
-	"enforce-mfa": {
-		"category": "ACCESS",
-		"effective_against": ["credential_stuffing"],
-		"description": "Require multi-factor authentication"
+	"enable-gcm": {
+		"category": "MODE",
+		"effective_against": ["no_authentication"],
+		"description": "Enable authenticated encryption (AEAD)"
 	},
-	"isolate-host": {
-		"category": "HOST",
-		"effective_against": ["malware_beacon", "lateral_movement"],
-		"description": "Quarantine infected machine"
+	"rotate-keys": {
+		"category": "KEY MGMT",
+		"effective_against": ["key_reuse"],
+		"description": "Enforce regular key rotation schedule"
 	},
-	"sanitize-input": {
-		"category": "HOST",
-		"effective_against": ["sql_injection"],
-		"description": "Filter out injection attempts"
+	"use-hsm": {
+		"category": "KEY MGMT",
+		"effective_against": ["plaintext_keys"],
+		"description": "Store keys in Hardware Security Module"
 	},
-	"block-egress": {
-		"category": "DATA",
-		"effective_against": ["data_exfiltration"],
-		"description": "Stop outbound data transfer"
+	"randomize-iv": {
+		"category": "IV/NONCE",
+		"effective_against": ["iv_reuse"],
+		"description": "Generate random IV per encryption"
 	},
-	"restore-backup": {
-		"category": "DATA",
-		"effective_against": ["ransomware"],
-		"description": "Recover from ransomware attack"
+	"add-hmac": {
+		"category": "AUTH",
+		"effective_against": ["padding_oracle"],
+		"description": "Add HMAC to prevent padding oracle"
 	},
-	"segment-network": {
-		"category": "NETWORK",
-		"effective_against": ["lateral_movement"],
-		"description": "Create security boundaries"
+	"enforce-tls": {
+		"category": "TRANSPORT",
+		"effective_against": ["plaintext_transit"],
+		"description": "Encrypt data in transit with TLS"
 	}
 }
 
-# Threat types
+# Threat types — cryptographic vulnerabilities
 var threat_types := {
-	"port_scanner": {
-		"name": "Port Scanner",
-		"visual": "🔍",
+	"weak_key": {
+		"name": "Weak Key (56-bit)",
+		"visual": "🔑",
 		"color": Color(0.8, 0.8, 0.2),
-		"description": "Probing multiple ports",
+		"description": "56-bit key — brute-forceable",
 		"speed": 30.0,
-		"impact": "System blueprint stolen",
-		"tutorial_hint": "This attacker is scanning for open ports.\nBlock their IP address to stop reconnaissance.",
-		"correct_command": "block-source"
+		"impact": "Encryption cracked in hours",
+		"tutorial_hint": "This system uses a weak 56-bit key (DES-level).\nUpgrade to AES with a 256-bit key.",
+		"correct_command": "enforce-aes256"
 	},
-	"brute_force": {
-		"name": "Brute Force Login",
-		"visual": "🔓",
+	"ecb_pattern": {
+		"name": "ECB Mode Leak",
+		"visual": "📊",
 		"color": Color(1.0, 0.5, 0.0),
-		"description": "Repeated auth attempts",
+		"description": "ECB mode leaking patterns",
 		"speed": 35.0,
-		"impact": "Account compromised",
-		"tutorial_hint": "Thousands of login attempts per second.\nSlow down authentication to stop the attack.",
-		"correct_command": "rate-limit"
+		"impact": "Data patterns exposed",
+		"tutorial_hint": "ECB encrypts identical blocks the same way.\nSwitch to CBC mode where each block depends on the previous.",
+		"correct_command": "switch-to-cbc"
 	},
-	"sql_injection": {
-		"name": "SQL Injection",
-		"visual": "💉",
+	"des_legacy": {
+		"name": "Legacy DES",
+		"visual": "⚠️",
 		"color": Color(1.0, 0.2, 0.2),
-		"description": "Malformed database queries",
+		"description": "Deprecated DES still active",
 		"speed": 40.0,
-		"impact": "Database dumped",
-		"tutorial_hint": "Malicious SQL code in user input.\nValidate and clean inputs before database queries.",
-		"correct_command": "sanitize-input"
+		"impact": "Cipher broken — data exposed",
+		"tutorial_hint": "DES was cracked in 1999 and retired in 2005.\nReplace it with AES to meet modern standards.",
+		"correct_command": "upgrade-cipher"
 	},
-	"ddos_flood": {
-		"name": "DDoS Flood",
-		"visual": "🌊",
+	"no_authentication": {
+		"name": "No Auth Tag",
+		"visual": "🔓",
 		"color": Color(0.3, 0.5, 1.0),
-		"description": "High volume traffic",
+		"description": "Encryption without authentication",
 		"speed": 25.0,
-		"impact": "Service overwhelmed",
-		"tutorial_hint": "Massive traffic flood overwhelming servers.\nActivate cloud-based traffic filtering.",
-		"correct_command": "activate-scrubbing"
+		"impact": "Ciphertext tampered undetected",
+		"tutorial_hint": "Encryption alone doesn't prove data integrity.\nEnable GCM mode for authenticated encryption.",
+		"correct_command": "enable-gcm"
 	},
-	"malware_beacon": {
-		"name": "Malware Beacon",
-		"visual": "📡",
+	"iv_reuse": {
+		"name": "IV Reuse",
+		"visual": "🔄",
 		"color": Color(0.8, 0.2, 0.8),
-		"description": "Outbound suspicious connections",
+		"description": "Same IV used for every message",
 		"speed": 32.0,
-		"impact": "Command & control established",
-		"tutorial_hint": "Infected host calling home to attacker.\nIsolate the compromised machine from network.",
-		"correct_command": "isolate-host"
+		"impact": "First blocks reveal patterns",
+		"tutorial_hint": "Reusing the IV lets attackers compare ciphertexts.\nGenerate a fresh random IV for every encryption.",
+		"correct_command": "randomize-iv"
 	},
-	"credential_stuffing": {
-		"name": "Credential Stuffing",
-		"visual": "🌍",
+	"key_reuse": {
+		"name": "Key Never Rotated",
+		"visual": "🗝️",
 		"color": Color(0.9, 0.6, 0.2),
-		"description": "Valid logins from wrong locations",
+		"description": "Same key used for 3+ years",
 		"speed": 38.0,
-		"impact": "Multiple accounts breached",
-		"tutorial_hint": "Stolen credentials from other breaches.\nRequire additional authentication factors.",
-		"correct_command": "enforce-mfa"
+		"impact": "Years of data compromised if leaked",
+		"tutorial_hint": "Old keys increase risk of compromise.\nRotate encryption keys on a regular schedule.",
+		"correct_command": "rotate-keys"
 	},
-	"data_exfiltration": {
-		"name": "Data Exfiltration",
-		"visual": "📤",
+	"padding_oracle": {
+		"name": "Padding Oracle",
+		"visual": "🧩",
 		"color": Color(1.0, 0.3, 0.3),
-		"description": "Large outbound transfers",
+		"description": "Padding errors reveal plaintext",
 		"speed": 45.0,
-		"impact": "Customer data leaked",
-		"tutorial_hint": "Sensitive data being transferred out.\nBlock outbound connections immediately.",
-		"correct_command": "block-egress"
+		"impact": "Full decryption via error leaks",
+		"tutorial_hint": "Padding error messages let attackers decrypt data byte-by-byte.\nAdd HMAC authentication before decryption.",
+		"correct_command": "add-hmac"
 	},
-	"lateral_movement": {
-		"name": "Lateral Movement",
-		"visual": "↔️",
+	"plaintext_keys": {
+		"name": "Keys in Plain Text",
+		"visual": "📄",
 		"color": Color(0.7, 0.3, 0.9),
-		"description": "Internal scanning after breach",
+		"description": "Encryption keys stored unprotected",
 		"speed": 42.0,
-		"impact": "Multiple systems infected",
-		"tutorial_hint": "Attacker moving between internal systems.\nCreate network boundaries to contain spread.",
-		"correct_command": "segment-network"
+		"impact": "All encrypted data exposed",
+		"tutorial_hint": "Keys stored in config files can be stolen easily.\nUse a Hardware Security Module (HSM) for key storage.",
+		"correct_command": "use-hsm"
+	},
+	"plaintext_transit": {
+		"name": "No Transit Encryption",
+		"visual": "📡",
+		"color": Color(0.6, 0.6, 0.2),
+		"description": "Data sent over plain HTTP",
+		"speed": 36.0,
+		"impact": "Credentials intercepted on network",
+		"tutorial_hint": "Data in transit without TLS can be sniffed by anyone.\nEnforce TLS/HTTPS for all communications.",
+		"correct_command": "enforce-tls"
 	}
 }
 
@@ -245,7 +246,7 @@ var threat_types := {
 
 func _ready():
 	print("\n" + "=".repeat(80))
-	print("🎮 SOC Incident Command - DEBUG MODE ENABLED")
+	print("🔐 Cipher Defense Terminal - AES Encryption Defense")
 	print("=".repeat(80) + "\n")
 	
 	_check_audio_bus_setup()
@@ -272,7 +273,7 @@ func _ready():
 		_gamemode_room_code = get_tree().get_meta("gamemode_room_code")
 		_gamemode_lobby_url = get_tree().get_meta("gamemode_lobby_url")
 		_gamemode_start_time_ms = get_tree().get_meta("gamemode_start_time_ms")
-		print("[Incident Commander] 🎮 GameMode detected — room: %s" % _gamemode_room_code)
+		print("[Cipher Defense] 🔐 GameMode detected — room: %s" % _gamemode_room_code)
 		if quit_btn:
 			quit_btn.visible = false
 	
@@ -651,9 +652,9 @@ func show_tutorial():
 	_play_bgm(audio_bgm_tutorial, 2.0)
 	
 	var tutorial_texts := [
-		"[b]Welcome to Incident Command: Active Defense Protocol[/b]\n\nYou are a Security Operations Center (SOC) analyst. Cyber threats will attack your systems from the right side of the screen.\n\nYour job: Type the correct defensive command to neutralize each threat.",
-		"[b]How Threats Work[/b]\n\nEach threat has:\n• A visual indicator (emoji)\n• A description of its behavior\n• A specific defensive command that works against it\n\nWrong commands won't work - you need to match the defense to the attack type.",
-		"[b]Your First Threat[/b]\n\nA [color=yellow]Port Scanner[/color] will appear soon.\nIt's probing your systems for open ports.\n\nThe correct command is: [color=cyan]block-source[/color]\n\nType it in the terminal at the bottom when the threat appears."
+		"[b]Welcome to Cipher Defense Terminal[/b]\n\nYou are a cryptography security analyst. Encryption vulnerabilities will approach your data systems from the right side of the screen.\n\nYour job: Type the correct defensive command to fix each vulnerability before it reaches your systems.",
+		"[b]How Vulnerabilities Work[/b]\n\nEach vulnerability has:\n• A visual indicator (emoji)\n• A description of the crypto weakness\n• A specific defense command that fixes it\n\nWrong commands won't work - you need to match the correct encryption fix to each vulnerability type.",
+		"[b]Your First Vulnerability[/b]\n\nA [color=yellow]Weak Key (56-bit)[/color] will appear soon.\nIt means the system uses a key that's too short to resist brute-force.\n\nThe correct command is: [color=cyan]enforce-aes256[/color]\n\nType it in the terminal at the bottom when the vulnerability appears."
 	]
 	
 	$UI/TutorialPanel.visible = true
@@ -698,9 +699,9 @@ func spawn_threat():
 	var available_threats := []
 	
 	if current_wave <= 3:
-		available_threats = ["port_scanner", "brute_force", "sql_injection"]
+		available_threats = ["weak_key", "ecb_pattern", "des_legacy"]
 	elif current_wave <= 6:
-		available_threats = ["port_scanner", "brute_force", "sql_injection", "ddos_flood", "malware_beacon"]
+		available_threats = ["weak_key", "ecb_pattern", "des_legacy", "no_authentication", "iv_reuse"]
 	else:
 		available_threats = threat_types.keys()
 	
@@ -786,10 +787,10 @@ func handle_wrong_command(threat, _command: String, cmd_data: Dictionary, threat
 	
 	var feedback = "[color=red]✗ INEFFECTIVE[/color]\n"
 	
-	if cmd_data.category == "PERIMETER" and threat.threat_type in ["sql_injection", "lateral_movement"]:
-		feedback += "Can't block - this threat bypasses perimeter defenses. Try a different approach."
-	elif cmd_data.category == "HOST" and threat.threat_type in ["ddos_flood"]:
-		feedback += "Host defenses won't stop network floods. Use perimeter controls."
+	if cmd_data.category == "ALGORITHM" and threat.threat_type in ["no_authentication", "iv_reuse"]:
+		feedback += "Algorithm upgrades alone won't fix this. This vulnerability needs a mode or nonce fix."
+	elif cmd_data.category == "MODE" and threat.threat_type in ["weak_key", "plaintext_keys"]:
+		feedback += "Changing modes won't help — the key itself is the problem. Try key management commands."
 	else:
 		feedback += "Wrong defense type. [color=yellow]" + threat_data.name + "[/color] needs: [color=cyan]" + threat_data.correct_command + "[/color]"
 	
@@ -1054,7 +1055,7 @@ func victory():
 	var health_xp = systems_health * 10  # 10 XP per remaining system health
 	var total_xp_earned = base_xp + wave_xp + accuracy_xp + health_xp
 	
-	print("[Incident Commander] 🏆 Victory! Awarding XP:")
+	print("[Cipher Defense] 🏆 Victory! Awarding XP:")
 	print("  Base XP: %d" % base_xp)
 	print("  Wave XP: %d (waves %d)" % [wave_xp, VICTORY_WAVE])
 	print("  Accuracy XP: %d (accuracy %.1f%%)" % [accuracy_xp, accuracy])
@@ -1083,13 +1084,13 @@ func victory():
 	
 	if accuracy >= 95 and systems_health == 3:
 		victory_text += "[b][color=yellow]⭐ PERFECT DEFENSE ⭐[/color][/b]\n"
-		victory_text += "Flawless execution! You are a master SOC analyst!"
+		victory_text += "Flawless execution! You are a master encryption analyst!"
 	elif accuracy >= 80 and systems_health >= 2:
 		victory_text += "[b][color=lime]🏆 EXCELLENT PERFORMANCE 🏆[/color][/b]\n"
-		victory_text += "Outstanding work! Your systems are secure."
+		victory_text += "Outstanding work! All encryption systems are secure."
 	elif accuracy >= 60:
 		victory_text += "[b][color=cyan]✓ MISSION SUCCESS ✓[/color][/b]\n"
-		victory_text += "Good work! The threat has been contained."
+		victory_text += "Good work! The vulnerabilities have been patched."
 	else:
 		victory_text += "[b][color=orange]⚠ NARROW VICTORY ⚠[/color][/b]\n"
 		victory_text += "You made it, but it was close. Keep practicing!"
@@ -1097,7 +1098,7 @@ func victory():
 	$UI/VictoryPanel/VictoryText.text = victory_text
 	$UI/VictoryPanel.visible = true
 	
-	print("🏆 VICTORY! Player completed Wave " + str(VICTORY_WAVE))
+	print("🏆 CIPHER DEFENSE VICTORY! Completed Wave " + str(VICTORY_WAVE))
 
 func game_over():
 	$Timers/WaveTimer.stop()
@@ -1124,39 +1125,39 @@ func game_over():
 	var health_xp = systems_health * 5  # 5 XP per remaining system health (vs 10 on win)
 	var partial_xp = wave_xp + accuracy_xp + health_xp
 	
-	print("[Incident Commander] 💀 Game Over - Awarding partial XP:")
+	print("[Cipher Defense] 💀 Game Over - Awarding partial XP:")
 	print("  Wave XP: %d (wave %d)" % [wave_xp, current_wave])
 	print("  Accuracy XP: %d (%.1f%% accuracy)" % [accuracy_xp, accuracy])
 	print("  Health XP: %d (%d health)" % [health_xp, systems_health])
 	print("  Total Partial XP: %d" % partial_xp)
 	
 	# Award XP but DON'T mark as completed
-	TutorialManager.add_xp(partial_xp, "Incident Commander (Attempt)")
+	TutorialManager.add_xp(partial_xp, "Cipher Defense Terminal (Attempt)")
 	
 	if _is_gamemode:
 		_submit_gamemode_score(score, 500)
 		return
 	
-	var debrief = "[b]SECURITY OPERATIONS FAILED[/b]\n\n"
+	var debrief = "[b]ENCRYPTION DEFENSE FAILED[/b]\n\n"
 	debrief += "Threats Neutralized: [color=lime]" + str(threats_neutralized) + "[/color]\n"
 	debrief += "Threats Missed: [color=red]" + str(threats_missed) + "[/color]\n"
 	debrief += "Final Score: " + str(score) + "\n"
 	debrief += "[color=yellow]XP Earned: +" + str(partial_xp) + "[/color]\n\n"
 	
 	if missed_threats_data.size() > 0:
-		debrief += "[color=yellow]MISSED THREATS:[/color]\n\n"
+		debrief += "[color=yellow]UNPATCHED VULNERABILITIES:[/color]\n\n"
 		for i in range(min(3, missed_threats_data.size())):
 			var threat = missed_threats_data[i]
 			debrief += "[color=red]• " + threat.name + "[/color]\n"
 			debrief += "  Impact: " + threat.impact + "\n"
-			debrief += "  Correct command: [color=cyan]" + threat.correct_command + "[/color]\n\n"
+			debrief += "  Fix: [color=cyan]" + threat.correct_command + "[/color]\n\n"
 	
 	debrief += "\n[color=cyan]Press R or SPACE to restart[/color]"
 	
 	$UI/DebriefPanel/DebriefText.text = debrief
 	$UI/DebriefPanel.visible = true
 	
-	print("💀 GAME OVER - DebriefPanel displayed")
+	print("💀 CIPHER DEFENSE FAILED - DebriefPanel displayed")
 
 # ============================================================================
 # ✅ BUTTON HANDLERS - WITH EXTENSIVE DEBUG LOGGING
@@ -1168,7 +1169,7 @@ func _on_debrief_restart():
 		_submit_gamemode_score(score, 500)
 		return
 	print("\n" + "=".repeat(80))
-	print("🔄 [DEBUG] DebriefPanel RESTART button clicked!")
+	print("🔄 [DEBUG] Cipher Defense RESTART button clicked!")
 	print("=".repeat(80))
 	print("   ⏰ Time: " + str(Time.get_ticks_msec()))
 	print("   📍 Function: _on_debrief_restart()")
@@ -1201,7 +1202,7 @@ func _on_victory_exit():
 		_submit_gamemode_score(score, 500)
 		return
 	print("\n" + "=".repeat(80))
-	print("🚪 [DEBUG] VictoryPanel EXIT button clicked!")
+	print("🚪 [DEBUG] Cipher Defense EXIT button clicked!")
 	print("=".repeat(80))
 	print("   ⏰ Time: " + str(Time.get_ticks_msec()))
 	print("   📍 Function: _on_victory_exit()")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=174 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=175 format=3 uid="uid://5o3qtaqdnl8s"]
 
 [ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_86hhj"]
 [ext_resource type="Texture2D" uid="uid://dv07o70iijuox" path="res://asset/newUIlandingupdate/cyber ct 2 (1).png" id="2_1sd5v"]
@@ -18,7 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://cokg85h7pt2rg" path="res://asset/newUIlandingupdate/topleft.png" id="11_p3l0o"]
 [ext_resource type="PackedScene" uid="uid://clvghcukrtua8" path="res://scene/akashic_tcg_lobby.tscn" id="11_tgc"]
 [ext_resource type="Texture2D" uid="uid://bjkci8oobkta" path="res://asset/rankicon/MASTER.png" id="11_w34e0"]
-[ext_resource type="PackedScene" path="res://scene/defuse_trojan_lobby.tscn" id="12_defuse"]
+[ext_resource type="PackedScene" uid="uid://by8pxsiunowkt" path="res://scene/defuse_trojan_lobby.tscn" id="12_defuse"]
 [ext_resource type="Texture2D" uid="uid://c1p5w4nvx1i1l" path="res://asset/newUIlandingupdate/bottomleft.png" id="12_kbofv"]
 [ext_resource type="Texture2D" uid="uid://bpkxbcgeecepa" path="res://asset/newUIlandingupdate/rankframer.png" id="12_w34e0"]
 [ext_resource type="Texture2D" uid="uid://b53xk27ilwwy5" path="res://asset/newUIlandingupdate/example trophu.png" id="13_6jpks"]
@@ -297,6 +297,11 @@ font = ExtResource("16_8k3g4")
 font_color = Color(0, 0.941176, 1, 1)
 outline_size = 10
 outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_1sd5v"]
+font = ExtResource("9_ld5je")
+outline_size = 5
+outline_color = Color(0.241155, 0.241156, 0.241157, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_jpfeh"]
 font = ExtResource("9_qseta")
@@ -1147,6 +1152,18 @@ offset_bottom = 223.0
 theme_override_colors/font_color = Color(1, 0.843, 0, 1)
 text = "XP : "
 
+[node name="CyberCoinLabel" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
+visible = false
+layout_mode = 0
+offset_left = 790.0
+offset_top = -66.0
+offset_right = 1058.0
+offset_bottom = -41.0
+theme_override_colors/font_color = Color(1, 0.85, 0, 1)
+theme_override_font_sizes/font_size = 14
+text = "0 CyberCoins"
+label_settings = SubResource("LabelSettings_1sd5v")
+
 [node name="xpInput" type="Label" parent="VideoStreamPlayer/ProfilePanel/UserPanel"]
 visible = false
 layout_mode = 0
@@ -1860,6 +1877,17 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
 theme_override_styles/hover = SubResource("StyleBoxTexture_76yyg")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "MINI GAMES"
+
+[node name="ShopNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_nicomoji")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/hover = SubResource("StyleBoxTexture_y0g3t")
+theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
+text = "Shop"
 
 [node name="BagNavigate" type="Button" parent="NavigationPanel/HBoxContainer"]
 layout_mode = 2

@@ -1,6 +1,6 @@
 extends Control
 
-# Save as: res://script/phishing_intro.gd
+# Save as: res://scene/phishing_intro.gd (Encryption Audit Lab intro)
 
 @onready var start_button: Button = $ScrollContainer/MainContainer/VBox/ButtonContainer/StartButton
 @onready var back_button: Button = $ScrollContainer/MainContainer/VBox/ButtonContainer/BackButton
@@ -9,12 +9,12 @@ extends Control
 var _is_gamemode: bool = false
 
 func _ready() -> void:
-	print("📚 Phishing Introduction Scene Loaded")
+	print("📚 Encryption Audit Introduction Scene Loaded")
 	
 	# GameMode detection
 	_is_gamemode = get_tree().has_meta("gamemode_room_code")
 	if _is_gamemode:
-		print("[GameMode] Phishing Intro running in game mode")
+		print("[GameMode] Encryption Audit Intro running in game mode")
 	
 	if start_button:
 		start_button.pressed.connect(_on_start_button_pressed)
@@ -32,7 +32,7 @@ func _ready() -> void:
 		push_error("Back button not found!")
 
 func _on_start_button_pressed() -> void:
-	print("Starting Phishing Lab...")
+	print("Starting Encryption Audit Lab...")
 	get_tree().change_scene_to_file("res://scene/tutorial_phishing_lab.tscn")
 
 func _on_back_button_pressed() -> void:

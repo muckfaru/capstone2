@@ -90,7 +90,7 @@ theme_override_constants/separation = 5
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 48
-text = "🎣"
+text = "🔐"
 horizontal_alignment = 1
 
 [node name="TitleLabel" type="Label" parent="ScrollContainer/MainContainer/VBox/Header"]
@@ -98,7 +98,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 28
-text = "What is Phishing?"
+text = "What is Encryption Auditing?"
 horizontal_alignment = 1
 
 [node name="SubtitleLabel" type="Label" parent="ScrollContainer/MainContainer/VBox/Header"]
@@ -106,7 +106,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 15
-text = "Learn to spot fake emails before they hook you!"
+text = "Learn to evaluate encryption configurations for security!"
 horizontal_alignment = 1
 autowrap_mode = 3
 
@@ -134,14 +134,14 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.5, 0.8, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
-text = "📧 What is Phishing?"
+text = "� What is Encryption Auditing?"
 
 [node name="Description" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/WhatIs"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
-text = "Phishing is a type of cyber attack where criminals send fake emails pretending to be from trusted organizations (like banks, tech companies, or even your workplace). Their goal is to trick you into revealing personal information, clicking malicious links, or downloading harmful files."
+text = "Encryption auditing is the process of reviewing cryptographic configurations to ensure data is properly protected. As a security analyst, you'll evaluate whether systems use strong algorithms (AES, Triple DES), proper modes of operation (CBC, GCM), adequate key lengths, and secure key management practices."
 autowrap_mode = 3
 
 [node name="Spacer1" type="Control" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox"]
@@ -157,14 +157,14 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
-text = "🚩 Red Flags to Watch For:"
+text = "� Key Concepts to Know:"
 
 [node name="Flag1" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
-text = "• Urgent language: \"Act now!\" \"Account suspended!\" \"Verify immediately!\""
+text = "• AES (Advanced Encryption Standard): The gold standard — 128, 192, or 256-bit keys"
 autowrap_mode = 3
 
 [node name="Flag2" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
@@ -172,7 +172,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
-text = "• Generic greetings: \"Dear Customer\" instead of your actual name"
+text = "• Triple DES (3DES/3TDEA): Three rounds of DES — 168-bit with 3 independent keys"
 autowrap_mode = 3
 
 [node name="Flag3" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
@@ -180,7 +180,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
-text = "• Suspicious sender addresses: Look closely at the email domain (paypa1.com vs paypal.com)"
+text = "• DES (Data Encryption Standard): Deprecated! Only 56-bit key — cracked in 1999"
 autowrap_mode = 3
 
 [node name="Flag4" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
@@ -188,7 +188,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
-text = "• Requests for personal information: Banks will NEVER ask for passwords via email"
+text = "• ECB mode (Electronic Codebook): Leaks data patterns — avoid for structured data"
 autowrap_mode = 3
 
 [node name="Flag5" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
@@ -196,7 +196,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
-text = "• Suspicious links: Hover over links to see where they really go before clicking"
+text = "• CBC mode (Cipher Block Chaining): Good with random IVs, needs MAC for authentication"
 autowrap_mode = 3
 
 [node name="Flag6" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/RedFlags"]
@@ -204,7 +204,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
-text = "• Too good to be true: \"You won a prize!\" from a contest you never entered"
+text = "• GCM mode (Galois/Counter Mode): Best choice — provides encryption AND authentication"
 autowrap_mode = 3
 
 [node name="Spacer2" type="Control" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox"]
@@ -231,14 +231,14 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.4, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 15
-text = "💡 Pro Tip"
+text = "💡 Audit Tip"
 
 [node name="TipText" type="Label" parent="ScrollContainer/MainContainer/VBox/ContentPanel/ContentMargin/ContentVBox/TipBox/TipMargin/TipVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
-text = "When in doubt, don't click! Contact the company directly through their official website or phone number, not through links in the email."
+text = "Check three things: (1) Is the ALGORITHM strong? (AES or 3-key Triple DES) (2) Is the MODE secure? (CBC with MAC, or GCM) (3) Is KEY MANAGEMENT proper? (HSM, vault, rotation — never hardcoded or plaintext)"
 autowrap_mode = 3
 
 [node name="Stats" type="VBoxContainer" parent="ScrollContainer/MainContainer/VBox"]
@@ -258,7 +258,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
-text = "• Over 3.4 billion phishing emails are sent every day"
+text = "• AES-256 would take billions of years to brute-force with current technology"
 horizontal_alignment = 1
 
 [node name="Stat2" type="Label" parent="ScrollContainer/MainContainer/VBox/Stats"]
@@ -266,7 +266,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
-text = "• 1 in 4 people have clicked on a phishing link"
+text = "• Single DES was brute-forced in just 22 hours back in 1999"
 horizontal_alignment = 1
 
 [node name="Stat3" type="Label" parent="ScrollContainer/MainContainer/VBox/Stats"]
@@ -274,7 +274,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.3, 0.3, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
-text = "• Phishing attacks cost businesses over $10 billion annually"
+text = "• 60% of data breaches involve improperly configured encryption"
 horizontal_alignment = 1
 
 [node name="ButtonContainer" type="HBoxContainer" parent="ScrollContainer/MainContainer/VBox"]
@@ -300,7 +300,7 @@ theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 17
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-text = "Start the Lab! 🎮"
+text = "Start the Audit! 🔐"
 
 [node name="BottomSpacer" type="Control" parent="ScrollContainer/MainContainer/VBox"]
 custom_minimum_size = Vector2(0, 10)

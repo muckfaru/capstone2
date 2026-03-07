@@ -62,22 +62,24 @@ const ICON_INCIDENT_RESPONSE := preload("res://asset/icons/incident_response_ico
 const ICON_CRYPTO_SORTER := preload("res://asset/icons/encryicon.png")
 const ICON_RSA_KEY_LAB := preload("res://asset/icons/crypt_contract_icon.png")
 
-# Tutorial metadata
+# Tutorial metadata — "lesson" maps to the syllabus section
 const TUTORIAL_METADATA := {
-	"beginner_fundamentals": {"time": "10-15 min", "xp_range": "100-200 XP", "difficulty": 2},
-	"beginner_cia_triad": {"time": "5-8 min", "xp_range": "100-200 XP", "difficulty": 1},
-	"beginner_network": {"time": "12-18 min", "xp_range": "100-200 XP", "difficulty": 3},
-	"beginner_password": {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3},
-	"beginner_malware": {"time": "10-15 min", "xp_range": "100-200 XP", "difficulty": 2},
-	"intermediate_phishing": {"time": "20-25 min", "xp_range": "50-100 XP", "difficulty": 4},
-	"intermediate_trojan": {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3},
-	"intermediate_defense": {"time": "18-25 min", "xp_range": "100-200 XP", "difficulty": 4},
-	"intermediate_lab": {"time": "20-30 min", "xp_range": "100-200 XP", "difficulty": 4},
-	"advanced_scenarios": {"time": "25-35 min", "xp_range": "100-200 XP", "difficulty": 5},
-	"advanced_encryption": {"time": "20-25 min", "xp_range": "100-200 XP", "difficulty": 4},
-	"advanced_lab": {"time": "25-40 min", "xp_range": "100-200 XP", "difficulty": 5},
-	"advanced_crypto_sorter": {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 4},
-	"advanced_rsa_key_lab": {"time": "20-30 min", "xp_range": "100-200 XP", "difficulty": 5}
+	# ── Beginner (Lessons 1-2) ──
+	"beginner_fundamentals": {"time": "10-15 min", "xp_range": "100-200 XP", "lesson": "Lesson 1.1 – Intro to Info Assurance & Security"},
+	"beginner_network": {"time": "12-18 min", "xp_range": "100-200 XP", "lesson": "Lesson 1.2 – Data and Networking Security"},
+	"beginner_drop_zone": {"time": "15-20 min", "xp_range": "100-200 XP", "lesson": "Lesson 1.2 – Data vs Network Classification"},
+	"beginner_malware": {"time": "10-15 min", "xp_range": "100-200 XP", "lesson": "Lesson 2.2 – Threat Categories & Classification"},
+	"intermediate_assetandthreat": {"time": "15-20 min", "xp_range": "100-200 XP", "lesson": "Lesson 2.2 – Assets and Associated Threats"},
+	# ── Intermediate (Lessons 3-4) ──
+	"advanced_encryption": {"time": "20-25 min", "xp_range": "100-200 XP", "lesson": "Lesson 3.1 – Symmetric Encryption Algorithms"},
+	"intermediate_crypt_contract": {"time": "15-20 min", "xp_range": "100-200 XP", "lesson": "Lesson 3.2 – Purpose of Cryptography"},
+	"intermediate_phishing": {"time": "20-25 min", "xp_range": "100-200 XP", "lesson": "Lesson 3.3/4.1 – Encryption Standards (DES, 3DES, AES)"},
+	"intermediate_incident_commander": {"time": "18-25 min", "xp_range": "100-200 XP", "lesson": "Lesson 4.2 – AES Encryption Defense"},
+	# ── Advanced (Lessons 5-7) ──
+	"advanced_crypto_sorter": {"time": "15-20 min", "xp_range": "100-200 XP", "lesson": "Lesson 5.1-5.2 – Symmetric & Asymmetric Cryptography"},
+	"advanced_rsa_key_lab": {"time": "20-30 min", "xp_range": "100-200 XP", "lesson": "Lesson 6.2-6.4 – RSA, Diffie-Hellman & Cryptography in Practice"},
+	"beginner_password": {"time": "15-20 min", "xp_range": "100-200 XP", "lesson": "Lesson 7.1 – Authentication"},
+	"advanced_security_guardian": {"time": "20-25 min", "xp_range": "100-200 XP", "lesson": "Lesson 7.1 – Authentication Systems"},
 }
 
 # ── Prerequisites for progressive unlocking ──────────────────────────────
@@ -85,39 +87,39 @@ const TUTORIAL_METADATA := {
 # that must be completed) and/or "min_xp" (minimum total XP needed).
 # An empty dict (or missing key) means no prerequisite — always unlocked.
 const PREREQUISITES := {
-	# ── Beginner: linear chain ─────────────────────────────────────────
+	# ── Beginner: Lessons 1-2 (linear chain) ──────────────────────────
 	"beginner_fundamentals": {},  # Entry point — always open
 	"beginner_network": {"requires": ["beginner_fundamentals"]},
-	"advanced_encryption": {"requires": ["beginner_network"]},
-	"beginner_password": {"requires": ["advanced_encryption"]},
-	"beginner_malware": {"requires": ["beginner_password"]},
-	# ── Intermediate: must finish last beginner, then chain ────────────
-	"beginner_drop_zone": {"requires": ["beginner_malware"]},
-	"intermediate_phishing": {"requires": ["beginner_drop_zone"]},
-	"intermediate_assetandthreat": {"requires": ["intermediate_phishing"]},
-	"intermediate_crypt_contract": {"requires": ["intermediate_assetandthreat"]},
-	"intermediate_incident_commander": {"requires": ["intermediate_crypt_contract"]},
-	# ── Advanced: must finish last intermediate, then chain ────────────
+	"beginner_drop_zone": {"requires": ["beginner_network"]},
+	"beginner_malware": {"requires": ["beginner_drop_zone"]},
+	"intermediate_assetandthreat": {"requires": ["beginner_malware"]},
+	# ── Intermediate: Lessons 3-4 (must finish Beginner) ──────────────
+	"advanced_encryption": {"requires": ["intermediate_assetandthreat"]},
+	"intermediate_crypt_contract": {"requires": ["advanced_encryption"]},
+	"intermediate_phishing": {"requires": ["intermediate_crypt_contract"]},
+	"intermediate_incident_commander": {"requires": ["intermediate_phishing"]},
+	# ── Advanced: Lessons 5-7 (must finish Intermediate) ──────────────
 	"advanced_crypto_sorter": {"requires": ["intermediate_incident_commander"]},
 	"advanced_rsa_key_lab": {"requires": ["advanced_crypto_sorter"]},
-	"advanced_security_guardian": {"requires": ["advanced_rsa_key_lab"]},
+	"beginner_password": {"requires": ["advanced_rsa_key_lab"]},
+	"advanced_security_guardian": {"requires": ["beginner_password"]},
 }
 
 # Human-readable names for prerequisite lock messages
 const TUTORIAL_DISPLAY_NAMES := {
-	"beginner_fundamentals": "Cybersecurity Fundamentals",
-	"beginner_network": "Network Basics",
-	"advanced_encryption": "Encryption",
-	"beginner_password": "Password Fortress Defender",
-	"beginner_malware": "Malware Types Overview",
-	"beginner_drop_zone": "Drop Zone Defender",
-	"intermediate_phishing": "Phishing Detection Lab",
-	"intermediate_assetandthreat": "Asset vs Threats",
-	"intermediate_crypt_contract": "Crypt Contract",
-	"intermediate_incident_commander": "Incident Commander",
-	"advanced_crypto_sorter": "Crypto Sorter",
-	"advanced_rsa_key_lab": "RSA Key Lab",
-	"advanced_security_guardian": "Security Guardian",
+	"beginner_fundamentals": "Cybersecurity Fundamentals (Lesson 1.1)",
+	"beginner_network": "Network Basics (Lesson 1.2)",
+	"beginner_drop_zone": "Drop Zone Defender (Lesson 1.2)",
+	"beginner_malware": "Threat Identification Lab (Lesson 2.2)",
+	"intermediate_assetandthreat": "Asset vs Threats (Lesson 2.2)",
+	"advanced_encryption": "Encryption (Lesson 3.1)",
+	"intermediate_crypt_contract": "Crypt Contract (Lesson 3.2)",
+	"intermediate_phishing": "Encryption Audit Lab (Lesson 3.3/4.1)",
+	"intermediate_incident_commander": "Cipher Defense Terminal (Lesson 4.2)",
+	"advanced_crypto_sorter": "Crypto Sorter (Lesson 5.1-5.2)",
+	"advanced_rsa_key_lab": "RSA Key Lab (Lesson 6.2-6.4)",
+	"beginner_password": "Password Fortress Defender (Lesson 7.1)",
+	"advanced_security_guardian": "Security Guardian (Lesson 7.1)",
 }
 
 
@@ -393,26 +395,26 @@ func _show_tutorial_menu(level: String) -> void:
 		"beginner":
 			level_int = 1
 			tutorials = [
-				{"name": "Cybersecurity Fundamentals (Start Here!)", "scene": "res://scene/tutorial_cyber_fundamentals.tscn", "id": "beginner_fundamentals"},
+				{"name": "Cybersecurity Fundamentals", "scene": "res://scene/tutorial_cyber_fundamentals.tscn", "id": "beginner_fundamentals"},
 				{"name": "Network Basics", "scene": "res://scene/tutorial_network_basics.tscn", "id": "beginner_network"},
-				{"name": "Encryption", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "advanced_encryption"},
-				{"name": "Password Fortress Defender", "scene": "res://scene/tutorial_password_basics.tscn", "id": "beginner_password"},
-				{"name": "Malware Types Overview", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware"},
+				{"name": "Drop Zone Defender", "scene": "res://scene/datavsnetwork.tscn", "id": "beginner_drop_zone"},
+				{"name": "Threat Identification Lab", "scene": "res://scene/tutorial_malware_types.tscn", "id": "beginner_malware"},
+				{"name": "Asset vs Threats", "scene": "res://scene/Assetandthreat.tscn", "id": "intermediate_assetandthreat"},
 			]
 		"intermediate":
 			level_int = 2
 			tutorials = [
-				{"name": "Drop Zone Defender", "scene": "res://scene/datavsnetwork.tscn", "id": "beginner_drop_zone"},
-				{"name": "Phishing Detection Lab", "scene": "res://scene/phishing_intro.tscn", "id": "intermediate_phishing"},
-				{"name": "Asset vs Threats", "scene": "res://scene/Assetandthreat.tscn", "id": "intermediate_assetandthreat"},
+				{"name": "Encryption (Caesar Cipher)", "scene": "res://scene/tutorial_encryption_basics.tscn", "id": "advanced_encryption"},
 				{"name": "Crypt Contract", "scene": "res://scene/PhoneEncryption.tscn", "id": "intermediate_crypt_contract"},
-				{"name": "Incident Commander", "scene": "res://scene/SOCMain.tscn", "id": "intermediate_incident_commander"},
+				{"name": "Encryption Audit Lab", "scene": "res://scene/phishing_intro.tscn", "id": "intermediate_phishing"},
+				{"name": "Cipher Defense Terminal", "scene": "res://scene/SOCMain.tscn", "id": "intermediate_incident_commander"},
 			]
 		"advanced":
 			level_int = 3
 			tutorials = [
 				{"name": "Crypto Sorter: Symmetric vs Asymmetric", "scene": "res://scene/crypto_sorter.tscn", "id": "advanced_crypto_sorter"},
 				{"name": "RSA Key Lab: Public-Key Cryptography", "scene": "res://scene/rsa_key_lab.tscn", "id": "advanced_rsa_key_lab"},
+				{"name": "Password Fortress Defender", "scene": "res://scene/tutorial_password_basics.tscn", "id": "beginner_password"},
 				{"name": "Security Guardian", "scene": "res://scene/authgmMain.tscn", "id": "advanced_security_guardian"},
 			]
 
@@ -432,8 +434,9 @@ func _show_tutorial_menu(level: String) -> void:
 
 	# Set title
 	var title_lbl = overlay.get_node("DialogPanel/ContentMargin/MainVBox/TitleLabel")
+	var level_names := {1: "Beginner – Lessons 1 & 2", 2: "Intermediate – Lessons 3 & 4", 3: "Advanced – Lessons 5, 6 & 7"}
 	if title_lbl:
-		title_lbl.text = "Choose Tutorial - Level %d Assessment" % level_int
+		title_lbl.text = level_names.get(level_int, "Choose Tutorial")
 
 	# Connect close button (signal is already wired in .tscn)
 	var close_btn = overlay.get_node("DialogPanel/CloseButton")
@@ -482,7 +485,7 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	var unlock_info: Dictionary = _check_unlocked(tutorial_id)
 	var is_locked: bool = not unlock_info["unlocked"]
 
-	var metadata = TUTORIAL_METADATA.get(tutorial_id, {"time": "15-20 min", "xp_range": "100-200 XP", "difficulty": 3})
+	var metadata = TUTORIAL_METADATA.get(tutorial_id, {"time": "15-20 min", "xp_range": "100-200 XP", "lesson": ""})
 
 	# Load card scene
 	var card_scene = load("res://scene/tutorial_card.tscn")
@@ -567,19 +570,12 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 	if xp_lbl:
 		xp_lbl.text = metadata["xp_range"]
 
-	# ── Star difficulty ───────────────────────────────────────────────────
-	var diff = metadata["difficulty"]
-	var diff_container = card.get_node("CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer")
-	if diff_container:
-		for i in range(1, 6):
-			var star = diff_container.get_node("Star%d" % i)
-			if star:
-				if i <= diff:
-					star.texture = ICON_STAR_FILLED
-					star.modulate = Color(1, 0.8, 0.2)
-				else:
-					star.texture = ICON_STAR_EMPTY
-					star.modulate = Color(0.4, 0.4, 0.4)
+	# ── Lesson label ──────────────────────────────────────────────────────
+	var lesson_lbl = card.get_node("CardMargin/MainHBox/CardVBox/InfoHBox/LessonLabel")
+	if lesson_lbl:
+		lesson_lbl.text = metadata.get("lesson", "")
+		if is_locked:
+			lesson_lbl.add_theme_color_override("font_color", Color(0.4, 0.4, 0.45))
 
 	# ── Status row ────────────────────────────────────────────────────────
 	var status_lbl = card.get_node("CardMargin/MainHBox/CardVBox/StatusRow/StatusLabel")

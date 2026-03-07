@@ -144,6 +144,7 @@ expand_margin_right = 30.0
 expand_margin_bottom = 20.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_tstky"]
+font_size = 14
 font_color = Color(0.588235, 0, 0.454902, 1)
 outline_size = 10
 outline_color = Color(0, 0, 0, 1)
@@ -415,7 +416,7 @@ offset_top = 17.0
 offset_right = 529.0
 offset_bottom = 43.0
 theme_override_font_sizes/font_size = 18
-text = "AVAILABLE COMMANDS"
+text = "DEFENSE COMMANDS"
 
 [node name="ReferenceList" type="RichTextLabel" parent="UI/CommandReference"]
 layout_mode = 0
@@ -425,30 +426,32 @@ offset_right = 533.0
 offset_bottom = 311.0
 theme_override_font_sizes/normal_font_size = 12
 bbcode_enabled = true
-text = "[color=yellow]PERIMETER:[/color]
-block-source
-activate-scrubbing
+text = "[color=yellow]ALGORITHM:[/color]
+enforce-aes256
+upgrade-cipher
 
-[color=yellow]ACCESS:[/color]
-rate-limit
-enforce-mfa
+[color=yellow]MODE:[/color]
+switch-to-cbc
+enable-gcm
 
-[color=yellow]HOST:[/color]
-isolate-host
-sanitize-input
+[color=yellow]KEY MGMT:[/color]
+rotate-keys
+use-hsm
 
-[color=yellow]DATA:[/color]
-block-egress
-restore-backup
+[color=yellow]IV/NONCE:[/color]
+randomize-iv
 
-[color=yellow]NETWORK:[/color]
-segment-network"
+[color=yellow]AUTH:[/color]
+add-hmac
+
+[color=yellow]TRANSPORT:[/color]
+enforce-tls"
 
 [node name="ProtectedSystems" type="VBoxContainer" parent="UI"]
-offset_left = 60.0
+offset_left = 39.0
 offset_top = 234.0
-offset_right = 260.0
-offset_bottom = 534.0
+offset_right = 261.0
+offset_bottom = 554.0
 theme_override_constants/separation = 40
 
 [node name="WebServer" type="Panel" parent="UI/ProtectedSystems"]
@@ -466,7 +469,7 @@ theme_override_colors/font_color = Color(0.58846, 3.00817e-05, 0.454576, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3_ghkc1")
 theme_override_font_sizes/font_size = 16
-text = "🌐 Web Server"
+text = "File Storage"
 label_settings = SubResource("LabelSettings_l7dsw")
 
 [node name="Status" type="Label" parent="UI/ProtectedSystems/WebServer"]
@@ -488,15 +491,15 @@ theme_override_styles/panel = SubResource("StyleBoxTexture_by4tk")
 
 [node name="Label" type="Label" parent="UI/ProtectedSystems/Database"]
 layout_mode = 0
-offset_left = 38.0
+offset_left = 43.0
 offset_top = 16.0
-offset_right = 218.0
+offset_right = 213.0
 offset_bottom = 41.0
 theme_override_colors/font_color = Color(0.588235, 0, 0.454902, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3_ghkc1")
 theme_override_font_sizes/font_size = 16
-text = "🗄️ Database"
+text = "Network Traffic"
 label_settings = SubResource("LabelSettings_tstky")
 
 [node name="Status" type="Label" parent="UI/ProtectedSystems/Database"]
@@ -526,7 +529,7 @@ theme_override_colors/font_color = Color(0.588235, 0, 0.454902, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3_ghkc1")
 theme_override_font_sizes/font_size = 16
-text = "💻 User Endpoints"
+text = "Database Keys"
 
 [node name="Status" type="Label" parent="UI/ProtectedSystems/UserEndpoints"]
 layout_mode = 0
@@ -556,7 +559,7 @@ offset_right = 508.0
 offset_bottom = -15.0
 theme_override_fonts/font = ExtResource("3_ghkc1")
 theme_override_font_sizes/font_size = 18
-text = "INCIDENT COMMAND TERMINAL"
+text = "CIPHER DEFENSE TERMINAL"
 
 [node name="CommandInput" type="LineEdit" parent="UI/CommandTerminal"]
 layout_mode = 0
@@ -569,7 +572,7 @@ theme_override_font_sizes/font_size = 20
 theme_override_styles/focus = SubResource("StyleBoxEmpty_t1qx2")
 theme_override_styles/read_only = SubResource("StyleBoxEmpty_fqlbc")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_oowtm")
-placeholder_text = "Type defensive command here..."
+placeholder_text = "Type encryption defense command..."
 context_menu_enabled = false
 
 [node name="FeedbackLabel" type="RichTextLabel" parent="UI/CommandTerminal"]
@@ -586,7 +589,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TutorialPanel" type="Panel" parent="UI"]
-visible = false
 offset_left = 6.0
 offset_top = 3.0
 offset_right = 1150.0
@@ -684,6 +686,7 @@ offset_left = 749.0
 offset_top = 584.0
 offset_right = 889.0
 offset_bottom = 615.0
+mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 theme_override_fonts/font = ExtResource("6_ho8js")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_ho8js")
@@ -845,7 +848,6 @@ theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_jlj18")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_grbur")
 theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_fioci")
 theme_override_styles/normal = SubResource("StyleBoxTexture_wcfp3")
-text = "EXIT"
 
 [node name="bottom" type="TextureRect" parent="UI/VictoryPanel"]
 layout_mode = 0

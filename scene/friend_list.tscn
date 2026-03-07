@@ -1,4 +1,4 @@
-[gd_scene load_steps=103 format=3 uid="uid://bohnaxmk78jfw"]
+[gd_scene load_steps=106 format=3 uid="uid://bohnaxmk78jfw"]
 
 [ext_resource type="Script" uid="uid://q2bbcw5bdvqc" path="res://script/friend_list.gd" id="1_30j1j"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_2r4jo"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://decyckmi2tpdr" path="res://asset/newUIlandingupdate/Group (3).png" id="6_6dare"]
 [ext_resource type="Texture2D" uid="uid://db5r2sk5k80r7" path="res://asset/newUIlandingupdate/Line 4.png" id="7_o4l4v"]
 [ext_resource type="Texture2D" uid="uid://b47emtsgrvmvf" path="res://asset/newUIlandingupdate/Vector (1).png" id="7_oiw84"]
+[ext_resource type="FontFile" uid="uid://gj4s1cvcj5il" path="res://asset/fonts/ChakraPetch-SemiBold.ttf" id="8_5fel2"]
 [ext_resource type="Texture2D" uid="uid://buqy2u2rbcxta" path="res://asset/newUIlandingupdate/close-sm_svgrepo.com.png" id="8_mtigq"]
 [ext_resource type="FontFile" uid="uid://dmwkpwnxp48dl" path="res://asset/fonts/Roboto-Regular.ttf" id="8_w2qa0"]
 [ext_resource type="Texture2D" uid="uid://bv37hngxnf75r" path="res://asset/newUIlandingupdate/settings_svgrepo.com.png" id="9_byix6"]
@@ -174,6 +175,10 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ymgs6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wfmor"]
+
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1rg6q"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_mtigq"]
@@ -314,10 +319,10 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.145098, 0.878431, 0.992157, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="LabelSettings" id="LabelSettings_popup_title"]
 font_size = 12
@@ -560,7 +565,7 @@ visible = false
 layout_mode = 0
 offset_left = 6.0
 offset_top = 126.0
-offset_right = 227.0
+offset_right = 231.0
 offset_bottom = 162.0
 theme_override_constants/separation = 10
 
@@ -568,8 +573,10 @@ theme_override_constants/separation = 10
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.55
+theme_override_fonts/font = ExtResource("8_5fel2")
 theme_override_styles/focus = SubResource("StyleBoxFlat_qd8yo")
 theme_override_styles/normal = SubResource("StyleBoxFlat_5fel2")
+text = "Enter Username"
 placeholder_text = "Enter Username"
 caret_blink = true
 caret_blink_interval = 1.35
@@ -580,6 +587,8 @@ size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.0
 mouse_default_cursor_shape = 2
 theme_override_fonts/font = ExtResource("3_js1fy")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ymgs6")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_wfmor")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_1rg6q")
 text = "
 "
@@ -596,8 +605,8 @@ theme_override_styles/separator = SubResource("StyleBoxTexture_mtigq")
 [node name="closebutton" type="Button" parent="."]
 layout_mode = 0
 offset_left = 214.0
-offset_right = 234.0
-offset_bottom = 20.0
+offset_right = 235.0
+offset_bottom = 24.0
 mouse_default_cursor_shape = 2
 theme_override_styles/focus = SubResource("StyleBoxTexture_33krg")
 theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_m7qd2")
@@ -613,10 +622,10 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_byix6")
 
 [node name="settings" type="Button" parent="."]
 layout_mode = 0
-offset_left = 200.0
+offset_left = 199.0
 offset_top = 4.0
-offset_right = 214.0
-offset_bottom = 16.0
+offset_right = 215.0
+offset_bottom = 19.0
 mouse_default_cursor_shape = 2
 theme_override_styles/focus = SubResource("StyleBoxTexture_w2qa0")
 theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_7gjhr")
@@ -632,7 +641,7 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_ctvm5")
 
 [node name="minimize" type="Button" parent="."]
 layout_mode = 0
-offset_left = 181.0
+offset_left = 178.0
 offset_top = 4.0
 offset_right = 194.0
 offset_bottom = 16.0
@@ -663,7 +672,7 @@ offset_left = 73.0
 offset_top = 9.0
 offset_right = 171.0
 offset_bottom = 25.0
-text = "SYSTEM VERSION 1.1"
+text = "SYSTEM VERSION 1.2"
 label_settings = SubResource("LabelSettings_qd8yo")
 
 [node name="_TemplateFriendRow" type="PanelContainer" parent="."]
@@ -811,10 +820,10 @@ clear_button_enabled = true
 visible = false
 z_index = 20
 layout_mode = 0
-offset_left = -476.0
-offset_top = 184.0
-offset_right = -276.0
-offset_bottom = 314.0
+offset_left = -538.0
+offset_top = 236.0
+offset_right = -213.0
+offset_bottom = 365.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_popup_bg")
 
 [node name="TitleLabel" type="Label" parent="ExitConfirmPopup"]

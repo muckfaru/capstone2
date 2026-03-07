@@ -1,13 +1,10 @@
-[gd_scene load_steps=12 format=3 uid="uid://ln08eihg34hi"]
+[gd_scene load_steps=9 format=3 uid="uid://ln08eihg34hi"]
 
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="1_font"]
 [ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="2_hwus5"]
 [ext_resource type="Texture2D" uid="uid://c0tibe2pdm2o3" path="res://asset/icons/hourglass.png" id="3_bvrrq"]
 [ext_resource type="Texture2D" uid="uid://dg2mhp8h0wmco" path="res://asset/icons/xp icon.png" id="3_xp"]
-[ext_resource type="Texture2D" uid="uid://duu113m4ri5fl" path="res://asset/icons/difficulty.png" id="4_diff"]
 [ext_resource type="FontFile" uid="uid://c1y55nmycr726" path="res://asset/fonts/Orbitron-VariableFont_wght.ttf" id="4_qw2li"]
-[ext_resource type="Texture2D" uid="uid://c8lj4tejpypfd" path="res://asset/icons/star_filled2.png" id="5_star_on"]
-[ext_resource type="Texture2D" uid="uid://b1hgwhpvmj6np" path="res://asset/icons/star_empty.png" id="6_star_off"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="9_as0hk"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_normal"]
@@ -106,56 +103,12 @@ theme_override_fonts/font = ExtResource("4_qw2li")
 theme_override_font_sizes/font_size = 13
 text = "100-200 XP"
 
-[node name="DifficultyContainer" type="HBoxContainer" parent="CardMargin/MainHBox/CardVBox/InfoHBox"]
+[node name="LessonLabel" type="Label" parent="CardMargin/MainHBox/CardVBox/InfoHBox"]
 layout_mode = 2
-theme_override_constants/separation = 3
-
-[node name="DifficultyIcon" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
-custom_minimum_size = Vector2(18, 18)
-layout_mode = 2
-texture = ExtResource("4_diff")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Star1" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
-modulate = Color(1, 0.8, 0.2, 1)
-custom_minimum_size = Vector2(16, 16)
-layout_mode = 2
-texture = ExtResource("5_star_on")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Star2" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
-modulate = Color(1, 0.8, 0.2, 1)
-custom_minimum_size = Vector2(16, 16)
-layout_mode = 2
-texture = ExtResource("5_star_on")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Star3" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
-modulate = Color(0.4, 0.4, 0.4, 1)
-custom_minimum_size = Vector2(16, 16)
-layout_mode = 2
-texture = ExtResource("6_star_off")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Star4" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
-modulate = Color(0.4, 0.4, 0.4, 1)
-custom_minimum_size = Vector2(16, 16)
-layout_mode = 2
-texture = ExtResource("6_star_off")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Star5" type="TextureRect" parent="CardMargin/MainHBox/CardVBox/InfoHBox/DifficultyContainer"]
-modulate = Color(0.4, 0.4, 0.4, 1)
-custom_minimum_size = Vector2(16, 16)
-layout_mode = 2
-texture = ExtResource("6_star_off")
-expand_mode = 1
-stretch_mode = 5
+theme_override_colors/font_color = Color(0.6, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("4_qw2li")
+theme_override_font_sizes/font_size = 12
+text = "Lesson 1.1"
 
 [node name="StatusRow" type="HBoxContainer" parent="CardMargin/MainHBox/CardVBox"]
 layout_mode = 2

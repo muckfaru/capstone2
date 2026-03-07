@@ -1,11 +1,57 @@
-[gd_scene load_steps=10 format=3 uid="uid://dyd8hd3q8mt34"]
+[gd_scene load_steps=22 format=3 uid="uid://dyd8hd3q8mt34"]
 
 [ext_resource type="Script" uid="uid://ctd4jx5deh0ia" path="res://script/tutorial_phishing_lab.gd" id="1_phishing"]
 [ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="2_font"]
+[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="3_ej0on"]
+[ext_resource type="FontFile" uid="uid://dmwkpwnxp48dl" path="res://asset/fonts/Roboto-Regular.ttf" id="4_5l0gm"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
-bg_color = Color(0.95, 0.95, 0.95, 1)
+bg_color = Color(0.0457457, 0.402056, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
 border_width_bottom = 2
+border_color = Color(2.88785e-07, 0.283475, 0.733895, 1)
+border_blend = true
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tx6pi"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uj6vx"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nu05c"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4mhci"]
+bg_color = Color(1.20327e-06, 0.614438, 0.397476, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="LabelSettings" id="LabelSettings_syd7m"]
+font = ExtResource("3_ej0on")
+font_size = 30
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ak0at"]
+font_size = 20
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_7j18b"]
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_5nin3"]
+font = ExtResource("2_font")
+
+[sub_resource type="LabelSettings" id="LabelSettings_iiruf"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_icon_button_hover"]
 bg_color = Color(0.95, 0.95, 0.95, 1)
@@ -20,15 +66,22 @@ corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_icon_button"]
-bg_color = Color(1, 1, 1, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
+bg_color = Color(0, 0, 0, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_blend = true
 corner_radius_top_left = 15
 corner_radius_top_right = 15
 corner_radius_bottom_right = 15
 corner_radius_bottom_left = 15
+
+[sub_resource type="LabelSettings" id="LabelSettings_yajh7"]
+font = ExtResource("4_5l0gm")
+font_size = 20
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
 bg_color = Color(0.9, 0.9, 0.9, 1)
@@ -56,15 +109,16 @@ corner_radius_bottom_left = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
 bg_color = Color(0.95, 0.95, 0.95, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.7, 0.7, 0.7, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reply_popup"]
 bg_color = Color(1, 1, 1, 1)
@@ -96,7 +150,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.94, 0.94, 0.94, 1)
+color = Color(0.190762, 0.190762, 0.190762, 1)
 
 [node name="TopBar" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -120,14 +174,19 @@ layout_mode = 2
 mouse_default_cursor_shape = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
-text = "← Back"
+theme_override_styles/focus = SubResource("StyleBoxEmpty_tx6pi")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_uj6vx")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_nu05c")
+theme_override_styles/normal = SubResource("StyleBoxFlat_4mhci")
+text = "Back"
 
 [node name="TitleLabel" type="Label" parent="TopBar/HBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 20
-text = "📧 Phishing Detection Lab"
+text = "Encryption Audit Lab"
+label_settings = SubResource("LabelSettings_syd7m")
 
 [node name="Spacer" type="Control" parent="TopBar/HBox"]
 layout_mode = 2
@@ -138,7 +197,8 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
-text = "📧 0/8 | Score: 0"
+text = " 0/8 | Score: 0"
+label_settings = SubResource("LabelSettings_ak0at")
 vertical_alignment = 1
 
 [node name="TimerLabel" type="Label" parent="TopBar/HBox"]
@@ -147,6 +207,7 @@ theme_override_colors/font_color = Color(0, 0.7, 0, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 text = "⏱ 90s"
+label_settings = SubResource("LabelSettings_7j18b")
 vertical_alignment = 1
 
 [node name="MarginRight" type="Control" parent="TopBar/HBox"]
@@ -220,6 +281,7 @@ theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
 text = "<sender@example.com>"
+label_settings = SubResource("LabelSettings_5nin3")
 
 [node name="ToMe" type="Label" parent="EmailViewer/VBox/EmailHeader/HBox/SenderInfo/EmailRow"]
 layout_mode = 2
@@ -227,10 +289,11 @@ theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
 text = "to me"
+label_settings = SubResource("LabelSettings_iiruf")
 
 [node name="Timestamp" type="Label" parent="EmailViewer/VBox/EmailHeader/HBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 13
 text = "10:00 AM"
@@ -286,10 +349,11 @@ theme_override_constants/margin_bottom = 20
 
 [node name="BodyText" type="Label" parent="EmailViewer/VBox/ScrollContainer/BodyContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.1, 0.1, 0.1, 1)
+theme_override_colors/font_color = Color(0.61339, 0.61339, 0.61339, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 15
 text = "Email body content goes here..."
+label_settings = SubResource("LabelSettings_yajh7")
 autowrap_mode = 3
 
 [node name="Divider2" type="HSeparator" parent="EmailViewer/VBox"]
@@ -316,7 +380,7 @@ theme_override_font_sizes/font_size = 15
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-text = "↩ Reply"
+text = "✅ Approve"
 
 [node name="SpamBtn" type="Button" parent="EmailViewer/VBox/ActionBar/HBox"]
 custom_minimum_size = Vector2(130, 40)
@@ -328,7 +392,7 @@ theme_override_font_sizes/font_size = 15
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-text = "Mark Spam"
+text = "⚠️ Flag"
 
 [node name="DeleteBtn" type="Button" parent="EmailViewer/VBox/ActionBar/HBox"]
 custom_minimum_size = Vector2(100, 40)
@@ -340,7 +404,7 @@ theme_override_font_sizes/font_size = 15
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-text = "Delete"
+text = "❌ Reject"
 
 [node name="Spacer" type="Control" parent="EmailViewer/VBox/ActionBar/HBox"]
 layout_mode = 2

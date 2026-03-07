@@ -1,9 +1,8 @@
-[gd_scene load_steps=29 format=3 uid="uid://hg67aoje345"]
+[gd_scene load_steps=28 format=3 uid="uid://hg67aoje345"]
 
 [ext_resource type="Script" uid="uid://dhidgtnkirpt6" path="res://script/signup.gd" id="1_db6g7"]
 [ext_resource type="VideoStream" uid="uid://c5qxaigtag7rk" path="res://asset/bg video.ogv" id="2_y1epg"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_y1epg"]
-[ext_resource type="Texture2D" uid="uid://b7u1847g1yjml" path="res://asset/icons/icons8-facebook-logo-48.png" id="4_db6g7"]
 [ext_resource type="Texture2D" uid="uid://c50acgmi0vimf" path="res://asset/icons/icons8-google-48.png" id="5_uyhdp"]
 [ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="7_ipb3t"]
 [ext_resource type="Texture2D" uid="uid://cewd2r3nk6aca" path="res://asset/spriteloadingscrn/Sign in Ani (3).png" id="7_oon0x"]
@@ -366,7 +365,6 @@ offset_top = 493.0
 offset_right = 573.0
 offset_bottom = 541.0
 mouse_default_cursor_shape = 2
-texture_normal = ExtResource("4_db6g7")
 
 [node name="UsernameLabel2" type="Label" parent="VideoStreamPlayer"]
 layout_mode = 0

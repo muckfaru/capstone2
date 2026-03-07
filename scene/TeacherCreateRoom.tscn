@@ -1185,12 +1185,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="MinigameGrid" type="GridContainer" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/ScrollContainer"]
+[node name="MinigameGrid" type="VBoxContainer" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 10
-columns = 3
+theme_override_constants/separation = 14
 
 [node name="ConfirmRow" type="HBoxContainer" parent="CanvasLayer/ChooseGamePopup/PopupPanel/PopupVBox"]
 layout_mode = 2
