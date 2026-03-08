@@ -21,7 +21,7 @@ const AvatarCatalog = preload("res://script/AvatarCatalog.gd")
 @onready var card_tpl_badge:   Panel = $CardTemplateBadge
 @onready var card_tpl_card:    Panel = $CardTemplateCard
 @onready var card_tpl_avatar:  Panel = $CardTemplateAvatar
-@onready var card_tpl_powerup: Panel = $CardTemplatePowerup
+@onready var card_tpl_skin:    Panel = $CardTemplatePowerup
 @onready var card_tpl_default: Panel = $CardTemplateDefault
 
 # Detail panel children
@@ -36,7 +36,7 @@ const AvatarCatalog = preload("res://script/AvatarCatalog.gd")
 @onready var btn_cat_badge:   Button = $CategoryContainer/BtnCatBadge
 @onready var btn_cat_card:    Button = $CategoryContainer/BtnCatCard
 @onready var btn_cat_avatar:  Button = $CategoryContainer/BtnCatAvatar
-@onready var btn_cat_powerup: Button = $CategoryContainer/BtnCatPowerup
+@onready var btn_cat_skin:    Button = $CategoryContainer/BtnCatPowerup
 
 # Sort buttons (scene-defined)
 @onready var btn_sort_rarity: Button = $SortContainer/BtnSortRarity
@@ -51,9 +51,11 @@ var current_sort: String = "rarity"
 var player_items: Array = []
 var _detail_item: Dictionary = {}
 var is_loading: bool = false
+var _detail_unequip_btn: Button = null
 
 signal inventory_closed
 signal avatar_selected(avatar_file: String)
+signal badge_equipped(badge_data: Dictionary)
 
 # ─────────────────────────────────────────────────────────────────────────────
 func _ready() -> void:
@@ -70,18 +72,49 @@ func _ready() -> void:
 	if detail_equip_btn:
 		detail_equip_btn.pressed.connect(_on_detail_equip_pressed)
 
+	# Create unequip button dynamically (same style as equip button)
+	if detail_equip_btn:
+		_detail_unequip_btn = Button.new()
+		_detail_unequip_btn.name = "DetailUnequipButton"
+		_detail_unequip_btn.text = "UNEQUIP"
+		_detail_unequip_btn.custom_minimum_size = Vector2(0, 44)
+		_detail_unequip_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_detail_unequip_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		_detail_unequip_btn.visible = false
+		# Copy font/color overrides from equip button
+		var eq_font = detail_equip_btn.get_theme_font("font")
+		if eq_font:
+			_detail_unequip_btn.add_theme_font_override("font", eq_font)
+		_detail_unequip_btn.add_theme_font_size_override("font_size", 14)
+		_detail_unequip_btn.add_theme_color_override("font_color", Color(1, 0.3, 0.3, 1))
+		# Red-tinted style
+		var normal_style := StyleBoxFlat.new()
+		normal_style.bg_color = Color(0.15, 0.05, 0.05, 0.9)
+		normal_style.border_color = Color(1, 0.3, 0.3, 0.6)
+		normal_style.set_border_width_all(1)
+		normal_style.set_corner_radius_all(4)
+		var hover_style := normal_style.duplicate()
+		hover_style.bg_color = Color(0.25, 0.08, 0.08, 0.95)
+		hover_style.border_color = Color(1, 0.4, 0.4, 0.9)
+		_detail_unequip_btn.add_theme_stylebox_override("normal", normal_style)
+		_detail_unequip_btn.add_theme_stylebox_override("hover", hover_style)
+		_detail_unequip_btn.add_theme_stylebox_override("pressed", hover_style)
+		detail_equip_btn.get_parent().add_child(_detail_unequip_btn)
+		detail_equip_btn.get_parent().move_child(_detail_unequip_btn, detail_equip_btn.get_index() + 1)
+		_detail_unequip_btn.pressed.connect(_on_detail_unequip_pressed)
+
 	category_buttons = {
 		"all":     btn_cat_all,
 		"badge":   btn_cat_badge,
 		"card":    btn_cat_card,
 		"avatar":  btn_cat_avatar,
-		"powerup": btn_cat_powerup,
+		"skin":    btn_cat_skin,
 	}
 	btn_cat_all.pressed.connect(_on_cat_all_pressed)
 	btn_cat_badge.pressed.connect(_on_cat_badge_pressed)
 	btn_cat_card.pressed.connect(_on_cat_card_pressed)
 	btn_cat_avatar.pressed.connect(_on_cat_avatar_pressed)
-	btn_cat_powerup.pressed.connect(_on_cat_powerup_pressed)
+	btn_cat_skin.pressed.connect(_on_cat_skin_pressed)
 
 	sort_buttons = {
 		"rarity": btn_sort_rarity,
@@ -110,7 +143,7 @@ func _on_cat_all_pressed()     -> void: _on_category_selected("all")
 func _on_cat_badge_pressed()   -> void: _on_category_selected("badge")
 func _on_cat_card_pressed()    -> void: _on_category_selected("card")
 func _on_cat_avatar_pressed()  -> void: _on_category_selected("avatar")
-func _on_cat_powerup_pressed() -> void: _on_category_selected("powerup")
+func _on_cat_skin_pressed()    -> void: _on_category_selected("skin")
 
 func _on_sort_rarity_pressed() -> void: _on_sort_selected("rarity")
 func _on_sort_date_pressed()   -> void: _on_sort_selected("date")
@@ -172,7 +205,7 @@ func _get_template_for_type(item_type: String) -> Panel:
 	if item_type == "badge":   return card_tpl_badge
 	if item_type == "card":    return card_tpl_card
 	if item_type == "avatar":  return card_tpl_avatar
-	if item_type == "powerup": return card_tpl_powerup
+	if item_type == "skin":    return card_tpl_skin
 	return card_tpl_default
 
 func _create_item_card(item: Dictionary) -> void:
@@ -191,11 +224,14 @@ func _create_item_card(item: Dictionary) -> void:
 	card_style.border_color = rarity_color
 	card.add_theme_stylebox_override("panel", card_style)
 
-	# Equipped badge (only relevant for card_backgrounds)
+	# Equipped badge
 	var badge: Label = card.get_node("EquippedBadge")
 	var is_bg: bool  = str(item.get("subtype", "")) == "card_background"
-	var is_eq: bool  = bool(item.get("is_equipped", false))
-	badge.visible = is_bg and is_eq
+	var is_skin: bool = item_type == "skin"
+	var is_bg_eq: bool = is_bg and Auth != null and Auth.current_card_bg_path == str(item.get("icon_path", ""))
+	var is_skin_eq: bool = is_skin and bool(item.get("is_equipped", false))
+	var is_card_eq: bool = item_type == "card" and not is_bg and _is_card_equipped(item)
+	badge.visible = is_bg_eq or is_skin_eq or is_card_eq
 
 	# Icon / fallback
 	var icon: TextureRect = card.get_node("CardVBox/IconContainer/ItemIcon")
@@ -215,18 +251,16 @@ func _create_item_card(item: Dictionary) -> void:
 			fallback.text = "🎴"
 		elif item_type == "avatar":
 			fallback.text = "👤"
-		elif item_type == "powerup":
-			fallback.text = "⚡"
+		elif item_type == "skin":
+			fallback.text = "🎨"
 		else:
 			fallback.text = "🎁"
 
-	# Powerup amount badge (only exists on CardTemplatePowerup)
-	if item_type == "powerup":
+	# Skin amount badge (only exists on skin template)
+	if item_type == "skin":
 		var amount_lbl: Label = card.get_node_or_null("CardVBox/IconContainer/AmountLabel")
 		if amount_lbl:
-			var amt: int = int(item.get("amount", 1))
-			amount_lbl.text = "x%d" % amt
-			amount_lbl.visible = amt > 1
+			amount_lbl.visible = false
 
 	# Name
 	var name_lbl: Label      = card.get_node("CardVBox/ItemName")
@@ -286,7 +320,7 @@ func _show_item_details(item: Dictionary) -> void:
 		detail_info_vbox.add_child(lbl)
 
 	if str(item.get("subtype", "")) == "card_background":
-		var equipped_now: bool = bool(item.get("is_equipped", false))
+		var equipped_now: bool = Auth != null and Auth.current_card_bg_path == str(item.get("icon_path", ""))
 		var status := Label.new()
 		status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		status.add_theme_font_size_override("font_size", 13)
@@ -298,28 +332,72 @@ func _show_item_details(item: Dictionary) -> void:
 			status.add_theme_color_override("font_color", Color(0, 0.8, 1, 1))
 		detail_info_vbox.add_child(status)
 
+		detail_equip_btn.visible  = not equipped_now
+		detail_equip_btn.disabled = false
+		detail_equip_btn.text = "EQUIP BACKGROUND"
+		if _detail_unequip_btn:
+			_detail_unequip_btn.visible = equipped_now
+
+	elif str(item.get("type", "")) == "badge":
 		detail_equip_btn.visible  = true
-		detail_equip_btn.disabled = equipped_now
-		if equipped_now:
-			detail_equip_btn.text = "EQUIPPED"
-		else:
-			detail_equip_btn.text = "EQUIP BACKGROUND"
+		detail_equip_btn.disabled = false
+		detail_equip_btn.text = "EQUIP BADGE"
+		if _detail_unequip_btn:
+			_detail_unequip_btn.visible = false
+
+	elif str(item.get("type", "")) == "card":
+		var card_equipped: bool = _is_card_equipped(item)
+		detail_equip_btn.visible  = not card_equipped
+		detail_equip_btn.disabled = false
+		detail_equip_btn.text = "EQUIP CARD"
+		if _detail_unequip_btn:
+			_detail_unequip_btn.visible = card_equipped
 
 	elif str(item.get("type", "")) == "avatar":
 		detail_equip_btn.visible  = true
 		detail_equip_btn.text     = "SET AVATAR"
 		detail_equip_btn.disabled = false
+		if _detail_unequip_btn:
+			_detail_unequip_btn.visible = false
+	elif str(item.get("type", "")) == "skin":
+		var is_skin_equipped: bool = false
+		var skin_id: String = str(item.get("shop_item_id", ""))
+		if skin_id != "" and ShopManager.is_equipped(skin_id):
+			is_skin_equipped = true
+		detail_equip_btn.visible  = not is_skin_equipped
+		detail_equip_btn.disabled = false
+		detail_equip_btn.text = "SET SKIN"
+		if _detail_unequip_btn:
+			_detail_unequip_btn.visible = is_skin_equipped
 	else:
 		detail_equip_btn.visible  = false
 		detail_equip_btn.disabled = true
+		if _detail_unequip_btn:
+			_detail_unequip_btn.visible = false
 
 func _on_detail_equip_pressed() -> void:
 	if _detail_item.is_empty():
 		return
 	if str(_detail_item.get("subtype", "")) == "card_background":
 		_equip_card_background(_detail_item)
+	elif str(_detail_item.get("type", "")) == "badge":
+		_equip_badge(_detail_item)
+	elif str(_detail_item.get("type", "")) == "card":
+		_equip_card(_detail_item)
 	elif str(_detail_item.get("type", "")) == "avatar":
 		_equip_avatar(_detail_item)
+	elif str(_detail_item.get("type", "")) == "skin":
+		_equip_skin(_detail_item)
+
+func _on_detail_unequip_pressed() -> void:
+	if _detail_item.is_empty():
+		return
+	if str(_detail_item.get("subtype", "")) == "card_background":
+		_unequip_card_background(_detail_item)
+	elif str(_detail_item.get("type", "")) == "card":
+		_unequip_card(_detail_item)
+	elif str(_detail_item.get("type", "")) == "skin":
+		_unequip_skin(_detail_item)
 
 # ─── Inventory loading ────────────────────────────────────────────────────────
 func show_inventory() -> void:
@@ -396,6 +474,7 @@ func _parse_inventory_data(body: PackedByteArray) -> void:
 		player_items.append(entry)
 
 	_append_builtin_avatars()
+	_append_shop_skins()
 	print("[Inventory] Loaded %d items" % player_items.size())
 	_refresh_display()
 
@@ -507,6 +586,100 @@ func _append_builtin_avatars() -> void:
 		file_name = dir.get_next()
 	dir.list_dir_end()
 
+func _append_shop_skins() -> void:
+	if not has_node("/root/ShopManager"):
+		return
+	var skin_items: Array[Dictionary] = ShopManager.get_catalog("skin")
+	for item in skin_items:
+		var item_id: String = item.get("id", "")
+		if not ShopManager.is_owned(item_id):
+			continue
+		var already: bool = false
+		for existing in player_items:
+			if str(existing.get("shop_item_id", "")) == item_id:
+				already = true
+				break
+		if already:
+			continue
+		var equipped: bool = ShopManager.is_equipped(item_id)
+		var entry: Dictionary = {
+			"id":            "shop_skin_" + item_id,
+			"shop_item_id":  item_id,
+			"name":          item.get("name", "Unknown Skin"),
+			"type":          "skin",
+			"subtype":       item.get("slot", ""),
+			"rarity":        item.get("rarity", "common"),
+			"description":   item.get("description", ""),
+			"icon_path":     item.get("icon_path", ""),
+			"amount":        1,
+			"is_equipped":   equipped,
+			"date_acquired": 0,
+		}
+		player_items.append(entry)
+
+func _is_card_equipped(item: Dictionary) -> bool:
+	var item_id: String = str(item.get("id", ""))
+	return Auth != null and Auth.current_equipped_card == item_id
+
+func _equip_badge(item: Dictionary) -> void:
+	badge_equipped.emit(item)
+	item_detail_panel.visible = false
+
+func _equip_card(item: Dictionary) -> void:
+	if not Auth or Auth.current_local_id == "" or Auth.current_id_token == "":
+		_show_error_message("Please log in to equip items")
+		return
+	var item_id: String = str(item.get("id", ""))
+	if item_id.strip_edges() == "":
+		_show_error_message("Invalid card")
+		return
+	Auth.current_equipped_card = item_id
+	_persist_user_field("equipped_card", item_id)
+	_refresh_display()
+	_show_item_details(item)
+
+func _persist_user_field(field_name: String, value: String) -> void:
+	var user_id: String = Auth.current_local_id
+	var id_token: String = Auth.current_id_token
+	var doc_url: String = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s?updateMask.fieldPaths=%s" % [user_id, field_name]
+	var headers: Array = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % id_token
+	]
+	var body: Dictionary = {
+		"fields": {
+			field_name: {"stringValue": value}
+		}
+	}
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code != 200:
+			push_warning("[Inventory] Failed to persist %s HTTP %d" % [field_name, code])
+	)
+	http.request(doc_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+
+func _equip_skin(item: Dictionary) -> void:
+	var skin_id: String = str(item.get("shop_item_id", ""))
+	if skin_id == "":
+		_show_error_message("Invalid skin item")
+		return
+	if not has_node("/root/ShopManager"):
+		_show_error_message("ShopManager missing")
+		return
+	ShopManager.equip(skin_id)
+	# Update local state for all skins in the same slot
+	var slot: String = str(item.get("subtype", ""))
+	for it in player_items:
+		if str(it.get("type", "")) != "skin":
+			continue
+		if str(it.get("subtype", "")) == slot:
+			var sid: String = str(it.get("shop_item_id", ""))
+			it["is_equipped"] = ShopManager.is_equipped(sid)
+	_refresh_display()
+	_show_item_details(item)
+
 func _equip_avatar(item: Dictionary) -> void:
 	var file_name: String = str(item.get("avatar_file", ""))
 	if file_name.strip_edges() == "":
@@ -551,5 +724,45 @@ func _equip_card_background(item: Dictionary) -> void:
 	if Auth:
 		Auth.current_card_bg_path = icon_path
 
+	_refresh_display()
+	_show_item_details(item)
+
+func _unequip_card_background(item: Dictionary) -> void:
+	if not Auth or Auth.current_local_id == "" or Auth.current_id_token == "":
+		return
+	var item_id: String = str(item.get("id", ""))
+	if item_id != "":
+		InventoryHelper.update_item(item_id, {"is_equipped": false})
+	item["is_equipped"] = false
+	for it in player_items:
+		if str(it.get("id", "")) == item_id:
+			it["is_equipped"] = false
+	Auth.current_card_bg_path = ""
+	InventoryHelper.set_equipped_card_background("")
+	_refresh_display()
+	_show_item_details(item)
+
+func _unequip_card(item: Dictionary) -> void:
+	if not Auth:
+		return
+	Auth.current_equipped_card = ""
+	_persist_user_field("equipped_card", "")
+	_refresh_display()
+	_show_item_details(item)
+
+func _unequip_skin(item: Dictionary) -> void:
+	if not has_node("/root/ShopManager"):
+		return
+	var skin_id: String = str(item.get("shop_item_id", ""))
+	if skin_id == "":
+		return
+	var slot: String = str(item.get("subtype", ""))
+	ShopManager._equipped.erase(slot)
+	ShopManager._save_equipped_to_firestore()
+	for it in player_items:
+		if str(it.get("type", "")) != "skin":
+			continue
+		if str(it.get("subtype", "")) == slot:
+			it["is_equipped"] = false
 	_refresh_display()
 	_show_item_details(item)
