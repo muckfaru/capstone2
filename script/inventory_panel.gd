@@ -549,9 +549,8 @@ func _normalize_card_bg_name(raw_name: String) -> String:
 	return parts[0] + " " + parts[1]
 
 func _append_builtin_avatars() -> void:
-	var dir := DirAccess.open("res://asset/avatars")
-	if dir == null:
-		return
+	# DirAccess cannot list res:// in exported builds (.pck),
+	# so use the hardcoded AvatarCatalog keys instead.
 	var existing_files: Dictionary = {}
 	for it in player_items:
 		var af: String = str(it.get("avatar_file", ""))
@@ -561,30 +560,24 @@ func _append_builtin_avatars() -> void:
 		if ip.begins_with("res://asset/avatars/"):
 			existing_files[ip.get_file()] = true
 
-	dir.list_dir_begin()
-	var file_name: String = dir.get_next()
-	while file_name != "":
-		if not dir.current_is_dir():
-			var ext: String = file_name.get_extension().to_lower()
-			if ext in ["png", "jpg", "jpeg", "webp"]:
-				if not existing_files.has(file_name):
-					var base: String = file_name.get_basename()
-					var entry: Dictionary = {
-						"id":            "builtin_avatar_" + base,
-						"name":          AvatarCatalog.get_display_name(file_name),
-						"type":          "avatar",
-						"subtype":       "preset",
-						"rarity":        "common",
-						"description":   "Preset avatar",
-						"icon_path":     "res://asset/avatars/" + file_name,
-						"avatar_file":   file_name,
-						"amount":        1,
-						"is_equipped":   false,
-						"date_acquired": 0,
-					}
-					player_items.append(entry)
-		file_name = dir.get_next()
-	dir.list_dir_end()
+	var avatar_files: Array = AvatarCatalog.DISPLAY_NAMES.keys()
+	for file_name in avatar_files:
+		if not existing_files.has(file_name):
+			var base: String = file_name.get_basename()
+			var entry: Dictionary = {
+				"id":            "builtin_avatar_" + base,
+				"name":          AvatarCatalog.get_display_name(file_name),
+				"type":          "avatar",
+				"subtype":       "preset",
+				"rarity":        "common",
+				"description":   "Preset avatar",
+				"icon_path":     "res://asset/avatars/" + file_name,
+				"avatar_file":   file_name,
+				"amount":        1,
+				"is_equipped":   false,
+				"date_acquired": 0,
+			}
+			player_items.append(entry)
 
 func _append_shop_skins() -> void:
 	if not has_node("/root/ShopManager"):

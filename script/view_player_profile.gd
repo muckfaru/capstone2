@@ -67,22 +67,14 @@ func _ready() -> void:
 	print("[ViewPlayerProfile] Modal ready and initialized")
 
 func _load_avatars() -> void:
-	var dir := DirAccess.open("res://asset/avatars")
-	if dir == null:
-		push_error("⚠️ Avatar folder not found: res://asset/avatars")
-		return
-
+	# DirAccess cannot list res:// in exported builds (.pck),
+	# so use the hardcoded AvatarCatalog keys instead.
 	avatars.clear()
-	dir.list_dir_begin()
-	var file_name = dir.get_next()
-
-	while file_name != "":
-		if not dir.current_is_dir() and file_name.get_extension() in ["png", "jpg", "jpeg", "webp"]:
-			var tex := load("res://asset/avatars/" + file_name)
-			if tex:
-				avatars[file_name] = tex
-		file_name = dir.get_next()
-	dir.list_dir_end()
+	var avatar_files: Array = AvatarCatalog.DISPLAY_NAMES.keys()
+	for file_name in avatar_files:
+		var tex := load("res://asset/avatars/" + file_name)
+		if tex:
+			avatars[file_name] = tex
 
 func display_player_profile(player_username: String) -> void:
 	print("[ViewPlayerProfile] Fetching profile for: ", player_username)

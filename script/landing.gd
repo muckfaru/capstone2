@@ -2656,33 +2656,26 @@ func _on_rank_up(new_rank: Dictionary) -> void:
 		push_error("[Landing] ❌ Failed to load rank_up_notification.tscn")
 
 
-# === Load avatars from folder ===
+# === Load avatars from catalog (works in exported builds) ===
 func _load_avatars() -> void:
-	var dir := DirAccess.open("res://asset/avatars")
-	if dir == null:
-		push_error("⚠️ Avatar folder not found")
-		return
-
 	avatars.clear()
-	dir.list_dir_begin()
-	var file_name = dir.get_next()
-
-	while file_name != "":
-		if not dir.current_is_dir() and file_name.get_extension() in ["png", "jpg", "jpeg", "webp"]:
-			var tex := load("res://asset/avatars/" + file_name)
-			if tex:
-				avatars[file_name] = tex
-				var btn := TextureButton.new()
-				btn.texture_normal = tex
-				# Force thumbnails to 80x80 regardless of source texture size.
-				btn.ignore_texture_size = true
-				btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-				btn.custom_minimum_size = Vector2(80, 80)
-				var captured_name: String = file_name
-				btn.pressed.connect(func(): _on_avatar_selected(captured_name))
-				avatar_grid.add_child(btn)
-		file_name = dir.get_next()
-	dir.list_dir_end()
+	# DirAccess cannot list res:// in exported builds (.pck),
+	# so use the hardcoded AvatarCatalog keys instead.
+	var avatar_files: Array = AvatarCatalog.DISPLAY_NAMES.keys()
+	avatar_files.sort()
+	for file_name in avatar_files:
+		var tex := load("res://asset/avatars/" + file_name)
+		if tex:
+			avatars[file_name] = tex
+			var btn := TextureButton.new()
+			btn.texture_normal = tex
+			# Force thumbnails to 80x80 regardless of source texture size.
+			btn.ignore_texture_size = true
+			btn.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+			btn.custom_minimum_size = Vector2(80, 80)
+			var captured_name: String = file_name
+			btn.pressed.connect(func(): _on_avatar_selected(captured_name))
+			avatar_grid.add_child(btn)
 
 
 func _on_change_avatar_pressed() -> void:
