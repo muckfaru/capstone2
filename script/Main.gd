@@ -104,6 +104,7 @@ func start_panic_sequence():
 	# Safety: ensure dialogue box is ready before showing
 	if not DialogueManager.dialogue_box:
 		push_warning("[Main] dialogue_box is null, skipping panic dialogue")
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		return
 	if not DialogueManager.dialogue_box.is_inside_tree():
 		get_tree().root.add_child(DialogueManager.dialogue_box)
@@ -153,6 +154,9 @@ func trigger_hologram_call():
 	]
 	DialogueManager.show_dialogue(call_lines, "You")
 	await DialogueManager.dialogue_box.dialogue_finished
+	
+	# Restore mouse capture so the player can look around again
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	
 	# Enable hologram interaction
 	if player:
