@@ -166,12 +166,13 @@ Teacher creates a room → students join via room code → teacher starts → al
 ### Server Endpoints (GameMode)
 All endpoints in `server/server.js` under `/api/gamemode/`:
 - `POST /api/gamemode/create` — Teacher creates a room (returns `room_code`)
-- `GET /api/gamemode/:code/info` — Get room info: players list (with `avatar`, `xp`), status, game_name, game_scene
-- `POST /api/gamemode/:code/join` — Student joins room (sends `player_id`, `username`, `avatar`, `xp`)
+- `GET /api/gamemode/:code/info` — Get room info: players list (with `avatar`, `xp`), status, game_name, game_scene. Returns `has_student_restriction: true/false`.
+- `POST /api/gamemode/:code/join` — Student joins room (sends `player_id`, `username`, `avatar`, `xp`, optional `student_number`)
 - `POST /api/gamemode/:code/start` — Teacher starts the game (sets status to `"active"`)
 - `POST /api/gamemode/:code/submit` — Student submits score after game ends
 - `GET /api/gamemode/:code/results` — Get all player results
 - `POST /api/gamemode/:code/heartbeat` — Keep room alive
+- `POST /api/gamemode/:code/add-students` — Teacher adds student numbers to whitelist after room creation
 
 ### Server Player Data Schema
 When a player joins via `/join`, the server stores:
@@ -409,6 +410,78 @@ In GameMode:
 - `_update_gamemode_leaderboard()` in `TeacherCreateRoom.gd` checks if game name contains "encryption"
 - If true: shows only `#`, `Player`, `Time` columns. "playing..." shown in Time column for unfinished players.
 - If false: shows `#`, `Player`, `Score`, `Time` columns (default behavior)
+
+---
+
+## Student Number Whitelist (Section Restriction)
+
+### Overview
+Teachers can optionally restrict room access by student number. Only students whose numbers are on the whitelist can join. Works for **both** Game Mode and Multiple Choice rooms.
+
+### Teacher-Side: Room Creation (`TeacherCreateRoom.gd`)
+- **Checkbox:** "Restrict by Student Number" — visible when either Game Mode or Multiple Choice is selected
+- **TextEdit:** Appears when checkbox is checked. Teacher enters comma/newline-separated student numbers (e.g. `21-2169, 21-2170`)
+- **UI is built dynamically** by `_build_student_restriction_ui()` in `_ready()`, inserted after `ChooseGameRow` in `FormContent`
+- **Variables:** `_restrict_checkbox`, `_student_numbers_section`, `_student_numbers_edit`, `_student_numbers_hint`
+- **Toggle visibility:** Both `_on_game_mode_toggled()` and `_on_multiple_choice_toggled()` show/hide the checkbox row
+- **Collection:** `_finalise_room()` collects `allowed_students` array before both quiz and gamemode POST paths
+- **Sent to server:** `_post_quiz_to_server()` and `_post_gamemode_to_server()` both include `allowed_students` in POST body
+
+### Teacher-Side: In-Lobby Adding (`TeacherLobby.gd`)
+- **"+ Student" button** in BottomBar (between ChatInput and StartQuizButton), teacher mode only
+- **Floating popup:** Opens above BottomBar with:
+  - `LineEdit` for comma-separated student numbers
+  - "Add" / "Cancel" buttons
+  - Status label (green success / red error)
+- **Endpoint:** POSTs to `/api/quiz/:code/add-students` or `/api/gamemode/:code/add-students` based on room type
+- **Request body:** `{ host_id, student_numbers: [...] }`
+- **Response:** `{ ok, added, total }` — count of newly added + total whitelist size
+- **Auto-detect room type:** Uses `_minigame` to determine quiz vs gamemode endpoint
+
+### Server Endpoints (Whitelist)
+Both quiz and gamemode have parallel whitelist support:
+
+#### Quiz (`/api/quiz/`)
+- `POST /api/quiz/create` — Accepts `allowed_students` array, normalizes (trim + uppercase), stores with room
+- `GET /api/quiz/:code/info` — Returns `has_student_restriction: true/false`
+- `POST /api/quiz/:code/join` — Validates `student_number`: rejects if missing, not in whitelist, or already used by another player
+- `POST /api/quiz/:code/add-students` — Teacher adds student numbers to whitelist after creation. Body: `{ host_id, student_numbers: [...] }`
+
+#### GameMode (`/api/gamemode/`)
+- `POST /api/gamemode/create` — Accepts `allowed_students` array, normalizes, stores with room
+- `GET /api/gamemode/:code/info` — Returns `has_student_restriction: true/false`
+- `POST /api/gamemode/:code/join` — Validates `student_number` against whitelist
+- `POST /api/gamemode/:code/add-students` — Teacher adds student numbers post-creation
+
+### Student-Side: Join Flow (`mode_selection.gd`)
+1. Student enters room code in `JoinRoomPopup`
+2. `_on_join_code_submitted()` checks restriction by trying quiz info first, then gamemode info
+3. If `has_student_restriction == true` and student number field not shown yet → show field + prompt
+4. Student enters their student number → re-submits → `_do_join()` includes `student_number` in body
+5. Server validates → allows join or returns error message (shown in popup)
+
+### Student-Side: JoinRoomPopup (`script/JoinRoomPopup.gd`)
+- **Dynamic field:** `_student_num_label` + `_student_num_input` (LineEdit) inserted after CodeInput
+- **`show_student_number_field(visible_flag)`** — Shows/hides field + resizes popup
+- **`get_student_number()`** — Returns trimmed uppercase student number
+- **Built by** `_build_student_number_field()` on `_ready()`
+
+### Student-Side: MC Waiting Screen (`StudentQuizScene.gd`)
+- **BackButton kept visible** on the waiting screen so students can leave
+- Connected via `lobby_closed` signal → `_on_waiting_back_pressed()` → returns to `landing.tscn`
+- Stops poll timer before navigating away
+
+### Whitelist Testing Checklist
+- [ ] Checkbox appears for both Game Mode and Multiple Choice
+- [ ] Student numbers TextEdit appears when checkbox is checked
+- [ ] Room created with whitelist — server stores normalized numbers
+- [ ] Student without whitelist number gets rejected with clear error
+- [ ] Student with valid number can join
+- [ ] Duplicate student number (already used by another player) is rejected
+- [ ] Rooms without whitelist allow anyone to join (backward compatible)
+- [ ] Teacher can add students from lobby via "+ Student" button
+- [ ] Added students can immediately join
+- [ ] Student MC waiting screen has a working Back button
 
 ---
 

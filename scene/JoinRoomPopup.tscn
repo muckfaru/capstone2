@@ -55,7 +55,6 @@ shadow_size = 10
 shadow_offset = Vector2(0, 3)
 
 [node name="JoinRoomPopup" type="Control"]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
