@@ -485,6 +485,64 @@ Both quiz and gamemode have parallel whitelist support:
 
 ---
 
+## 3D Story Mode — Post-Infection Sequence
+
+### Overview
+After the player downloads a malware-infected game on the in-game computer desktop, the sequence is:
+`spawn_malware_popups()` → `show_infection_result()` → `show_shutdown_animation()` → scene change to `Main.tscn` → `_start_post_infection_sequence()` → `add_fade_in()` → `start_panic_sequence()` → dialogue → `trigger_hologram_call()`
+
+### Core Files
+- **Computer Desktop:** `script/computer_desktop.gd` — desktop simulation, malware popups, shutdown animation
+- **Main 3D Room:** `script/Main.gd` — player room, panic sequence, hologram call
+- **Dialogue Manager:** `script/dialogue_manager.gd` — autoload, manages dialogue box lifecycle
+- **Dialogue Box:** `script/dialogue_box.gd` — typewriter dialogue UI, advances with Space/Enter
+- **Global State:** `script/GlobalState.gd` — flags: `returning_from_computer`, `computer_infected`, `joined_ca_organization`
+
+### Key Design Decisions (Freeze Prevention)
+
+#### Popup Tweens Must Be Tracked
+- `create_popup_window()` creates shake tweens with `set_loops()` — these are **infinite looping tweens**
+- They are stored in `popup_tweens[]` array (separate from `active_tweens[]`)
+- `show_infection_result()` kills all `popup_tweens` via `tween.kill()` **before** `queue_free()`-ing the popup nodes
+- **NEVER** create a looping tween without adding it to a tracked array for cleanup
+
+#### Post-Infection Sequence Uses `call_deferred`
+- `_ready()` does NOT await the panic sequence directly — this caused deadlocks in exported builds
+- Instead: `call_deferred("_start_post_infection_sequence")` lets `_ready()` complete first
+- `_start_post_infection_sequence()` awaits one `process_frame` before starting the fade + dialogue chain
+
+#### Mouse Mode Must Be Managed
+- `start_panic_sequence()` sets `Input.MOUSE_MODE_VISIBLE` so the player sees the scene during dialogue
+- After the final hologram dialogue, `Input.MOUSE_MODE_CAPTURED` is restored so the player can look around
+- The early-return path (null `dialogue_box`) also restores `MOUSE_MODE_CAPTURED`
+
+#### Dialogue Box Safety Checks
+- Before showing dialogue, check `DialogueManager.dialogue_box` is not null
+- If the dialogue box is not in the scene tree, manually add it and await one `process_frame`
+
+---
+
+## Avatar System
+
+### Core Files
+- **Avatar Catalog:** `script/AvatarCatalog.gd` — `class_name AvatarCatalog`, hardcoded `DISPLAY_NAMES` dictionary mapping filenames to display names
+- **Landing:** `script/landing.gd` — `_load_avatars()` populates avatar picker grid
+- **Inventory:** `script/inventory_panel.gd` — `_append_builtin_avatars()` adds preset avatars to inventory
+- **Profile Viewer:** `script/view_player_profile.gd` — `_load_avatars()` loads avatar textures for profile display
+
+### Export Build Gotcha: No DirAccess on res://
+- `DirAccess.open("res://...")` **cannot list directories** inside `.pck` exports
+- All three avatar-loading functions use `AvatarCatalog.DISPLAY_NAMES.keys()` as the file list instead of `DirAccess`
+- `load("res://asset/avatars/" + file_name)` works fine in exports (imported resources are referenced by path)
+- **NEVER** use `DirAccess` to enumerate `res://` folders — it only works in the editor
+
+### Avatar Files
+- Located at `res://asset/avatars/` — `default.png`, `avatar1.png` through `avatar18.png` (no avatar13)
+- Custom avatars stored at `user://` paths — loaded via `Image.load_from_file()`
+- `Auth.current_avatar` stores the current avatar filename
+
+---
+
 ## Development Notes
 
 ### Common Patterns
