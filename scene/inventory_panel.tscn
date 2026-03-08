@@ -378,7 +378,8 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_mopil")
 theme_override_styles/hover = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cat_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_cat_normal")
-text = "Power-ups"
+text = "SKINS
+"
 
 [node name="SortContainer" type="HBoxContainer" parent="."]
 layout_mode = 0

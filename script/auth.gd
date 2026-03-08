@@ -23,6 +23,8 @@ var current_level: int = 0
 
 # Equipped cosmetics (loaded from Firestore user doc)
 var current_card_bg_path: String = ""
+var current_equipped_badge: String = ""
+var current_equipped_card: String = ""
 
 # Remote cosmetics cache (learned via relay messages)
 var remote_card_bg_by_player_id: Dictionary = {}

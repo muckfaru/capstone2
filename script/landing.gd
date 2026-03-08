@@ -2308,6 +2308,17 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 		else:
 			Auth.current_card_bg_path = ""
 
+	# Load equipped badge / card from inventory
+	if Auth:
+		if f.has("equipped_badge"):
+			Auth.current_equipped_badge = str(f["equipped_badge"].get("stringValue", ""))
+		else:
+			Auth.current_equipped_badge = ""
+		if f.has("equipped_card"):
+			Auth.current_equipped_card = str(f["equipped_card"].get("stringValue", ""))
+		else:
+			Auth.current_equipped_card = ""
+
 	# Load equipped achievement badges
 	if f.has("equipped_achievements"):
 		var arr = f["equipped_achievements"].get("arrayValue", {}).get("values", [])
@@ -3398,15 +3409,86 @@ func _setup_inventory_system() -> void:
 			inventory_panel.inventory_closed.connect(_on_inventory_closed)
 		if inventory_panel.has_signal("avatar_selected") and not inventory_panel.avatar_selected.is_connected(_on_inventory_avatar_selected):
 			inventory_panel.avatar_selected.connect(_on_inventory_avatar_selected)
+		if inventory_panel.has_signal("badge_equipped"):
+			inventory_panel.badge_equipped.connect(_on_inventory_badge_equipped)
 		
 		print("[Landing] ✅ Inventory system initialized")
 	else:
 		push_error("[Landing] ❌ Failed to load inventory_panel.tscn")
 
+func _on_inventory_badge_equipped(badge_data: Dictionary) -> void:
+	var icon_path: String = str(badge_data.get("icon_path", ""))
+	if icon_path.strip_edges() == "":
+		return
+	# Check if already in a slot
+	for i in range(3):
+		if _equipped_achievements[i] == icon_path:
+			return
+	# Find first empty slot
+	var target_slot: int = -1
+	for i in range(3):
+		if _equipped_achievements[i] == "":
+			target_slot = i
+			break
+	if target_slot == -1:
+		_show_badge_slots_full_notification()
+		return
+	_equipped_achievements[target_slot] = icon_path
+	_refresh_achievement_slot(target_slot)
+	_save_equipped_achievements()
+
+func _show_badge_slots_full_notification() -> void:
+	var dialog := AcceptDialog.new()
+	dialog.title = "Badge Slots Full"
+	dialog.dialog_text = "All 3 badge slots are full!\nRemove a badge from your profile first."
+	dialog.ok_button_text = "OK"
+	add_child(dialog)
+	dialog.popup_centered(Vector2i(320, 120))
+	dialog.confirmed.connect(func(): dialog.queue_free())
+	dialog.canceled.connect(func(): dialog.queue_free())
 
 func _on_inventory_avatar_selected(file_name: String) -> void:
-	# Reuse the existing preset-avatar selection behavior.
-	_on_avatar_selected(file_name)
+	# Load texture (try preloaded dict first, then load from disk)
+	var tex = avatars.get(file_name, null)
+	if tex == null and ResourceLoader.exists("res://asset/avatars/" + file_name):
+		tex = load("res://asset/avatars/" + file_name)
+	if tex == null:
+		push_error("[Landing] Could not load avatar: %s" % file_name)
+		return
+
+	# Update local UI
+	profile_pic.texture = tex
+	selected_avatar = file_name
+	original_avatar = file_name
+	Auth.current_avatar = file_name
+
+	# Persist to Firestore immediately
+	var user_id = Auth.current_local_id
+	var id_token = Auth.current_id_token
+	if user_id != "" and id_token != "":
+		last_avatar_change = int(Time.get_unix_time_from_system())
+		var url = "%s/%s?updateMask.fieldPaths=avatar&updateMask.fieldPaths=last_avatar_change" % [firestore_base_url, user_id]
+		var body = {
+			"fields": {
+				"avatar": {"stringValue": file_name},
+				"last_avatar_change": {"integerValue": str(last_avatar_change)}
+			}
+		}
+		var headers = [
+			"Content-Type: application/json",
+			"Authorization: Bearer %s" % id_token
+		]
+		var http_req := HTTPRequest.new()
+		add_child(http_req)
+		http_req.request_completed.connect(func(_r, code, _h, _b):
+			http_req.queue_free()
+			if code == 200:
+				print("[Landing] ✅ Avatar set from inventory: %s" % file_name)
+			else:
+				push_error("[Landing] Failed to save avatar from inventory: HTTP %d" % code)
+		)
+		http_req.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+	print("[Landing] ✅ Inventory avatar applied: %s" % file_name)
 
 func _on_inventory_closed() -> void:
 	"""Called when inventory panel is closed"""
@@ -4314,18 +4396,24 @@ func _refresh_achievement_slot(slot_index: int) -> void:
 	if not is_instance_valid(pic):
 		return
 	var ach_id: String = _equipped_achievements[slot_index]
-	if ach_id == "" or not AchievementPickerPopup.ACHIEVEMENT_DEFS.has(ach_id):
+	if ach_id == "":
 		pic.texture = null
 		pic.modulate = Color(1, 1, 1, 1)
 		return
-	var badge_path: String = AchievementPickerPopup.ACHIEVEMENT_DEFS[ach_id]["badge"]
-	if ResourceLoader.exists(badge_path):
+	# Support direct icon paths (from inventory badges) or achievement IDs
+	var badge_path: String = ""
+	if ach_id.begins_with("res://"):
+		badge_path = ach_id
+	elif AchievementPickerPopup.ACHIEVEMENT_DEFS.has(ach_id):
+		badge_path = AchievementPickerPopup.ACHIEVEMENT_DEFS[ach_id]["badge"]
+	if badge_path != "" and ResourceLoader.exists(badge_path):
 		pic.texture = load(badge_path)
 		pic.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		pic.modulate = Color(1, 1, 1, 1)
 	else:
 		pic.texture = null
+		pic.modulate = Color(1, 1, 1, 1)
 
 
 func _save_equipped_achievements() -> void:
