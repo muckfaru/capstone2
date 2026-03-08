@@ -124,6 +124,12 @@ var _quiz_start_posted: bool = false
 var _cached_leaderboard: Array = []  # Cached for See All popup
 var _cached_results_by_room: Dictionary = {}  # { room_code: { leaderboard, question_stats, ... } }
 
+# ── Student Number Whitelist ─────────────────────────────────────────────────
+var _restrict_checkbox: CheckBox = null
+var _student_numbers_section: VBoxContainer = null
+var _student_numbers_edit: TextEdit = null
+var _student_numbers_hint: Label = null
+
 # ── Room History (Firestore) ─────────────────────────────────────────────────
 const FIRESTORE_BASE_URL: String = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents"
 
@@ -150,6 +156,9 @@ func _ready() -> void:
 	player_validation_label.visible = false
 	player_count_input.text_changed.connect(_on_player_count_changed)
 	player_count_input.focus_exited.connect(_on_player_count_focus_exited)
+
+	# ── Build Student Number Whitelist UI (between ChooseGameRow and MCSection) ──
+	_build_student_restriction_ui()
 
 	_mc_time_buttons = [mc_time_30s, mc_time_60s, mc_time_120s, mc_time_240s]
 
@@ -301,11 +310,20 @@ func _on_game_mode_toggled(button_pressed: bool) -> void:
 		if mc_view_btn:
 			mc_view_btn.visible = false
 		_reset_mc_state()
+		# Show student restriction option for game mode
+		if _restrict_checkbox:
+			_restrict_checkbox.get_parent().visible = true
 	else:
 		if choose_game_row:
 			choose_game_row.visible = false
 		selected_minigame = ""
 		selected_minigame_scene = ""
+		# Hide student restriction when game mode deselected
+		if _restrict_checkbox:
+			_restrict_checkbox.get_parent().visible = false
+			_restrict_checkbox.set_pressed_no_signal(false)
+			if _student_numbers_section:
+				_student_numbers_section.visible = false
 	_update_generate_button()
 
 func _on_multiple_choice_toggled(button_pressed: bool) -> void:
@@ -331,6 +349,77 @@ func _on_multiple_choice_toggled(button_pressed: bool) -> void:
 			mc_view_btn.visible = false
 		_reset_mc_state()
 	_update_generate_button()
+
+# ── Student Number Whitelist UI ──────────────────────────────────────────────
+
+func _build_student_restriction_ui() -> void:
+	var form_content = create_form_panel.get_node_or_null("FormContent")
+	if not form_content:
+		push_error("[Whitelist] FormContent not found")
+		return
+
+	# Find ChooseGameRow index to insert after it
+	var insert_idx := -1
+	for i in form_content.get_child_count():
+		if form_content.get_child(i).name == "ChooseGameRow":
+			insert_idx = i + 1
+			break
+	if insert_idx < 0:
+		insert_idx = form_content.get_child_count() - 1  # fallback: before last
+
+	# ── Checkbox Row ──
+	var checkbox_row := HBoxContainer.new()
+	checkbox_row.name = "StudentRestrictRow"
+	checkbox_row.visible = false  # Hidden until Game Mode is selected
+	checkbox_row.add_theme_constant_override("separation", 10)
+
+	_restrict_checkbox = CheckBox.new()
+	_restrict_checkbox.text = "Restrict by Student Number"
+	_restrict_checkbox.add_theme_color_override("font_color", Color(0.65, 0.8, 1.0, 0.9))
+	_restrict_checkbox.add_theme_font_size_override("font_size", 13)
+	_restrict_checkbox.toggled.connect(_on_restrict_checkbox_toggled)
+	checkbox_row.add_child(_restrict_checkbox)
+
+	form_content.add_child(checkbox_row)
+	form_content.move_child(checkbox_row, insert_idx)
+
+	# ── Student Numbers Section (hidden until checkbox checked) ──
+	_student_numbers_section = VBoxContainer.new()
+	_student_numbers_section.name = "StudentNumbersSection"
+	_student_numbers_section.visible = false
+	_student_numbers_section.add_theme_constant_override("separation", 6)
+
+	_student_numbers_hint = Label.new()
+	_student_numbers_hint.text = "Enter student numbers (comma or newline separated):"
+	_student_numbers_hint.add_theme_color_override("font_color", Color(0.65, 0.8, 1.0, 0.6))
+	_student_numbers_hint.add_theme_font_size_override("font_size", 11)
+	_student_numbers_section.add_child(_student_numbers_hint)
+
+	_student_numbers_edit = TextEdit.new()
+	_student_numbers_edit.custom_minimum_size = Vector2(0, 80)
+	_student_numbers_edit.placeholder_text = "21-2169, 21-2170, 21-2171..."
+	_student_numbers_edit.add_theme_color_override("font_color", Color(0.9, 0.96, 1.0, 1.0))
+	_student_numbers_edit.add_theme_color_override("caret_color", Color(0.145, 0.878, 0.992, 1.0))
+	_student_numbers_edit.add_theme_font_size_override("font_size", 13)
+	# Style the TextEdit background
+	var edit_style := StyleBoxFlat.new()
+	edit_style.bg_color = Color(0.02, 0.05, 0.14, 1.0)
+	edit_style.border_color = Color(0.145, 0.878, 0.992, 0.4)
+	edit_style.set_border_width_all(2)
+	edit_style.set_corner_radius_all(8)
+	edit_style.set_content_margin_all(10)
+	_student_numbers_edit.add_theme_stylebox_override("normal", edit_style)
+	_student_numbers_edit.add_theme_stylebox_override("focus", edit_style)
+	_student_numbers_section.add_child(_student_numbers_edit)
+
+	form_content.add_child(_student_numbers_section)
+	form_content.move_child(_student_numbers_section, insert_idx + 1)
+
+func _on_restrict_checkbox_toggled(pressed: bool) -> void:
+	if _student_numbers_section:
+		_student_numbers_section.visible = pressed
+	if not pressed and _student_numbers_edit:
+		_student_numbers_edit.text = ""
 
 # ── Reset ────────────────────────────────────────────────────────────────────
 
@@ -454,6 +543,16 @@ func _finalise_room() -> void:
 
 	# ── GameMode: POST game room to server ──────────────────────────────
 	if game_mode_btn.button_pressed and not selected_minigame.is_empty():
+		# Collect student whitelist if enabled
+		var allowed_list: Array = []
+		if _restrict_checkbox and _restrict_checkbox.button_pressed and _student_numbers_edit:
+			var raw := _student_numbers_edit.text
+			var parts := raw.replace("\n", ",").replace("\r", ",").split(",")
+			for p in parts:
+				var trimmed := p.strip_edges()
+				if not trimmed.is_empty():
+					allowed_list.append(trimmed)
+		room_data["allowed_students"] = allowed_list
 		_post_gamemode_to_server(current_room_code, room_data)
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -1537,6 +1636,7 @@ func _post_gamemode_to_server(room_code: String, room_data: Dictionary) -> void:
 		"game_scene": room_data.get("minigame_scene", ""),
 		"difficulty": room_data.get("difficulty", ""),
 		"max_players": room_data.get("player_count", 50),
+		"allowed_students": room_data.get("allowed_students", []),
 	}
 	var headers := ["Content-Type: application/json"]
 	var http := HTTPRequest.new()

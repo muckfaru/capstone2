@@ -32,7 +32,6 @@ ShopManager="*res://script/ShopManager.gd"
 
 [display]
 
-window/size/mode=3
 window/stretch/mode="canvas_items"
 window/size/width=1280
 window/size/height=720

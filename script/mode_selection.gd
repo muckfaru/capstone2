@@ -773,6 +773,37 @@ func _on_join_popup_closed() -> void:
 func _on_join_code_submitted(room_code: String) -> void:
 	print("[Join] Student attempting to join room: %s" % room_code)
 	var lobby_url := _get_lobby_url()
+
+	# First, check if the room requires a student number
+	var info_url := lobby_url + "/api/gamemode/%s/info" % room_code
+	var info_http := HTTPRequest.new()
+	add_child(info_http)
+	info_http.request_completed.connect(func(_r, code, _h, resp_body):
+		info_http.queue_free()
+		var has_restriction := false
+		if code == 200:
+			var text: String = resp_body.get_string_from_utf8()
+			var data = JSON.parse_string(text)
+			if typeof(data) == TYPE_DICTIONARY:
+				has_restriction = data.get("has_student_restriction", false)
+
+		# If restriction exists and student number field not shown yet, show it and wait
+		if has_restriction and join_lobby_popup and join_lobby_popup.has_method("show_student_number_field"):
+			if join_lobby_popup.get_student_number().is_empty() and not join_lobby_popup._student_num_visible:
+				join_lobby_popup.show_student_number_field(true)
+				join_lobby_popup.show_error("This room requires your student number.")
+				return
+
+		# Proceed with join
+		_do_join(room_code, lobby_url, has_restriction)
+	)
+	var err := info_http.request(info_url, [], HTTPClient.METHOD_GET)
+	if err != OK:
+		info_http.queue_free()
+		# Fallback: proceed without restriction check
+		_do_join(room_code, lobby_url, false)
+
+func _do_join(room_code: String, lobby_url: String, has_restriction: bool) -> void:
 	var xp_val: int = TutorialManager.total_xp if TutorialManager else 0
 	var body := {
 		"player_id": Auth.current_local_id,
@@ -780,6 +811,16 @@ func _on_join_code_submitted(room_code: String) -> void:
 		"avatar": Auth.current_avatar if Auth.current_avatar != "" else "default.png",
 		"xp": xp_val,
 	}
+
+	# Add student number if required
+	if has_restriction and join_lobby_popup and join_lobby_popup.has_method("get_student_number"):
+		var sn: String = join_lobby_popup.get_student_number()
+		if sn.is_empty():
+			if join_lobby_popup.has_method("show_error"):
+				join_lobby_popup.show_error("Please enter your student number.")
+			return
+		body["student_number"] = sn
+
 	var headers := ["Content-Type: application/json"]
 
 	# Try CyberQuiz join first
@@ -808,7 +849,7 @@ func _on_join_code_submitted(room_code: String) -> void:
 		_try_gamemode_join(room_code, lobby_url, body, headers)
 
 func _try_gamemode_join(room_code: String, lobby_url: String, _body: Dictionary, headers: Array) -> void:
-	# Build body with avatar + xp for the room panel
+	# Use the body passed in (already includes student_number if needed)
 	var xp_val: int = TutorialManager.total_xp if TutorialManager else 0
 	var gm_body := {
 		"player_id": Auth.current_local_id,
@@ -816,6 +857,9 @@ func _try_gamemode_join(room_code: String, lobby_url: String, _body: Dictionary,
 		"avatar": Auth.current_avatar if Auth.current_avatar != "" else "default.png",
 		"xp": xp_val,
 	}
+	# Carry student_number from the original body if present
+	if _body.has("student_number"):
+		gm_body["student_number"] = _body["student_number"]
 	var url := lobby_url + "/api/gamemode/%s/join" % room_code
 	var http := HTTPRequest.new()
 	add_child(http)

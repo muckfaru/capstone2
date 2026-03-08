@@ -1222,7 +1222,7 @@ app.post('/api/quiz/:code/heartbeat', (req, res) => {
 
 // POST /api/gamemode/create — Teacher creates a game mode room
 app.post('/api/gamemode/create', (req, res) => {
-  const { room_code, room_name, host_id, host_username, game_name, game_scene, difficulty, max_players } = req.body;
+  const { room_code, room_name, host_id, host_username, game_name, game_scene, difficulty, max_players, allowed_students } = req.body;
 
   if (!room_code || !host_id || !game_name) {
     return res.status(400).json({ error: 'Missing required fields: room_code, host_id, game_name' });
@@ -1231,6 +1231,11 @@ app.post('/api/gamemode/create', (req, res) => {
   if (gameModeRooms.has(room_code)) {
     return res.status(409).json({ error: 'Room code already exists' });
   }
+
+  // Whitelist: normalize student numbers (trim, uppercase)
+  const normalizedAllowed = Array.isArray(allowed_students)
+    ? allowed_students.map(s => String(s).trim().toUpperCase()).filter(s => s.length > 0)
+    : [];
 
   const gameRoom = {
     room_code,
@@ -1242,6 +1247,7 @@ app.post('/api/gamemode/create', (req, res) => {
     difficulty: difficulty || '',
     players: [],
     max_players: Math.min(Math.max(2, max_players || 50), 50),
+    allowed_students: normalizedAllowed,
     status: 'waiting', // waiting | active | finished
     started_at: null,
     created_at: Date.now(),
@@ -1279,6 +1285,7 @@ app.get('/api/gamemode/:code/info', (req, res) => {
     difficulty: gr.difficulty,
     status: gr.status,
     max_players: gr.max_players,
+    has_student_restriction: Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0,
     players: gr.players.map(p => ({
       player_id: p.player_id,
       username: p.username,
@@ -1306,6 +1313,23 @@ app.post('/api/gamemode/:code/join', (req, res) => {
     return res.status(404).json({ error: 'Game room not found' });
   }
 
+  // Whitelist check: if room has allowed_students, validate student_number
+  const { student_number } = req.body;
+  if (Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0) {
+    if (!student_number || String(student_number).trim().length === 0) {
+      return res.status(403).json({ error: 'Please enter your student number.' });
+    }
+    const normalized = String(student_number).trim().toUpperCase();
+    if (!gr.allowed_students.includes(normalized)) {
+      return res.status(403).json({ error: 'Your student number is not authorized for this room.' });
+    }
+    // Check if student number already used by another player
+    const alreadyUsed = gr.players.find(p => p.student_number === normalized);
+    if (alreadyUsed && alreadyUsed.player_id !== player_id) {
+      return res.status(403).json({ error: 'This student number has already joined.' });
+    }
+  }
+
   // Check if already joined
   const existing = gr.players.find(p => p.player_id === player_id);
   if (existing) {
@@ -1320,11 +1344,13 @@ app.post('/api/gamemode/:code/join', (req, res) => {
     return res.status(403).json({ error: 'Room is full' });
   }
 
+  const normalizedStudentNum = student_number ? String(student_number).trim().toUpperCase() : '';
   gr.players.push({
     player_id,
     username,
     avatar: avatar || 'default.png',
     xp: xp || 0,
+    student_number: normalizedStudentNum,
     joined_at: Date.now(),
     finished: false,
     score: 0,
