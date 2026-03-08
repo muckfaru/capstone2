@@ -39,6 +39,12 @@ var _waiting_label: Label = null
 var _dot_timer: Timer = null
 var _dot_count: int = 0
 
+# Add Student Number UI (teacher only)
+var _add_student_btn: Button = null
+var _add_student_popup: PanelContainer = null
+var _add_student_input: LineEdit = null
+var _add_student_status: Label = null
+
 # ─────────────────────────────────────────────────────────────────────────────
 func _ready() -> void:
 	_slot_nodes.clear()
@@ -69,6 +75,7 @@ func _ready() -> void:
 	start_quiz_btn.pressed.connect(_on_start_quiz_pressed)
 	back_button.pressed.connect(_on_back_pressed)
 	_refresh_player_count_label()
+	_build_add_student_ui()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PUBLIC API
@@ -92,6 +99,8 @@ func show_lobby(room_code: String, room_name: String,
 		start_quiz_btn.text = "Start"
 	if chat_input:
 		chat_input.visible = true
+	if _add_student_btn:
+		_add_student_btn.visible = true
 	_clear_waiting_label()
 
 	_players.clear()
@@ -118,6 +127,8 @@ func show_lobby_student_mode(room_code: String, game_name: String, game_scene: S
 		start_quiz_btn.visible = false
 	if chat_input:
 		chat_input.visible = false
+	if _add_student_btn:
+		_add_student_btn.visible = false
 	_create_waiting_label()
 
 	_players.clear()
@@ -596,3 +607,218 @@ func _on_back_pressed() -> void:
 	stop_server_polling()
 	emit_signal("lobby_closed")
 	visible = false
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ADD STUDENT NUMBER (teacher in-lobby)
+# ─────────────────────────────────────────────────────────────────────────────
+func _build_add_student_ui() -> void:
+	var bottom_bar = get_node_or_null("PanelBg/BottomBar")
+	if not bottom_bar:
+		return
+
+	# ── Button in BottomBar ──
+	_add_student_btn = Button.new()
+	_add_student_btn.name = "AddStudentBtn"
+	_add_student_btn.text = "+ Student"
+	_add_student_btn.custom_minimum_size = Vector2(110, 36)
+	_add_student_btn.visible = false  # shown when show_lobby() is called in teacher mode
+	var btn_sb := StyleBoxFlat.new()
+	btn_sb.bg_color = Color(0.0, 0.25, 0.35, 0.9)
+	btn_sb.border_color = Color(0.145, 0.878, 0.992, 0.6)
+	btn_sb.set_border_width_all(1)
+	btn_sb.set_corner_radius_all(6)
+	btn_sb.set_content_margin_all(4)
+	_add_student_btn.add_theme_stylebox_override("normal", btn_sb)
+	var btn_hov := btn_sb.duplicate()
+	btn_hov.bg_color = Color(0.0, 0.35, 0.5, 0.9)
+	_add_student_btn.add_theme_stylebox_override("hover", btn_hov)
+	_add_student_btn.add_theme_color_override("font_color", Color(0.6, 0.95, 1.0))
+	_add_student_btn.add_theme_font_size_override("font_size", 13)
+	_add_student_btn.pressed.connect(_on_add_student_btn_pressed)
+	bottom_bar.add_child(_add_student_btn)
+	# Move before StartQuizButton so layout is: ChatInput | +Student | Start
+	var start_idx := start_quiz_btn.get_index()
+	bottom_bar.move_child(_add_student_btn, start_idx)
+
+	# ── Floating popup ──
+	_add_student_popup = PanelContainer.new()
+	_add_student_popup.name = "AddStudentPopup"
+	_add_student_popup.visible = false
+	_add_student_popup.z_index = 10
+	_add_student_popup.custom_minimum_size = Vector2(340, 0)
+	var pop_sb := StyleBoxFlat.new()
+	pop_sb.bg_color = Color(0.02, 0.06, 0.16, 0.97)
+	pop_sb.border_color = Color(0.145, 0.878, 0.992, 0.7)
+	pop_sb.set_border_width_all(2)
+	pop_sb.set_corner_radius_all(10)
+	pop_sb.set_content_margin_all(14)
+	_add_student_popup.add_theme_stylebox_override("panel", pop_sb)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	_add_student_popup.add_child(vbox)
+
+	var title_lbl := Label.new()
+	title_lbl.text = "Add Student Number"
+	title_lbl.add_theme_color_override("font_color", Color(0.145, 0.878, 0.992))
+	title_lbl.add_theme_font_size_override("font_size", 15)
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title_lbl)
+
+	var hint_lbl := Label.new()
+	hint_lbl.text = "Comma-separated (e.g. 21-2169, 21-2170)"
+	hint_lbl.add_theme_color_override("font_color", Color(0.65, 0.8, 1.0, 0.5))
+	hint_lbl.add_theme_font_size_override("font_size", 11)
+	hint_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(hint_lbl)
+
+	_add_student_input = LineEdit.new()
+	_add_student_input.placeholder_text = "21-2169, 21-2170..."
+	_add_student_input.custom_minimum_size = Vector2(0, 36)
+	_add_student_input.add_theme_color_override("font_color", Color(0.9, 0.96, 1.0))
+	_add_student_input.add_theme_color_override("caret_color", Color(0.145, 0.878, 0.992))
+	_add_student_input.add_theme_font_size_override("font_size", 13)
+	var input_sb := StyleBoxFlat.new()
+	input_sb.bg_color = Color(0.02, 0.05, 0.14, 1.0)
+	input_sb.border_color = Color(0.145, 0.878, 0.992, 0.4)
+	input_sb.set_border_width_all(2)
+	input_sb.set_corner_radius_all(6)
+	input_sb.set_content_margin_all(8)
+	_add_student_input.add_theme_stylebox_override("normal", input_sb)
+	_add_student_input.text_submitted.connect(func(_t): _on_add_student_submit())
+	vbox.add_child(_add_student_input)
+
+	var btn_row := HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 8)
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(btn_row)
+
+	var cancel_btn := Button.new()
+	cancel_btn.text = "Cancel"
+	cancel_btn.custom_minimum_size = Vector2(90, 32)
+	var cancel_sb := StyleBoxFlat.new()
+	cancel_sb.bg_color = Color(0.15, 0.15, 0.2, 0.8)
+	cancel_sb.border_color = Color(0.5, 0.5, 0.6, 0.4)
+	cancel_sb.set_border_width_all(1)
+	cancel_sb.set_corner_radius_all(6)
+	cancel_btn.add_theme_stylebox_override("normal", cancel_sb)
+	cancel_btn.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+	cancel_btn.add_theme_font_size_override("font_size", 12)
+	cancel_btn.pressed.connect(_on_add_student_cancel)
+	btn_row.add_child(cancel_btn)
+
+	var submit_btn := Button.new()
+	submit_btn.text = "Add"
+	submit_btn.custom_minimum_size = Vector2(90, 32)
+	var sub_sb := StyleBoxFlat.new()
+	sub_sb.bg_color = Color(0.0, 0.35, 0.5, 0.9)
+	sub_sb.border_color = Color(0.145, 0.878, 0.992, 0.7)
+	sub_sb.set_border_width_all(1)
+	sub_sb.set_corner_radius_all(6)
+	submit_btn.add_theme_stylebox_override("normal", sub_sb)
+	submit_btn.add_theme_color_override("font_color", Color(0.6, 0.95, 1.0))
+	submit_btn.add_theme_font_size_override("font_size", 12)
+	submit_btn.pressed.connect(_on_add_student_submit)
+	btn_row.add_child(submit_btn)
+
+	_add_student_status = Label.new()
+	_add_student_status.text = ""
+	_add_student_status.add_theme_font_size_override("font_size", 11)
+	_add_student_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_add_student_status.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(_add_student_status)
+
+	# Add popup to PanelBg so it floats above content
+	var panel_bg = get_node_or_null("PanelBg")
+	if panel_bg:
+		panel_bg.add_child(_add_student_popup)
+	# Position will be set when shown
+
+func _on_add_student_btn_pressed() -> void:
+	if not _add_student_popup:
+		return
+	_add_student_popup.visible = not _add_student_popup.visible
+	if _add_student_popup.visible:
+		_add_student_input.text = ""
+		_add_student_status.text = ""
+		# Position above the bottom bar
+		await get_tree().process_frame
+		var panel_bg = get_node_or_null("PanelBg")
+		if panel_bg:
+			var pb_size: Vector2 = panel_bg.size
+			var pop_size: Vector2 = _add_student_popup.size
+			_add_student_popup.position = Vector2(
+				(pb_size.x - pop_size.x) / 2.0,
+				pb_size.y - pop_size.y - 60
+			)
+		_add_student_input.grab_focus()
+
+func _on_add_student_cancel() -> void:
+	if _add_student_popup:
+		_add_student_popup.visible = false
+
+func _on_add_student_submit() -> void:
+	if not _add_student_input:
+		return
+	var raw := _add_student_input.text.strip_edges()
+	if raw.is_empty():
+		_add_student_status.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+		_add_student_status.text = "Please enter at least one student number."
+		return
+
+	# Parse comma-separated
+	var parts := raw.split(",")
+	var student_numbers: Array = []
+	for p in parts:
+		var trimmed := p.strip_edges()
+		if not trimmed.is_empty():
+			student_numbers.append(trimmed)
+
+	if student_numbers.is_empty():
+		_add_student_status.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+		_add_student_status.text = "Please enter at least one student number."
+		return
+
+	_add_student_status.add_theme_color_override("font_color", Color(1, 0.85, 0.3))
+	_add_student_status.text = "Adding..."
+
+	# Determine which endpoint to use (quiz or gamemode)
+	var endpoint_type := "quiz"
+	if not _minigame.is_empty() and _minigame != "Multiple Choice":
+		endpoint_type = "gamemode"
+
+	var url := _lobby_url + "/api/%s/%s/add-students" % [endpoint_type, _room_code]
+	var body := {
+		"host_id": Auth.current_local_id,
+		"student_numbers": student_numbers,
+	}
+	var headers := ["Content-Type: application/json"]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code == 200:
+			var text: String = resp_body.get_string_from_utf8()
+			var data = JSON.parse_string(text)
+			var added_count := 0
+			var total_count := 0
+			if typeof(data) == TYPE_DICTIONARY:
+				added_count = int(data.get("added", 0))
+				total_count = int(data.get("total", 0))
+			_add_student_status.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
+			_add_student_status.text = "Added %d student(s). Total whitelist: %d" % [added_count, total_count]
+			_add_student_input.text = ""
+		else:
+			var err_text: String = resp_body.get_string_from_utf8() if resp_body.size() > 0 else ""
+			var err_data = JSON.parse_string(err_text)
+			var msg := "Failed to add students."
+			if typeof(err_data) == TYPE_DICTIONARY:
+				msg = err_data.get("error", msg)
+			_add_student_status.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+			_add_student_status.text = msg
+	)
+	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	if err != OK:
+		http.queue_free()
+		_add_student_status.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+		_add_student_status.text = "Network error."

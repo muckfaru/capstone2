@@ -1023,6 +1023,41 @@ app.post('/api/quiz/:code/join', (req, res) => {
   });
 });
 
+// POST /api/quiz/:code/add-students — Teacher adds student numbers to whitelist
+app.post('/api/quiz/:code/add-students', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { host_id, student_numbers } = req.body;
+
+  const qr = quizRooms.get(code);
+  if (!qr) {
+    return res.status(404).json({ error: 'Quiz room not found' });
+  }
+
+  if (host_id && qr.host_id !== host_id) {
+    return res.status(403).json({ error: 'Only the host can modify the whitelist' });
+  }
+
+  if (!Array.isArray(student_numbers) || student_numbers.length === 0) {
+    return res.status(400).json({ error: 'student_numbers must be a non-empty array' });
+  }
+
+  if (!Array.isArray(qr.allowed_students)) {
+    qr.allowed_students = [];
+  }
+
+  const added = [];
+  for (const sn of student_numbers) {
+    const normalised = String(sn).trim().toUpperCase();
+    if (normalised && !qr.allowed_students.includes(normalised)) {
+      qr.allowed_students.push(normalised);
+      added.push(normalised);
+    }
+  }
+
+  console.log(`[CyberQuiz] Added ${added.length} student(s) to whitelist for ${code}: ${added.join(', ')}`);
+  res.json({ ok: true, added: added.length, total: qr.allowed_students.length });
+});
+
 // POST /api/quiz/:code/start — Teacher starts the quiz
 app.post('/api/quiz/:code/start', (req, res) => {
   const code = req.params.code.toUpperCase();
@@ -1388,6 +1423,41 @@ app.post('/api/gamemode/:code/join', (req, res) => {
     game_scene: gr.game_scene,
     players_count: gr.players.length
   });
+});
+
+// POST /api/gamemode/:code/add-students — Teacher adds student numbers to whitelist
+app.post('/api/gamemode/:code/add-students', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { host_id, student_numbers } = req.body;
+
+  const gr = gameModeRooms.get(code);
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  if (host_id && gr.host_id !== host_id) {
+    return res.status(403).json({ error: 'Only the host can modify the whitelist' });
+  }
+
+  if (!Array.isArray(student_numbers) || student_numbers.length === 0) {
+    return res.status(400).json({ error: 'student_numbers must be a non-empty array' });
+  }
+
+  if (!Array.isArray(gr.allowed_students)) {
+    gr.allowed_students = [];
+  }
+
+  const added = [];
+  for (const sn of student_numbers) {
+    const normalised = String(sn).trim().toUpperCase();
+    if (normalised && !gr.allowed_students.includes(normalised)) {
+      gr.allowed_students.push(normalised);
+      added.push(normalised);
+    }
+  }
+
+  console.log(`[GameMode] Added ${added.length} student(s) to whitelist for ${code}: ${added.join(', ')}`);
+  res.json({ ok: true, added: added.length, total: gr.allowed_students.length });
 });
 
 // POST /api/gamemode/:code/start — Teacher starts the game
