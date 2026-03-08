@@ -339,6 +339,9 @@ func _on_multiple_choice_toggled(button_pressed: bool) -> void:
 		if mc_view_btn:
 			mc_view_btn.visible = true
 		_update_mc_create_button()
+		# Show student restriction option for multiple choice
+		if _restrict_checkbox:
+			_restrict_checkbox.get_parent().visible = true
 	else:
 		if mc_section:
 			mc_section.visible = false
@@ -348,6 +351,12 @@ func _on_multiple_choice_toggled(button_pressed: bool) -> void:
 		if mc_view_btn:
 			mc_view_btn.visible = false
 		_reset_mc_state()
+		# Hide student restriction when multiple choice deselected
+		if _restrict_checkbox:
+			_restrict_checkbox.get_parent().visible = false
+			_restrict_checkbox.set_pressed_no_signal(false)
+			if _student_numbers_section:
+				_student_numbers_section.visible = false
 	_update_generate_button()
 
 # ── Student Number Whitelist UI ──────────────────────────────────────────────
@@ -537,22 +546,23 @@ func _finalise_room() -> void:
 	_show_screen("code")
 	_refresh_room_list()
 
+	# Collect student whitelist if enabled (shared for both quiz and game mode)
+	var allowed_list: Array = []
+	if _restrict_checkbox and _restrict_checkbox.button_pressed and _student_numbers_edit:
+		var raw := _student_numbers_edit.text
+		var parts := raw.replace("\n", ",").replace("\r", ",").split(",")
+		for p in parts:
+			var trimmed := p.strip_edges()
+			if not trimmed.is_empty():
+				allowed_list.append(trimmed)
+	room_data["allowed_students"] = allowed_list
+
 	# ── CyberQuiz: POST quiz data to server ─────────────────────────────
 	if multiple_choice_btn.button_pressed and not mc_quiz_data.is_empty():
 		_post_quiz_to_server(current_room_code, room_data)
 
 	# ── GameMode: POST game room to server ──────────────────────────────
 	if game_mode_btn.button_pressed and not selected_minigame.is_empty():
-		# Collect student whitelist if enabled
-		var allowed_list: Array = []
-		if _restrict_checkbox and _restrict_checkbox.button_pressed and _student_numbers_edit:
-			var raw := _student_numbers_edit.text
-			var parts := raw.replace("\n", ",").replace("\r", ",").split(",")
-			for p in parts:
-				var trimmed := p.strip_edges()
-				if not trimmed.is_empty():
-					allowed_list.append(trimmed)
-		room_data["allowed_students"] = allowed_list
 		_post_gamemode_to_server(current_room_code, room_data)
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -1109,6 +1119,7 @@ func _post_quiz_to_server(room_code: String, room_data: Dictionary) -> void:
 		"quiz_data": quiz_d,
 		"time_per_question": room_data.get("mc_time_per_q", 30),
 		"max_players": room_data.get("player_count", 10),
+		"allowed_students": room_data.get("allowed_students", []),
 	}
 	var headers := ["Content-Type: application/json"]
 	var http := HTTPRequest.new()

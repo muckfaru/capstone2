@@ -874,7 +874,7 @@ function broadcastToRoom(room_id, message, excludeConnection = null) {
 
 // POST /api/quiz/create — Teacher creates a quiz room
 app.post('/api/quiz/create', (req, res) => {
-  const { room_code, room_name, host_id, host_username, quiz_data, time_per_question, max_players } = req.body;
+  const { room_code, room_name, host_id, host_username, quiz_data, time_per_question, max_players, allowed_students } = req.body;
 
   if (!room_code || !host_id || !quiz_data) {
     return res.status(400).json({ error: 'Missing required fields: room_code, host_id, quiz_data' });
@@ -900,6 +900,7 @@ app.post('/api/quiz/create', (req, res) => {
     },
     players: [],
     max_players: Math.min(Math.max(2, max_players || 10), 10),
+    allowed_students: Array.isArray(allowed_students) ? allowed_students.map(s => String(s).trim().toUpperCase()).filter(Boolean) : [],
     status: 'waiting', // waiting | active | finished
     created_at: Date.now(),
     last_heartbeat: Date.now()
@@ -938,6 +939,7 @@ app.get('/api/quiz/:code/info', (req, res) => {
     max_players: qr.max_players,
     question_count: qr.quiz_data.questions.length,
     time_per_question: qr.quiz_data.time_per_question,
+    has_student_restriction: Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0,
     players: qr.players.map(p => ({
       player_id: p.player_id,
       username: p.username,
@@ -952,7 +954,7 @@ app.get('/api/quiz/:code/info', (req, res) => {
 // POST /api/quiz/:code/join — Student joins quiz room
 app.post('/api/quiz/:code/join', (req, res) => {
   const code = req.params.code.toUpperCase();
-  const { player_id, username, avatar, xp } = req.body;
+  const { player_id, username, avatar, xp, student_number } = req.body;
 
   if (!player_id || !username) {
     return res.status(400).json({ error: 'Missing required fields: player_id, username' });
@@ -971,12 +973,29 @@ app.post('/api/quiz/:code/join', (req, res) => {
     return res.status(403).json({ error: 'Room is full' });
   }
 
+  // Student number whitelist validation
+  if (Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0) {
+    if (!student_number) {
+      return res.status(403).json({ error: 'This room requires a student number to join.' });
+    }
+    const normalised = String(student_number).trim().toUpperCase();
+    if (!qr.allowed_students.includes(normalised)) {
+      return res.status(403).json({ error: 'Your student number is not authorized for this room.' });
+    }
+    // Check if student number already used by another player
+    const alreadyUsed = qr.players.find(p => p.student_number === normalised && p.player_id !== player_id);
+    if (alreadyUsed) {
+      return res.status(403).json({ error: 'This student number is already in use by another player.' });
+    }
+  }
+
   // Check if player already joined (allow rejoin)
   const existing = qr.players.find(p => p.player_id === player_id);
   if (existing) {
     // Update avatar/xp on rejoin
     if (avatar) existing.avatar = avatar;
     if (xp !== undefined) existing.xp = xp;
+    if (student_number) existing.student_number = String(student_number).trim().toUpperCase();
     console.log(`[CyberQuiz] Player rejoined: ${username} in ${code}`);
     return res.json({ ok: true, status: qr.status, rejoined: true });
   }
@@ -986,6 +1005,7 @@ app.post('/api/quiz/:code/join', (req, res) => {
     username,
     avatar: avatar || 'default.png',
     xp: xp || 0,
+    student_number: student_number ? String(student_number).trim().toUpperCase() : '',
     answers: [],
     score: 0,
     finished: false,

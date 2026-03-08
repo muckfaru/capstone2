@@ -774,33 +774,53 @@ func _on_join_code_submitted(room_code: String) -> void:
 	print("[Join] Student attempting to join room: %s" % room_code)
 	var lobby_url := _get_lobby_url()
 
-	# First, check if the room requires a student number
-	var info_url := lobby_url + "/api/gamemode/%s/info" % room_code
-	var info_http := HTTPRequest.new()
-	add_child(info_http)
-	info_http.request_completed.connect(func(_r, code, _h, resp_body):
-		info_http.queue_free()
+	# First, check if the room requires a student number (try quiz info, then gamemode info)
+	var quiz_info_url := lobby_url + "/api/quiz/%s/info" % room_code
+	var quiz_info_http := HTTPRequest.new()
+	add_child(quiz_info_http)
+	quiz_info_http.request_completed.connect(func(_r, code, _h, resp_body):
+		quiz_info_http.queue_free()
 		var has_restriction := false
 		if code == 200:
 			var text: String = resp_body.get_string_from_utf8()
 			var data = JSON.parse_string(text)
 			if typeof(data) == TYPE_DICTIONARY:
 				has_restriction = data.get("has_student_restriction", false)
-
-		# If restriction exists and student number field not shown yet, show it and wait
-		if has_restriction and join_lobby_popup and join_lobby_popup.has_method("show_student_number_field"):
-			if join_lobby_popup.get_student_number().is_empty() and not join_lobby_popup._student_num_visible:
-				join_lobby_popup.show_student_number_field(true)
-				join_lobby_popup.show_error("This room requires your student number.")
-				return
-
-		# Proceed with join
-		_do_join(room_code, lobby_url, has_restriction)
+			# Quiz room found — check restriction then join
+			if has_restriction and join_lobby_popup and join_lobby_popup.has_method("show_student_number_field"):
+				if join_lobby_popup.get_student_number().is_empty() and not join_lobby_popup._student_num_visible:
+					join_lobby_popup.show_student_number_field(true)
+					join_lobby_popup.show_error("This room requires your student number.")
+					return
+			_do_join(room_code, lobby_url, has_restriction)
+		else:
+			# Not a quiz room — try gamemode info
+			var gm_info_url := lobby_url + "/api/gamemode/%s/info" % room_code
+			var gm_info_http := HTTPRequest.new()
+			add_child(gm_info_http)
+			gm_info_http.request_completed.connect(func(_r2, code2, _h2, resp_body2):
+				gm_info_http.queue_free()
+				var gm_restriction := false
+				if code2 == 200:
+					var text2: String = resp_body2.get_string_from_utf8()
+					var data2 = JSON.parse_string(text2)
+					if typeof(data2) == TYPE_DICTIONARY:
+						gm_restriction = data2.get("has_student_restriction", false)
+				if gm_restriction and join_lobby_popup and join_lobby_popup.has_method("show_student_number_field"):
+					if join_lobby_popup.get_student_number().is_empty() and not join_lobby_popup._student_num_visible:
+						join_lobby_popup.show_student_number_field(true)
+						join_lobby_popup.show_error("This room requires your student number.")
+						return
+				_do_join(room_code, lobby_url, gm_restriction)
+			)
+			var err2 := gm_info_http.request(gm_info_url, [], HTTPClient.METHOD_GET)
+			if err2 != OK:
+				gm_info_http.queue_free()
+				_do_join(room_code, lobby_url, false)
 	)
-	var err := info_http.request(info_url, [], HTTPClient.METHOD_GET)
+	var err := quiz_info_http.request(quiz_info_url, [], HTTPClient.METHOD_GET)
 	if err != OK:
-		info_http.queue_free()
-		# Fallback: proceed without restriction check
+		quiz_info_http.queue_free()
 		_do_join(room_code, lobby_url, false)
 
 func _do_join(room_code: String, lobby_url: String, has_restriction: bool) -> void:

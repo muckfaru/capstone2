@@ -506,17 +506,22 @@ func _show_waiting_screen() -> void:
 			_cyber_quiz_room_code, _cyber_quiz_lobby_url
 		)
 
-	# Hide Start button, chat, and back AFTER show_lobby (which re-enables them)
+	# Hide Start button and chat AFTER show_lobby (which re-enables them)
 	var bottom_bar = _lobby_panel_instance.get_node_or_null("PanelBg/BottomBar")
 	if bottom_bar:
 		var start_btn  = bottom_bar.get_node_or_null("StartQuizButton")
 		if start_btn:   start_btn.visible  = false
 		var chat_input = bottom_bar.get_node_or_null("ChatInput")
 		if chat_input:  chat_input.visible = false
+	# Keep BackButton visible so students can leave the waiting room
 	var top_bar = _lobby_panel_instance.get_node_or_null("PanelBg/TopBar")
 	if top_bar:
 		var back_btn = top_bar.get_node_or_null("BackButton")
-		if back_btn: back_btn.visible = false
+		if back_btn:
+			back_btn.visible = true
+	# Connect lobby_closed signal to handle back navigation
+	if _lobby_panel_instance.has_signal("lobby_closed"):
+		_lobby_panel_instance.lobby_closed.connect(_on_waiting_back_pressed)
 
 	var wait_label := Label.new()
 	wait_label.name = "WaitingLabel"
@@ -540,6 +545,14 @@ func _show_waiting_screen() -> void:
 	)
 
 	_current_screen = Screen.WAITING
+
+func _on_waiting_back_pressed() -> void:
+	# Stop polling
+	if _wait_poll_timer:
+		_wait_poll_timer.queue_free()
+		_wait_poll_timer = null
+	# Return to landing
+	get_tree().change_scene_to_file("res://scene/landing.tscn")
 
 func _start_wait_polling() -> void:
 	if _wait_poll_timer:
