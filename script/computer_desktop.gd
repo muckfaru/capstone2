@@ -3,6 +3,7 @@ extends Control
 var game_state = "desktop"
 var chat_shown = false
 var popups = []
+var popup_tweens = []
 var active_tweens = []
 var search_tutorial_shown = false
 var download_started = false
@@ -794,13 +795,21 @@ func create_popup_window(message: String, index: int):
 	tween.set_loops()
 	tween.tween_property(popup, "position:x", popup.position.x + 5, 0.1)
 	tween.tween_property(popup, "position:x", popup.position.x - 5, 0.1)
+	popup_tweens.append(tween)
 
 func show_infection_result():
 	stop_all_highlights()
 	
+	# Kill all looping popup shake tweens BEFORE freeing the popups
+	for tw in popup_tweens:
+		if is_instance_valid(tw):
+			tw.kill()
+	popup_tweens.clear()
+	
 	for popup in popups:
 		if is_instance_valid(popup):
 			popup.queue_free()
+	popups.clear()
 	
 	if has_node("LoadingOverlay"):
 		$LoadingOverlay.queue_free()

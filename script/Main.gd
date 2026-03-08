@@ -43,10 +43,9 @@ func _ready():
 		# Reset flag
 		GlobalState.returning_from_computer = false
 		
-		# Start panic sequence
-		await add_fade_in()
-		await get_tree().create_timer(0.5).timeout
-		start_panic_sequence()
+		# Defer the panic sequence so _ready() completes first
+		# This prevents await chains from blocking node initialization
+		call_deferred("_start_post_infection_sequence")
 	elif GlobalState.joined_ca_organization:
 		# Player joined CA - position at desk, ready to use computer
 		player.global_position = Vector3(-3, 6.31636, -2.05119)
@@ -60,6 +59,13 @@ func _ready():
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 		
 		print("Welcome back, CA recruit! Use your computer to access CyberArena.")
+
+func _start_post_infection_sequence() -> void:
+	# Ensure the scene tree is fully ready before starting async sequences
+	await get_tree().process_frame
+	await add_fade_in()
+	await get_tree().create_timer(0.5).timeout
+	start_panic_sequence()
 
 func add_fade_in():
 	# Create black overlay
@@ -77,6 +83,11 @@ func add_fade_in():
 	fade_overlay.queue_free()
 
 func start_panic_sequence():
+	# Ensure mouse is visible so player can see the 3D scene
+	# Dialogue advances with Space/Enter, but mouse must not be captured
+	# to avoid confusing the player
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	
 	# Start camera shake
 	start_camera_shake(3.0)  # Shake for 3 seconds
 	
@@ -89,6 +100,14 @@ func start_panic_sequence():
 		"That's wierd...",
 		"Or there's something wrong with the download?",
 	]
+	
+	# Safety: ensure dialogue box is ready before showing
+	if not DialogueManager.dialogue_box:
+		push_warning("[Main] dialogue_box is null, skipping panic dialogue")
+		return
+	if not DialogueManager.dialogue_box.is_inside_tree():
+		get_tree().root.add_child(DialogueManager.dialogue_box)
+		await get_tree().process_frame
 	
 	DialogueManager.show_dialogue(panic_lines, "You")
 	await DialogueManager.dialogue_box.dialogue_finished
