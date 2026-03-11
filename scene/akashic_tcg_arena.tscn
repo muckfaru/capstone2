@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://fos8p31kcd7"]
+[gd_scene load_steps=37 format=3 uid="uid://fos8p31kcd7"]
 
 [ext_resource type="Script" uid="uid://b5eu73w6tq6cj" path="res://script/akashic_tcg_arena.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2"]
@@ -118,6 +118,14 @@ draw_center = false
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_edg5o"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xyj36"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j46th"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nhjvu"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dgk3p"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n6wxh"]
 
 [node name="AkashicTCGArena" type="Control"]
 layout_mode = 3
@@ -676,12 +684,18 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -77.0
-offset_top = 14.0
-offset_right = -17.0
-offset_bottom = 50.0
+offset_left = -72.0
+offset_top = 5.0
+offset_right = -12.0
+offset_bottom = 47.0
 grow_horizontal = 0
 mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 30
+theme_override_styles/focus = SubResource("StyleBoxEmpty_j46th")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_nhjvu")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_dgk3p")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_n6wxh")
 text = "☰"
 
 [node name="MenuPanel" parent="." instance=ExtResource("4")]

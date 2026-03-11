@@ -231,7 +231,8 @@ func try_grant_rewards(game_id: String, score: int, xp_awarded: int, parent: Nod
 			1,
 			str(def["name"]),
 			icon_tex,
-			str(def["desc"])
+			str(def["desc"]),
+			str(def["rarity"])
 		)
 		reward_list.append(ri)
 
@@ -252,21 +253,8 @@ func try_grant_rewards(game_id: String, score: int, xp_awarded: int, parent: Nod
 
 	popup.show_rewards(reward_list, title)
 
-	# Save items to inventory (skip XP — that's handled by TutorialManager)
-	for def in defs:
-		var is_legendary_item: bool = def.get("legendary", false)
-		if is_legendary_item and not earned_legendary:
-			continue
-		var save_icon_path: String = REWARD_BASE_PATH + folder + "/" + str(def["file"])
-		InventoryHelper.add_item_to_inventory({
-			"name": str(def["name"]),
-			"type": str(def["type"]),
-			"rarity": str(def["rarity"]),
-			"description": str(def["desc"]),
-			"icon_path": save_icon_path,
-			"source_game": folder,
-			"amount": 1,
-		})
+	# NOTE: Inventory save is handled by RewardPopup._apply_rewards() when user clicks "Claim".
+	# Do NOT save here — it would create duplicate items in Firestore.
 
 	print("[MinigameRewards] Granted %d rewards for '%s' (folder: '%s', legendary=%s)" % [reward_list.size(), game_id, folder, earned_legendary])
 	return true

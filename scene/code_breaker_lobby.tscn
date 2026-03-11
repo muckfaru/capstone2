@@ -37,7 +37,12 @@ corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0rpjc"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rmhmg"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_umqa0"]
+bg_color = Color(0.678, 0.984, 0.396, 0.801)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qd4bo"]
 
@@ -180,6 +185,10 @@ anchor_left = 0.75
 anchor_top = 0.82
 anchor_right = 0.95
 anchor_bottom = 0.9
+offset_left = 13.75
+offset_top = -7.0
+offset_right = 21.95
+offset_bottom = 1.0
 mouse_default_cursor_shape = 2
 theme_type_variation = &"PrimaryButton"
 theme_override_fonts/font = ExtResource("2_0fvqx")
@@ -191,7 +200,7 @@ theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_5eheq")
 theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_diy5w")
 theme_override_styles/hover = SubResource("StyleBoxFlat_0rpjc")
 theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_0rpjc")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_rmhmg")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_umqa0")
 theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_qd4bo")
 theme_override_styles/normal = SubResource("StyleBoxFlat_r2bpr")
 text = "CREATE ROOM"
@@ -200,9 +209,9 @@ text = "CREATE ROOM"
 visibility_layer = 17
 layout_mode = 0
 offset_left = 29.0
-offset_top = 332.0
-offset_right = 116.0
-offset_bottom = 363.0
+offset_top = 321.0
+offset_right = 127.0
+offset_bottom = 361.0
 mouse_default_cursor_shape = 2
 theme_type_variation = &"GhostButton"
 theme_override_fonts/font = ExtResource("2_0fvqx")

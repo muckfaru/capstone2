@@ -20,7 +20,7 @@ var dialogue_text_label = null
 var dialogue_continue_indicator = null
 var dialogue_name_label = null
 var popup_sfx_player: AudioStreamPlayer
-var popup_sound: AudioStream = preload("res://asset/audio/sfx/popup_warning.mp3")
+var popup_sound: AudioStream = null  # loaded safely in _ready() to avoid parse-time crash
 
 
 
@@ -39,7 +39,7 @@ func _ready():
 
 	popup_sfx_player = AudioStreamPlayer.new()
 	popup_sfx_player.name = "PopupSFXPlayer"
-	popup_sfx_player.volume_db = -10.0  # Adjust volume as needed
+	popup_sfx_player.volume_db = -10.0
 	add_child(popup_sfx_player)
 
 	button_sfx_player = AudioStreamPlayer.new()
@@ -61,6 +61,9 @@ func _ready():
 	download_sfx_player.name = "DownloadSFXPlayer"
 	download_sfx_player.volume_db = -5.0
 	add_child(download_sfx_player)
+
+	# FIX 1: Load audio safely at runtime instead of parse-time preload
+	popup_sound = load("res://asset/audio/sfx/popup_warning.mp3")
 
 	# Set this control to fill the entire screen
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -311,8 +314,16 @@ func end_dialogue():
 	dialogue_lines.clear()
 
 func dialogue_finished():
-	while dialogue_active:
+	# FIX 2: Cap wait at 45 seconds so the game never hangs forever
+	# if dialogue input is missed (e.g. on slower / unfamiliar PCs)
+	var max_wait = 45.0
+	var elapsed = 0.0
+	while dialogue_active and elapsed < max_wait:
 		await get_tree().create_timer(0.1).timeout
+		elapsed += 0.1
+	if dialogue_active:
+		# Force-end dialogue if it somehow never finished
+		end_dialogue()
 
 func _input(event):
 	if dialogue_active:
@@ -711,14 +722,20 @@ func show_fake_loading():
 	percent_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(percent_label)
 	
+	# FIX 4: Use a single tween instead of 101 stacked await timers
+	# This prevents main thread stalling on slow hardware
 	var tween = create_tween()
 	tween.tween_property(progress_bar, "value", 100, 3.5)
 	
-	for i in range(101):
-		await get_tree().create_timer(0.035).timeout
-		percent_label.text = str(i) + "%"
-		if i == 100:
-			play_download_complete()
+	var update_tween = create_tween()
+	update_tween.tween_method(
+		func(val: float):
+			if is_instance_valid(percent_label):
+				percent_label.text = str(int(val)) + "%",
+		0.0, 100.0, 3.5
+	)
+	await get_tree().create_timer(3.5).timeout
+	play_download_complete()
 
 func spawn_malware_popups():
 	var popup_messages = [
@@ -826,7 +843,10 @@ func show_shutdown_animation():
 	
 	var loading_circle = TextureRect.new()
 	loading_circle.name = "LoadingCircle"
-	loading_circle.texture = preload("res://asset/icons/loading.png")
+	# FIX 3: Use load() at runtime instead of preload() to avoid parse-time crash
+	var loading_tex = load("res://asset/icons/loading.png")
+	if loading_tex:
+		loading_circle.texture = loading_tex
 	loading_circle.custom_minimum_size = Vector2(128, 128)
 	loading_circle.set_anchors_preset(Control.PRESET_CENTER)
 	loading_circle.position = Vector2(-64, -120)
@@ -862,6 +882,9 @@ func show_shutdown_animation():
 	GlobalState.returning_from_computer = true
 	GlobalState.computer_infected = true
 	
+	# FIX 5: Guard against scene-change crash if node was freed mid-await
+	if not is_inside_tree():
+		return
 	get_tree().change_scene_to_file("res://scene/Main.tscn")
 
 func load_chat_messages():

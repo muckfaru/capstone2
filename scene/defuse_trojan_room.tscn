@@ -1,6 +1,6 @@
 [gd_scene load_steps=25 format=3 uid="uid://c0a33ucrvsryb"]
 
-[ext_resource type="Script" path="res://script/defuse_trojan_room.gd" id="1_room"]
+[ext_resource type="Script" uid="uid://bl5j031jb1h1i" path="res://script/defuse_trojan_room.gd" id="1_room"]
 [ext_resource type="PackedScene" uid="uid://caeteha34m08t" path="res://scene/room_chat.tscn" id="2_room_chat"]
 [ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_audiowide"]
 [ext_resource type="Texture2D" uid="uid://ct0fcceas6r5c" path="res://asset/background/room backround.png" id="4_room_bg"]

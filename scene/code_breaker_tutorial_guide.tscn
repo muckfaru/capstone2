@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://clh2eo1sbw3xh"]
 
-[ext_resource type="Script" path="res://script/code_breaker_tutorial_guide.gd" id="1"]
+[ext_resource type="Script" uid="uid://b88sev5woii05" path="res://script/code_breaker_tutorial_guide.gd" id="1"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialogue"]

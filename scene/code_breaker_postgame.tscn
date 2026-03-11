@@ -1,11 +1,21 @@
-[gd_scene load_steps=30 format=3 uid="uid://dd58djqli2krd"]
+[gd_scene load_steps=60 format=3 uid="uid://dd58djqli2krd"]
 
 [ext_resource type="Script" uid="uid://cc1dsxq63hv6s" path="res://script/code_breaker_postgame.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://d14wrnxo0lw85" path="res://asset/background/Gemini_Generated_Image_2an8k72an8k72an8.png" id="2_tinjq"]
+[ext_resource type="Texture2D" uid="uid://dxsbky12irmbw" path="res://asset/background/cleaned_ff9ce763-1403-486e-bad2-76192a44120f_clean.png" id="2_ap0hc"]
+[ext_resource type="Shader" uid="uid://bhfjciu5yf2vs" path="res://shader/blur_panel.gdshader" id="3_47r3j"]
 [ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_70ufc"]
 [ext_resource type="Texture2D" uid="uid://bygqhgnnbr22t" path="res://asset/avatars/avatar1.png" id="3_s05oh"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="4_tinjq"]
 [ext_resource type="FontFile" uid="uid://gj4s1cvcj5il" path="res://asset/fonts/ChakraPetch-SemiBold.ttf" id="6_tinjq"]
+[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="7_ap0hc"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_47r3j"]
+shader = ExtResource("3_47r3j")
+shader_parameter/blur_amount = 1.5
+shader_parameter/tint_color = Color(0, 0.05, 0.18, 0.5)
+shader_parameter/corner_radius = 0.05
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_j8all"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k1g1t"]
 bg_color = Color(0, 0, 0.0823529, 0.686275)
@@ -18,9 +28,23 @@ corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 shadow_color = Color(0.376471, 0.443137, 1, 1)
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8b7w5"]
+shader = ExtResource("3_47r3j")
+shader_parameter/blur_amount = 1.5
+shader_parameter/tint_color = Color(0, 0.05, 0.18, 0.5)
+shader_parameter/corner_radius = 0.05
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6f2f8"]
 bg_color = Color(0.0941176, 0, 0, 0.521569)
 draw_center = false
+
+[sub_resource type="LabelSettings" id="LabelSettings_mrub7"]
+font_size = 32
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 5
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7kbm2"]
 draw_center = false
@@ -36,6 +60,16 @@ corner_radius_bottom_left = 5
 shadow_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
 shadow_size = 2
 
+[sub_resource type="LabelSettings" id="LabelSettings_47r3j"]
+font = ExtResource("7_ap0hc")
+font_size = 24
+font_color = Color(1, 0.839216, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8b7w5"]
 bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
 border_width_top = 2
@@ -43,6 +77,46 @@ border_width_bottom = 2
 border_color = Color(0.490196, 0.654902, 1, 0.545098)
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
+
+[sub_resource type="LabelSettings" id="LabelSettings_j8all"]
+font_size = 24
+font_color = Color(0.991164, 0.991164, 0.991164, 1)
+outline_size = 5
+outline_color = Color(0.0142752, 0.0142752, 0.0142752, 1)
+shadow_size = 10
+shadow_color = Color(0.0117647, 0.215686, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ap0hc"]
+font_size = 25
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.0117647, 0.215686, 1, 1)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_g7yna"]
+font_size = 25
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.0117647, 0.215686, 1, 1)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_7kbm2"]
+font_size = 25
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.0117647, 0.215686, 1, 1)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_onq5l"]
+font_size = 25
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.0117647, 0.215686, 1, 1)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wowjr"]
 draw_center = false
@@ -52,6 +126,13 @@ border_width_right = 22
 border_width_bottom = 2
 border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
 
+[sub_resource type="LabelSettings" id="LabelSettings_fghpt"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_did4k"]
 draw_center = false
 border_width_left = 2
@@ -59,6 +140,14 @@ border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
 border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
+
+[sub_resource type="LabelSettings" id="LabelSettings_wowjr"]
+font_size = 15
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qdqar"]
 draw_center = false
@@ -68,6 +157,13 @@ border_width_right = 22
 border_width_bottom = 2
 border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
 
+[sub_resource type="LabelSettings" id="LabelSettings_did4k"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7klhq"]
 draw_center = false
 border_width_left = 2
@@ -75,6 +171,13 @@ border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
 border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
+
+[sub_resource type="LabelSettings" id="LabelSettings_6lf8l"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_smogp"]
 draw_center = false
@@ -86,6 +189,13 @@ border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
 corner_radius_top_left = 2
 corner_radius_bottom_left = 22
 
+[sub_resource type="LabelSettings" id="LabelSettings_qdqar"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 0.934)
+shadow_offset = Vector2(2, 2)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6lf8l"]
 draw_center = false
 border_width_left = 2
@@ -94,6 +204,14 @@ border_width_right = 22
 border_width_bottom = 2
 border_color = Color(0.27451, 0.568627, 0.964706, 0.454902)
 shadow_color = Color(0.27451, 0.568627, 0.964706, 0.882353)
+
+[sub_resource type="LabelSettings" id="LabelSettings_7klhq"]
+font_size = 18
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tinjq"]
 bg_color = Color(0.275, 0.569, 0.965, 0.365)
@@ -132,6 +250,46 @@ border_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
+[sub_resource type="LabelSettings" id="LabelSettings_8b7w5"]
+font_size = 24
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_smogp"]
+font_size = 25
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_as3mc"]
+font_size = 25
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_qh86s"]
+font_size = 25
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ta8yn"]
+font_size = 25
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
+shadow_offset = Vector2(2, 2)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_as3mc"]
 draw_center = false
 border_width_left = 2
@@ -139,6 +297,13 @@ border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
 border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
+
+[sub_resource type="LabelSettings" id="LabelSettings_gp03k"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 5
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qh86s"]
 draw_center = false
@@ -148,6 +313,13 @@ border_width_right = 22
 border_width_bottom = 2
 border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
 
+[sub_resource type="LabelSettings" id="LabelSettings_fsjf6"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ta8yn"]
 draw_center = false
 border_width_left = 2
@@ -156,6 +328,13 @@ border_width_right = 22
 border_width_bottom = 2
 border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
 
+[sub_resource type="LabelSettings" id="LabelSettings_cm4s1"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gp03k"]
 draw_center = false
 border_width_left = 2
@@ -163,6 +342,13 @@ border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
 border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
+
+[sub_resource type="LabelSettings" id="LabelSettings_cxpu1"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 0.983)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fsjf6"]
 draw_center = false
@@ -173,6 +359,13 @@ border_width_bottom = 2
 border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
 corner_radius_bottom_left = 22
 
+[sub_resource type="LabelSettings" id="LabelSettings_2ka5p"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cm4s1"]
 draw_center = false
 border_width_left = 2
@@ -180,6 +373,13 @@ border_width_top = 2
 border_width_right = 22
 border_width_bottom = 2
 border_color = Color(0.819608, 0.0352941, 0.164706, 0.588235)
+
+[sub_resource type="LabelSettings" id="LabelSettings_g68tb"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ap0hc"]
 bg_color = Color(0.15, 0.03, 0.05, 0.325)
@@ -192,21 +392,33 @@ border_color = Color(0.819608, 0.0352941, 0.164706, 0.12549)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j8all"]
 bg_color = Color(0.188758, 0.388218, 0.996268, 0.980392)
-border_width_right = 3
-border_width_bottom = 3
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
 border_color = Color(0.164706, 0.792157, 0.898039, 1)
-corner_radius_top_left = 20
-corner_radius_bottom_left = 20
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 shadow_color = Color(0.164706, 0.792157, 0.898039, 1)
 shadow_size = 5
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cxpu1"]
+bg_color = Color(4.57242e-07, 0.349703, 0.444371, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_47r3j"]
 bg_color = Color(0.0509804, 0.0509804, 0.121569, 0.980392)
-draw_center = false
 border_width_bottom = 3
 border_color = Color(0.164706, 0.792157, 0.898039, 1)
-corner_radius_top_left = 20
-corner_radius_bottom_right = 20
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 shadow_color = Color(0.164706, 0.792157, 0.898039, 1)
 shadow_size = 5
 
@@ -221,21 +433,31 @@ script = ExtResource("1")
 
 [node name="NinePatchRect" type="NinePatchRect" parent="."]
 layout_mode = 0
-offset_left = -17.0
-offset_top = -13.0
-offset_right = 1153.0
-offset_bottom = 752.0
-texture = ExtResource("2_tinjq")
+offset_left = 1.0
+offset_top = 1.0
+offset_right = 1155.0
+offset_bottom = 649.0
+texture = ExtResource("2_ap0hc")
+
+[node name="blur" type="Panel" parent="NinePatchRect"]
+material = SubResource("ShaderMaterial_47r3j")
+layout_mode = 0
+offset_left = 65.0
+offset_top = 91.0
+offset_right = 1097.0
+offset_bottom = 600.0
 
 [node name="pstpnl" type="Panel" parent="NinePatchRect"]
+material = SubResource("ShaderMaterial_j8all")
 layout_mode = 0
-offset_left = 88.0
-offset_top = 128.0
-offset_right = 1120.0
-offset_bottom = 642.0
+offset_left = 65.0
+offset_top = 91.0
+offset_right = 1097.0
+offset_bottom = 605.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_k1g1t")
 
 [node name="Panel" type="Panel" parent="NinePatchRect"]
+material = SubResource("ShaderMaterial_8b7w5")
 layout_mode = 0
 offset_left = -15.0
 offset_right = 1163.0
@@ -256,6 +478,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_70ufc")
 theme_override_font_sizes/font_size = 32
 text = "CODE BREAKER"
+label_settings = SubResource("LabelSettings_mrub7")
 horizontal_alignment = 1
 
 [node name="HostCard" type="NinePatchRect" parent="."]
@@ -280,15 +503,16 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -95.0
-offset_top = -64.0
-offset_right = 65.0
-offset_bottom = -34.0
+offset_left = -97.0
+offset_top = -71.0
+offset_right = 63.0
+offset_bottom = -41.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.84, 0, 1)
 theme_override_fonts/font = ExtResource("3_70ufc")
 theme_override_font_sizes/font_size = 20
 text = " WINNER"
+label_settings = SubResource("LabelSettings_47r3j")
 horizontal_alignment = 1
 
 [node name="HostUsername" type="Label" parent="HostCard"]
@@ -306,6 +530,7 @@ theme_override_fonts/font = ExtResource("4_tinjq")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxFlat_8b7w5")
 text = "Player 1"
+label_settings = SubResource("LabelSettings_j8all")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -324,6 +549,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 1, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Status"
+label_settings = SubResource("LabelSettings_ap0hc")
 horizontal_alignment = 1
 
 [node name="HostXP" type="Label" parent="HostCard"]
@@ -336,6 +562,7 @@ theme_override_colors/font_shadow_color = Color(0.0117647, 0.215686, 1, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "XP: +500"
+label_settings = SubResource("LabelSettings_g7yna")
 horizontal_alignment = 1
 
 [node name="HostTime" type="Label" parent="HostCard"]
@@ -348,6 +575,7 @@ theme_override_colors/font_shadow_color = Color(0.0117647, 0.215686, 1, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Time: 2m 34s"
+label_settings = SubResource("LabelSettings_7kbm2")
 horizontal_alignment = 1
 
 [node name="HostPowerups" type="Label" parent="HostCard"]
@@ -360,6 +588,7 @@ theme_override_colors/font_shadow_color = Color(0.0117647, 0.215686, 1, 1)
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Power-ups: 3"
+label_settings = SubResource("LabelSettings_onq5l")
 horizontal_alignment = 1
 
 [node name="HostWPM" type="Label" parent="HostCard"]
@@ -372,6 +601,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_wowjr")
 text = "WPM: 0.0"
+label_settings = SubResource("LabelSettings_fghpt")
 horizontal_alignment = 1
 
 [node name="HostAccuracy" type="Label" parent="HostCard"]
@@ -384,6 +614,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_did4k")
 text = "Accuracy: 0.0%"
+label_settings = SubResource("LabelSettings_wowjr")
 horizontal_alignment = 1
 
 [node name="HostWrongSubmissions" type="Label" parent="HostCard"]
@@ -396,6 +627,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_qdqar")
 text = "Wrong: 0"
+label_settings = SubResource("LabelSettings_did4k")
 horizontal_alignment = 1
 
 [node name="HostAvgTime" type="Label" parent="HostCard"]
@@ -408,6 +640,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_7klhq")
 text = "Avg Time: 0.00s"
+label_settings = SubResource("LabelSettings_6lf8l")
 horizontal_alignment = 1
 
 [node name="HostFastestTime" type="Label" parent="HostCard"]
@@ -420,6 +653,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_smogp")
 text = "Fastest: 0.00s"
+label_settings = SubResource("LabelSettings_qdqar")
 horizontal_alignment = 1
 
 [node name="HostDamageStats" type="Label" parent="HostCard"]
@@ -432,6 +666,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_6lf8l")
 text = "Dmg: 0/0"
+label_settings = SubResource("LabelSettings_7klhq")
 horizontal_alignment = 1
 
 [node name="HostComebackBadge" type="Label" parent="HostCard"]
@@ -524,6 +759,7 @@ theme_override_fonts/font = ExtResource("4_tinjq")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxFlat_g7yna")
 text = "Player 2"
+label_settings = SubResource("LabelSettings_8b7w5")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -537,6 +773,7 @@ theme_override_colors/font_shadow_color = Color(0.819608, 0.0352941, 0.164706, 1
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Status"
+label_settings = SubResource("LabelSettings_smogp")
 horizontal_alignment = 1
 
 [node name="ClientXP" type="Label" parent="ClientCard"]
@@ -549,6 +786,7 @@ theme_override_colors/font_shadow_color = Color(0.819608, 0.0352941, 0.164706, 1
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "XP: +0"
+label_settings = SubResource("LabelSettings_as3mc")
 horizontal_alignment = 1
 
 [node name="ClientTime" type="Label" parent="ClientCard"]
@@ -561,6 +799,7 @@ theme_override_colors/font_shadow_color = Color(0.819608, 0.0352941, 0.164706, 1
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Time: 2m 45s"
+label_settings = SubResource("LabelSettings_qh86s")
 horizontal_alignment = 1
 
 [node name="ClientPowerups" type="Label" parent="ClientCard"]
@@ -573,6 +812,7 @@ theme_override_colors/font_shadow_color = Color(0.819608, 0.0352941, 0.164706, 1
 theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 25
 text = "Power-ups: 2"
+label_settings = SubResource("LabelSettings_ta8yn")
 horizontal_alignment = 1
 
 [node name="ClientWPM" type="Label" parent="ClientCard"]
@@ -585,6 +825,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_as3mc")
 text = "WPM: 0.0"
+label_settings = SubResource("LabelSettings_gp03k")
 horizontal_alignment = 1
 
 [node name="ClientAccuracy" type="Label" parent="ClientCard"]
@@ -597,6 +838,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_qh86s")
 text = "Accuracy: 0.0%"
+label_settings = SubResource("LabelSettings_fsjf6")
 horizontal_alignment = 1
 
 [node name="ClientWrongSubmissions" type="Label" parent="ClientCard"]
@@ -609,6 +851,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_ta8yn")
 text = "Wrong: 0"
+label_settings = SubResource("LabelSettings_cm4s1")
 horizontal_alignment = 1
 
 [node name="ClientAvgTime" type="Label" parent="ClientCard"]
@@ -621,6 +864,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_gp03k")
 text = "Avg Time: 0.00s"
+label_settings = SubResource("LabelSettings_cxpu1")
 horizontal_alignment = 1
 
 [node name="ClientFastestTime" type="Label" parent="ClientCard"]
@@ -633,6 +877,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_fsjf6")
 text = "Fastest: 0.00s"
+label_settings = SubResource("LabelSettings_2ka5p")
 horizontal_alignment = 1
 
 [node name="ClientDamageStats" type="Label" parent="ClientCard"]
@@ -645,6 +890,7 @@ theme_override_fonts/font = ExtResource("6_tinjq")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_cm4s1")
 text = "Dmg: 0/0"
+label_settings = SubResource("LabelSettings_g68tb")
 horizontal_alignment = 1
 
 [node name="ClientComebackBadge" type="Label" parent="ClientCard"]
@@ -687,13 +933,15 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -109.0
-offset_top = -102.0
-offset_right = 91.0
-offset_bottom = -68.0
+offset_left = -99.0
+offset_top = -65.0
+offset_right = 101.0
+offset_bottom = -25.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_font_sizes/font_size = 18
+theme_override_fonts/font = ExtResource("7_ap0hc")
+theme_override_font_sizes/font_size = 24
 theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_j8all")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cxpu1")
 theme_override_styles/normal = SubResource("StyleBoxFlat_47r3j")
 text = "EXIT"

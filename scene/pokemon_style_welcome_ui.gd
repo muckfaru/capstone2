@@ -60,7 +60,7 @@ var tutorial_steps := [
 	{
 		"text": "That's all for now! Good luck on your journey, Take your throne!",
 		"highlight": null,
-		"action": "complete"
+		"action": null
 	}
 ]
 
@@ -69,6 +69,8 @@ var is_typing := false
 var char_index := 0
 var typing_speed := 0.03
 var current_text := ""
+var _tutorial_completed := false
+var _typing_generation := 0
 
 # Highlight nodes
 var highlighted_node: Control = null
@@ -167,14 +169,18 @@ func _start_typing() -> void:
 	char_index = 0
 	dialogue_text.text = ""
 	continue_indicator.visible = false
-	_type_next_char()
+	_typing_generation += 1
+	_type_next_char(_typing_generation)
 
-func _type_next_char() -> void:
+func _type_next_char(generation: int) -> void:
+	# Stop if this typing coroutine was superseded by a newer one
+	if generation != _typing_generation:
+		return
 	if char_index < current_text.length():
 		dialogue_text.text += current_text[char_index]
 		char_index += 1
 		await get_tree().create_timer(typing_speed).timeout
-		_type_next_char()
+		_type_next_char(generation)
 	else:
 		is_typing = false
 		continue_indicator.visible = true
@@ -185,7 +191,8 @@ func _on_overlay_input(event: InputEvent) -> void:
 
 func _advance_dialogue() -> void:
 	if is_typing:
-		# Skip typing animation
+		# Skip typing animation — bump generation so old coroutine stops
+		_typing_generation += 1
 		dialogue_text.text = current_text
 		is_typing = false
 		char_index = current_text.length()
@@ -294,8 +301,6 @@ func _execute_action(action: String) -> void:
 			landing._show_panel(panel_paths, "profile")
 		"show_mission_file":
 			_change_portrait_to_mission_file()
-		"complete":
-			_complete_tutorial()
 
 func _change_portrait_to_mission_file() -> void:
 	"""Change the portrait to show mission file icon"""
@@ -315,6 +320,12 @@ func _change_portrait_to_mission_file() -> void:
 		push_warning("[PokemonWelcomeUI] ⚠️ Mission file image not found at path")
 
 func _complete_tutorial() -> void:
+	# Guard against double completion
+	if _tutorial_completed:
+		print("[PokemonWelcomeUI] ⚠️ _complete_tutorial() already ran — skipping")
+		return
+	_tutorial_completed = true
+	
 	print("[PokemonWelcomeUI] ========== COMPLETING TUTORIAL ==========")
 	
 	# Kill all tweens before completing

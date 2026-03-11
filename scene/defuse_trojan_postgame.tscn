@@ -6,9 +6,14 @@
 [node name="DefuseTrojanPostgame" instance=ExtResource("1")]
 script = ExtResource("2")
 
-[node name="Panel" parent="NinePatchRect" index="1"]
+[node name="Panel" parent="NinePatchRect" index="2"]
 offset_left = 117.0
 offset_right = 1295.0
 
 [node name="TitleLabel" parent="." index="1"]
 text = "DEFUSE THE TROJAN"
+
+[node name="BackToLandingButton" parent="." index="2"]
+offset_left = -106.0
+offset_top = -59.0
+offset_right = 94.0

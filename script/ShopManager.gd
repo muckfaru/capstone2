@@ -70,7 +70,7 @@ const CATALOG: Array[Dictionary] = [
 		"id": "avatar_neon_hacker",
 		"name": "Neon Hacker",
 		"category": "avatar",
-		"price": 100,
+		"price": 150,
 		"icon_path": "res://asset/avatars/avatar15.png",
 		"slot": "equipped_avatar",
 		"apply_value": "avatar15.png",
@@ -145,7 +145,7 @@ const CATALOG: Array[Dictionary] = [
 		"id": "bg_dt_binary_starfield",
 		"name": "Binary Starfield",
 		"category": "background",
-		"price": 200,
+		"price": 150,
 		"icon_path": "res://asset/background/Binary Starfield.png",
 		"slot": "equipped_bg_defuse_trojan",
 		"apply_value": "res://asset/background/Binary Starfield.png",
@@ -265,7 +265,7 @@ const CATALOG: Array[Dictionary] = [
 	# Code Breaker
 	{
 		"id": "bg_cb_default",
-		"name": "Scanlines (Default)",
+		"name": "Scanlines",
 		"category": "background",
 		"price": 0,
 		"icon_path": "res://asset/background/code_breaker_background_scanlines 1.png",
@@ -341,7 +341,7 @@ const CATALOG: Array[Dictionary] = [
 	# Defuse the Trojan — player ship skins (SpriteFrames swap)
 	{
 		"id": "skin_dt_default",
-		"name": "Standard Ship (Default)",
+		"name": "Standard Ship",
 		"category": "skin",
 		"price": 0,
 		"icon_path": "res://asset/defuse_trojan/player_idle_spritesheet.jpg",
@@ -355,7 +355,7 @@ const CATALOG: Array[Dictionary] = [
 		"id": "skin_dt_stealth",
 		"name": "Stealth Interceptor",
 		"category": "skin",
-		"price": 5,
+		"price": 150,
 		"icon_path": "res://asset/defuse_trojan/stealth_ship_spritesheetA.png",
 		"slot": "equipped_skin_defuse_trojan",
 		"apply_value": "res://asset/defuse_trojan/stealth_ship_frames.tres",
@@ -367,7 +367,7 @@ const CATALOG: Array[Dictionary] = [
 		"id": "skin_dt_neon_phoenix",
 		"name": "Neon Phoenix",
 		"category": "skin",
-		"price": 5,
+		"price": 200,
 		"icon_path": "res://asset/defuse_trojan/Neon PhoenixA.png",
 		"slot": "equipped_skin_defuse_trojan",
 		"apply_value": "res://asset/defuse_trojan/Neon Phoenix.tres",
@@ -379,7 +379,7 @@ const CATALOG: Array[Dictionary] = [
 		"id": "skin_dt_quantum_cruiser",
 		"name": "Quantum Cruiser",
 		"category": "skin",
-		"price": 5,
+		"price": 150,
 		"icon_path": "res://asset/defuse_trojan/Quantum CruiserBC.png",
 		"slot": "equipped_skin_defuse_trojan",
 		"apply_value": "res://asset/defuse_trojan/Quantum Cruiser.tres",
@@ -403,7 +403,7 @@ const CATALOG: Array[Dictionary] = [
 		"id": "skin_dt_solar_falcon",
 		"name": "Solar Falcon",
 		"category": "skin",
-		"price": 5,
+		"price": 150,
 		"icon_path": "res://asset/defuse_trojan/Solar Falconicon.png",
 		"slot": "equipped_skin_defuse_trojan",
 		"apply_value": "res://asset/defuse_trojan/Solar Falcon.tres",
@@ -415,7 +415,7 @@ const CATALOG: Array[Dictionary] = [
 	# Akashic TCG — card back skins
 	{
 		"id": "skin_atcg_default",
-		"name": "Classic Card Back (Default)",
+		"name": "Classic Card",
 		"category": "skin",
 		"price": 0,
 		"icon_path": "res://asset/cards for AkashicTGC/back cards.png",
@@ -427,9 +427,9 @@ const CATALOG: Array[Dictionary] = [
 	},
 	{
 		"id": "skin_atcg_chariot",
-		"name": "The Celestial Oracle Back",
+		"name": "Celestial Oracle",
 		"category": "skin",
-		"price": 5,
+		"price": 150,
 		"icon_path": "res://asset/reward_background_cards/Celestial Oracle.png",
 		"slot": "equipped_skin_akashic_tcg",
 		"apply_value": "res://asset/reward_background_cards/Celestial Oracle.png",
@@ -439,7 +439,7 @@ const CATALOG: Array[Dictionary] = [
 	},
 	{
 		"id": "skin_atcg_hermit",
-		"name": "The Void Serpent Back",
+		"name": "Void Serpent",
 		"category": "skin",
 		"price": 180,
 		"icon_path": "res://asset/reward_background_cards/Void SerpentA.png",
@@ -451,7 +451,7 @@ const CATALOG: Array[Dictionary] = [
 	},
 		{
 		"id": "skin_atcg_dragons_eye",
-		"name": "The Dragon's Eye Back",
+		"name": "Dragon's Eye",
 		"category": "skin",
 		"price": 180,
 		"icon_path": "res://asset/reward_background_cards/Dragons Eye.png",
@@ -463,7 +463,7 @@ const CATALOG: Array[Dictionary] = [
 	},
 		{
 		"id": "skin_atcg_frost_sigil",
-		"name": "The Frost Sigil Back",
+		"name": "Frost Sigil",
 		"category": "skin",
 		"price": 180,
 		"icon_path": "res://asset/reward_background_cards/Frost Sigil.png",
@@ -475,7 +475,7 @@ const CATALOG: Array[Dictionary] = [
 	},
 		{
 		"id": "skin_atcg_shadow_throne",
-		"name": "The Shadow Throne Back",
+		"name": "Shadow Throne",
 		"category": "skin",
 		"price": 180,
 		"icon_path": "res://asset/reward_background_cards/Shadow Throne.png",
@@ -488,10 +488,10 @@ const CATALOG: Array[Dictionary] = [
 	# Code Breaker — break effect skins (shader parameter presets)
 	{
 		"id": "skin_cb_default",
-		"name": "Cyan Shatter (Default)",
+		"name": "Cyan Shatter",
 		"category": "skin",
 		"price": 0,
-		"icon_path": "res://asset/code breaker/panels/normal.png",
+		"icon_path": "res://asset/code breaker/panels/normal panel.png",
 		"slot": "equipped_skin_code_breaker",
 		"apply_value": "default",
 		"rarity": "common",

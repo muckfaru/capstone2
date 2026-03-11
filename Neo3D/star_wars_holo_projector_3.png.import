@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://gqhpknty154m"
 path.s3tc="res://.godot/imported/star_wars_holo_projector_3.png-ed01a030c23b3a446b82ff3611b869cd.s3tc.ctex"
+path.etc2="res://.godot/imported/star_wars_holo_projector_3.png-ed01a030c23b3a446b82ff3611b869cd.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://Neo3D/star_wars_holo_projector_3.png"
-dest_files=["res://.godot/imported/star_wars_holo_projector_3.png-ed01a030c23b3a446b82ff3611b869cd.s3tc.ctex"]
+dest_files=["res://.godot/imported/star_wars_holo_projector_3.png-ed01a030c23b3a446b82ff3611b869cd.s3tc.ctex", "res://.godot/imported/star_wars_holo_projector_3.png-ed01a030c23b3a446b82ff3611b869cd.etc2.ctex"]
 
 [params]
 

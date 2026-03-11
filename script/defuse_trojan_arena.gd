@@ -148,18 +148,20 @@ func _ready() -> void:
 	_setup_multiplayer_from_meta()
 	_start_game()
 	_apply_shop_cosmetics()
-	
-	# Connect menu button
+
 	if menu_button:
 		menu_button.pressed.connect(_on_menu_button_pressed)
-	
-	# Start background music
+
 	if bg_music:
 		bg_music.play()
-		# Connect volume control to settings panel
 		if menu_panel and menu_panel.has_method("set_target_music"):
 			menu_panel.set_target_music(bg_music)
-	
+
+	# ✅ FIX: Connect the exit signal so solo + multiplayer both work
+	if menu_panel and menu_panel.has_signal("exit_match_requested"):
+		if not menu_panel.exit_match_requested.is_connected(_on_exit_match_requested):
+			menu_panel.exit_match_requested.connect(_on_exit_match_requested)
+
 	if _multiplayer:
 		_setup_players_in_arena()
 		_setup_relay_for_arena()
@@ -1611,9 +1613,10 @@ func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file("res://scene/landing.tscn")
 
 func _on_menu_button_pressed() -> void:
-	"""Toggle menu panel visibility when menu button is clicked"""
 	if menu_panel:
 		menu_panel.visible = !menu_panel.visible
+		if menu_panel.visible:
+			menu_panel.move_to_front()
 		print("[DefuseTrojan] 🎮 Menu panel toggled: %s" % ("VISIBLE" if menu_panel.visible else "HIDDEN"))
 
 
@@ -1642,3 +1645,49 @@ func _go_to_postgame(payload: Dictionary) -> void:
 	}
 	get_tree().set_meta("defuse_trojan_postgame_init", init)
 	get_tree().change_scene_to_file("res://scene/defuse_trojan_postgame.tscn")
+	
+func _on_exit_match_requested() -> void:
+	print("[DefuseTrojan] 🚪 Exit match requested — forfeiting")
+	game_over = true
+
+	if bg_music:
+		bg_music.stop()
+
+	# Clear enemies
+	for enemy in enemy_container.get_children():
+		enemy.queue_free()
+	_enemies_by_id.clear()
+	targeting_beam.visible = false
+	_clear_typing()
+
+	var duration_ms: int = maxi(0, Time.get_ticks_msec() - _match_start_ms)
+
+	if _multiplayer and _is_host_mp:
+		# Multiplayer host: broadcast forfeit then go to postgame
+		_host_finalize_and_broadcast_postgame()
+		return
+	elif _multiplayer and not _is_host_mp:
+		# Multiplayer client: notify host and leave
+		_send_relay({
+			"type": "dt_player_forfeit",
+			"player_id": _player_id
+		})
+
+	# Solo OR multiplayer client fallback: go straight to postgame
+	var local_typing := _build_local_typing_stats(duration_ms)
+	var players := [{"player_id": _player_id, "username": (Auth.current_username if Auth else "Player")}]
+	var stats_by_pid := {
+		_player_id: {
+			"score": int(_scores_by_player.get(_player_id, score)),
+			"wpm": float(local_typing.get("wpm", 0.0)),
+			"accuracy_pct": float(local_typing.get("accuracy_pct", 0.0)),
+			"longest_streak": int(local_typing.get("longest_streak", 0))
+		}
+	}
+	_go_to_postgame({
+		"mode": _mode,
+		"duration_ms": duration_ms,
+		"wave_reached": wave,
+		"players": players,
+		"stats_by_player_id": stats_by_pid
+	})

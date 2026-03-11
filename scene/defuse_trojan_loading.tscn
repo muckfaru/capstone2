@@ -1,10 +1,9 @@
-[gd_scene load_steps=20 format=3 uid="uid://defuse_trojan_loading_3cards"]
+[gd_scene load_steps=16 format=3 uid="uid://da1w7pxh1thjo"]
 
-[ext_resource type="Script" path="res://script/defuse_trojan_loading.gd" id="1"]
-[ext_resource type="Texture2D" path="res://asset/background/Akashic room background.png" id="2"]
-[ext_resource type="FontFile" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3"]
-[ext_resource type="FontFile" path="res://asset/fonts/Audiowide-Regular.ttf" id="4"]
-[ext_resource type="FontFile" path="res://asset/fonts/BraahOne-Regular.ttf" id="5"]
+[ext_resource type="Script" uid="uid://x8oenx1b03mw" path="res://script/defuse_trojan_loading.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://omsodhklnrt1" path="res://asset/background/Akashic room background.png" id="2"]
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="4"]
+[ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="5"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0, 0, 0, 0.619608)
@@ -435,7 +434,6 @@ offset_bottom = 402.0
 theme_override_styles/separator = SubResource("StyleBoxFlat_client_vsep")
 
 [node name="StatusMessage" type="Label" parent="."]
-visible = true
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

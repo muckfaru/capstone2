@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dp8jsfqyj6wt4"
 path.s3tc="res://.godot/imported/henrik_wool_rug_160x230cm_mustard_and_grey_0.png-46fd36f0d70ee94701c2e32579f27fd4.s3tc.ctex"
+path.etc2="res://.godot/imported/henrik_wool_rug_160x230cm_mustard_and_grey_0.png-46fd36f0d70ee94701c2e32579f27fd4.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://3D/henrik_wool_rug_160x230cm_mustard_and_grey_0.png"
-dest_files=["res://.godot/imported/henrik_wool_rug_160x230cm_mustard_and_grey_0.png-46fd36f0d70ee94701c2e32579f27fd4.s3tc.ctex"]
+dest_files=["res://.godot/imported/henrik_wool_rug_160x230cm_mustard_and_grey_0.png-46fd36f0d70ee94701c2e32579f27fd4.s3tc.ctex", "res://.godot/imported/henrik_wool_rug_160x230cm_mustard_and_grey_0.png-46fd36f0d70ee94701c2e32579f27fd4.etc2.ctex"]
 
 [params]
 

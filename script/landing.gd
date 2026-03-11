@@ -29,8 +29,8 @@ var card_textures := {
 		"hover": preload("res://asset/icons/Defuse the trojan 33.png")  # Your hover texture
 	},
 	"AkashicTCG": {
-		"normal": preload("res://asset/icons/akashic tgc 2.png"),
-		"hover": preload("res://asset/icons/akashic tgc 444.png")
+		"normal": preload("res://asset/icons/akashic tgc 22.png"),
+		"hover": preload("res://asset/icons/akashic tgc 4444.png")
 	},
 	"CodeBreaker": {
 		"normal": preload("res://asset/icons/code breaker 3.png"),

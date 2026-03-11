@@ -1,0 +1,425 @@
+[gd_scene load_steps=21 format=3 uid="uid://d030wjunjgmjr"]
+
+[ext_resource type="Texture2D" uid="uid://irkv8drsnh0w" path="res://asset/icons/redwarning.png" id="1_qvxv5"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_overlay"]
+bg_color = Color(0, 0, 0, 0.75)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.018, 0.048, 0.11, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.82, 1, 0.85)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0.75, 1, 0.4)
+shadow_size = 22
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+bg_color = Color(0.12, 0.025, 0.025, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_icon_ring"]
+bg_color = Color(0.45, 0.03, 0.03, 0.5)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.975477, 0.839884, 0, 0.9)
+corner_radius_top_left = 36
+corner_radius_top_right = 36
+corner_radius_bottom_right = 36
+corner_radius_bottom_left = 36
+shadow_color = Color(0.342269, 0.521832, 0.925287, 0.309)
+shadow_size = 10
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_nlu5m"]
+texture = ExtResource("1_qvxv5")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_none"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_hover"]
+bg_color = Color(0.65, 0.04, 0.04, 0.6)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_divider"]
+bg_color = Color(1, 0.22, 0.22, 0.7)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_consequence_box"]
+bg_color = Color(0.07, 0.02, 0.02, 0.6)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.22, 0.22, 0.35)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_red"]
+bg_color = Color(1, 0.28, 0.28, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dot_orange"]
+bg_color = Color(1, 0.58, 0.18, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cyan_divider"]
+bg_color = Color(0, 0.75, 1, 0.22)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bottom_bar"]
+bg_color = Color(0.03, 0.07, 0.15, 0.8)
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_forfeit_normal"]
+bg_color = Color(0.48, 0.04, 0.04, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.22, 0.22, 0.85)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_forfeit_hover"]
+bg_color = Color(0.78, 0.04, 0.04, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.38, 0.38, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(1, 0.1, 0.1, 0.55)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_forfeit_pressed"]
+bg_color = Color(0.55, 0.02, 0.02, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.22, 0.22, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_normal"]
+bg_color = Color(0.03, 0.1, 0.2, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.68, 1, 0.7)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_hover"]
+bg_color = Color(0, 0.32, 0.55, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0.8, 1, 0.45)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_pressed"]
+bg_color = Color(0, 0.22, 0.4, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="ExitConfirmPopup" type="Control"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Overlay" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_overlay")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PopupPanel" type="Panel" parent="CenterContainer"]
+custom_minimum_size = Vector2(460, 340)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Header" type="Panel" parent="CenterContainer/PopupPanel"]
+layout_mode = 0
+offset_right = 460.0
+offset_bottom = 56.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="IconRing" type="Panel" parent="CenterContainer/PopupPanel/Header"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 8.0
+offset_right = 57.0
+offset_bottom = 48.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_icon_ring")
+
+[node name="IconEmoji" type="Label" parent="CenterContainer/PopupPanel/Header/IconRing"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 2.0
+offset_right = -4.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.32, 0.32, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("StyleBoxTexture_nlu5m")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/PopupPanel/Header"]
+layout_mode = 0
+offset_left = 76.0
+offset_top = -7.0
+offset_right = 438.0
+offset_bottom = 49.0
+theme_override_colors/font_color = Color(1, 0.42, 0.42, 1)
+theme_override_font_sizes/font_size = 22
+text = "EXIT MATCH?"
+vertical_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="CenterContainer/PopupPanel/Header"]
+layout_mode = 0
+offset_left = 77.0
+offset_top = 33.0
+offset_right = 439.0
+offset_bottom = 57.0
+theme_override_colors/font_color = Color(1, 0.65, 0.35, 0.85)
+theme_override_font_sizes/font_size = 12
+text = "This action cannot be undone"
+vertical_alignment = 1
+
+[node name="CloseButton" type="Button" parent="CenterContainer/PopupPanel/Header"]
+layout_mode = 0
+offset_left = 424.0
+offset_top = 8.0
+offset_right = 454.0
+offset_bottom = 46.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_hover_color = Color(1, 0.6, 0.6, 1)
+theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/focus = SubResource("StyleBoxEmpty_none")
+theme_override_styles/hover = SubResource("StyleBoxFlat_close_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_close_hover")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_none")
+text = "✕"
+
+[node name="RedDivider" type="Panel" parent="CenterContainer/PopupPanel"]
+layout_mode = 0
+offset_top = 56.0
+offset_right = 460.0
+offset_bottom = 58.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_red_divider")
+
+[node name="QuestionLabel" type="Label" parent="CenterContainer/PopupPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 68.0
+offset_right = 436.0
+offset_bottom = 96.0
+theme_override_colors/font_color = Color(0.92, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Are you sure you want to forfeit this match?"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ConsequenceBox" type="Panel" parent="CenterContainer/PopupPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 104.0
+offset_right = 436.0
+offset_bottom = 222.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_consequence_box")
+
+[node name="ConsequenceTitle" type="Label" parent="CenterContainer/PopupPanel/ConsequenceBox"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 10.0
+offset_right = 398.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(1, 0.38, 0.38, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "CONSEQUENCES:"
+
+[node name="Row1" type="HBoxContainer" parent="CenterContainer/PopupPanel/ConsequenceBox"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 32.0
+offset_right = 398.0
+offset_bottom = 54.0
+theme_override_constants/separation = 10
+
+[node name="Dot1" type="Panel" parent="CenterContainer/PopupPanel/ConsequenceBox/Row1"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_dot_red")
+
+[node name="Text1" type="Label" parent="CenterContainer/PopupPanel/ConsequenceBox/Row1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.75, 0.75, 1)
+theme_override_font_sizes/font_size = 13
+text = "Your opponent will be declared the winner"
+autowrap_mode = 3
+
+[node name="Row2" type="HBoxContainer" parent="CenterContainer/PopupPanel/ConsequenceBox"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 60.0
+offset_right = 398.0
+offset_bottom = 82.0
+theme_override_constants/separation = 10
+
+[node name="Dot2" type="Panel" parent="CenterContainer/PopupPanel/ConsequenceBox/Row2"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_dot_orange")
+
+[node name="Text2" type="Label" parent="CenterContainer/PopupPanel/ConsequenceBox/Row2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.82, 0.62, 1)
+theme_override_font_sizes/font_size = 13
+text = "A loss will be recorded in your match history"
+autowrap_mode = 3
+
+[node name="Row3" type="HBoxContainer" parent="CenterContainer/PopupPanel/ConsequenceBox"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 88.0
+offset_right = 398.0
+offset_bottom = 110.0
+theme_override_constants/separation = 10
+
+[node name="Dot3" type="Panel" parent="CenterContainer/PopupPanel/ConsequenceBox/Row3"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_dot_orange")
+
+[node name="Text3" type="Label" parent="CenterContainer/PopupPanel/ConsequenceBox/Row3"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.82, 0.62, 1)
+theme_override_font_sizes/font_size = 13
+text = "Your current score and progress will be lost"
+autowrap_mode = 3
+
+[node name="BodyDivider" type="Panel" parent="CenterContainer/PopupPanel"]
+layout_mode = 0
+offset_top = 228.0
+offset_right = 460.0
+offset_bottom = 230.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_cyan_divider")
+
+[node name="BottomBar" type="Panel" parent="CenterContainer/PopupPanel"]
+layout_mode = 0
+offset_top = 230.0
+offset_right = 460.0
+offset_bottom = 340.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_bottom_bar")
+
+[node name="HintLabel" type="Label" parent="CenterContainer/PopupPanel/BottomBar"]
+layout_mode = 0
+offset_top = 8.0
+offset_right = 460.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0.5, 0.65, 0.75, 0.55)
+theme_override_font_sizes/font_size = 11
+text = "Press ESC or click outside to cancel"
+horizontal_alignment = 1
+
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/PopupPanel/BottomBar"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 32.0
+offset_right = 436.0
+offset_bottom = 82.0
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="ForfeitButton" type="Button" parent="CenterContainer/PopupPanel/BottomBar/ButtonRow"]
+custom_minimum_size = Vector2(185, 44)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.88, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/focus = SubResource("StyleBoxFlat_forfeit_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_forfeit_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_forfeit_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_forfeit_normal")
+text = "⚔  Forfeit & Exit"
+
+[node name="CancelButton" type="Button" parent="CenterContainer/PopupPanel/BottomBar/ButtonRow"]
+custom_minimum_size = Vector2(185, 44)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.84, 0.97, 1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/focus = SubResource("StyleBoxFlat_cancel_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cancel_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_normal")
+text = "🛡  Stay in Match"

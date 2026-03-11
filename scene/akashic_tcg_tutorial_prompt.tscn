@@ -1,4 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://c5p3vk76d7rov"]
+[gd_scene load_steps=13 format=3 uid="uid://c5p3vk76d7rov"]
+
+[ext_resource type="FontFile" uid="uid://c1y55nmycr726" path="res://asset/fonts/Orbitron-VariableFont_wght.ttf" id="1_idrjy"]
+[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="2_t8uom"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog"]
 bg_color = Color(0.08, 0.12, 0.2, 0.95)
@@ -6,11 +9,118 @@ border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0, 0.9, 1, 1)
+border_color = Color(0.823529, 0, 0.254902, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
+
+[sub_resource type="LabelSettings" id="LabelSettings_bjkqf"]
+font = ExtResource("1_idrjy")
+font_size = 24
+font_color = Color(0.823877, 0, 0.256464, 1)
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wel8x"]
+bg_color = Color(2.02149e-06, 0.398744, 0.504883, 0.816)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.823877, 0, 0.256464, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_joukg"]
+bg_color = Color(0.824, 0, 0.256, 0.5)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.8, 1, 1)
+border_blend = true
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r8tw8"]
+bg_color = Color(0.544868, 0, 0.157582, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.823877, 0, 0.256464, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ai4nv"]
+bg_color = Color(0.544868, 0, 0.157582, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.8, 1, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hkbe8"]
+bg_color = Color(0.823877, 0, 0.256464, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.8, 1, 0.816)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t8uom"]
+bg_color = Color(0, 0.8, 1, 0.5)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8512, 1.45355e-05, 0.266149, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bjkqf"]
+bg_color = Color(0, 0.8, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.8, 1, 0.816)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_idrjy"]
+bg_color = Color(0, 0.8, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.823877, 0, 0.256464, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [node name="TutorialPromptPopup" type="Window"]
 transparent_bg = true
@@ -47,6 +157,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 24
 text = "🎮 Welcome to AkashicTCG!"
+label_settings = SubResource("LabelSettings_bjkqf")
 horizontal_alignment = 1
 
 [node name="Message" type="Label" parent="Panel/VBoxContainer"]
@@ -69,12 +180,23 @@ alignment = 1
 custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_override_font_sizes/font_size = 18
-text = "✅ Yes, teach me!"
+theme_override_fonts/font = ExtResource("2_t8uom")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxFlat_wel8x")
+theme_override_styles/hover = SubResource("StyleBoxFlat_joukg")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_r8tw8")
+theme_override_styles/normal = SubResource("StyleBoxFlat_ai4nv")
+text = "Yes, teach me!"
 
 [node name="NoButton" type="Button" parent="Panel/VBoxContainer/ButtonContainer"]
 custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_t8uom")
 theme_override_font_sizes/font_size = 18
-text = "❌ No, I'm ready!"
+theme_override_styles/focus = SubResource("StyleBoxFlat_hkbe8")
+theme_override_styles/hover = SubResource("StyleBoxFlat_t8uom")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_bjkqf")
+theme_override_styles/normal = SubResource("StyleBoxFlat_idrjy")
+text = " No, I'm ready!"

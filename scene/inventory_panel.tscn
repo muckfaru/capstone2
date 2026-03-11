@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3 uid="uid://7tjwuknii5ij"]
+[gd_scene load_steps=51 format=3 uid="uid://7tjwuknii5ij"]
 
 [ext_resource type="Script" uid="uid://7gmira7sv3on" path="res://script/inventory_panel.gd" id="1_inventory"]
 [ext_resource type="Texture2D" uid="uid://bsdt466q6oftp" path="res://asset/newUIlandingupdate/Group 115.png" id="1_puhy8"]
@@ -186,11 +186,27 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
+[sub_resource type="LabelSettings" id="LabelSettings_n1str"]
+font_size = 11
+font_color = Color(1, 1, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h7hmr"]
 corner_radius_top_left = 80
 corner_radius_top_right = 80
 corner_radius_bottom_right = 80
 corner_radius_bottom_left = 80
+
+[sub_resource type="LabelSettings" id="LabelSettings_mpwu3"]
+font = ExtResource("7_icccq")
+font_size = 13
+
+[sub_resource type="LabelSettings" id="LabelSettings_h2m10"]
+font_size = 11
+font_color = Color(1, 1, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n723b"]
 border_blend = true
@@ -198,6 +214,12 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+
+[sub_resource type="LabelSettings" id="LabelSettings_fltij"]
+font_size = 11
+font_color = Color(1, 1, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_icccq"]
 border_blend = true
@@ -222,6 +244,20 @@ corner_radius_top_left = 80
 corner_radius_top_right = 80
 corner_radius_bottom_right = 80
 corner_radius_bottom_left = 80
+
+[sub_resource type="LabelSettings" id="LabelSettings_ermur"]
+font_size = 11
+font_color = Color(1, 1, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_mopil"]
+font = ExtResource("7_icccq")
+font_size = 13
+
+[sub_resource type="LabelSettings" id="LabelSettings_8ng5l"]
+font = ExtResource("7_icccq")
+font_size = 13
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_detail_panel"]
 bg_color = Color(0.184314, 0.403922, 0.439216, 0.670588)
@@ -519,15 +555,16 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_item_card")
 visible = false
 custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
-offset_left = 6.0
-offset_top = 6.0
-offset_right = 73.0
-offset_bottom = 24.0
+offset_left = 42.0
+offset_top = 185.0
+offset_right = 109.0
+offset_bottom = 203.0
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 11
 text = "EQUIPPED"
+label_settings = SubResource("LabelSettings_n1str")
 horizontal_alignment = 1
 
 [node name="CardVBox" type="VBoxContainer" parent="CardTemplateBadge"]
@@ -575,6 +612,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_jw66u")
 theme_override_font_sizes/font_size = 13
 text = "Badge Name"
+label_settings = SubResource("LabelSettings_mpwu3")
 horizontal_alignment = 1
 clip_text = true
 
@@ -597,6 +635,7 @@ mouse_default_cursor_shape = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_item_card")
 
 [node name="EquippedBadge" type="Label" parent="CardTemplateCard"]
+visible = false
 custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
 offset_left = 41.0
@@ -608,6 +647,7 @@ theme_override_colors/font_color = Color(1, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 11
 text = "EQUIPPED"
+label_settings = SubResource("LabelSettings_h2m10")
 horizontal_alignment = 1
 vertical_alignment = 3
 
@@ -682,15 +722,16 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_item_card")
 visible = false
 custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
-offset_left = 46.0
-offset_top = 196.0
-offset_right = 113.0
-offset_bottom = 214.0
+offset_left = 43.0
+offset_top = 191.0
+offset_right = 110.0
+offset_bottom = 209.0
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 11
 text = "EQUIPPED"
+label_settings = SubResource("LabelSettings_fltij")
 horizontal_alignment = 1
 
 [node name="CardVBox" type="VBoxContainer" parent="CardTemplateAvatar"]
@@ -773,15 +814,16 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_item_card")
 visible = false
 custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
-offset_left = 6.0
-offset_top = 6.0
-offset_right = 73.0
-offset_bottom = 24.0
+offset_left = 43.0
+offset_top = 187.0
+offset_right = 110.0
+offset_bottom = 205.0
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 0, 1)
 theme_override_fonts/font = ExtResource("2_sccuv")
 theme_override_font_sizes/font_size = 11
 text = "EQUIPPED"
+label_settings = SubResource("LabelSettings_ermur")
 horizontal_alignment = 1
 
 [node name="CardVBox" type="VBoxContainer" parent="CardTemplatePowerup"]
@@ -853,6 +895,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_jw66u")
 theme_override_font_sizes/font_size = 13
 text = "Powerup Name"
+label_settings = SubResource("LabelSettings_mopil")
 horizontal_alignment = 1
 clip_text = true
 
@@ -946,6 +989,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_jw66u")
 theme_override_font_sizes/font_size = 13
 text = "Item Name"
+label_settings = SubResource("LabelSettings_8ng5l")
 horizontal_alignment = 1
 clip_text = true
 

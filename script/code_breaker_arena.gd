@@ -268,6 +268,11 @@ func _ready() -> void:
 	if menu_button:
 		menu_button.pressed.connect(_on_menu_button_pressed)
 	
+	# Connect exit match signal from menu panel
+	if menu_panel and menu_panel.has_signal("exit_match_requested"):
+		if not menu_panel.exit_match_requested.is_connected(_on_exit_match_forfeit):
+			menu_panel.exit_match_requested.connect(_on_exit_match_forfeit)
+	
 	# Initial indicator - show connected
 	if _ws_indicator:
 		_ws_indicator.color = Color.GREEN
@@ -501,13 +506,24 @@ func _on_relay_message(data: Dictionary) -> void:
 				_end_game_defeat()
 		
 		"player_disconnected":
-			# Opponent disconnected
-			print("[Arena] ⚠️ Opponent disconnected!")
-			_status_label.text = "Opponent disconnected!"
+			# Opponent disconnected — auto-win for remaining player
+			print("[Arena] ⚠️ Opponent disconnected! Auto-win!")
+			_status_label.text = "⚠️ Opponent disconnected! You win!"
 			if _ws_indicator:
 				_ws_indicator.color = Color.RED
+			_opponent_health = 0
+			_opponent_alive = false
 			await get_tree().create_timer(3.0).timeout
-			_leave_arena()
+			_end_game_victory()
+		
+		"player_forfeit":
+			# Opponent forfeited — auto-win for remaining player
+			print("[Arena] ⚔️ Opponent forfeited! Auto-win!")
+			_status_label.text = "⚔️ Opponent forfeited! You win!"
+			_opponent_health = 0
+			_opponent_alive = false
+			await get_tree().create_timer(3.0).timeout
+			_end_game_victory()
 
 func _go_to_reconnect(reason: String) -> void:
 	# Preserve relay across scene change
@@ -2509,3 +2525,29 @@ func _on_panel_break_finished():
 			panel.material.set_shader_parameter("break_progress", 0.0)
 	
 	print("[Arena] ✅ Panel break animation finished - ready for next snippet")
+
+# =============================================================================
+# EXIT MATCH / FORFEIT
+# =============================================================================
+
+func _on_exit_match_forfeit() -> void:
+	"""Player chose to forfeit via the menu's Exit Match button"""
+	print("[Arena] ⚔️ Player forfeiting match!")
+	
+	# Notify opponent via relay
+	if _relay_client:
+		_relay_client.send_message({
+			"type": "player_forfeit",
+			"player_id": _player_id
+		})
+	
+	# End game as a loss for the forfeiting player
+	_game_active = false
+	_snippet_timer_active = false
+	player_health = 0
+	_status_label.text = "⚔️ You forfeited the match!"
+	_timer_label.text = "FORFEIT"
+	
+	await get_tree().create_timer(2.0).timeout
+	_leave_arena()
+

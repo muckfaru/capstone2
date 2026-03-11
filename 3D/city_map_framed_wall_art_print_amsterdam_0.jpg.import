@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://bsia1ufv2wbnx"
 path.s3tc="res://.godot/imported/city_map_framed_wall_art_print_amsterdam_0.jpg-d0c03169de0438ce14fd642a705d4841.s3tc.ctex"
+path.etc2="res://.godot/imported/city_map_framed_wall_art_print_amsterdam_0.jpg-d0c03169de0438ce14fd642a705d4841.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://3D/city_map_framed_wall_art_print_amsterdam_0.jpg"
-dest_files=["res://.godot/imported/city_map_framed_wall_art_print_amsterdam_0.jpg-d0c03169de0438ce14fd642a705d4841.s3tc.ctex"]
+dest_files=["res://.godot/imported/city_map_framed_wall_art_print_amsterdam_0.jpg-d0c03169de0438ce14fd642a705d4841.s3tc.ctex", "res://.godot/imported/city_map_framed_wall_art_print_amsterdam_0.jpg-d0c03169de0438ce14fd642a705d4841.etc2.ctex"]
 
 [params]
 

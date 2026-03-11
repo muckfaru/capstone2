@@ -759,6 +759,8 @@ func _ready() -> void:
 	_ensure_drop_timer()
 	if _menu_panel != null:
 		_menu_panel.visible = false
+		if _menu_panel.has_signal("exit_match_requested") and not _menu_panel.exit_match_requested.is_connected(_on_exit_match_forfeit):
+			_menu_panel.exit_match_requested.connect(_on_exit_match_forfeit)
 
 	# Click-to-cancel on your dropped slots.
 	for i in range(_you_dropped_cards.size()):
@@ -1659,6 +1661,34 @@ func _on_relay_message(data: Dictionary) -> void:
 			_transition_to_postgame(str(data.get("winner_id", "")), str(data.get("reason", "ended")), int(data.get("timestamp", 0)))
 		"tgc_force_loading_sync":
 			_transition_to_loading("forced_resync")
+		"player_forfeit":
+			# Opponent forfeited — auto-win
+			var opp_id := _other_player(_player_id)
+			print("[TGC Arena] ⚔️ Opponent forfeited! Auto-win!")
+			_status.text = "⚔️ Opponent forfeited! You win!"
+			if _is_host and str(_state.get("winner_id", "")) == "":
+				_state["winner_id"] = _player_id
+				_bump_version(_state)
+				_broadcast_state_sync({"type": "forfeit"})
+				call_deferred("_finish_match_host", _player_id, "opponent_forfeit")
+			elif not _is_host:
+				_state["winner_id"] = _player_id
+				_render()
+				await get_tree().create_timer(3.0).timeout
+				_transition_to_postgame(_player_id, "opponent_forfeit")
+		"player_disconnected":
+			# Opponent disconnected — auto-win
+			print("[TGC Arena] ⚠️ Opponent disconnected! Auto-win!")
+			_status.text = "⚠️ Opponent disconnected! You win!"
+			if _is_host and str(_state.get("winner_id", "")) == "":
+				_state["winner_id"] = _player_id
+				_bump_version(_state)
+				call_deferred("_finish_match_host", _player_id, "opponent_disconnected")
+			elif not _is_host:
+				_state["winner_id"] = _player_id
+				_render()
+				await get_tree().create_timer(3.0).timeout
+				_transition_to_postgame(_player_id, "opponent_disconnected")
 		_:
 			pass
 
@@ -2225,6 +2255,15 @@ func _broadcast_match_end(winner_id: String, reason: String, ended_at_unix: int)
 	})
 
 func _on_relay_disconnected() -> void:
+	# If game is still active with no winner, opponent left = we win
+	if not _state.is_empty() and str(_state.get("winner_id", "")) == "":
+		print("[TGC Arena] ⚠️ Relay disconnected during active game — claiming victory")
+		_status.text = "⚠️ Opponent disconnected! You win!"
+		_state["winner_id"] = _player_id
+		_render()
+		await get_tree().create_timer(3.0).timeout
+		_transition_to_postgame(_player_id, "opponent_disconnected")
+		return
 	_go_to_reconnect("Relay disconnected", "arena")
 
 func _go_to_reconnect(reason: String, phase: String) -> void:
@@ -2323,3 +2362,37 @@ func _post_room_status(status: String) -> void:
 	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify({"status": status}))
 	while not done["ok"]:
 		await get_tree().create_timer(0.1).timeout
+func _on_exit_match_forfeit() -> void:
+	print("[TGC Arena] ⚔️ Player forfeiting match via menu!")
+
+	# Hide the menu so it doesn't linger on screen
+	if _menu_panel != null:
+		_menu_panel.visible = false
+
+	# If game is already over (e.g. postgame transition in progress), ignore.
+	if str(_state.get("winner_id", "")) != "":
+		return
+
+	# Notify opponent via relay so they see the forfeit message
+	if _relay_client != null:
+		_relay_client.send_message({
+			"type": "player_forfeit",
+			"player_id": _player_id
+		})
+
+	# Host: mark the other player as winner and broadcast; then go to postgame.
+	# Client: update local state and go straight to postgame.
+	var winner_id := _other_player(_player_id)
+
+	if _is_host:
+		if not _state.is_empty():
+			_state["winner_id"] = winner_id
+			_bump_version(_state)
+			_broadcast_state_sync({"type": "forfeit"})
+		call_deferred("_finish_match_host", winner_id, "forfeit")
+	else:
+		if not _state.is_empty():
+			_state["winner_id"] = winner_id
+		# Small delay so the relay message reaches the host before we leave.
+		await get_tree().create_timer(0.5).timeout
+		_transition_to_postgame(winner_id, "forfeit")

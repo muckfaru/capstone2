@@ -41,7 +41,12 @@ corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_crh5r"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xh7tw"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mo5l5"]
+bg_color = Color(0.82, 0.035, 0.165, 0.728)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7o6ll"]
 
@@ -194,7 +199,7 @@ theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_t8nl1")
 theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_0koc6")
 theme_override_styles/hover = SubResource("StyleBoxFlat_crh5r")
 theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_crh5r")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_xh7tw")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_mo5l5")
 theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_7o6ll")
 theme_override_styles/normal = SubResource("StyleBoxFlat_35hl6")
 text = "CREATE ROOM"

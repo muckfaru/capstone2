@@ -43,7 +43,12 @@ corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bqww8"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jg4v4"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_do1i8"]
+bg_color = Color(0.926, 0.358, 1, 0.788)
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_06dj2"]
 
@@ -188,7 +193,7 @@ theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_vl877")
 theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_wsguo")
 theme_override_styles/hover = SubResource("StyleBoxFlat_3k2xw")
 theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_bqww8")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_jg4v4")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_do1i8")
 theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_06dj2")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "CREATE"

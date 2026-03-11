@@ -461,6 +461,14 @@ func _set_chest_texture(path: String) -> void:
 			chest_icon.texture = tex
 
 func _get_reward_rarity(reward: RewardItem) -> Rarity:
+	# Use explicit rarity string from MinigameRewards definitions when available
+	if reward.rarity != "":
+		match reward.rarity.to_lower():
+			"legendary": return Rarity.LEGENDARY
+			"epic":      return Rarity.EPIC
+			"rare":      return Rarity.RARE
+			"common":    return Rarity.COMMON
+	# Fallback heuristic for rewards without explicit rarity
 	if reward.type == "badge":
 		return Rarity.LEGENDARY
 	elif reward.amount >= 100:

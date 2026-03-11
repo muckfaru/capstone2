@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://duwhmbek552p0"]
+[gd_scene load_steps=10 format=3 uid="uid://duwhmbek552p0"]
 
 [ext_resource type="Script" uid="uid://b5sd78sk5nlci" path="res://script/create_room_popup.gd" id="1_2oyh8"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="2_font"]
@@ -36,6 +36,8 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wjyrl"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_create"]
 bg_color = Color(0.38, 0.08, 0.11, 0.9)
 border_width_left = 2
@@ -49,6 +51,8 @@ corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 shadow_color = Color(1, 0.31, 0.25, 0.6)
 shadow_size = 10
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rwgqa"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel"]
 bg_color = Color(0.2, 0.2, 0.25, 0.8)
@@ -196,6 +200,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxEmpty_wjyrl")
 theme_override_styles/hover = SubResource("StyleBoxFlat_create")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_create")
 theme_override_styles/normal = SubResource("StyleBoxFlat_create")
@@ -208,6 +213,7 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0.8, 0.85, 1, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxEmpty_rwgqa")
 theme_override_styles/hover = SubResource("StyleBoxFlat_cancel")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cancel")
 theme_override_styles/normal = SubResource("StyleBoxFlat_cancel")
