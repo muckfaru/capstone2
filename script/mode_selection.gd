@@ -354,11 +354,10 @@ const _MINIGAME_IDS := [
 	"advanced_incident_response"
 ]
 
-## Returns true if the given tutorial/minigame has been completed (or attempted with XP for minigames).
+## Returns true if the given tutorial/minigame has been completed.
 func _is_tutorial_completed(tid: String) -> bool:
 	if tid in _MINIGAME_IDS:
-		# For prerequisite purposes, an attempt with XP earned counts as "completed"
-		return TutorialManager.completed_minigames.has(tid) or TutorialManager.is_minigame_attempted(tid)
+		return TutorialManager.completed_minigames.has(tid)
 	else:
 		return TutorialManager.completed_tutorials.has(tid)
 
