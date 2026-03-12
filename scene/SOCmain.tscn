@@ -1,4 +1,4 @@
-[gd_scene load_steps=95 format=3 uid="uid://bkp6qa2w5ipqe"]
+[gd_scene load_steps=94 format=3 uid="uid://bkp6qa2w5ipqe"]
 
 [ext_resource type="Script" uid="uid://b1friigt1ll1h" path="res://script/SOCMain.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dhox4nbh8i44q" path="res://asset/minigamesicon/new2dmechdesign.png" id="2_1tp16"]
@@ -174,9 +174,6 @@ modulate_color = Color(1, 1, 1, 0.862)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_6wxqr"]
 texture = ExtResource("15_fqlbc")
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5uaqy"]
-bg_color = Color(0, 0, 0, 0.32549)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xurtx"]
 
@@ -594,14 +591,6 @@ offset_top = 3.0
 offset_right = 1150.0
 offset_bottom = 652.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_6wxqr")
-
-[node name="darkoverly" type="Panel" parent="UI/TutorialPanel"]
-layout_mode = 0
-offset_left = -12.0
-offset_top = -19.0
-offset_right = 1164.0
-offset_bottom = 654.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_5uaqy")
 
 [node name="Panel" type="Panel" parent="UI/TutorialPanel"]
 layout_mode = 0

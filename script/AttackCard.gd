@@ -10,6 +10,7 @@ var is_dragging: bool = false
 var drag_offset: Vector2 = Vector2.ZERO
 var original_position: Vector2 = Vector2.ZERO
 var game_manager = null  # Reference to main game manager for sounds
+var _has_expired: bool = false  # Guard: emit card_expired only once
 
 @onready var timer_bar = $VBox/Header/TimerBar
 @onready var icon = $VBox/Icon
@@ -39,8 +40,11 @@ func _process(delta):
 		# Update the fill color based on remaining time
 		update_timer_color(progress)
 		
-		if time_remaining <= 0:
+		if time_remaining <= 0 and not _has_expired:
+			_has_expired = true
+			set_process(false)
 			card_expired.emit(self)
+			return
 	
 	if is_dragging:
 		global_position = get_global_mouse_position() - drag_offset

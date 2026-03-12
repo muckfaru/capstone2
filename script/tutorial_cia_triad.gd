@@ -22,6 +22,7 @@ extends Control
 @onready var results_text: RichTextLabel = $CanvasLayer/ResultsScreen/MarginContainer/VBoxContainer/ResultsText
 @onready var back_btn: Button = $CanvasLayer/ResultsScreen/MarginContainer/VBoxContainer/BackButton
 @onready var quit_btn: Button = $CanvasLayer/TopPanel/Button
+@onready var timer_label_node: Label = $CanvasLayer/TopPanel/TimerLabel
 
 # CIA Zone tooltips
 @onready var c_tooltip: Label = $CanvasLayer/CIAZones/ConfidentialityZone/TooltipLabel
@@ -41,115 +42,145 @@ const BGM_FADE_BEFORE_LOOP := 3.0 # Start fading X seconds before loop ends
 
 # ALL AVAILABLE SCENARIOS (will be shuffled each game)
 const ALL_SCENARIOS = [
-	# CONFIDENTIALITY scenarios
+	# CONFIDENTIALITY scenarios (9)
 	{
 		"text": "Someone broke into the hospital's computer system using a weak password. Now personal medical records of 10,000 patients can be seen by anyone on the internet.",
 		"correct": "C",
-		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nConfidentiality means keeping sensitive data PRIVATE. Patient records were exposed to unauthorized people—this breaks confidentiality."
+		"explanation": "This is a [color=cyan]CONFIDENTIALITY[/color] breach. Patient records were exposed to unauthorized people."
 	},
 	{
 		"text": "A laptop was stolen from a coffee shop. Inside the laptop were company financial reports and customer credit card information that weren't password-protected.",
 		"correct": "C",
-		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nThe sensitive financial data can now be SEEN by unauthorized people (the thief). Confidentiality breach!"
+		"explanation": "This is a [color=cyan]CONFIDENTIALITY[/color] breach. Sensitive financial data can now be seen by unauthorized people."
 	},
 	{
 		"text": "An employee found a USB flash drive in the parking lot labeled 'Employee Salaries 2025' and plugged it into their work computer. A hidden virus copied company files and sent them to criminals on the internet.",
 		"correct": "C",
-		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nThe virus STOLE and SENT files to attackers. Private data was exposed to unauthorized parties."
+		"explanation": "This is a [color=cyan]CONFIDENTIALITY[/color] breach. The virus stole and sent files to attackers."
 	},
 	{
 		"text": "A hacker intercepted unencrypted emails containing social security numbers and bank account details of 500 customers.",
 		"correct": "C",
-		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nSensitive customer data was EXPOSED to unauthorized parties through interception."
+		"explanation": "This is a [color=cyan]CONFIDENTIALITY[/color] breach. Sensitive customer data was exposed through interception."
 	},
 	{
 		"text": "An employee accidentally sent an email with the entire customer database to a wrong recipient outside the company.",
 		"correct": "C",
-		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nConfidential customer information was DISCLOSED to unauthorized external parties."
+		"explanation": "This is a [color=cyan]CONFIDENTIALITY[/color] breach. Customer information was disclosed to unauthorized parties."
 	},
 	{
 		"text": "Security cameras caught someone taking photos of confidential documents displayed on unattended computer screens in the office.",
 		"correct": "C",
-		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nConfidential information was ACCESSED and potentially copied by unauthorized individuals."
+		"explanation": "This is a [color=cyan]CONFIDENTIALITY[/color] breach. Confidential information was accessed by unauthorized individuals."
 	},
 	{
 		"text": "A company's internal chat logs discussing unreleased product designs were leaked to a competitor through a former employee.",
 		"correct": "C",
-		"explanation": "✅ Correct! This is a [color=cyan]CONFIDENTIALITY[/color] breach.\n\nProprietary information was DISCLOSED to competitors, violating confidentiality."
+		"explanation": "This is a [color=cyan]CONFIDENTIALITY[/color] breach. Proprietary information was disclosed to competitors."
+	},
+	{
+		"text": "A cloud storage bucket was left publicly accessible, exposing thousands of passport scans and ID documents of job applicants.",
+		"correct": "C",
+		"explanation": "This is a [color=cyan]CONFIDENTIALITY[/color] breach. Personal identity documents were exposed due to misconfigured access."
+	},
+	{
+		"text": "An attacker used a keylogger installed on a shared computer at a public library to capture login credentials of dozens of users.",
+		"correct": "C",
+		"explanation": "This is a [color=cyan]CONFIDENTIALITY[/color] breach. Login credentials were secretly captured and stolen."
 	},
 	
-	# INTEGRITY scenarios
+	# INTEGRITY scenarios (9)
 	{
 		"text": "Someone hacked the school's computer and changed 20 students' report card grades from C to A without permission.",
 		"correct": "I",
-		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nIntegrity means keeping data ACCURATE and UNCHANGED. The grades were modified incorrectly—this breaks integrity."
+		"explanation": "This is an [color=yellow]INTEGRITY[/color] breach. The grades were modified without authorization."
 	},
 	{
 		"text": "Attackers broke into the company website and replaced the homepage with spray paint-style graffiti and posted fake news about the CEO.",
 		"correct": "I",
-		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nIntegrity means data stays CORRECT and TRUSTWORTHY. The website content was tampered with—breaking integrity."
+		"explanation": "This is an [color=yellow]INTEGRITY[/color] breach. Website content was tampered with."
 	},
 	{
 		"text": "A malicious insider modified the prices in the online store database, changing $1,000 items to $1 before making purchases.",
 		"correct": "I",
-		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nThe product pricing data was ALTERED without authorization, compromising data integrity."
+		"explanation": "This is an [color=yellow]INTEGRITY[/color] breach. Product pricing data was altered without authorization."
 	},
 	{
 		"text": "Hackers modified bank account balances in the system, transferring money to fake accounts they created.",
 		"correct": "I",
-		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nFinancial records were TAMPERED with, making the data inaccurate and untrustworthy."
+		"explanation": "This is an [color=yellow]INTEGRITY[/color] breach. Financial records were tampered with."
 	},
 	{
 		"text": "An attacker altered the timestamp logs in the security system to hide evidence of when they broke into the building.",
 		"correct": "I",
-		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nAudit logs were MODIFIED to conceal unauthorized activity, destroying data integrity."
+		"explanation": "This is an [color=yellow]INTEGRITY[/color] breach. Audit logs were modified to conceal activity."
 	},
 	{
 		"text": "Someone intercepted a payment transaction and changed the recipient's bank account number to redirect the funds.",
 		"correct": "I",
-		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nTransaction data was ALTERED during transmission, compromising its accuracy."
+		"explanation": "This is an [color=yellow]INTEGRITY[/color] breach. Transaction data was altered during transmission."
 	},
 	{
 		"text": "A disgruntled employee modified customer shipping addresses in the database, causing orders to be sent to wrong locations.",
 		"correct": "I",
-		"explanation": "✅ Correct! This is an [color=yellow]INTEGRITY[/color] breach.\n\nCustomer data was CORRUPTED through unauthorized modifications."
+		"explanation": "This is an [color=yellow]INTEGRITY[/color] breach. Customer data was corrupted through unauthorized modifications."
+	},
+	{
+		"text": "A malware infected the pharmacy's system and silently changed drug dosage instructions in patient prescriptions.",
+		"correct": "I",
+		"explanation": "This is an [color=yellow]INTEGRITY[/color] breach. Critical medical data was silently altered."
+	},
+	{
+		"text": "An attacker modified the source code of a software update, injecting a backdoor that was then distributed to all users.",
+		"correct": "I",
+		"explanation": "This is an [color=yellow]INTEGRITY[/color] breach. Software was tampered with before distribution."
 	},
 	
-	# AVAILABILITY scenarios
+	# AVAILABILITY scenarios (9)
 	{
 		"text": "A virus locked all the company's files and demands payment to unlock them. Workers can't open emails, check payroll, or access any documents. Everything has been blocked for 2 days.",
 		"correct": "A",
-		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nAvailability means keeping systems ACCESSIBLE when needed. The virus didn't steal or change data—it blocked access to it."
+		"explanation": "This is an [color=green]AVAILABILITY[/color] breach. The virus blocked access to data and systems."
 	},
 	{
 		"text": "Attackers flooded the online shopping website with millions of fake visitors at once. Real customers can't load the website or buy anything because it's too overloaded.",
 		"correct": "A",
-		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nThe website is BLOCKED from legitimate users. The data wasn't stolen or changed—just made inaccessible."
+		"explanation": "This is an [color=green]AVAILABILITY[/color] breach. The website was blocked from legitimate users."
 	},
 	{
 		"text": "The company's backup storage system broke during a building fire. When they tried to recover their data afterwards, they realized nothing was saved for the past 6 months—all that work is now gone forever.",
 		"correct": "A",
-		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nThe data couldn't be ACCESSED when needed. Even though the original data wasn't stolen or changed, it became unavailable due to lack of proper backups."
+		"explanation": "This is an [color=green]AVAILABILITY[/color] breach. Data couldn't be accessed when needed."
 	},
 	{
 		"text": "A power outage caused the hospital's patient monitoring systems to go offline for 3 hours, preventing doctors from accessing vital patient information.",
 		"correct": "A",
-		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nCritical systems were UNAVAILABLE when needed, even though data wasn't stolen or modified."
+		"explanation": "This is an [color=green]AVAILABILITY[/color] breach. Critical systems were unavailable when needed."
 	},
 	{
 		"text": "Hackers crashed the airline's booking system during peak holiday season, preventing customers from purchasing tickets for 48 hours.",
 		"correct": "A",
-		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nThe service was DISRUPTED and inaccessible to legitimate users."
+		"explanation": "This is an [color=green]AVAILABILITY[/color] breach. The service was disrupted and inaccessible."
 	},
 	{
 		"text": "A construction crew accidentally cut the fiber optic cable, causing the company's internet and cloud services to be down for an entire day.",
 		"correct": "A",
-		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nNetwork services became UNAVAILABLE, preventing access to business systems."
+		"explanation": "This is an [color=green]AVAILABILITY[/color] breach. Network services became unavailable."
 	},
 	{
 		"text": "A misconfigured update caused the email server to crash. Employees couldn't send or receive emails for the entire morning shift.",
 		"correct": "A",
-		"explanation": "✅ Correct! This is an [color=green]AVAILABILITY[/color] breach.\n\nThe email service was INACCESSIBLE due to system failure."
+		"explanation": "This is an [color=green]AVAILABILITY[/color] breach. The email service was inaccessible."
+	},
+	{
+		"text": "An earthquake destroyed the company's only data center. All web services, customer portals, and internal tools went completely offline with no disaster recovery site.",
+		"correct": "A",
+		"explanation": "This is an [color=green]AVAILABILITY[/color] breach. All services went offline due to lack of redundancy."
+	},
+	{
+		"text": "A crypto-mining malware consumed 100% of the server's CPU, causing the company's online banking portal to respond so slowly that no one could complete transactions.",
+		"correct": "A",
+		"explanation": "This is an [color=green]AVAILABILITY[/color] breach. System resources were consumed, making the service unusable."
 	}
 ]
 
@@ -158,8 +189,15 @@ var current_scenario_index := 0
 var score := 0
 var streak := 0
 var shuffled_scenarios := []  # Will hold randomized scenarios for this game
-const SCENARIOS_PER_GAME := 10  # How many scenarios to show per game
-const POINTS_PER_CORRECT := 30  # Changed from 100 to 30
+const SCENARIOS_PER_GAME := 15  # 15 scenarios per game session
+const POINTS_PER_CORRECT := 30
+
+# Timer system
+const GAME_TIME := 120.0  # 2 minutes
+const TIME_BONUS := 5.0    # +5 seconds on correct
+const TIME_PENALTY := 5.0  # -5 seconds on wrong
+var time_remaining := GAME_TIME
+var game_active := true
 
 # Drag state
 var dragging := false
@@ -199,6 +237,7 @@ func _ready() -> void:
 	# SHUFFLE SCENARIOS FOR THIS GAME SESSION
 	_shuffle_scenarios()
 	
+	
 	# Hide popups initially
 	feedback_popup.hide()
 	results_screen.hide()
@@ -228,16 +267,44 @@ func _ready() -> void:
 	_update_ui()
 
 
+
+
 func _process(delta: float) -> void:
+	# Update game timer
+	if game_active and time_remaining > 0:
+		time_remaining -= delta
+		_update_timer_display()
+		if time_remaining <= 0:
+			time_remaining = 0
+			game_active = false
+			_on_time_expired()
+	
 	"""Monitor background music for smooth looping with fade"""
 	if bgm_player and bgm_player.playing:
 		var stream_length = bgm_player.stream.get_length()
 		var current_position = bgm_player.get_playback_position()
-		var time_remaining = stream_length - current_position
+		var bgm_time_remaining = stream_length - current_position
 		
 		# Start fade out before loop ends
-		if time_remaining <= BGM_FADE_BEFORE_LOOP and time_remaining > BGM_FADE_BEFORE_LOOP - 0.1:
+		if bgm_time_remaining <= BGM_FADE_BEFORE_LOOP and bgm_time_remaining > BGM_FADE_BEFORE_LOOP - 0.1:
 			_fade_bgm_for_loop()
+
+func _update_timer_display() -> void:
+	if not timer_label_node:
+		return
+	var seconds := int(time_remaining)
+	timer_label_node.text = "⏱ %ds" % seconds
+	if time_remaining > 60:
+		timer_label_node.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
+	elif time_remaining > 30:
+		timer_label_node.add_theme_color_override("font_color", Color(1.0, 0.8, 0.0))
+	else:
+		timer_label_node.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+
+func _on_time_expired() -> void:
+	"""Handle time running out"""
+	print("[CIA Triad] Time expired!")
+	_show_results()
 
 
 func _shuffle_scenarios() -> void:
@@ -447,12 +514,13 @@ func _gui_input(event: InputEvent) -> void:
 
 func _load_scenario() -> void:
 	"""Load current scenario into the incident card"""
-	if current_scenario_index >= shuffled_scenarios.size():
+	if not game_active or current_scenario_index >= shuffled_scenarios.size():
 		_show_results()
 		return
 	
 	var scenario = shuffled_scenarios[current_scenario_index]
-	incident_text.text = "[center]🚨 [b]INCIDENT ALERT #%d[/b] 🚨[/center]\n\n%s" % [current_scenario_index + 1, scenario["text"]]
+	# Show only the scenario text — no hints about the correct answer
+	incident_text.text = "[center]🚨 [b]INCIDENT #%d of %d[/b] 🚨[/center]\n\n%s\n\n[center][color=#aaaaaa]Which CIA principle was violated?[/color][/center]" % [current_scenario_index + 1, shuffled_scenarios.size(), scenario["text"]]
 	
 	# Reset card position and appearance
 	incident_card.position = card_original_position
@@ -475,6 +543,8 @@ func _update_ui() -> void:
 
 func _check_answer(zone_type: String) -> void:
 	"""Check if the selected zone is correct"""
+	if not game_active:
+		return
 	var scenario = shuffled_scenarios[current_scenario_index]
 	var correct_answer = scenario["correct"]
 	
@@ -488,6 +558,11 @@ func _handle_correct_answer(zone_type: String) -> void:
 	"""Handle correct answer feedback"""
 	score += POINTS_PER_CORRECT
 	streak += 1
+	
+	# Time bonus
+	time_remaining += TIME_BONUS
+	time_remaining = min(time_remaining, GAME_TIME)  # Cap at max
+	_show_time_change(true)
 	
 	# Play success sound
 	if sfx_correct and sfx_correct.stream:
@@ -509,6 +584,11 @@ func _handle_wrong_answer(chosen: String, correct: String) -> void:
 	"""Handle wrong answer feedback"""
 	streak = 0
 	
+	# Time penalty
+	time_remaining -= TIME_PENALTY
+	time_remaining = max(time_remaining, 0.0)
+	_show_time_change(false)
+	
 	# Play wrong sound
 	if sfx_wrong and sfx_wrong.stream:
 		sfx_wrong.play()
@@ -521,6 +601,29 @@ func _handle_wrong_answer(chosen: String, correct: String) -> void:
 	
 	# Update UI
 	_update_ui()
+
+func _show_time_change(is_bonus: bool) -> void:
+	"""Show floating +5s or -5s near the timer"""
+	if not timer_label_node:
+		return
+	var float_label = Label.new()
+	if is_bonus:
+		float_label.text = "+%ds" % int(TIME_BONUS)
+		float_label.add_theme_color_override("font_color", Color(0.0, 1.0, 0.3))
+	else:
+		float_label.text = "-%ds" % int(TIME_PENALTY)
+		float_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+	float_label.add_theme_font_size_override("font_size", 24)
+	float_label.position = timer_label_node.global_position + Vector2(0, 30)
+	float_label.z_index = 100
+	get_tree().root.add_child(float_label)
+	
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(float_label, "position:y", float_label.position.y - 50, 1.2)
+	tween.tween_property(float_label, "modulate:a", 0.0, 1.2)
+	await tween.finished
+	float_label.queue_free()
 
 
 func _play_success_animation(zone_type: String) -> void:
@@ -620,13 +723,20 @@ func _on_try_again_pressed() -> void:
 
 func _show_results() -> void:
 	"""Show final results screen"""
+	game_active = false  # Stop the timer
+	
+	# Hide timer
+	if timer_label_node:
+		timer_label_node.hide()
+	
 	var max_score = shuffled_scenarios.size() * POINTS_PER_CORRECT
-	print("[CIA Triad] Tutorial complete! Score: %d/%d" % [score, max_score])
+	var scenarios_answered = current_scenario_index
+	print("[CIA Triad] Tutorial complete! Score: %d/%d, Answered: %d/%d" % [score, max_score, scenarios_answered, shuffled_scenarios.size()])
 	
 	# Hide game UI
 	incident_card.hide()
 	
-	# Calculate percentage
+	# Calculate percentage based on what was answered
 	var percentage = (float(score) / float(max_score)) * 100.0
 	
 	# Determine grade and XP (always award some XP for effort)
@@ -646,13 +756,22 @@ func _show_results() -> void:
 		xp_earned = 50
 	else:
 		grade = "F"
-		xp_earned = max(int(percentage * 0.5), 10)  # At least 10 XP for trying, scales with performance
+		xp_earned = max(int(percentage * 0.5), 10)
+	
+	# Build status message
+	var status_msg := ""
+	if time_remaining <= 0:
+		status_msg = "[center][color=red]⏱ TIME'S UP![/color][/center]\n"
+	else:
+		status_msg = "[center][color=green]⏱ Time Remaining: %ds[/color][/center]\n" % int(time_remaining)
 	
 	# Display results
 	results_text.text = """[center][b]🎓 CIA TRIAD TRAINING COMPLETE 🎓[/b][/center]
 
 [center]━━━━━━━━━━━━━━━━━━━━━━━━━━━[/center]
 
+%s
+[center][b]Scenarios Completed:[/b] %d / %d[/center]
 [center][b]Final Score:[/b] %d / %d[/center]
 [center][b]Accuracy:[/b] %.1f%%[/center]
 [center][b]Grade:[/b] [color=cyan]%s[/color][/center]
@@ -660,10 +779,9 @@ func _show_results() -> void:
 
 [center]━━━━━━━━━━━━━━━━━━━━━━━━━━━[/center]
 
-[center]You've mastered the CIA Triad basics![/center]
 [center]Remember: [color=cyan]Confidentiality[/color], [color=yellow]Integrity[/color],[/center]
 [center]and [color=green]Availability[/color] work together![/center]
-""" % [score, max_score, percentage, grade, xp_earned]
+""" % [status_msg, scenarios_answered, shuffled_scenarios.size(), score, max_score, percentage, grade, xp_earned]
 	
 	# Complete tutorial via TutorialManager
 	TutorialManager.save_tutorial_result(TUTORIAL_ID, score, max_score)

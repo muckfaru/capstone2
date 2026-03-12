@@ -1,18 +1,38 @@
-[gd_scene load_steps=25 format=3 uid="uid://c0a33ucrvsryb"]
+[gd_scene load_steps=38 format=3 uid="uid://kyv37wla5o2o"]
 
 [ext_resource type="Script" uid="uid://bl5j031jb1h1i" path="res://script/defuse_trojan_room.gd" id="1_room"]
 [ext_resource type="PackedScene" uid="uid://caeteha34m08t" path="res://scene/room_chat.tscn" id="2_room_chat"]
+[ext_resource type="Texture2D" uid="uid://bd0808oy3falb" path="res://asset/background/defusetrojanbg.png" id="2_x6cnn"]
 [ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_audiowide"]
-[ext_resource type="Texture2D" uid="uid://ct0fcceas6r5c" path="res://asset/background/room backround.png" id="4_room_bg"]
+[ext_resource type="FontFile" uid="uid://be2unc3ma8sna" path="res://asset/fonts/SpaceMission-rgyw9.otf" id="4_x6cnn"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="5_nico"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_pye5c"]
+font = ExtResource("4_x6cnn")
+font_size = 35
+font_color = Color(0.713726, 0.317647, 1, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_host_top"]
 bg_color = Color(0.2, 0.2, 0.25098, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+border_color = Color(0.713726, 0.317647, 1, 1)
+border_blend = true
 corner_radius_top_left = 8
+
+[sub_resource type="LabelSettings" id="LabelSettings_x6cnn"]
+font_size = 20
+outline_size = 10
+outline_color = Color(0.714, 0.318, 1, 0.257)
+shadow_size = 5
+shadow_color = Color(0, 0, 0, 0.824)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="Animation" id="Animation_hostname_reset"]
 length = 0.001
@@ -50,12 +70,17 @@ _data = {
 &"hostnameani": SubResource("Animation_hostnameani")
 }
 
+[sub_resource type="LabelSettings" id="LabelSettings_8m3jh"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_host_bottom"]
 bg_color = Color(0.2, 0.2, 0.25098, 1)
 border_width_left = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+border_color = Color(0.713726, 0.317647, 1, 1)
+border_blend = true
 corner_radius_bottom_right = 8
 
 [sub_resource type="Animation" id="Animation_readyhost_reset"]
@@ -139,6 +164,10 @@ _data = {
 &"usrreadyani": SubResource("Animation_usrreadyani")
 }
 
+[sub_resource type="LabelSettings" id="LabelSettings_n7qnp"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_client_bottom"]
 bg_color = Color(1, 0.427451, 0.356863, 0.768627)
 border_width_left = 2
@@ -221,6 +250,123 @@ _data = {
 &"usercardani": SubResource("Animation_usercardani")
 }
 
+[sub_resource type="LabelSettings" id="LabelSettings_nth0s"]
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_hover"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0.819608, 1, 0.12)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_disabled"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.09, 0.09, 0.12, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.28, 0.3, 0.34, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_pressed"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0.819608, 1, 0.3)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.95, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_normal"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.047, 0.047, 0.078, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.713726, 0.317647, 1, 1)
+border_blend = true
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_leave_hover"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 0.356863, 0.431373, 0.12)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.5, 0.57, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_leave_pressed"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(1, 0.356863, 0.431373, 0.3)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.65, 0.7, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_leave_normal"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.047, 0.047, 0.078, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.356863, 0.431373, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 [node name="DefuseTrojanRoom" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -237,9 +383,13 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("4_room_bg")
+texture = ExtResource("2_x6cnn")
 expand_mode = 1
-stretch_mode = 5
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 1151.0
+offset_bottom = 648.0
 
 [node name="RoomHeader" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -248,9 +398,10 @@ anchor_left = 0.5
 anchor_top = 0.05
 anchor_right = 0.5
 anchor_bottom = 0.05
-offset_left = -250.0
-offset_right = 250.0
-offset_bottom = 40.0
+offset_left = -224.0
+offset_top = -0.400002
+offset_right = 276.0
+offset_bottom = 39.6
 alignment = 1
 
 [node name="RoomIDLabel" type="Label" parent="RoomHeader"]
@@ -258,6 +409,7 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("3_audiowide")
 theme_override_font_sizes/font_size = 25
 text = "ROOM"
+label_settings = SubResource("LabelSettings_pye5c")
 horizontal_alignment = 1
 
 [node name="RoomStateLabel" type="Label" parent="RoomHeader"]
@@ -275,10 +427,10 @@ anchor_left = 0.5
 anchor_top = 0.35
 anchor_right = 0.5
 anchor_bottom = 0.35
-offset_left = -650.0
-offset_top = -100.0
-offset_right = 650.0
-offset_bottom = 200.0
+offset_left = -632.0
+offset_top = -99.8
+offset_right = 668.0
+offset_bottom = 300.2
 theme_override_constants/separation = 30
 alignment = 1
 
@@ -300,7 +452,8 @@ offset_bottom = 162.2
 theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_host_top")
-text = "..."
+text = "RYUU"
+label_settings = SubResource("LabelSettings_x6cnn")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -318,13 +471,14 @@ anchor_left = 0.5
 anchor_top = 0.18
 anchor_right = 0.5
 anchor_bottom = 0.18
-offset_left = -80.0
-offset_top = 40.0
-offset_right = 80.0
-offset_bottom = 68.0
+offset_left = -78.0
+offset_top = -70.8
+offset_right = 82.0
+offset_bottom = -42.8
 theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 16
 text = "Level: 1"
+label_settings = SubResource("LabelSettings_8m3jh")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -371,7 +525,6 @@ offset_bottom = 162.2
 theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_client_top")
-text = "."
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -389,12 +542,13 @@ anchor_top = 0.18
 anchor_right = 0.5
 anchor_bottom = 0.18
 offset_left = -80.0
-offset_top = 40.0
+offset_top = -70.8
 offset_right = 80.0
-offset_bottom = 68.0
+offset_bottom = -42.8
 theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 16
-text = "."
+text = "Level 1"
+label_settings = SubResource("LabelSettings_n7qnp")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -445,7 +599,6 @@ offset_bottom = 162.2
 theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_client_top")
-text = "."
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -462,13 +615,14 @@ anchor_left = 0.5
 anchor_top = 0.18
 anchor_right = 0.5
 anchor_bottom = 0.18
-offset_left = -80.0
-offset_top = 40.0
-offset_right = 80.0
-offset_bottom = 68.0
+offset_left = -74.0
+offset_top = -70.8
+offset_right = 86.0
+offset_bottom = -42.8
 theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 16
-text = "."
+text = "Level 1"
+label_settings = SubResource("LabelSettings_nth0s")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -507,9 +661,9 @@ anchor_left = 0.5
 anchor_top = 0.85
 anchor_right = 0.5
 anchor_bottom = 0.85
-offset_left = -260.0
+offset_left = -208.0
 offset_top = 24.2
-offset_right = 260.0
+offset_right = 312.0
 offset_bottom = 72.2
 theme_override_constants/separation = 25
 alignment = 1
@@ -518,18 +672,32 @@ alignment = 1
 custom_minimum_size = Vector2(220, 48)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_type_variation = &"PrimaryButton"
+theme_override_colors/font_disabled_color = Color(0.32, 0.34, 0.38, 1)
+theme_override_colors/font_hover_color = Color(0.45, 0.95, 1, 1)
+theme_override_colors/font_color = Color(0, 0.819608, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 17
+theme_override_styles/focus = SubResource("StyleBoxFlat_start_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_start_disabled")
+theme_override_styles/hover = SubResource("StyleBoxFlat_start_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_start_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_start_normal")
 text = "START MATCH"
 
 [node name="LeaveButton" type="Button" parent="ButtonPanel"]
 custom_minimum_size = Vector2(220, 48)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_type_variation = &"DangerButton"
+theme_override_colors/font_hover_color = Color(1, 0.58, 0.64, 1)
+theme_override_colors/font_color = Color(1, 0.356863, 0.431373, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 17
+theme_override_styles/focus = SubResource("StyleBoxFlat_leave_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_leave_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_leave_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_leave_normal")
 text = "LEAVE ROOM"
 
 [node name="MessageLabel" type="Label" parent="."]
@@ -539,9 +707,9 @@ anchor_left = 0.5
 anchor_top = 0.93
 anchor_right = 0.5
 anchor_bottom = 0.93
-offset_left = -260.0
+offset_left = -200.0
 offset_top = 29.36
-offset_right = 260.0
+offset_right = 320.0
 offset_bottom = 45.36
 theme_override_fonts/font = ExtResource("5_nico")
 theme_override_font_sizes/font_size = 15
@@ -550,7 +718,7 @@ horizontal_alignment = 1
 
 [node name="RoomChat" parent="." instance=ExtResource("2_room_chat")]
 layout_mode = 0
-offset_left = 3.0
-offset_top = 431.0
-offset_right = 254.0
-offset_bottom = 623.0
+offset_left = 19.0
+offset_top = 434.0
+offset_right = 270.0
+offset_bottom = 626.0

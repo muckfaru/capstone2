@@ -535,106 +535,184 @@ func _on_quit_pressed() -> void:
 	
 func get_default_attacks():
 	return [
-		{
-			"id": 1,
-			"name": "Ransomware Encryption",
-			"category": "data",
+		# ── Wave 1 attacks ──
+		{"id": 1, "name": "Ransomware Encryption", "category": "data",
 			"description": "Malware encrypting employee database files!",
 			"icon": "📁🔒",
 			"explanation": "Ransomware locks your DATA files. Think of it like someone putting a padlock on your filing cabinet. Use backups to recover!",
-			"cia_impact": {"C": 15, "I": 10},
-			"wave_unlock": 1
-		},
-		{
-			"id": 2,
-			"name": "USB Virus",
-			"category": "data",
+			"cia_impact": {"C": 15, "I": 10}, "wave_unlock": 1},
+		{"id": 2, "name": "USB Virus", "category": "data",
 			"description": "Infected USB drive copying files from computers!",
 			"icon": "💾🦠",
 			"explanation": "A virus on a USB stick steals DATA when plugged in. Like a thief copying files from your desk. Use antivirus protection!",
-			"cia_impact": {"C": 18},
-			"wave_unlock": 1
-		},
-		{
-			"id": 3,
-			"name": "Password Theft",
-			"category": "data",
+			"cia_impact": {"C": 18}, "wave_unlock": 1},
+		{"id": 3, "name": "Password Theft", "category": "data",
 			"description": "Keylogger recording usernames and passwords!",
 			"icon": "🔑💀",
 			"explanation": "Someone is stealing your login DATA. Like writing down passwords from your keyboard. Use strong unique passwords!",
-			"cia_impact": {"C": 20},
-			"wave_unlock": 1
-		},
-		{
-			"id": 4,
-			"name": "DDoS Attack",
-			"category": "network",
+			"cia_impact": {"C": 20}, "wave_unlock": 1},
+		{"id": 4, "name": "DDoS Attack", "category": "network",
 			"description": "1000+ bots flooding web server with traffic!",
 			"icon": "🌐💥",
 			"explanation": "Too many fake visitors crashing your NETWORK. Like thousands of people blocking a store entrance. Use traffic filters!",
-			"cia_impact": {"A": 20},
-			"wave_unlock": 1
-		},
-		{
-			"id": 5,
-			"name": "WiFi Jamming",
-			"category": "network",
+			"cia_impact": {"A": 20}, "wave_unlock": 1},
+		{"id": 5, "name": "WiFi Jamming", "category": "network",
 			"description": "Signal blocker disrupting wireless connections!",
 			"icon": "📡❌",
 			"explanation": "Someone is blocking your WiFi NETWORK signals. Like jamming a radio frequency. Use wired connections as backup!",
-			"cia_impact": {"A": 18},
-			"wave_unlock": 1
-		},
-		{
-			"id": 6,
-			"name": "Spam Email Flood",
-			"category": "network",
+			"cia_impact": {"A": 18}, "wave_unlock": 1},
+		{"id": 6, "name": "Spam Email Flood", "category": "network",
 			"description": "Millions of junk emails overloading mail server!",
 			"icon": "📧🌊",
 			"explanation": "Too many spam emails clogging your NETWORK email system. Like mailbox stuffing. Use spam filters!",
-			"cia_impact": {"A": 15},
-			"wave_unlock": 1
-		},
-		{
-			"id": 7,
-			"name": "SQL Injection",
-			"category": "data",
+			"cia_impact": {"A": 15}, "wave_unlock": 1},
+		# ── Wave 2 attacks ──
+		{"id": 7, "name": "SQL Injection", "category": "data",
 			"description": "Hacker inserting code to extract customer records!",
 			"icon": "💉📊",
 			"explanation": "Attacker tricks your database to reveal DATA. Like asking a trick question to get secret info. Validate all inputs!",
-			"cia_impact": {"C": 20},
-			"wave_unlock": 2
-		},
-		{
-			"id": 8,
-			"name": "Insider Data Leak",
-			"category": "data",
+			"cia_impact": {"C": 20}, "wave_unlock": 2},
+		{"id": 8, "name": "Insider Data Leak", "category": "data",
 			"description": "Employee copying files to personal USB drive!",
 			"icon": "💾🚨",
 			"explanation": "Someone inside is stealing DATA files. Like an employee photocopying documents. Monitor file access!",
-			"cia_impact": {"C": 18, "I": 5},
-			"wave_unlock": 2
-		},
-		{
-			"id": 9,
-			"name": "Cloud Storage Hack",
-			"category": "data",
+			"cia_impact": {"C": 18, "I": 5}, "wave_unlock": 2},
+		{"id": 9, "name": "Cloud Storage Hack", "category": "data",
 			"description": "Weak password exposed company cloud files!",
 			"icon": "☁️🔓",
 			"explanation": "Your online DATA storage was accessed. Like someone guessing your locker combination. Use 2-factor authentication!",
-			"cia_impact": {"C": 22},
-			"wave_unlock": 2
-		},
-		{
-			"id": 10,
-			"name": "Man-in-the-Middle",
-			"category": "network",
+			"cia_impact": {"C": 22}, "wave_unlock": 2},
+		{"id": 10, "name": "Man-in-the-Middle", "category": "network",
 			"description": "Attacker intercepting unencrypted WiFi traffic!",
 			"icon": "👤📡",
 			"explanation": "Someone is eavesdropping on your NETWORK connection. Like tapping a phone line. Use encrypted connections (HTTPS)!",
-			"cia_impact": {"C": 15},
-			"wave_unlock": 2
-		},
+			"cia_impact": {"C": 15}, "wave_unlock": 2},
+		# ── Wave 3 attacks ──
+		{"id": 11, "name": "Phishing Email", "category": "data",
+			"description": "Fake email tricking employees into revealing login credentials!",
+			"icon": "🎣📧",
+			"explanation": "Phishing tricks you into giving away your DATA like passwords. Like a fake letter from your bank. Verify senders before clicking links!",
+			"cia_impact": {"C": 18}, "wave_unlock": 3},
+		{"id": 12, "name": "DNS Spoofing", "category": "network",
+			"description": "Redirecting website traffic to a fake malicious server!",
+			"icon": "🎭🌐",
+			"explanation": "DNS Spoofing hijacks NETWORK routing to send you to fake sites. Like changing road signs to lead you astray. Use DNSSEC!",
+			"cia_impact": {"I": 18, "C": 10}, "wave_unlock": 3},
+		{"id": 13, "name": "Spyware Installation", "category": "data",
+			"description": "Hidden software recording screen and keyboard activity!",
+			"icon": "🕵️📸",
+			"explanation": "Spyware silently steals your DATA by watching everything you do. Like a hidden camera in your office. Use anti-spyware tools!",
+			"cia_impact": {"C": 22}, "wave_unlock": 3},
+		{"id": 14, "name": "ARP Poisoning", "category": "network",
+			"description": "Fake ARP replies redirecting local network traffic!",
+			"icon": "🔀💻",
+			"explanation": "ARP Poisoning tricks your local NETWORK into sending traffic to the attacker. Like rerouting mail to a wrong address. Use static ARP entries!",
+			"cia_impact": {"C": 15, "I": 10}, "wave_unlock": 3},
+		# ── Wave 4 attacks ──
+		{"id": 15, "name": "Trojan Horse", "category": "data",
+			"description": "Malicious program disguised as legitimate software!",
+			"icon": "🐴💀",
+			"explanation": "A Trojan hides inside normal-looking software to steal DATA. Like a gift box hiding a thief. Only download from trusted sources!",
+			"cia_impact": {"C": 20, "I": 8}, "wave_unlock": 4},
+		{"id": 16, "name": "Port Scanning", "category": "network",
+			"description": "Attacker probing all open ports on your server!",
+			"icon": "🔍🚪",
+			"explanation": "Port scanning checks your NETWORK for weak entry points. Like a burglar testing every door and window. Close unused ports and use a firewall!",
+			"cia_impact": {"C": 10}, "wave_unlock": 4},
+		{"id": 17, "name": "Data Exfiltration", "category": "data",
+			"description": "Sensitive files being uploaded to an external server!",
+			"icon": "📤🚫",
+			"explanation": "Data Exfiltration secretly moves DATA outside your organization. Like smuggling documents out of a secure building. Monitor outbound traffic!",
+			"cia_impact": {"C": 25}, "wave_unlock": 4},
+		{"id": 18, "name": "SYN Flood", "category": "network",
+			"description": "Incomplete connection requests overwhelming the server!",
+			"icon": "🌊🔗",
+			"explanation": "A SYN Flood sends thousands of fake handshakes to crash your NETWORK server. Like starting calls but never answering. Use SYN cookies!",
+			"cia_impact": {"A": 22}, "wave_unlock": 4},
+		# ── Wave 5 attacks ──
+		{"id": 19, "name": "Cryptojacking", "category": "data",
+			"description": "Hidden crypto-mining malware consuming CPU resources!",
+			"icon": "⛏️💻",
+			"explanation": "Cryptojacking hijacks your system DATA processing to mine cryptocurrency. Like someone secretly using your electricity. Monitor CPU usage!",
+			"cia_impact": {"A": 15, "I": 8}, "wave_unlock": 5},
+		{"id": 20, "name": "Packet Sniffing", "category": "network",
+			"description": "Capturing unencrypted data packets on the network!",
+			"icon": "👃📦",
+			"explanation": "Packet Sniffing reads NETWORK traffic like reading someone's mail. Like eavesdropping on a phone call. Encrypt all traffic with TLS!",
+			"cia_impact": {"C": 20}, "wave_unlock": 5},
+		{"id": 21, "name": "Worm Propagation", "category": "network",
+			"description": "Self-replicating malware spreading across the network!",
+			"icon": "🐛🌐",
+			"explanation": "Worms spread through NETWORK connections without user action. Like a virus spreading through air vents. Patch systems and use firewalls!",
+			"cia_impact": {"A": 18, "I": 12}, "wave_unlock": 5},
+		{"id": 22, "name": "Database Corruption", "category": "data",
+			"description": "Malicious queries altering financial records in the database!",
+			"icon": "🗄️💥",
+			"explanation": "Database corruption changes your stored DATA silently. Like someone altering entries in an accounting book. Use integrity checks and backups!",
+			"cia_impact": {"I": 25}, "wave_unlock": 5},
+		# ── Wave 6 attacks ──
+		{"id": 23, "name": "Social Engineering Call", "category": "data",
+			"description": "Attacker impersonating IT support to get passwords!",
+			"icon": "📞🎭",
+			"explanation": "Social engineering manipulates people to reveal DATA. Like a con artist pretending to be from the bank. Always verify caller identity!",
+			"cia_impact": {"C": 22}, "wave_unlock": 6},
+		{"id": 24, "name": "BGP Hijacking", "category": "network",
+			"description": "Rerouting internet traffic through malicious servers!",
+			"icon": "🛣️🚨",
+			"explanation": "BGP Hijacking redirects NETWORK traffic at the internet backbone level. Like redirecting a highway to a dead end. Use RPKI validation!",
+			"cia_impact": {"A": 20, "C": 12}, "wave_unlock": 6},
+		{"id": 25, "name": "File Integrity Attack", "category": "data",
+			"description": "System configuration files secretly modified!",
+			"icon": "📝⚠️",
+			"explanation": "Tampering with config DATA lets attackers control your system. Like changing the locks on someone's house. Use file integrity monitoring!",
+			"cia_impact": {"I": 22, "C": 8}, "wave_unlock": 6},
+		{"id": 26, "name": "VLAN Hopping", "category": "network",
+			"description": "Attacker jumping between virtual network segments!",
+			"icon": "🦘🔒",
+			"explanation": "VLAN Hopping breaks through NETWORK segmentation barriers. Like climbing over walls between departments. Disable unused ports and use ACLs!",
+			"cia_impact": {"C": 18}, "wave_unlock": 6},
+		# ── Wave 7 attacks ──
+		{"id": 27, "name": "Zero-Day Exploit", "category": "data",
+			"description": "Exploiting an unknown vulnerability to steal classified files!",
+			"icon": "🕳️💣",
+			"explanation": "A Zero-Day exploits unknown flaws to access DATA before patches exist. Like finding a secret passage nobody knows about. Use behavioral detection!",
+			"cia_impact": {"C": 25, "I": 12}, "wave_unlock": 7},
+		{"id": 28, "name": "SSL Stripping", "category": "network",
+			"description": "Downgrading HTTPS to HTTP to intercept web traffic!",
+			"icon": "🔓🌐",
+			"explanation": "SSL Stripping removes NETWORK encryption to read traffic. Like removing the seal on a letter. Force HSTS and check for HTTPS!",
+			"cia_impact": {"C": 22}, "wave_unlock": 7},
+		{"id": 29, "name": "Credential Stuffing", "category": "data",
+			"description": "Using leaked passwords from other sites to break into accounts!",
+			"icon": "🔐🔄",
+			"explanation": "Credential Stuffing reuses stolen DATA passwords on other sites. Like trying the same key on every door. Use unique passwords and MFA!",
+			"cia_impact": {"C": 20}, "wave_unlock": 7},
+		{"id": 30, "name": "Botnet Command & Control", "category": "network",
+			"description": "Infected computers receiving attack orders from a remote server!",
+			"icon": "🤖🎮",
+			"explanation": "Botnets use NETWORK connections to control infected machines. Like a puppet master pulling strings remotely. Block C2 traffic with DNS filtering!",
+			"cia_impact": {"A": 20, "I": 10}, "wave_unlock": 7},
+		# ── Wave 8 attacks ──
+		{"id": 31, "name": "Advanced Persistent Threat", "category": "data",
+			"description": "State-sponsored hackers silently exfiltrating data over months!",
+			"icon": "🏴‍☠️🕰️",
+			"explanation": "APTs are long-term DATA theft campaigns by advanced attackers. Like a mole inside your organization. Use threat hunting and anomaly detection!",
+			"cia_impact": {"C": 28, "I": 15}, "wave_unlock": 8},
+		{"id": 32, "name": "DNS Tunneling", "category": "network",
+			"description": "Smuggling stolen data out through DNS query traffic!",
+			"icon": "🚇🌐",
+			"explanation": "DNS Tunneling hides DATA theft inside normal NETWORK DNS queries. Like smuggling notes inside regular mail. Monitor DNS traffic patterns!",
+			"cia_impact": {"C": 22}, "wave_unlock": 8},
+		{"id": 33, "name": "Supply Chain Attack", "category": "data",
+			"description": "Compromised software update installing backdoors!",
+			"icon": "📦🐍",
+			"explanation": "Supply Chain attacks inject malware into trusted DATA updates. Like poisoning food at the factory. Verify software signatures and sources!",
+			"cia_impact": {"C": 25, "I": 18}, "wave_unlock": 8},
+		{"id": 34, "name": "DDoS Amplification", "category": "network",
+			"description": "Using open DNS resolvers to amplify attack traffic 100x!",
+			"icon": "📢💥",
+			"explanation": "Amplification uses NETWORK services to multiply attack traffic. Like using a megaphone to make a whisper into a shout. Secure open resolvers!",
+			"cia_impact": {"A": 28}, "wave_unlock": 8},
 	]
 	
 func update_available_attacks():
@@ -903,6 +981,11 @@ func complete_wave():
 		spawn_attack()
 
 func show_feedback(is_success, title, message):
+	# Remove any existing feedback popup to prevent pile-up
+	for child in $CanvasLayer.get_children():
+		if child.has_method("setup") and child is Panel:
+			child.queue_free()
+	await get_tree().process_frame
 	var popup = FEEDBACK_POPUP.instantiate()
 	$CanvasLayer.add_child(popup)
 	popup.setup(is_success, title, message)
@@ -974,6 +1057,11 @@ func game_over():
 	
 	# Award XP but DON'T mark as completed (score = 0 signals incomplete)
 	TutorialManager.add_xp(partial_xp, "Drop Zone Defender (Attempt)")
+	
+	# Mark as attempted so prerequisite system can unlock the next game
+	# Use both the minigame ID and the tutorial ID (prerequisite system uses tutorial IDs)
+	TutorialManager.mark_minigame_attempted("drop_zone_defender", partial_xp)
+	TutorialManager.mark_minigame_attempted("beginner_drop_zone", partial_xp)
 	
 	# In GameMode, submit score and go to leaderboard (no retry)
 	if _is_gamemode:

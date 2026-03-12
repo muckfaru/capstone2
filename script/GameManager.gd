@@ -699,6 +699,8 @@ func show_game_over():
 	
 	# Award XP but DON'T mark as completed
 	TutorialManager.add_xp(partial_xp, "Asset vs Threats (Attempt)")
+	TutorialManager.mark_minigame_attempted("asset_vs_threats", partial_xp)
+	TutorialManager.mark_minigame_attempted("intermediate_assetandthreat", partial_xp)
 	
 	# ✅ GameMode: skip game over panel, go straight to leaderboard
 	if _is_gamemode:

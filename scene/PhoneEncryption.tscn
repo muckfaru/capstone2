@@ -125,7 +125,6 @@ expand_margin_left = 70.0
 expand_margin_top = 40.0
 expand_margin_right = 70.0
 expand_margin_bottom = 40.0
-modulate_color = Color(0.688471, 0.281236, 0, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_y3s07"]
 texture = ExtResource("9_so5vk")
@@ -1359,6 +1358,7 @@ texture = ExtResource("25_p1c7e")
 expand_mode = 1
 
 [node name="right" type="TextureRect" parent="VictoryPanel"]
+layout_mode = 0
 offset_left = 949.0
 offset_top = 82.0
 offset_right = 1610.0

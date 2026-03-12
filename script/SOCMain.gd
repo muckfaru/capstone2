@@ -150,6 +150,7 @@ var command_database := {
 
 # Threat types — cryptographic vulnerabilities
 var threat_types := {
+	# ── Wave 1-3 threats (Beginner) ──
 	"weak_key": {
 		"name": "Weak Key (56-bit)",
 		"visual": "🔑",
@@ -158,7 +159,8 @@ var threat_types := {
 		"speed": 30.0,
 		"impact": "Encryption cracked in hours",
 		"tutorial_hint": "This system uses a weak 56-bit key (DES-level).\nUpgrade to AES with a 256-bit key.",
-		"correct_command": "enforce-aes256"
+		"correct_command": "enforce-aes256",
+		"wave_unlock": 1
 	},
 	"ecb_pattern": {
 		"name": "ECB Mode Leak",
@@ -168,7 +170,8 @@ var threat_types := {
 		"speed": 35.0,
 		"impact": "Data patterns exposed",
 		"tutorial_hint": "ECB encrypts identical blocks the same way.\nSwitch to CBC mode where each block depends on the previous.",
-		"correct_command": "switch-to-cbc"
+		"correct_command": "switch-to-cbc",
+		"wave_unlock": 1
 	},
 	"des_legacy": {
 		"name": "Legacy DES",
@@ -178,8 +181,10 @@ var threat_types := {
 		"speed": 40.0,
 		"impact": "Cipher broken — data exposed",
 		"tutorial_hint": "DES was cracked in 1999 and retired in 2005.\nReplace it with AES to meet modern standards.",
-		"correct_command": "upgrade-cipher"
+		"correct_command": "upgrade-cipher",
+		"wave_unlock": 1
 	},
+	# ── Wave 2-4 threats ──
 	"no_authentication": {
 		"name": "No Auth Tag",
 		"visual": "🔓",
@@ -188,7 +193,8 @@ var threat_types := {
 		"speed": 25.0,
 		"impact": "Ciphertext tampered undetected",
 		"tutorial_hint": "Encryption alone doesn't prove data integrity.\nEnable GCM mode for authenticated encryption.",
-		"correct_command": "enable-gcm"
+		"correct_command": "enable-gcm",
+		"wave_unlock": 2
 	},
 	"iv_reuse": {
 		"name": "IV Reuse",
@@ -198,8 +204,10 @@ var threat_types := {
 		"speed": 32.0,
 		"impact": "First blocks reveal patterns",
 		"tutorial_hint": "Reusing the IV lets attackers compare ciphertexts.\nGenerate a fresh random IV for every encryption.",
-		"correct_command": "randomize-iv"
+		"correct_command": "randomize-iv",
+		"wave_unlock": 2
 	},
+	# ── Wave 3-5 threats ──
 	"key_reuse": {
 		"name": "Key Never Rotated",
 		"visual": "🗝️",
@@ -208,27 +216,8 @@ var threat_types := {
 		"speed": 38.0,
 		"impact": "Years of data compromised if leaked",
 		"tutorial_hint": "Old keys increase risk of compromise.\nRotate encryption keys on a regular schedule.",
-		"correct_command": "rotate-keys"
-	},
-	"padding_oracle": {
-		"name": "Padding Oracle",
-		"visual": "🧩",
-		"color": Color(1.0, 0.3, 0.3),
-		"description": "Padding errors reveal plaintext",
-		"speed": 45.0,
-		"impact": "Full decryption via error leaks",
-		"tutorial_hint": "Padding error messages let attackers decrypt data byte-by-byte.\nAdd HMAC authentication before decryption.",
-		"correct_command": "add-hmac"
-	},
-	"plaintext_keys": {
-		"name": "Keys in Plain Text",
-		"visual": "📄",
-		"color": Color(0.7, 0.3, 0.9),
-		"description": "Encryption keys stored unprotected",
-		"speed": 42.0,
-		"impact": "All encrypted data exposed",
-		"tutorial_hint": "Keys stored in config files can be stolen easily.\nUse a Hardware Security Module (HSM) for key storage.",
-		"correct_command": "use-hsm"
+		"correct_command": "rotate-keys",
+		"wave_unlock": 3
 	},
 	"plaintext_transit": {
 		"name": "No Transit Encryption",
@@ -238,8 +227,134 @@ var threat_types := {
 		"speed": 36.0,
 		"impact": "Credentials intercepted on network",
 		"tutorial_hint": "Data in transit without TLS can be sniffed by anyone.\nEnforce TLS/HTTPS for all communications.",
-		"correct_command": "enforce-tls"
-	}
+		"correct_command": "enforce-tls",
+		"wave_unlock": 3
+	},
+	# ── Wave 4-6 threats ──
+	"padding_oracle": {
+		"name": "Padding Oracle",
+		"visual": "🧩",
+		"color": Color(1.0, 0.3, 0.3),
+		"description": "Padding errors reveal plaintext",
+		"speed": 45.0,
+		"impact": "Full decryption via error leaks",
+		"tutorial_hint": "Padding error messages let attackers decrypt data byte-by-byte.\nAdd HMAC authentication before decryption.",
+		"correct_command": "add-hmac",
+		"wave_unlock": 4
+	},
+	"plaintext_keys": {
+		"name": "Keys in Plain Text",
+		"visual": "📄",
+		"color": Color(0.7, 0.3, 0.9),
+		"description": "Encryption keys stored unprotected",
+		"speed": 42.0,
+		"impact": "All encrypted data exposed",
+		"tutorial_hint": "Keys stored in config files can be stolen easily.\nUse a Hardware Security Module (HSM) for key storage.",
+		"correct_command": "use-hsm",
+		"wave_unlock": 4
+	},
+	# ── Wave 5-7 threats ──
+	"weak_prng": {
+		"name": "Weak PRNG",
+		"visual": "🎲",
+		"color": Color(0.9, 0.4, 0.6),
+		"description": "Predictable random number generator",
+		"speed": 40.0,
+		"impact": "Keys and IVs can be predicted",
+		"tutorial_hint": "A weak PRNG makes keys guessable.\nUse a cryptographically secure random number generator.",
+		"correct_command": "randomize-iv",
+		"wave_unlock": 5
+	},
+	"cert_expired": {
+		"name": "Expired Certificate",
+		"visual": "📜",
+		"color": Color(0.8, 0.6, 0.1),
+		"description": "TLS certificate expired 6 months ago",
+		"speed": 38.0,
+		"impact": "Man-in-the-middle attacks possible",
+		"tutorial_hint": "Expired certificates break the trust chain.\nEnforce TLS with valid, updated certificates.",
+		"correct_command": "enforce-tls",
+		"wave_unlock": 5
+	},
+	"triple_des_slow": {
+		"name": "3DES Still Active",
+		"visual": "🐢",
+		"color": Color(0.6, 0.4, 0.2),
+		"description": "Triple DES — slow and deprecated",
+		"speed": 35.0,
+		"impact": "Vulnerable to Sweet32 birthday attack",
+		"tutorial_hint": "3DES is deprecated and slow (3x DES operations).\nUpgrade to AES for speed and security.",
+		"correct_command": "upgrade-cipher",
+		"wave_unlock": 5
+	},
+	# ── Wave 6-8 threats ──
+	"cbc_bit_flip": {
+		"name": "CBC Bit-Flip Attack",
+		"visual": "🔀",
+		"color": Color(1.0, 0.15, 0.5),
+		"description": "Attacker flipping ciphertext bits to alter plaintext",
+		"speed": 44.0,
+		"impact": "Encrypted data silently modified",
+		"tutorial_hint": "CBC mode without authentication allows bit-flipping.\nEnable GCM mode for authenticated encryption.",
+		"correct_command": "enable-gcm",
+		"wave_unlock": 6
+	},
+	"hardcoded_key": {
+		"name": "Hardcoded Key in Source",
+		"visual": "💻",
+		"color": Color(0.5, 0.8, 0.3),
+		"description": "AES key embedded in application code",
+		"speed": 42.0,
+		"impact": "Anyone with source code can decrypt",
+		"tutorial_hint": "Keys in source code get leaked via repos.\nUse a Hardware Security Module (HSM) for key storage.",
+		"correct_command": "use-hsm",
+		"wave_unlock": 6
+	},
+	"static_salt": {
+		"name": "Static Salt",
+		"visual": "🧂",
+		"color": Color(0.7, 0.7, 0.3),
+		"description": "Same salt used for all password hashes",
+		"speed": 36.0,
+		"impact": "Rainbow table attacks succeed",
+		"tutorial_hint": "Static salts let attackers precompute hashes.\nGenerate a unique random value for each operation.",
+		"correct_command": "randomize-iv",
+		"wave_unlock": 6
+	},
+	# ── Wave 7-10 threats (Advanced) ──
+	"downgrade_attack": {
+		"name": "Protocol Downgrade",
+		"visual": "⬇️",
+		"color": Color(1.0, 0.2, 0.6),
+		"description": "Attacker forcing TLS 1.0 instead of 1.3",
+		"speed": 48.0,
+		"impact": "Old protocol vulnerabilities exploited",
+		"tutorial_hint": "TLS 1.0 has known vulnerabilities.\nEnforce modern TLS to prevent downgrade attacks.",
+		"correct_command": "enforce-tls",
+		"wave_unlock": 7
+	},
+	"key_derivation_weak": {
+		"name": "Weak Key Derivation",
+		"visual": "⚗️",
+		"color": Color(0.4, 0.9, 0.8),
+		"description": "MD5 used to derive encryption keys",
+		"speed": 46.0,
+		"impact": "Keys easily brute-forced from password",
+		"tutorial_hint": "MD5 is too fast for key derivation — easy to brute-force.\nEnforce AES-256 with a proper KDF like PBKDF2.",
+		"correct_command": "enforce-aes256",
+		"wave_unlock": 7
+	},
+	"replay_attack": {
+		"name": "Replay Attack",
+		"visual": "🔁",
+		"color": Color(0.9, 0.3, 0.9),
+		"description": "Old encrypted messages replayed by attacker",
+		"speed": 50.0,
+		"impact": "Duplicate transactions executed",
+		"tutorial_hint": "Without nonces, old messages can be replayed.\nAdd HMAC authentication to include timestamps and nonces.",
+		"correct_command": "add-hmac",
+		"wave_unlock": 8
+	},
 }
 
 @onready var quit_btn: Button = $Background/Quit
@@ -696,14 +811,15 @@ func _on_wave_timer_timeout():
 	$Timers/WaveTimer.start(next_spawn_time)
 
 func spawn_threat():
+	# Build available threats based on wave_unlock
 	var available_threats := []
+	for threat_id in threat_types.keys():
+		var wave_req = threat_types[threat_id].get("wave_unlock", 1)
+		if wave_req <= current_wave:
+			available_threats.append(threat_id)
 	
-	if current_wave <= 3:
+	if available_threats.is_empty():
 		available_threats = ["weak_key", "ecb_pattern", "des_legacy"]
-	elif current_wave <= 6:
-		available_threats = ["weak_key", "ecb_pattern", "des_legacy", "no_authentication", "iv_reuse"]
-	else:
-		available_threats = threat_types.keys()
 	
 	var threat_type = available_threats[randi() % available_threats.size()]
 	var threat = threat_scene.instantiate()
@@ -734,20 +850,46 @@ func _on_command_submitted(command_text: String):
 		show_feedback("✗ NO ACTIVE THREATS", Color.GRAY)
 		return
 	
-	var target_threat = active_threats[0]
-	
 	if not command_database.has(command):
 		_play_sfx(audio_command_unknown, 0, 1.0)
 		show_feedback("✗ UNKNOWN COMMAND - Check reference panel", Color.RED)
 		return
 	
-	var threat_data = threat_types[target_threat.threat_type]
 	var cmd_data = command_database[command]
 	
-	if target_threat.threat_type in cmd_data.effective_against:
-		handle_success(target_threat, command, cmd_data)
+	# ✅ SMART TARGETING: Find the most urgent (closest to breach) threat that matches this command
+	var best_match = null
+	var best_x := INF  # Lower x = closer to breach = more urgent
+	
+	for threat in active_threats:
+		if not is_instance_valid(threat):
+			continue
+		if threat.threat_type in cmd_data.effective_against:
+			if threat.position.x < best_x:
+				best_x = threat.position.x
+				best_match = threat
+	
+	if best_match:
+		handle_success(best_match, command, cmd_data)
 	else:
-		handle_wrong_command(target_threat, command, cmd_data, threat_data)
+		# Command is valid but doesn't match any active threat — show helpful hint
+		var nearest_threat = _get_most_urgent_threat()
+		if nearest_threat:
+			var threat_data = threat_types[nearest_threat.threat_type]
+			handle_wrong_command(nearest_threat, command, cmd_data, threat_data)
+		else:
+			_play_sfx(audio_command_wrong, 0, 1.0)
+			show_feedback("✗ No matching threat on screen", Color.ORANGE)
+
+# Helper: get the threat closest to breaching (leftmost position)
+func _get_most_urgent_threat():
+	var best = null
+	var best_x := INF
+	for threat in active_threats:
+		if is_instance_valid(threat) and threat.position.x < best_x:
+			best_x = threat.position.x
+			best = threat
+	return best
 
 func handle_success(threat, _command: String, cmd_data: Dictionary):
 	_play_sfx(audio_command_correct, 0.1, 1.0)
@@ -755,13 +897,20 @@ func handle_success(threat, _command: String, cmd_data: Dictionary):
 	score += 100
 	threats_neutralized += 1
 	
+	# ✅ FIX: Neutralize and remove threat BEFORE any awaits to prevent freed-instance error
+	active_threats.erase(threat)
+	var threat_pos = threat.position
+	if is_instance_valid(threat):
+		threat.neutralize()
+	
+	# Spawn powerup after threat is safely handled
 	if randf() < powerup_chance:
-		spawn_powerup(threat.position)
+		spawn_powerup(threat_pos)
 		
 		var powerup_hint = Label.new()
 		powerup_hint.text = "💊 Power-up spawned!"
 		powerup_hint.modulate = Color(0, 1, 0.5)
-		powerup_hint.position = threat.position + Vector2(0, -50)
+		powerup_hint.position = threat_pos + Vector2(0, -50)
 		add_child(powerup_hint)
 		
 		var tween = create_tween()
@@ -769,9 +918,6 @@ func handle_success(threat, _command: String, cmd_data: Dictionary):
 		tween.parallel().tween_property(powerup_hint, "modulate:a", 0.0, 1.0)
 		await tween.finished
 		powerup_hint.queue_free()
-	
-	active_threats.erase(threat)
-	threat.neutralize()
 	
 	var feedback = "[color=lime]✓ THREAT NEUTRALIZED[/color]\n"
 	feedback += cmd_data.description
@@ -1133,6 +1279,8 @@ func game_over():
 	
 	# Award XP but DON'T mark as completed
 	TutorialManager.add_xp(partial_xp, "Cipher Defense Terminal (Attempt)")
+	TutorialManager.mark_minigame_attempted("incident_commander", partial_xp)
+	TutorialManager.mark_minigame_attempted("intermediate_incident_commander", partial_xp)
 	
 	if _is_gamemode:
 		_submit_gamemode_score(score, 500)

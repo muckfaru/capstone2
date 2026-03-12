@@ -401,14 +401,14 @@ func _check_existing_user(username: String) -> void:
 			_fade_to_scene("res://scene/landing.tscn")
 			return
 		
-		# New user - continue with creation
+		# New user - check if username is already taken before creating
 		_play_sfx(success_sfx)
 		await _terminal_line("QUERY COMPLETE", COLOR_SUCCESS)
 		await _terminal_line("STATUS: NEW AGENT DETECTED", COLOR_PROCESSING)
 		await get_tree().create_timer(0.5).timeout
-		await _terminal_line("INITIATING PROFILE CREATION...", COLOR_INFO, true)
-		await get_tree().create_timer(0.5).timeout
-		_create_new_user_terminal(username)
+		await _terminal_line("VERIFYING CODENAME AVAILABILITY...", COLOR_INFO, true)
+		await get_tree().create_timer(0.3).timeout
+		_check_username_taken(username)
 	)
 	
 	var err := req.request(url, headers, HTTPClient.METHOD_GET)
@@ -418,6 +418,116 @@ func _check_existing_user(username: String) -> void:
 		await _terminal_line("ERROR CODE: " + str(err), COLOR_ERROR)
 		await get_tree().create_timer(2.0).timeout
 		get_tree().reload_current_scene()
+
+
+func _check_username_taken(username: String) -> void:
+	"""Query Firestore to check if the username is already used by another user."""
+	var query_url := "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:runQuery" % PROJECT_ID
+	var headers: PackedStringArray = [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % Auth.current_id_token
+	]
+	var query_body := {
+		"structuredQuery": {
+			"from": [{"collectionId": "users"}],
+			"where": {
+				"fieldFilter": {
+					"field": {"fieldPath": "username"},
+					"op": "EQUAL",
+					"value": {"stringValue": username}
+				}
+			},
+			"limit": 1
+		}
+	}
+	
+	var http := HTTPRequest.new()
+	add_child(http)
+	
+	http.request_completed.connect(func(_r: int, code: int, _h: PackedStringArray, resp_body: PackedByteArray):
+		http.queue_free()
+		
+		if code != 200:
+			# If query fails, still allow creation (best-effort check)
+			print("[IntroScene] ⚠️ Username check query failed: HTTP %d" % code)
+			await _terminal_line("CODENAME CHECK SKIPPED", COLOR_PROCESSING)
+			await get_tree().create_timer(0.3).timeout
+			_create_new_user_terminal(username)
+			return
+		
+		var resp_text := resp_body.get_string_from_utf8()
+		var parsed = JSON.parse_string(resp_text)
+		
+		# Check if any documents were returned
+		var username_taken := false
+		if typeof(parsed) == TYPE_ARRAY:
+			for entry in parsed:
+				if typeof(entry) == TYPE_DICTIONARY and entry.has("document"):
+					# A document with this username exists
+					username_taken = true
+					break
+		
+		if username_taken:
+			# Username is already taken
+			_play_sfx(error_sfx)
+			await _terminal_line("⚠️ CODENAME ALREADY IN USE", COLOR_ERROR)
+			await _terminal_line("ANOTHER OPERATIVE IS USING THIS CODENAME", COLOR_ERROR)
+			await get_tree().create_timer(1.5).timeout
+			await _terminal_line("PLEASE CHOOSE A DIFFERENT CODENAME", COLOR_PROCESSING)
+			await get_tree().create_timer(1.0).timeout
+			# Re-enable username input
+			_return_to_username_input()
+		else:
+			# Username is available
+			_play_sfx(success_sfx)
+			await _terminal_line("CODENAME AVAILABLE ✅", COLOR_SUCCESS)
+			await get_tree().create_timer(0.3).timeout
+			await _terminal_line("INITIATING PROFILE CREATION...", COLOR_INFO, true)
+			await get_tree().create_timer(0.5).timeout
+			_create_new_user_terminal(username)
+	)
+	
+	var json_string := JSON.stringify(query_body)
+	var err := http.request(query_url, headers, HTTPClient.METHOD_POST, json_string)
+	if err != OK:
+		http.queue_free()
+		# On error, proceed anyway (best-effort)
+		print("[IntroScene] ⚠️ Username check request failed: %d" % err)
+		_create_new_user_terminal(username)
+
+
+func _return_to_username_input() -> void:
+	"""Hide terminal and show username input again so user can pick a new codename."""
+	is_terminal_active = false
+	
+	# Hide terminal
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(terminal_panel, "modulate:a", 0.0, 0.3)
+	tween.tween_property(terminal_overlay, "modulate:a", 0.0, 0.3)
+	await tween.finished
+	terminal_panel.visible = false
+	terminal_overlay.visible = false
+	terminal_output.text = ""
+	
+	# Switch back to intro music
+	_fade_music_to(intro_music, 1.0)
+	
+	# Show dialogue box and username input again
+	dialogue_box.visible = true
+	username_input.visible = true
+	confirm_button.visible = true
+	username_input.editable = true
+	confirm_button.disabled = false
+	username_input.text = ""
+	
+	var show_tween := create_tween()
+	show_tween.set_parallel(true)
+	show_tween.tween_property(dialogue_box, "modulate:a", 1.0, 0.3)
+	show_tween.tween_property(username_input, "modulate:a", 1.0, 0.3)
+	show_tween.tween_property(confirm_button, "modulate:a", 1.0, 0.3)
+	await show_tween.finished
+	username_input.grab_focus()
 
 func _create_new_user_terminal(username: String) -> void:
 	await _terminal_line("UPLOADING CREDENTIALS...", COLOR_PROCESSING, true)

@@ -606,6 +606,8 @@ func _show_game_over():
 	
 	# Award XP but DON'T mark as completed
 	TutorialManager.add_xp(partial_xp, "Security Guardian (Attempt)")
+	TutorialManager.mark_minigame_attempted("security_guardian", partial_xp)
+	TutorialManager.mark_minigame_attempted("advanced_security_guardian", partial_xp)
 	
 	# ✅ GameMode: skip debrief panel, go straight to leaderboard
 	if _is_gamemode:

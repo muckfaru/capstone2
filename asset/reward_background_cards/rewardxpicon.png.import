@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://lplgr0fnilgt"
-path="res://.godot/imported/rewardxpicon.png-e8150f60eb88f2506a6fca53fb6e1d1c.ctex"
+uid="uid://0wtsj7apwf7b"
+path="res://.godot/imported/rewardxpicon.png-8090005a81eac0bd4ab6b84895ac85fa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/minigamesuite/rewardxpicon.png"
-dest_files=["res://.godot/imported/rewardxpicon.png-e8150f60eb88f2506a6fca53fb6e1d1c.ctex"]
+source_file="res://asset/reward_background_cards/rewardxpicon.png"
+dest_files=["res://.godot/imported/rewardxpicon.png-8090005a81eac0bd4ab6b84895ac85fa.ctex"]
 
 [params]
 

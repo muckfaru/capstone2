@@ -43,6 +43,10 @@ border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0, 0.8, 1, 1)
 border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r8tw8"]
 bg_color = Color(0.544868, 0, 0.157582, 1)

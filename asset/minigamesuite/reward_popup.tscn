@@ -1,21 +1,26 @@
-[gd_scene load_steps=36 format=3 uid="uid://dfnwpa8n6vxmq"]
+[gd_scene load_steps=36 format=3 uid="uid://biu4sdomdbsfb"]
 
-[ext_resource type="Script" uid="uid://cpanarqthaw0" path="res://script/RewardPopup.gd" id="1_cnpy5"]
-[ext_resource type="Texture2D" uid="uid://f0a6nu4ytmql" path="res://asset/icons/chest_closed.png" id="2_chest_closed"]
-[ext_resource type="Texture2D" uid="uid://bj5880mei7al7" path="res://asset/minigamesuite/final.png" id="2_hf4tg"]
-[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="4_font"]
-[ext_resource type="Texture2D" uid="uid://ckhlokr4b5abs" path="res://asset/minigamesuite/Gemini_Generated_Image_7uvvbb7uvvbb7uvv-Photoroom.png" id="5_0itvs"]
-[ext_resource type="Texture2D" uid="uid://chq8fwes5jj0u" path="res://asset/minigamesuite/Gemini_Generated_Image_whoacgwhoacgwhoa-Photoroom.png" id="5_6ywj8"]
-[ext_resource type="Texture2D" uid="uid://s46ug3r77k8i" path="res://asset/minigamesuite/Gemini_Generated_Image_cskjl1cskjl1cskj-Photoroom.png" id="7_535or"]
-[ext_resource type="Texture2D" uid="uid://du7yho8icn6iq" path="res://asset/minigamesuite/Gemini_Generated_Image_fziz4nfziz4nfziz-Photoroom.png" id="7_k0wq4"]
+[ext_resource type="Script" uid="uid://cpanarqthaw0" path="res://script/RewardPopup.gd" id="1_fvcbi"]
+[ext_resource type="Texture2D" uid="uid://bj5880mei7al7" path="res://asset/minigamesuite/final.png" id="2_6bdwy"]
+[ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_lp06a"]
+[ext_resource type="Texture2D" uid="uid://f0a6nu4ytmql" path="res://asset/icons/chest_closed.png" id="4_mu0l3"]
+[ext_resource type="Texture2D" uid="uid://ckhlokr4b5abs" path="res://asset/minigamesuite/Gemini_Generated_Image_7uvvbb7uvvbb7uvv-Photoroom.png" id="5_denf1"]
+[ext_resource type="Texture2D" uid="uid://chq8fwes5jj0u" path="res://asset/minigamesuite/Gemini_Generated_Image_whoacgwhoacgwhoa-Photoroom.png" id="6_f84he"]
+[ext_resource type="Texture2D" uid="uid://du7yho8icn6iq" path="res://asset/minigamesuite/Gemini_Generated_Image_fziz4nfziz4nfziz-Photoroom.png" id="7_eycqn"]
+[ext_resource type="Texture2D" uid="uid://s46ug3r77k8i" path="res://asset/minigamesuite/Gemini_Generated_Image_cskjl1cskjl1cskj-Photoroom.png" id="8_ln3ww"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_6ywj8"]
-texture = ExtResource("2_hf4tg")
+texture = ExtResource("2_6bdwy")
 expand_margin_left = 300.0
 expand_margin_top = 40.0
 expand_margin_right = 300.0
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4qcy1"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_6bdwy"]
+texture = ExtResource("5_denf1")
+expand_margin_left = 150.0
+expand_margin_top = 115.0
+expand_margin_right = 150.0
+expand_margin_bottom = 130.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hf4tg"]
 
@@ -28,7 +33,7 @@ expand_margin_right = 300.0
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0itvs"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_267vh"]
-texture = ExtResource("5_0itvs")
+texture = ExtResource("5_denf1")
 expand_margin_left = 150.0
 expand_margin_top = 115.0
 expand_margin_right = 150.0
@@ -36,12 +41,17 @@ expand_margin_bottom = 130.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_535or"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2w2ap"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_fvcbi"]
+texture = ExtResource("6_f84he")
+expand_margin_left = 150.0
+expand_margin_top = 115.0
+expand_margin_right = 150.0
+expand_margin_bottom = 130.0
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_k0wq4"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_75ijf"]
-texture = ExtResource("5_6ywj8")
+texture = ExtResource("6_f84he")
 expand_margin_left = 150.0
 expand_margin_top = 115.0
 expand_margin_right = 150.0
@@ -62,7 +72,7 @@ expand_margin_bottom = 130.0
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4nbde"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ojmw3"]
-texture = ExtResource("7_k0wq4")
+texture = ExtResource("7_eycqn")
 expand_margin_left = 100.0
 expand_margin_top = 90.0
 expand_margin_right = 100.0
@@ -75,7 +85,7 @@ expand_margin_bottom = 90.0
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7cmrx"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_101q2"]
-texture = ExtResource("7_535or")
+texture = ExtResource("8_ln3ww")
 expand_margin_left = 100.0
 expand_margin_top = 90.0
 expand_margin_right = 100.0
@@ -108,7 +118,7 @@ shadow_size = 8
 
 [node name="RewardPopup" type="CanvasLayer"]
 layer = 128
-script = ExtResource("1_cnpy5")
+script = ExtResource("1_fvcbi")
 
 [node name="Overlay" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -152,7 +162,7 @@ size_flags_vertical = 0
 theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
 theme_override_colors/font_outline_color = Color(0.05, 0.15, 0.4, 1)
 theme_override_constants/outline_size = 5
-theme_override_fonts/font = ExtResource("4_font")
+theme_override_fonts/font = ExtResource("3_lp06a")
 theme_override_font_sizes/font_size = 36
 text = "
 REWARD UNLOCKED!"
@@ -217,7 +227,7 @@ offset_right = 572.0
 offset_bottom = 287.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_chest_closed")
+texture = ExtResource("4_mu0l3")
 expand_mode = 1
 stretch_mode = 5
 
@@ -243,9 +253,9 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_outline_color = Color(0, 0.1, 0.3, 1)
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_constants/outline_size = 3
-theme_override_fonts/font = ExtResource("4_font")
+theme_override_fonts/font = ExtResource("3_lp06a")
 theme_override_font_sizes/font_size = 30
-theme_override_styles/focus = SubResource("StyleBoxEmpty_4qcy1")
+theme_override_styles/focus = SubResource("StyleBoxTexture_6bdwy")
 theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_hf4tg")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_ojmw3")
 theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_6ywj8")
@@ -253,7 +263,7 @@ theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_75ijf")
 theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_0itvs")
 theme_override_styles/hover = SubResource("StyleBoxTexture_267vh")
 theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_535or")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_2w2ap")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_fvcbi")
 theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_k0wq4")
 theme_override_styles/normal = SubResource("StyleBoxTexture_75ijf")
 
@@ -267,7 +277,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.85, 1)
-theme_override_fonts/font = ExtResource("4_font")
+theme_override_fonts/font = ExtResource("3_lp06a")
 theme_override_font_sizes/font_size = 18
 theme_override_styles/focus = SubResource("StyleBoxEmpty_qxxd7")
 theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_ed367")

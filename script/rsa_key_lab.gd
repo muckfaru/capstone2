@@ -958,6 +958,7 @@ func _game_over() -> void:
 
 	var partial_xp := int(float(score) / 15.0) + 5
 	TutorialManager.add_xp(partial_xp, "RSA Key Lab (Attempt)")
+	TutorialManager.mark_minigame_attempted("advanced_rsa_key_lab", partial_xp)
 
 	if _is_gamemode:
 		_submit_gamemode_score(score, max_score)

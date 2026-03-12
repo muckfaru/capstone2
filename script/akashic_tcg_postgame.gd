@@ -21,6 +21,9 @@ const _TGCSess = preload("res://script/AkashicTCGSessionStore.gd")
 @onready var _host_card_node: NinePatchRect = $HostCard
 @onready var _client_card_node: NinePatchRect = $ClientCard
 
+@onready var _host_avatar_pic: TextureRect = $HostCard/HostAvatar/hostavatarpic
+@onready var _client_avatar_pic: TextureRect = $ClientCard/ClientAvatar/clientavatarpic
+
 @onready var _room_time_label: Label = $RoomTimeLabel
 
 @onready var _back_button: Button = $BackToLandingButton
@@ -80,6 +83,7 @@ func _ready() -> void:
 	_duration_s = int(init.get("duration_s", 0))
 
 	_setup_ui()
+	_load_avatars()
 	_play_outcome_sfx()
 	_save_recent_match_best_effort()
 	_award_total_xp_best_effort()
@@ -172,8 +176,6 @@ func _award_total_xp_best_effort() -> void:
 
 func _save_recent_match_best_effort() -> void:
 	# Persist into users/<uid>.recent_matches (match_history collection may be rules-blocked).
-	if not Engine.has_singleton("Auth"):
-		return
 	if Auth.current_local_id == "" or Auth.current_id_token == "":
 		return
 	if _host_data.is_empty() or _client_data.is_empty():
@@ -439,6 +441,84 @@ func _setup_ui() -> void:
 		_host_winner_badge.visible = true
 	if client_won:
 		_client_winner_badge.visible = true
+
+
+func _load_avatars() -> void:
+	"""Load host and client avatars from host_data/client_data or fetch from Firestore."""
+	var host_avatar_file := str(_host_data.get("avatar", "")).strip_edges()
+	var client_avatar_file := str(_client_data.get("avatar", "")).strip_edges()
+
+	# Apply host avatar
+	if host_avatar_file != "":
+		_apply_avatar_texture(_host_avatar_pic, host_avatar_file)
+	else:
+		# Fallback: fetch from Firestore using host player_id
+		var host_pid := str(_host_data.get("player_id", ""))
+		if host_pid != "":
+			_fetch_avatar_from_firestore(host_pid, _host_avatar_pic)
+
+	# Apply client avatar
+	if client_avatar_file != "":
+		_apply_avatar_texture(_client_avatar_pic, client_avatar_file)
+	else:
+		# Fallback: fetch from Firestore using client player_id
+		var client_pid := str(_client_data.get("player_id", ""))
+		if client_pid != "":
+			_fetch_avatar_from_firestore(client_pid, _client_avatar_pic)
+
+
+func _apply_avatar_texture(target: TextureRect, avatar_file: String) -> void:
+	"""Load an avatar texture from res://asset/avatars/ and apply it to the TextureRect."""
+	if target == null:
+		return
+	var file_name := avatar_file
+	# Strip res:// prefix if present
+	if file_name.begins_with("res://"):
+		file_name = file_name.get_file()
+	# Handle user:// custom avatars
+	if avatar_file.begins_with("user://"):
+		if FileAccess.file_exists(avatar_file):
+			var img := Image.load_from_file(avatar_file)
+			if img:
+				img.resize(100, 100, Image.INTERPOLATE_LANCZOS)
+				target.texture = ImageTexture.create_from_image(img)
+		return
+	# Load preset avatar from assets
+	var path := "res://asset/avatars/" + file_name
+	if ResourceLoader.exists(path):
+		var tex := load(path)
+		if tex is Texture2D:
+			target.texture = tex
+
+
+func _fetch_avatar_from_firestore(uid: String, target: TextureRect) -> void:
+	"""Fetch a user's avatar from Firestore and apply it."""
+	if uid == "" or target == null:
+		return
+	var token := Auth.current_id_token
+	if token == "":
+		return
+	var url := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s" % uid
+	var headers := PackedStringArray([
+		"Authorization: Bearer %s" % token
+	])
+	var http := HTTPRequest.new()
+	http.timeout = 10.0
+	get_tree().root.add_child(http)
+	http.request_completed.connect(func(_r, code, _h, body):
+		http.queue_free()
+		if code != 200:
+			return
+		var doc = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(doc) != TYPE_DICTIONARY or not doc.has("fields"):
+			return
+		var fields: Dictionary = doc.get("fields", {})
+		if fields.has("avatar"):
+			var avatar_val = _from_firestore_value(fields["avatar"])
+			if typeof(avatar_val) == TYPE_STRING and str(avatar_val).strip_edges() != "":
+				_apply_avatar_texture(target, str(avatar_val))
+	)
+	http.request(url, headers, HTTPClient.METHOD_GET)
 
 
 func _update_room_time_label() -> void:

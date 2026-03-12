@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://lplgr0fnilgt"
-path="res://.godot/imported/rewardxpicon.png-e8150f60eb88f2506a6fca53fb6e1d1c.ctex"
+uid="uid://bvijmdd48diue"
+path="res://.godot/imported/Gemini_Generated_Image_x7g8a7x7g8a7x7g8.png-e2e38837093f3408f7f4233a08f1053a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/minigamesuite/rewardxpicon.png"
-dest_files=["res://.godot/imported/rewardxpicon.png-e8150f60eb88f2506a6fca53fb6e1d1c.ctex"]
+source_file="res://asset/background/Gemini_Generated_Image_x7g8a7x7g8a7x7g8.png"
+dest_files=["res://.godot/imported/Gemini_Generated_Image_x7g8a7x7g8a7x7g8.png-e2e38837093f3408f7f4233a08f1053a.ctex"]
 
 [params]
 

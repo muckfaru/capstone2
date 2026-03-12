@@ -51,6 +51,7 @@ var _last_client2_present: bool = false
 # Heartbeat system - keep room alive in lobby server
 var _heartbeat_timer: Timer = null
 
+
 func _ready() -> void:
 	var init: Dictionary = {}
 	if get_tree().has_meta("defuse_trojan_room_init"):
@@ -102,31 +103,43 @@ func _ready() -> void:
 	if _is_host:
 		_start_heartbeat()
 
-	# Initialize embedded room chat with this room context (best-effort; shares same RoomChat UI)
+	# Initialize embedded room chat
 	var chat := get_node_or_null("RoomChat")
 	if chat and chat.has_method("initialize"):
 		chat.initialize("https://capstone-823dc-default-rtdb.firebaseio.com", "/defuse_trojan_rooms", _room_id)
 
 
+# =============================================================================
+# BUTTON CONFIGURATION
+# All visual state is driven by tscn StyleBoxFlat resources.
+# Script only controls: text label, disabled state, toggle_mode, and signal connections.
+# =============================================================================
+
 func _configure_buttons() -> void:
 	if _is_host:
+		# Host: plain press button that triggers start
 		_start_btn.toggle_mode = false
+		_start_btn.button_pressed = false
 		_start_btn.text = "START MATCH"
 		_start_btn.disabled = true
+		# Disconnect ready toggle if it was connected (e.g. after host promotion)
+		if _start_btn.toggled.is_connected(_on_ready_toggled):
+			_start_btn.toggled.disconnect(_on_ready_toggled)
 	else:
+		# Client: toggle button for ready state
 		_start_btn.toggle_mode = true
 		_start_btn.disabled = false
-		# Button shows the ACTION (opposite of current state)
-		_start_btn.text = ("NOT READY" if _start_btn.button_pressed else "READY")
+		_start_btn.text = "READY"
+		_start_btn.button_pressed = false
 		if not _start_btn.toggled.is_connected(_on_ready_toggled):
 			_start_btn.toggled.connect(_on_ready_toggled)
 
 
 func _on_ready_toggled(pressed: bool) -> void:
-	# Button shows the ACTION (opposite of current state)
-	_start_btn.text = ("NOT READY" if pressed else "READY")
+	# Update button label to reflect current state (not the action)
+	_start_btn.text = "NOT READY" if pressed else "READY"
 
-	# Best-effort: update my card status immediately, polling will confirm
+	# Optimistic update on local card status
 	var my_slot := _get_my_slot()
 	if my_slot == "client":
 		_client_status.text = ("READY" if pressed else "NOT READY")
@@ -150,9 +163,12 @@ func _on_ready_toggled(pressed: bool) -> void:
 		http.queue_free()
 	)
 	http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
-	# Ask host UI to reflect quickly
 	_fetch_room()
 
+
+# =============================================================================
+# RELAY
+# =============================================================================
 
 func _setup_relay_connection() -> void:
 	if _lobby_server_url.strip_edges() == "" or _room_id.strip_edges() == "":
@@ -175,7 +191,6 @@ func _setup_relay_connection() -> void:
 
 func _on_relay_connected() -> void:
 	_relay_connected = true
-	# Share cosmetics so others can render even if snapshot is stale.
 	if _relay_client and Auth:
 		_relay_client.send_message({
 			"type": "cosmetics_update",
@@ -220,6 +235,10 @@ func _on_relay_message_received(data: Dictionary) -> void:
 			pass
 
 
+# =============================================================================
+# POLLING / SNAPSHOT
+# =============================================================================
+
 func _fetch_room() -> void:
 	if _room_id == "" or _lobby_server_url == "":
 		return
@@ -254,7 +273,6 @@ func _apply_snapshot(room_data: Dictionary) -> void:
 	var status := str(room_data.get("status", "waiting"))
 	_room_state_label.text = status.to_upper()
 
-	# If host started the game, everyone transitions
 	if status == "in_game" and not _transitioning:
 		_transitioning = true
 		_transition_to_loading(room_data)
@@ -266,9 +284,8 @@ func _apply_snapshot(room_data: Dictionary) -> void:
 	var my_uid: String = Auth.current_local_id if Auth else _player_id
 	var my_bg: String = Auth.current_card_bg_path if Auth else ""
 
-	# Host card
+	# --- Host card ---
 	if typeof(host_val) == TYPE_DICTIONARY:
-		# Cosmetics fallback + self sync
 		if Auth and str(host_val.get("card_bg", "")).strip_edges() == "":
 			var host_pid_cache := str(host_val.get("player_id", ""))
 			var cached_bg: String = str(Auth.get_remote_card_bg(host_pid_cache))
@@ -285,7 +302,6 @@ func _apply_snapshot(room_data: Dictionary) -> void:
 		CardCosmetics.apply_card_background(_host_card_node, str(host_val.get("card_bg", "")))
 		_host_status.text = "HOST"
 		_host_status.add_theme_color_override("font_color", COLOR_ACCENT)
-		# Promotion detection if host changed
 		if my_uid != "" and str(host_val.get("player_id", "")) == my_uid and not _is_host:
 			_is_host = true
 			_configure_buttons()
@@ -296,15 +312,13 @@ func _apply_snapshot(room_data: Dictionary) -> void:
 		_host_status.add_theme_color_override("font_color", COLOR_DANGER)
 		CardCosmetics.apply_card_background(_host_card_node, "")
 
-	# Client 1 card
+	# --- Client 1 card ---
 	if typeof(c1_val) == TYPE_DICTIONARY:
-		var c1_present := true
 		if not _last_client1_present:
 			_message_label.text = "Player joined!"
 			_play_client_join_animations("ClientCard")
-		_last_client1_present = c1_present
+		_last_client1_present = true
 
-		# Cosmetics fallback + self sync
 		if Auth and str(c1_val.get("card_bg", "")).strip_edges() == "":
 			var c1_pid_cache := str(c1_val.get("player_id", ""))
 			var cached_bg1: String = str(Auth.get_remote_card_bg(c1_pid_cache))
@@ -333,15 +347,13 @@ func _apply_snapshot(room_data: Dictionary) -> void:
 		_client_status.text = "Searching.."
 		_client_status.add_theme_color_override("font_color", COLOR_MUTED)
 
-	# Client 2 card
+	# --- Client 2 card ---
 	if typeof(c2_val) == TYPE_DICTIONARY:
-		var c2_present := true
 		if not _last_client2_present:
 			_message_label.text = "Player joined!"
 			_play_client_join_animations("Client2Card")
-		_last_client2_present = c2_present
+		_last_client2_present = true
 
-		# Cosmetics fallback + self sync
 		if Auth and str(c2_val.get("card_bg", "")).strip_edges() == "":
 			var c2_pid_cache := str(c2_val.get("player_id", ""))
 			var cached_bg2: String = str(Auth.get_remote_card_bg(c2_pid_cache))
@@ -376,8 +388,12 @@ func _apply_snapshot(room_data: Dictionary) -> void:
 		_start_btn.disabled = not can_start
 		_message_label.text = ("All players ready. You can start." if can_start else "Waiting for all players to ready up...")
 	else:
-		_message_label.text = "Toggle READY, then wait for host." 
+		_message_label.text = "Toggle READY, then wait for host."
 
+
+# =============================================================================
+# ANIMATIONS
+# =============================================================================
 
 func _play_client_join_animations(card_name: String) -> void:
 	var username_anim: AnimationPlayer = get_node_or_null("CardsContainer/%s/Username/AnimationPlayer" % card_name)
@@ -407,6 +423,10 @@ func _play_client_leave_animations(card_name: String) -> void:
 		card_anim.play_backwards("usercardani")
 
 
+# =============================================================================
+# COSMETICS SYNC
+# =============================================================================
+
 func _sync_my_card_bg_to_lobby(bg_path: String) -> void:
 	if _room_id == "" or _lobby_server_url == "":
 		return
@@ -426,6 +446,10 @@ func _sync_my_card_bg_to_lobby(bg_path: String) -> void:
 	)
 	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, JSON.stringify(body))
 
+
+# =============================================================================
+# HELPERS
+# =============================================================================
 
 func _are_all_present_clients_ready(room_data: Dictionary) -> bool:
 	var c1_val = room_data.get("client", null)
@@ -454,11 +478,14 @@ func _get_my_slot() -> String:
 	return ""
 
 
+# =============================================================================
+# ACTIONS
+# =============================================================================
+
 func _on_start_pressed() -> void:
 	if not _is_host or _room_id == "" or _lobby_server_url == "":
 		return
 
-	# Guard: require at least 2 players + all present clients ready
 	var status := str(_latest_room_data.get("status", "waiting"))
 	var current_players: int = int(_latest_room_data.get("current_players", 1))
 	if status != "waiting" or current_players < 2 or not _are_all_present_clients_ready(_latest_room_data):
@@ -473,7 +500,6 @@ func _on_start_pressed() -> void:
 	var http := HTTPRequest.new()
 	add_child(http)
 
-	# Schedule a synchronized start time (server timestamp) so all clients reach arena together.
 	var body := {
 		"status": "in_game",
 		"game_start_in_ms": LOADING_DURATION_MS
@@ -486,11 +512,9 @@ func _on_start_pressed() -> void:
 			_start_btn.disabled = false
 			_message_label.text = "Failed to start. Try again."
 			return
-		# Best-effort: transition host immediately using latest snapshot.
 		var latest := _latest_room_data if typeof(_latest_room_data) == TYPE_DICTIONARY else {}
 		if not _transitioning:
 			_transitioning = true
-			# If server returned game_start_time_ms, merge it into snapshot for the loading scene.
 			var resp = JSON.parse_string(body_bytes.get_string_from_utf8())
 			if typeof(resp) == TYPE_DICTIONARY and resp.has("game_start_time_ms"):
 				latest["game_start_time_ms"] = int(resp.get("game_start_time_ms", 0))
@@ -502,7 +526,7 @@ func _on_start_pressed() -> void:
 
 func _on_leave_pressed() -> void:
 	_stop_heartbeat()
-	
+
 	if _room_id == "" or _lobby_server_url == "":
 		_transition_back_to_landing()
 		return
@@ -523,20 +547,20 @@ func _on_leave_pressed() -> void:
 	http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
 
 
+# =============================================================================
+# SCENE TRANSITIONS
+# =============================================================================
+
 func _transition_to_loading(room_data: Dictionary) -> void:
-	# Stop heartbeat before transitioning
 	_stop_heartbeat()
-	
-	# Stop polling to avoid double-transition
+
 	if _poll_timer and is_instance_valid(_poll_timer):
 		_poll_timer.stop()
 
-	# Preserve relay client across scene change
 	if _relay_client and is_instance_valid(_relay_client) and _relay_client.get_parent():
 		_relay_client.get_parent().remove_child(_relay_client)
 		get_tree().root.add_child(_relay_client)
 
-	# Safely get Dictionary values (can be null even with default)
 	var host_raw = room_data.get("host", {})
 	var host_val: Dictionary = host_raw if host_raw is Dictionary else {}
 	var c1_raw = room_data.get("client", {})
@@ -569,31 +593,26 @@ func _transition_back_to_landing() -> void:
 
 
 # =============================================================================
-# HEARTBEAT SYSTEM - Keep room alive in lobby server
+# HEARTBEAT SYSTEM
 # =============================================================================
 
 func _start_heartbeat() -> void:
 	if not _is_host:
 		return
-	
 	if _lobby_server_url == "":
 		push_warning("[DefuseTrojanRoom] Cannot start heartbeat - lobby server URL not set")
 		return
-	
 	if _room_id == "":
 		push_warning("[DefuseTrojanRoom] Cannot start heartbeat - no room ID")
 		return
-	
-	# Create heartbeat timer
+
 	_heartbeat_timer = Timer.new()
 	_heartbeat_timer.wait_time = HEARTBEAT_INTERVAL
 	_heartbeat_timer.autostart = true
 	_heartbeat_timer.timeout.connect(_on_heartbeat_timeout)
 	add_child(_heartbeat_timer)
-	
+
 	print("[DefuseTrojanRoom] Heartbeat started - interval: %.0fs" % HEARTBEAT_INTERVAL)
-	
-	# Send initial heartbeat immediately
 	_send_heartbeat()
 
 
@@ -604,14 +623,13 @@ func _on_heartbeat_timeout() -> void:
 func _send_heartbeat() -> void:
 	if _lobby_server_url == "" or _room_id == "":
 		return
-	
+
 	var url := _lobby_server_url + "/api/rooms/" + _room_id + "/heartbeat"
 	var http := HTTPRequest.new()
 	add_child(http)
-	
+
 	http.request_completed.connect(func(_result, code, _headers, _body):
 		http.queue_free()
-		
 		if code == 200:
 			print("[DefuseTrojanRoom] Heartbeat sent successfully")
 		elif code == 404:
@@ -619,10 +637,10 @@ func _send_heartbeat() -> void:
 		else:
 			push_warning("[DefuseTrojanRoom] Heartbeat failed HTTP %d" % code)
 	)
-	
+
 	var headers := ["Content-Type: application/json"]
 	var error := http.request(url, headers, HTTPClient.METHOD_POST, "{}")
-	
+
 	if error != OK:
 		http.queue_free()
 		push_error("[DefuseTrojanRoom] Failed to send heartbeat request: %d" % error)

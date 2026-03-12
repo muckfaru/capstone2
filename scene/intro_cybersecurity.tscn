@@ -1,7 +1,8 @@
-[gd_scene load_steps=32 format=3 uid="uid://dh1mh2p6lafp6"]
+[gd_scene load_steps=34 format=3 uid="uid://dh1mh2p6lafp6"]
 
 [ext_resource type="Script" uid="uid://cvqso5ubcehs5" path="res://script/intro_cybersecurity.gd" id="1_intro"]
 [ext_resource type="Texture2D" uid="uid://dri7g0isxowjd" path="res://asset/background/arena toturial.jpg" id="2_bg"]
+[ext_resource type="Shader" uid="uid://bhfjciu5yf2vs" path="res://shader/blur_panel.gdshader" id="3_8ry7p"]
 [ext_resource type="Texture2D" uid="uid://cwbi1ffhuk7he" path="res://asset/Group 42.png" id="3_ehwo1"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="3_font"]
 [ext_resource type="Texture2D" uid="uid://dwqolbjt7ppqx" path="res://asset/Group 44.png" id="4_3mjw2"]
@@ -16,6 +17,12 @@
 [ext_resource type="Texture2D" uid="uid://behy1edgaf778" path="res://asset/Group (1).png" id="14_rcaif"]
 [ext_resource type="Texture2D" uid="uid://dr4iv82nr5rrb" path="res://asset/Group (2).png" id="15_5ky23"]
 [ext_resource type="Texture2D" uid="uid://c00cvw437jdd" path="res://asset/icons/mission_file.png" id="16_vuy2a"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_j8lge"]
+shader = ExtResource("3_8ry7p")
+shader_parameter/blur_amount = 1.5
+shader_parameter/tint_color = Color(0, 0.05, 0.18, 0.5)
+shader_parameter/corner_radius = 0.05
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xlnuq"]
 bg_color = Color(0, 0.211765, 0.490196, 0.67451)
@@ -119,8 +126,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -7.0
-offset_right = 95.0
+offset_left = 4.0
+offset_right = 3.0
 offset_bottom = -1.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -136,6 +143,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="Panel" parent="BackgroundLayer"]
+material = SubResource("ShaderMaterial_j8lge")
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

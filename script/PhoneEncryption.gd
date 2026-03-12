@@ -1473,6 +1473,8 @@ func game_over():
 	
 	# Award XP but DON'T mark as completed
 	TutorialManager.add_xp(partial_xp, "Crypt Contract (Attempt)")
+	TutorialManager.mark_minigame_attempted("crypt_contract", partial_xp)
+	TutorialManager.mark_minigame_attempted("intermediate_crypt_contract", partial_xp)
 	
 	if _is_gamemode:
 		_submit_gamemode_score(score, 500)

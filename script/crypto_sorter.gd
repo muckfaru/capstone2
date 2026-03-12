@@ -936,6 +936,7 @@ func _game_over() -> void:
 
 	var partial_xp := current_wave * 5 + int(float(score) / 20.0)
 	TutorialManager.add_xp(partial_xp, "Crypto Sorter (Attempt)")
+	TutorialManager.mark_minigame_attempted("advanced_crypto_sorter", partial_xp)
 
 	if _is_gamemode:
 		_submit_gamemode_score(score, max_score)

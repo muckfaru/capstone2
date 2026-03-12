@@ -31,6 +31,7 @@ const RANK_THRESHOLDS := [
 # Tutorial completion data (loaded from Firestore)
 var completed_tutorials: Dictionary = {}
 var completed_minigames: Dictionary = {}  # Track minigame first-time completions
+var attempted_minigames: Dictionary = {}  # Track any minigame where XP was earned (even on loss)
 var total_xp: int = 0
 var unlocked_games: Array[String] = ["akashic_tcg"]  # TCG always unlocked
 var data_has_loaded: bool = false  # Track if Firestore data has been loaded
@@ -49,6 +50,7 @@ func reset_data() -> void:
 	print("[TutorialManager] 🔄 Resetting all data...")
 	completed_tutorials.clear()
 	completed_minigames.clear()
+	attempted_minigames.clear()
 	total_xp = 0
 	unlocked_games = ["akashic_tcg"]  # Reset to default
 	data_has_loaded = false  # Reset loaded flag
@@ -426,10 +428,36 @@ func award_minigame_xp(minigame_id: String, xp_amount: int, score: int = 0) -> i
 		CyberCoinManager.award_minigame_coins(minigame_id)
 		CyberCoinManager.award_xp_conversion(xp_amount, minigame_id)
 
+	# Also mark as attempted (redundant but consistent)
+	if not attempted_minigames.has(minigame_id):
+		attempted_minigames[minigame_id] = {"xp_earned": xp_amount, "timestamp": Time.get_unix_time_from_system()}
+
 	# Save to Firestore
 	_save_minigame_data()
 	
 	return xp_amount
+
+
+# -------------------------
+# MARK MINIGAME AS ATTEMPTED (even on loss, if XP was earned)
+# -------------------------
+func mark_minigame_attempted(minigame_id: String, xp_earned: int = 0) -> void:
+	"""Mark a minigame as attempted (even if player lost). Enables prerequisite unlocking."""
+	if attempted_minigames.has(minigame_id):
+		# Update cumulative XP
+		attempted_minigames[minigame_id]["xp_earned"] = int(attempted_minigames[minigame_id].get("xp_earned", 0)) + xp_earned
+		attempted_minigames[minigame_id]["timestamp"] = Time.get_unix_time_from_system()
+	else:
+		attempted_minigames[minigame_id] = {"xp_earned": xp_earned, "timestamp": Time.get_unix_time_from_system()}
+	print("[TutorialManager] 🎮 Minigame '%s' marked as attempted (XP earned: %d)" % [minigame_id, xp_earned])
+	_save_minigame_data()
+
+
+# -------------------------
+# CHECK IF MINIGAME WAS ATTEMPTED (earned any XP)
+# -------------------------
+func is_minigame_attempted(minigame_id: String) -> bool:
+	return attempted_minigames.has(minigame_id) or completed_minigames.has(minigame_id)
 
 
 # -------------------------
@@ -509,8 +537,21 @@ func _save_minigame_data() -> void:
 				}
 			}
 		}
-	
-	var url: String = "%s/users/%s?updateMask.fieldPaths=minigames" % [FIRESTORE_URL, Auth.current_local_id]
+
+	# Build attempted minigame fields
+	var attempted_fields := {}
+	for mid in attempted_minigames.keys():
+		var am = attempted_minigames[mid]
+		attempted_fields[mid] = {
+			"mapValue": {
+				"fields": {
+					"xp_earned": {"integerValue": am.get("xp_earned", 0)},
+					"timestamp": {"integerValue": int(am.get("timestamp", 0))}
+				}
+			}
+		}
+
+	var url: String = "%s/users/%s?updateMask.fieldPaths=minigames&updateMask.fieldPaths=attempted_minigames" % [FIRESTORE_URL, Auth.current_local_id]
 	var headers: Array = [
 		"Content-Type: application/json",
 		"Authorization: Bearer %s" % Auth.current_id_token
@@ -521,6 +562,11 @@ func _save_minigame_data() -> void:
 			"minigames": {
 				"mapValue": {
 					"fields": minigame_fields
+				}
+			},
+			"attempted_minigames": {
+				"mapValue": {
+					"fields": attempted_fields
 				}
 			}
 		}
@@ -559,6 +605,17 @@ func _load_minigame_data(fields: Dictionary) -> void:
 				"timestamp": int(minigame_fields.get("timestamp", {}).get("integerValue", 0))
 			}
 		print("[TutorialManager] 🎮 Loaded %d completed minigames" % completed_minigames.size())
+
+	# Load attempted minigames
+	if fields.has("attempted_minigames") and fields["attempted_minigames"].has("mapValue"):
+		var attempted_map = fields["attempted_minigames"]["mapValue"].get("fields", {})
+		for minigame_id in attempted_map.keys():
+			var am_fields = attempted_map[minigame_id].get("mapValue", {}).get("fields", {})
+			attempted_minigames[minigame_id] = {
+				"xp_earned": int(am_fields.get("xp_earned", {}).get("integerValue", 0)),
+				"timestamp": int(am_fields.get("timestamp", {}).get("integerValue", 0))
+			}
+		print("[TutorialManager] 🎮 Loaded %d attempted minigames" % attempted_minigames.size())
 
 
 # -------------------------

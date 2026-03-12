@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://cvvag1ig1w2l2"]
+[gd_scene load_steps=40 format=3 uid="uid://cvvag1ig1w2l2"]
 
 [ext_resource type="Script" uid="uid://bfl7x4bgwwx3k" path="res://script/code_breaker_room.gd" id="1_w0by1"]
 [ext_resource type="PackedScene" uid="uid://caeteha34m08t" path="res://scene/room_chat.tscn" id="2_room_chat"]
@@ -6,6 +6,13 @@
 [ext_resource type="Texture2D" uid="uid://ct0fcceas6r5c" path="res://asset/background/room backround.png" id="3_fpe01"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="3_wxc2o"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="5_b3n7n"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_b3n7n"]
+font = ExtResource("3_wxc2o")
+font_size = 25
+font_color = Color(0.678431, 0.984314, 0.396078, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 0.977)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e7bgt"]
 bg_color = Color(0.2, 0.2, 0.25098, 0.247059)
@@ -15,7 +22,8 @@ bg_color = Color(0.2, 0.2, 0.25098, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+border_color = Color(0.678431, 0.984314, 0.396078, 1)
+border_blend = true
 corner_radius_top_left = 8
 
 [sub_resource type="Animation" id="Animation_wxc2o"]
@@ -59,7 +67,8 @@ bg_color = Color(0.2, 0.2, 0.25098, 1)
 border_width_left = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
+border_color = Color(0.678431, 0.984314, 0.396078, 1)
+border_blend = true
 corner_radius_bottom_right = 8
 
 [sub_resource type="Animation" id="Animation_n8nu1"]
@@ -262,32 +271,160 @@ _data = {
 &"usercardani": SubResource("Animation_exlih")
 }
 
-[sub_resource type="StyleBoxFlat" id="1_btn_normal"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_focus"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
 bg_color = Color(0.2, 0.2, 0.25098, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.490196, 0.65098, 1, 0.501961)
-corner_radius_top_left = 10
-corner_radius_top_right = 40
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 40
-shadow_color = Color(0.360784, 0.533333, 0.996078, 0.74902)
-shadow_size = 3
+border_color = Color(0.678431, 0.984314, 0.396078, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="2_btn_hover"]
-bg_color = Color(1, 0.313726, 0.247059, 0.611765)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_disabled"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.1, 0.1, 0.13, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.490196, 0.65098, 1, 0.501961)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0.490196, 0.65098, 1, 0.501961)
+border_color = Color(0.28, 0.3, 0.34, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_hover"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.678431, 0.984314, 0.396078, 0.15)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.678431, 0.984314, 0.396078, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0.678431, 0.984314, 0.396078, 0.55)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_pressed"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.2, 0.2, 0.25098, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.2, 0.25098, 1)
+border_blend = true
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_normal"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.2, 0.2, 0.25098, 1)
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.678431, 0.984314, 0.396078, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_leave_focus"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.490196, 0.654902, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(1, 0.313726, 0.247059, 0.611765)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_leave_hover"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.490196, 0.654902, 1, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(1, 0.313726, 0.247059, 0.8)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_leave_pressed"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.78778, 0, 0.0948846, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(1, 0.313726, 0.247059, 0.6)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_leave_normal"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.0509804, 0.0509804, 0.101961, 0.764706)
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.78778, 0, 0.0948846, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 shadow_size = 10
 
 [node name="room" type="Control"]
@@ -306,10 +443,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -59.0
+offset_left = -5.0
 offset_top = -2.0
-offset_right = 117.0
-offset_bottom = 57.0
+offset_right = 11.0
+offset_bottom = 3.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_fpe01")
@@ -323,8 +460,9 @@ anchor_top = 0.05
 anchor_right = 0.5
 anchor_bottom = 0.05
 offset_left = -250.0
+offset_top = 5.6
 offset_right = 250.0
-offset_bottom = 40.0
+offset_bottom = 45.6
 alignment = 1
 
 [node name="RoomIDLabel" type="Label" parent="RoomHeader"]
@@ -332,6 +470,7 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("3_b3n7n")
 theme_override_font_sizes/font_size = 25
 text = "ROOM: #12345"
+label_settings = SubResource("LabelSettings_b3n7n")
 horizontal_alignment = 1
 
 [node name="RoomStateLabel" type="Label" parent="RoomHeader"]
@@ -357,10 +496,10 @@ anchor_left = 0.5
 anchor_top = 0.35
 anchor_right = 0.5
 anchor_bottom = 0.35
-offset_left = -500.0
-offset_top = -100.0
-offset_right = 500.0
-offset_bottom = 200.0
+offset_left = -488.0
+offset_top = -99.8
+offset_right = 512.0
+offset_bottom = 300.2
 alignment = 1
 
 [node name="HostCard" type="NinePatchRect" parent="CardsContainer"]
@@ -527,9 +666,9 @@ anchor_left = 0.5
 anchor_top = 0.85
 anchor_right = 0.5
 anchor_bottom = 0.85
-offset_left = -260.0
+offset_left = -240.0
 offset_top = 24.2
-offset_right = 260.0
+offset_right = 280.0
 offset_bottom = 72.2
 theme_override_constants/separation = 25
 alignment = 1
@@ -538,27 +677,35 @@ alignment = 1
 custom_minimum_size = Vector2(220, 48)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_type_variation = &"PrimaryButton"
+theme_override_colors/font_disabled_color = Color(0.32, 0.34, 0.38, 1)
 theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
 theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("3_wxc2o")
 theme_override_font_sizes/font_size = 17
-theme_override_styles/normal = SubResource("1_btn_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_start_focus")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_start_disabled")
+theme_override_styles/hover = SubResource("StyleBoxFlat_start_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_start_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_start_normal")
 text = "START MATCH"
 
 [node name="LeaveButton" type="Button" parent="ButtonPanel"]
 custom_minimum_size = Vector2(220, 48)
 layout_mode = 2
 mouse_default_cursor_shape = 2
-theme_type_variation = &"DangerButton"
-theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
-theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
-theme_override_styles/hover = SubResource("2_btn_hover")
-theme_override_styles/normal = SubResource("1_btn_normal")
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_wxc2o")
+theme_override_font_sizes/font_size = 17
+theme_override_styles/focus = SubResource("StyleBoxFlat_leave_focus")
+theme_override_styles/hover = SubResource("StyleBoxFlat_leave_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_leave_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_leave_normal")
 text = "LEAVE ROOM"
 
 [node name="MessageLabel" type="Label" parent="."]
@@ -568,9 +715,9 @@ anchor_left = 0.5
 anchor_top = 0.93
 anchor_right = 0.5
 anchor_bottom = 0.93
-offset_left = -199.0
+offset_left = -184.0
 offset_top = 29.36
-offset_right = 201.0
+offset_right = 216.0
 offset_bottom = 45.36
 theme_override_fonts/font = ExtResource("3_wxc2o")
 theme_override_font_sizes/font_size = 15

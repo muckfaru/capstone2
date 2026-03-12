@@ -329,10 +329,7 @@ You now understand cybersecurity fundamentals:
 [b]Next up: Practice applying the CIA Triad![/b]
 
 [color=#55ff55]Press NEXT to continue to interactive CIA training →[/color]""" % xp_earned
-			if _is_gamemode:
-				next_button.text = "SUBMIT & FINISH"
-			else:
-				next_button.text = "CONTINUE"
+			next_button.text = "CONTINUE"
 			next_button.disabled = false
 	
 	if not section_text.is_empty():
@@ -361,11 +358,10 @@ func _on_next_pressed() -> void:
 			# Show reward popup on first completion
 			if _first_clear and not _is_gamemode:
 				MinigameRewards.try_grant_rewards("beginner_fundamentals", xp_earned, xp_earned, self)
-			if _is_gamemode:
-				_submit_gamemode_score()
-			else:
-				# Transition to CIA Triad tutorial
-				get_tree().change_scene_to_file("res://scene/tutorial_cia_triad.tscn")
+			# Always transition to CIA Triad interactive game
+			# (tutorial_cia_triad.gd has its own GameMode support and will
+			#  handle score submission after the player completes the game)
+			get_tree().change_scene_to_file("res://scene/tutorial_cia_triad.tscn")
 
 
 func _on_back_pressed() -> void:

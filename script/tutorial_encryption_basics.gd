@@ -16,12 +16,14 @@ enum Phase {
 
 var current_phase = Phase.INTRO
 var score := 0
+var max_score := 350  # Total possible score
 var practice_completed := 0
 var challenge_attempts := 0
 var _is_gamemode: bool = false
 var _gamemode_room_code: String = ""
 var _gamemode_lobby_url: String = ""
 var _gamemode_start_time_ms: int = 0
+var _highest_phase_reached := 0  # Track progress for partial XP
 
 # Cipher wheel state
 var current_shift := 3
@@ -29,7 +31,7 @@ var is_dragging := false
 var drag_start_angle := 0.0
 var wheel_rotation := 0.0
 
-# Practice messages
+# Practice messages (easy - shift 3)
 var practice_messages := [
 	{"plain": "HELLO", "encrypted": "KHOOR", "key": 3},
 	{"plain": "WORLD", "encrypted": "ZRUOG", "key": 3},
@@ -37,11 +39,17 @@ var practice_messages := [
 ]
 var current_practice_index := 0
 
-# Challenge messages
+# Challenge messages (increasing difficulty with different shift keys)
 var challenge_messages := [
+	# Easy: Shift 3
 	{"plain": "SAFE", "encrypted": "VDIH", "key": 3},
 	{"plain": "SECRET", "encrypted": "VHFUHW", "key": 3},
-	{"plain": "LOCK", "encrypted": "ORFN", "key": 3}
+	# Medium: Shift 5
+	{"plain": "GUARD", "encrypted": "LZFWI", "key": 5},
+	{"plain": "VIRUS", "encrypted": "ANWZX", "key": 5},
+	# Hard: Shift 7
+	{"plain": "HACK", "encrypted": "OHJR", "key": 7},
+	{"plain": "FIREWALL", "encrypted": "MPYLDHSS", "key": 7},
 ]
 var current_challenge_index := 0
 
@@ -224,6 +232,7 @@ Example: K → H, O → L
 				next_button.disabled = true
 
 		Phase.CHALLENGE_MODE:
+			_highest_phase_reached = max(_highest_phase_reached, 3)
 			section_label.text = "Phase 3: Decryption Challenge"
 			cipher_type_label.text = "Caesar Cipher - Timed Challenge"
 			
@@ -232,7 +241,7 @@ Example: K → H, O → L
 				score += 100
 				content_label.text = """🎉 CHALLENGE COMPLETE!
 
-You've mastered Caesar Cipher decryption!
+You've mastered Caesar Cipher decryption with multiple shift keys!
 
 Score: +100 points
 
@@ -240,7 +249,18 @@ Click NEXT to learn about modern encryption →"""
 				next_button.disabled = false
 			else:
 				var msg = challenge_messages[current_challenge_index]
-				content_label.text = """⚡ SPEED CHALLENGE!
+				var difficulty := "EASY"
+				if msg["key"] >= 7:
+					difficulty = "🔴 HARD"
+				elif msg["key"] >= 5:
+					difficulty = "🟡 MEDIUM"
+				else:
+					difficulty = "🟢 EASY"
+				
+				current_shift = msg["key"]
+				content_label.text = """⚡ DECRYPTION CHALLENGE! [%s]
+
+Challenge %d of %d
 
 Decrypt this message as fast as you can!
 
@@ -249,7 +269,9 @@ Decrypt this message as fast as you can!
 2. Type the decrypted answer
 3. Click SUBMIT
 
-Hint: Key = 3 (shift backwards)"""
+🔑 Key = %d (shift backwards by %d)
+
+💡 Use the alphabet reference below!""" % [difficulty, current_challenge_index + 1, challenge_messages.size(), msg["key"], msg["key"]]
 				
 				challenge_panel.visible = true
 				wheel_panel.visible = true
@@ -588,30 +610,24 @@ func _on_next_pressed() -> void:
 		Phase.COMPLETE:
 			print("[TUTORIAL] Final Score: %d" % score)
 			
-			if score <= 0:
-				print("[TUTORIAL] Score too low, redirecting...")
-				if _is_gamemode:
-					_submit_gamemode_score()
-				else:
-					get_tree().change_scene_to_file("res://scene/landing.tscn")
-				return
-			
+			# Always save — even with low score, award XP for effort
 			# Check first-time before saving
-			var _first_clear: bool = MinigameRewards.is_first_completion("beginner_encryption")
-			# Save tutorial result
+			var _first_clear: bool = MinigameRewards.is_first_completion("advanced_encryption")
+			
+			# Save tutorial result with correct ID matching prerequisite system
 			var tutorial_mgr = get_node("/root/TutorialManager")
 			if tutorial_mgr:
-				tutorial_mgr.save_tutorial_result("beginner_encryption", score, 200)
+				tutorial_mgr.save_tutorial_result("advanced_encryption", score, max_score)
 				await tutorial_mgr.save_completed
 			
 			# Show reward popup on first completion
 			if _first_clear and not _is_gamemode:
-				MinigameRewards.try_grant_rewards("beginner_encryption", score, score, self)
+				MinigameRewards.try_grant_rewards("advanced_encryption", score, score, self)
 			
 			if _is_gamemode:
 				_submit_gamemode_score()
 			else:
-				get_tree().change_scene_to_file("res://scene/landing.tscn")
+				get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 
 
 func _on_back_pressed() -> void:
@@ -619,6 +635,11 @@ func _on_back_pressed() -> void:
 		Phase.INTRO:
 			if _is_gamemode:
 				return  # Cannot quit during multiplayer game
+			# Award partial XP if player made any progress before quitting
+			if score > 0:
+				var tutorial_mgr = get_node("/root/TutorialManager")
+				if tutorial_mgr:
+					tutorial_mgr.save_tutorial_result("advanced_encryption", score, max_score)
 			get_tree().change_scene_to_file("res://scene/mode_selection.tscn")
 		Phase.LEARN_WHEEL:
 			_start_phase(Phase.INTRO)
