@@ -308,6 +308,7 @@ func publish_public_profile(extra: Dictionary) -> void:
 	if current_local_id == "" or current_id_token == "" or current_username == "":
 		return
 	var data: Dictionary = {
+		"uid": current_local_id,
 		"username": current_username,
 		"avatar": current_avatar,
 		"level": current_level
@@ -318,7 +319,8 @@ func publish_public_profile(extra: Dictionary) -> void:
 	var req := HTTPRequest.new()
 	add_child(req)
 	req.request_completed.connect(func(_r, _c, _h, _b): req.queue_free())
-	var err := req.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, JSON.stringify(data))
+	# Use PATCH instead of PUT so recent_matches (written after each game) is preserved
+	var err := req.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_PATCH, JSON.stringify(data))
 	if err != OK:
 		req.queue_free()
 
@@ -351,13 +353,14 @@ func _set_presence(state: String) -> void:
 	# Also write presence by username so friends can read it without uid resolution
 	if current_username == "":
 		return
+	var name_payload = {"state": state, "last_seen": str(Time.get_unix_time_from_system()), "uid": current_local_id}
 	var name_url := "%s/presence_by_name/%s.json?auth=%s" % [RTDB_BASE, current_username.uri_encode(), current_id_token]
 	var req2 := HTTPRequest.new()
 	add_child(req2)
 	req2.request_completed.connect(func(_r2, _c2, _h2, _b2):
 		req2.queue_free()
 	)
-	var err2 := req2.request(name_url, headers, HTTPClient.METHOD_PUT, body)
+	var err2 := req2.request(name_url, headers, HTTPClient.METHOD_PUT, JSON.stringify(name_payload))
 	if err2 != OK:
 		req2.queue_free()
 

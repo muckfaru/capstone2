@@ -421,64 +421,42 @@ func _check_existing_user(username: String) -> void:
 
 
 func _check_username_taken(username: String) -> void:
-	"""Query Firestore to check if the username is already used by another user."""
-	var query_url := "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents:runQuery" % PROJECT_ID
-	var headers: PackedStringArray = [
-		"Content-Type: application/json",
-		"Authorization: Bearer %s" % Auth.current_id_token
+	"""Check RTDB usernames index to see if the username is already claimed."""
+	var rtdb_url := "https://capstone-823dc-default-rtdb.firebaseio.com/usernames/%s.json?auth=%s" % [
+		username.to_lower().uri_encode(),
+		Auth.current_id_token
 	]
-	var query_body := {
-		"structuredQuery": {
-			"from": [{"collectionId": "users"}],
-			"where": {
-				"fieldFilter": {
-					"field": {"fieldPath": "username"},
-					"op": "EQUAL",
-					"value": {"stringValue": username}
-				}
-			},
-			"limit": 1
-		}
-	}
-	
+
 	var http := HTTPRequest.new()
 	add_child(http)
-	
+
 	http.request_completed.connect(func(_r: int, code: int, _h: PackedStringArray, resp_body: PackedByteArray):
 		http.queue_free()
-		
+
 		if code != 200:
-			# If query fails, still allow creation (best-effort check)
-			print("[IntroScene] ⚠️ Username check query failed: HTTP %d" % code)
-			await _terminal_line("CODENAME CHECK SKIPPED", COLOR_PROCESSING)
-			await get_tree().create_timer(0.3).timeout
-			_create_new_user_terminal(username)
+			# Cannot verify — block creation to be safe
+			print("[IntroScene] ⚠️ RTDB username check failed: HTTP %d" % code)
+			_play_sfx(error_sfx)
+			await _terminal_line("⚠️ UNABLE TO VERIFY CODENAME", COLOR_ERROR)
+			await _terminal_line("CHECK YOUR CONNECTION AND TRY AGAIN", COLOR_PROCESSING)
+			await get_tree().create_timer(2.0).timeout
+			_return_to_username_input()
 			return
-		
-		var resp_text := resp_body.get_string_from_utf8()
-		var parsed = JSON.parse_string(resp_text)
-		
-		# Check if any documents were returned
-		var username_taken := false
-		if typeof(parsed) == TYPE_ARRAY:
-			for entry in parsed:
-				if typeof(entry) == TYPE_DICTIONARY and entry.has("document"):
-					# A document with this username exists
-					username_taken = true
-					break
-		
+
+		var parsed = JSON.parse_string(resp_body.get_string_from_utf8())
+		# RTDB returns JSON null when the path doesn't exist (username is free)
+		# Returns the stored UID string if the username is already claimed
+		var username_taken := parsed != null
+
 		if username_taken:
-			# Username is already taken
 			_play_sfx(error_sfx)
 			await _terminal_line("⚠️ CODENAME ALREADY IN USE", COLOR_ERROR)
 			await _terminal_line("ANOTHER OPERATIVE IS USING THIS CODENAME", COLOR_ERROR)
 			await get_tree().create_timer(1.5).timeout
 			await _terminal_line("PLEASE CHOOSE A DIFFERENT CODENAME", COLOR_PROCESSING)
 			await get_tree().create_timer(1.0).timeout
-			# Re-enable username input
 			_return_to_username_input()
 		else:
-			# Username is available
 			_play_sfx(success_sfx)
 			await _terminal_line("CODENAME AVAILABLE ✅", COLOR_SUCCESS)
 			await get_tree().create_timer(0.3).timeout
@@ -486,14 +464,15 @@ func _check_username_taken(username: String) -> void:
 			await get_tree().create_timer(0.5).timeout
 			_create_new_user_terminal(username)
 	)
-	
-	var json_string := JSON.stringify(query_body)
-	var err := http.request(query_url, headers, HTTPClient.METHOD_POST, json_string)
+
+	var err := http.request(rtdb_url, [], HTTPClient.METHOD_GET)
 	if err != OK:
 		http.queue_free()
-		# On error, proceed anyway (best-effort)
-		print("[IntroScene] ⚠️ Username check request failed: %d" % err)
-		_create_new_user_terminal(username)
+		print("[IntroScene] ⚠️ RTDB username check request failed: %d" % err)
+		_play_sfx(error_sfx)
+		await _terminal_line("⚠️ CONNECTION ERROR", COLOR_ERROR)
+		await get_tree().create_timer(1.5).timeout
+		_return_to_username_input()
 
 
 func _return_to_username_input() -> void:
@@ -561,6 +540,16 @@ func _create_new_user_terminal(username: String) -> void:
 		http.queue_free()
 		
 		if code == 200 or code == 201:
+			# Register username in RTDB usernames index so future checks work
+			var rtdb_url := "https://capstone-823dc-default-rtdb.firebaseio.com/usernames/%s.json?auth=%s" % [
+				username.to_lower().uri_encode(),
+				Auth.current_id_token
+			]
+			var rtdb_http := HTTPRequest.new()
+			add_child(rtdb_http)
+			rtdb_http.request_completed.connect(func(_r2, _c2, _h2, _b2): rtdb_http.queue_free())
+			rtdb_http.request(rtdb_url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, '"%s"' % Auth.current_local_id)
+
 			_play_sfx(success_sfx)
 			await _terminal_line("CREDENTIALS UPLOADED", COLOR_SUCCESS)
 			await _terminal_line("PROFILE CREATED SUCCESSFULLY", COLOR_SUCCESS)

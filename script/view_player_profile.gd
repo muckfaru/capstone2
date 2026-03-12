@@ -183,9 +183,111 @@ func _on_player_data_received(_result, response_code, _headers, body) -> void:
 	if player_data.has("total_xp"):
 		xp_for_rank = int(player_data["total_xp"]["integerValue"])
 	_display_rank(_get_rank_from_xp(xp_for_rank))
-	
+
 	if http:
 		http.queue_free()
+
+	# Parse recent_matches directly from the Firestore fields we already have
+	print("[ViewPlayerProfile] Firestore fields keys: ", player_data.keys())
+	if player_data.has("recent_matches"):
+		var decoded = _from_firestore_value(player_data["recent_matches"])
+		if typeof(decoded) == TYPE_ARRAY and decoded.size() > 0:
+			_render_friend_match_history(decoded, _pending_username)
+		else:
+			_clear_history_rows()
+			_add_history_placeholder("No match history yet")
+	else:
+		# Field absent — try RTDB public_profiles as fallback
+		_fetch_rtdb_match_history(_pending_username)
+
+## Recursively decode a Firestore-encoded value into a plain GDScript value.
+func _from_firestore_value(val: Dictionary):
+	if val.has("stringValue"):   return str(val["stringValue"])
+	if val.has("integerValue"):  return int(str(val["integerValue"]))
+	if val.has("doubleValue"):   return float(val["doubleValue"])
+	if val.has("booleanValue"):  return bool(val["booleanValue"])
+	if val.has("nullValue"):     return null
+	if val.has("arrayValue"):
+		var out: Array = []
+		var values = val["arrayValue"].get("values", [])
+		for v in values:
+			out.append(_from_firestore_value(v))
+		return out
+	if val.has("mapValue"):
+		var out: Dictionary = {}
+		var mfields = val["mapValue"].get("fields", {})
+		for k in mfields:
+			out[k] = _from_firestore_value(mfields[k])
+		return out
+	return null
+
+func _fetch_rtdb_match_history(username: String) -> void:
+	"""Fetch only the recent_matches sub-node from RTDB for the given username."""
+	var token := Auth.current_id_token
+	if token == "" or username == "":
+		_add_history_placeholder("No match history available")
+		return
+	var url := "%s/public_profiles/%s/recent_matches.json?auth=%s" % [RTDB_BASE, username.uri_encode(), token]
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		req.queue_free()
+		var body_text := body.get_string_from_utf8()
+		if code != 200 or body_text == "null" or body_text == "":
+			_clear_history_rows()
+			_add_history_placeholder("No match history yet")
+			return
+		var parsed = JSON.parse_string(body_text)
+		var items: Array = []
+		if typeof(parsed) == TYPE_ARRAY:
+			items = parsed
+		elif typeof(parsed) == TYPE_DICTIONARY:
+			# RTDB may return array as {"0":{...},"1":{...}}
+			var keys = parsed.keys()
+			keys.sort()
+			for k in keys:
+				if typeof(parsed[k]) == TYPE_DICTIONARY:
+					items.append(parsed[k])
+		_render_friend_match_history(items, username)
+	)
+	req.request(url, [], HTTPClient.METHOD_GET)
+
+
+func _fetch_rtdb_match_history_with_fallback(username: String, uid: String) -> void:
+	"""Try RTDB public_profiles/{username}/recent_matches first; if absent, fall through to Firestore."""
+	var token := Auth.current_id_token
+	if token == "" or username == "":
+		_add_history_placeholder("No match history available")
+		return
+	var url := "%s/public_profiles/%s/recent_matches.json?auth=%s" % [RTDB_BASE, username.uri_encode(), token]
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		req.queue_free()
+		var body_text := body.get_string_from_utf8()
+		if code == 200 and body_text != "null" and body_text != "":
+			var parsed = JSON.parse_string(body_text)
+			var items: Array = []
+			if typeof(parsed) == TYPE_ARRAY:
+				items = parsed
+			elif typeof(parsed) == TYPE_DICTIONARY:
+				var keys = parsed.keys()
+				keys.sort()
+				for k in keys:
+					if typeof(parsed[k]) == TYPE_DICTIONARY:
+						items.append(parsed[k])
+			if items.size() > 0:
+				print("[ViewPlayerProfile] Got %d recent_matches from RTDB sub-path for '%s'" % [items.size(), username])
+				_render_friend_match_history(items, username)
+				return
+		# RTDB sub-path empty — fall back to Firestore user doc (works for own profile, 403 for others)
+		print("[ViewPlayerProfile] RTDB sub-path empty for '%s' — trying Firestore uid lookup" % username)
+		if uid != "":
+			_fetch_history_from_firestore_user_doc(uid, username)
+		else:
+			_fetch_history_via_uid_lookup(username)
+	)
+	req.request(url, [], HTTPClient.METHOD_GET)
 
 # ─── RTDB public profile fallback ─────────────────────────────────────────
 func _fetch_rtdb_profile() -> void:
@@ -264,10 +366,99 @@ func _populate_from_rtdb_data(data: Dictionary) -> void:
 			for k in keys:
 				if typeof(history_raw[k]) == TYPE_DICTIONARY:
 					history_items.append(history_raw[k])
+		print("[ViewPlayerProfile] recent_matches found in RTDB profile node (%d items)" % history_items.size())
 		_render_friend_match_history(history_items, str(data.get("username", _pending_username)))
 	else:
+		# recent_matches not in root profile node (may have been wiped by a PUT login before the PATCH fix).
+		# Try the sub-path directly: public_profiles/{username}/recent_matches
+		print("[ViewPlayerProfile] recent_matches absent from profile node — trying sub-path and Firestore")
+		_fetch_rtdb_match_history_with_fallback(_pending_username, str(data.get("uid", "")))
+
+
+func _fetch_history_via_uid_lookup(username: String) -> void:
+	"""Look up UID from presence_by_name (live) or usernames index, then fetch Firestore user doc."""
+	var token := Auth.current_id_token
+	if token == "" or username == "":
 		_clear_history_rows()
 		_add_history_placeholder("No match history yet")
+		return
+
+	# Try presence_by_name first — updated every time the user comes online (contains uid)
+	var presence_url := "%s/presence_by_name/%s.json?auth=%s" % [RTDB_BASE, username.uri_encode(), token]
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		req.queue_free()
+		var body_text := body.get_string_from_utf8()
+		if code == 200 and body_text != "null" and body_text != "":
+			var presence_data = JSON.parse_string(body_text)
+			if typeof(presence_data) == TYPE_DICTIONARY and presence_data.has("uid"):
+				var uid: String = str(presence_data["uid"])
+				if uid != "":
+					print("[ViewPlayerProfile] Got UID from presence_by_name for '%s': %s" % [username, uid])
+					_fetch_history_from_firestore_user_doc(uid, username)
+					return
+		# Fall back to usernames index
+		_fetch_history_via_usernames_index(username)
+	)
+	req.request(presence_url, [], HTTPClient.METHOD_GET)
+
+
+func _fetch_history_via_usernames_index(username: String) -> void:
+	var token := Auth.current_id_token
+	var rtdb_url := "%s/usernames/%s.json?auth=%s" % [RTDB_BASE, username.to_lower().uri_encode(), token]
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		req.queue_free()
+		var body_text := body.get_string_from_utf8()
+		if code != 200 or body_text == "null" or body_text == "":
+			_clear_history_rows()
+			_add_history_placeholder("No match history yet")
+			return
+		var uid = JSON.parse_string(body_text)
+		if typeof(uid) != TYPE_STRING or uid == "":
+			_clear_history_rows()
+			_add_history_placeholder("No match history yet")
+			return
+		print("[ViewPlayerProfile] Got UID from usernames index for '%s': %s" % [username, uid])
+		_fetch_history_from_firestore_user_doc(uid, username)
+	)
+	req.request(rtdb_url, [], HTTPClient.METHOD_GET)
+
+
+func _fetch_history_from_firestore_user_doc(uid: String, username: String) -> void:
+	"""Step 2: Directly fetch users/{uid} from Firestore and read recent_matches."""
+	var token := Auth.current_id_token
+	var url := "%s/%s" % [firestore_base_url, uid]
+	var headers := PackedStringArray(["Authorization: Bearer %s" % token])
+	var req := HTTPRequest.new()
+	add_child(req)
+	req.request_completed.connect(func(_r, code, _h, body: PackedByteArray):
+		req.queue_free()
+		if code != 200:
+			print("[ViewPlayerProfile] Firestore user doc fetch failed HTTP %d" % code)
+			_clear_history_rows()
+			_add_history_placeholder("No match history yet")
+			return
+		var parsed = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(parsed) != TYPE_DICTIONARY or not parsed.has("fields"):
+			_clear_history_rows()
+			_add_history_placeholder("No match history yet")
+			return
+		var fields: Dictionary = parsed["fields"]
+		if not fields.has("recent_matches"):
+			_clear_history_rows()
+			_add_history_placeholder("No match history yet")
+			return
+		var decoded = _from_firestore_value(fields["recent_matches"])
+		if typeof(decoded) == TYPE_ARRAY and decoded.size() > 0:
+			_render_friend_match_history(decoded, username)
+		else:
+			_clear_history_rows()
+			_add_history_placeholder("No match history yet")
+	)
+	req.request(url, headers, HTTPClient.METHOD_GET)
 
 
 func _clear_history_rows() -> void:

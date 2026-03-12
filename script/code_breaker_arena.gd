@@ -2335,10 +2335,23 @@ func _append_recent_match_to_user_doc(entry: Dictionary) -> void:
 		http_patch.request_completed.connect(func(_r2, code2, _h2, body2):
 			http_patch.queue_free()
 			if code2 == 200:
-				print("[Arena] ✅ recent_matches updated in users/%s" % uid)
+				print("[Arena] \u2705 recent_matches updated in users/%s" % uid)
+				# Mirror to RTDB public_profiles so friends can view match history
+				var rtdb_url := "https://capstone-823dc-default-rtdb.firebaseio.com/public_profiles/%s/recent_matches.json?auth=%s" % [
+					Auth.current_username.uri_encode(), token
+				]
+				var plain_recent := []
+				for item in recent:
+					if typeof(item) == TYPE_DICTIONARY:
+						plain_recent.append(item)
+				var rtdb_req := HTTPRequest.new()
+				if get_tree() and get_tree().root:
+					get_tree().root.add_child(rtdb_req)
+				rtdb_req.request_completed.connect(func(_r3,_c3,_h3,_b3): rtdb_req.queue_free())
+				rtdb_req.request(rtdb_url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, JSON.stringify(plain_recent))
 			else:
 				var err_text2: String = body2.get_string_from_utf8() if body2.size() > 0 else ""
-				print("[Arena] ⚠️ Failed to write recent_matches: %d\n%s" % [code2, err_text2])
+				print("[Arena] \u26a0\ufe0f Failed to write recent_matches: %d\n%s" % [code2, err_text2])
 		)
 		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(payload))
 	)

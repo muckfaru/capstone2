@@ -485,9 +485,17 @@ func _append_recent_match_to_user_doc(match_data: Dictionary) -> void:
 		http_patch.request_completed.connect(func(_r2, code2, _h2, _body2):
 			http_patch.queue_free()
 			if code2 == 200:
-				print("[DefuseTrojanPostgame] ✅ Recent match appended to user doc")
+				print("[DefuseTrojanPostgame] \u2705 Recent match appended to user doc")
+				# Mirror to RTDB public_profiles so friends can view match history
+				var rtdb_url := "https://capstone-823dc-default-rtdb.firebaseio.com/public_profiles/%s/recent_matches.json?auth=%s" % [
+					Auth.current_username.uri_encode(), Auth.current_id_token
+				]
+				var rtdb_req := HTTPRequest.new()
+				add_child(rtdb_req)
+				rtdb_req.request_completed.connect(func(_r3,_c3,_h3,_b3): rtdb_req.queue_free())
+				rtdb_req.request(rtdb_url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, JSON.stringify(recent))
 			else:
-				print("[DefuseTrojanPostgame] ⚠️ Failed to update recent_matches: %d" % code2)
+				print("[DefuseTrojanPostgame] \u26a0\ufe0f Failed to update recent_matches: %d" % code2)
 		)
 		
 		http_patch.request(patch_url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(patch_payload))

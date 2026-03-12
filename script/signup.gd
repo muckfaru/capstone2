@@ -268,6 +268,14 @@ func _check_firestore_username_and_route():
 				if fields.has("username") and fields["username"].has("stringValue"):
 					var username = fields["username"]["stringValue"]
 					print("✅ Existing Google user with username: ", username)
+					# Backfill RTDB usernames index (fire-and-forget)
+					var rtdb_url := "https://capstone-823dc-default-rtdb.firebaseio.com/usernames/%s.json?auth=%s" % [
+						username.to_lower().uri_encode(), Auth.current_id_token
+					]
+					var rtdb_h := HTTPRequest.new()
+					add_child(rtdb_h)
+					rtdb_h.request_completed.connect(func(_r2,_c2,_h2,_b2): rtdb_h.queue_free())
+					rtdb_h.request(rtdb_url, ["Content-Type: application/json"], HTTPClient.METHOD_PUT, '"%s"' % Auth.current_local_id)
 					print("🏠 Changing to landing.tscn...")
 					get_tree().change_scene_to_file("res://scene/landing.tscn")
 				else:
