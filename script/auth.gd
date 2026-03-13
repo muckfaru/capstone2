@@ -21,6 +21,8 @@ var current_user_email: String = ""  # ✨ Added to store user email
 var current_avatar: String = ""
 var current_level: int = 0
 
+var _presence_timer: Timer
+
 # Equipped cosmetics (loaded from Firestore user doc)
 var current_card_bg_path: String = ""
 var current_equipped_badge: String = ""
@@ -52,6 +54,12 @@ func _ready() -> void:
 	if not Engine.has_singleton("Auth"):
 		Engine.register_singleton("Auth", self)
 		print("[DEBUG] ✅ Auth singleton registered globally.")
+
+	_presence_timer = Timer.new()
+	_presence_timer.wait_time = 60.0
+	_presence_timer.autostart = false
+	_presence_timer.timeout.connect(_on_presence_heartbeat)
+	add_child(_presence_timer)
 
 	print("[DEBUG] Auth.gd ready!")
 
@@ -297,10 +305,16 @@ const RTDB_BASE := "https://capstone-823dc-default-rtdb.firebaseio.com"
 # -------------------------
 func set_user_online() -> void:
 	_set_presence("online")
+	_presence_timer.start()
 	publish_public_profile({})
 
 func set_user_offline() -> void:
 	_set_presence("offline")
+	_presence_timer.stop()
+
+func _on_presence_heartbeat() -> void:
+	if current_local_id != "" and current_id_token != "":
+		_set_presence("online", true)
 
 # Write a public-readable profile snapshot to RTDB so friends can view it
 # Call with extra = {"wins":n, "losses":n, "total_xp":n} after full data loads
@@ -324,7 +338,7 @@ func publish_public_profile(extra: Dictionary) -> void:
 	if err != OK:
 		req.queue_free()
 
-func _set_presence(state: String) -> void:
+func _set_presence(state: String, is_heartbeat: bool = false) -> void:
 	if current_local_id == "" or current_id_token == "":
 		push_warning("[AUTH] Missing auth state, cannot set presence.")
 		return
@@ -340,7 +354,8 @@ func _set_presence(state: String) -> void:
 	req.request_completed.connect(func(_r, code, _h, body_r):
 		req.queue_free()
 		if code == 200:
-			print("[AUTH] Presence updated (%s): %s" % [state, current_local_id])
+			if not is_heartbeat:
+				print("[AUTH] Presence updated (%s): %s" % [state, current_local_id])
 		else:
 			var txt = body_r.get_string_from_utf8() if body_r.size() > 0 else "no body"
 			push_warning("[AUTH] Failed to update presence (%s): %s" % [code, txt])

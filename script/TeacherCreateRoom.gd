@@ -79,7 +79,11 @@ const PLAYER_MAX: int = 50
 @onready var choose_game_row: HBoxContainer = $CanvasLayer/CreateFormPanel/FormContent/ChooseGameRow
 @onready var player_count_input: LineEdit = $CanvasLayer/CreateFormPanel/FormContent/PlayerRow/PlayerInputRow/PlayerCountInput
 @onready var player_validation_label: Label = $CanvasLayer/CreateFormPanel/FormContent/PlayerRow/PlayerValidationLabel
+@onready var choose_game_btn: Button = $CanvasLayer/CreateFormPanel/FormContent/ChooseGameRow/ChooseGameButton
+@onready var choose_game_hint: Label = $CanvasLayer/CreateFormPanel/FormContent/ChooseGameRow/ChooseGameHint
+@onready var generate_button_row: HBoxContainer = $CanvasLayer/CreateFormPanel/FormContent/GenerateButtonRow
 @onready var generate_button: Button = $CanvasLayer/CreateFormPanel/FormContent/GenerateButtonRow/GenerateButton
+var save_draft_button: Button = null
 
 @onready var mc_section: PanelContainer = $CanvasLayer/CreateFormPanel/FormContent/MCSection
 
@@ -136,6 +140,38 @@ const FIRESTORE_BASE_URL: String = "https://firestore.googleapis.com/v1/projects
 var room_history: Array[Dictionary] = []  # Loaded from Firestore
 var _history_http: HTTPRequest = null
 var _viewing_room_code: String = ""  # Currently viewing room's code
+var _editing_draft_code: String = "" # Currently editing draft's code
+
+func _reset_form() -> void:
+	_editing_draft_code = ""
+	room_name_input.text = ""
+	_quiz_start_posted = false
+	game_mode_btn.set_pressed_no_signal(false)
+	multiple_choice_btn.set_pressed_no_signal(false)
+	if choose_game_row:
+		choose_game_row.visible = false
+	if choose_game_hint:
+		choose_game_hint.text = "Pick minigame for the room"
+	if mc_section:
+		mc_section.visible = false
+	if generate_button:
+		generate_button.visible = true
+	if save_draft_button:
+		save_draft_button.visible = true
+	_reset_mc_state()
+	selected_minigame = ""
+	selected_minigame_scene = ""
+	selected_difficulty = ""
+	_selected_difficulty_button = null
+	if player_count_input:
+		player_count_input.text = "10"
+	if player_validation_label:
+		player_validation_label.visible = false
+	if _restrict_checkbox:
+		_restrict_checkbox.set_pressed_no_signal(false)
+		if _student_numbers_section:
+			_student_numbers_section.visible = false
+	_update_generate_button()
 
 func _ready() -> void:
 	_show_screen("main")
@@ -145,8 +181,16 @@ func _ready() -> void:
 	_build_minigame_cards()
 	popup_confirm_btn.disabled = true
 
+	# ── Build Save Draft Button ──
+	_build_save_draft_button()
+
+	# ── Build Refresh Button ──
+	_build_refresh_button()
+
 	game_mode_btn.set_pressed_no_signal(false)
 	multiple_choice_btn.set_pressed_no_signal(false)
+	if choose_game_hint:
+		choose_game_hint.text = "Pick minigame for the room"
 	if choose_game_row:
 		choose_game_row.visible = false
 	if mc_section:
@@ -156,6 +200,9 @@ func _ready() -> void:
 	player_validation_label.visible = false
 	player_count_input.text_changed.connect(_on_player_count_changed)
 	player_count_input.focus_exited.connect(_on_player_count_focus_exited)
+	
+	# Fix for generate/save buttons not lighting up when typing the room name
+	room_name_input.text_changed.connect(func(_new_text): _update_generate_button())
 
 	# ── Build Student Number Whitelist UI (between ChooseGameRow and MCSection) ──
 	_build_student_restriction_ui()
@@ -211,6 +258,8 @@ func _update_generate_button() -> void:
 	if multiple_choice_btn.button_pressed:
 		if not mc_all_questions_completed: ok = false
 	generate_button.disabled = not ok
+	if save_draft_button:
+		save_draft_button.disabled = not ok
 
 # ── MC Create button ─────────────────────────────────────────────────────────
 
@@ -270,6 +319,10 @@ func _on_mc_create_pressed() -> void:
 	var num_questions: int = mc_questions_input.text.strip_edges().to_int()
 	if quiz_creation_panel and quiz_creation_panel.has_method("initialize"):
 		quiz_creation_panel.initialize(num_questions, mc_selected_time)
+		# Load drafted questions if we are editing an existing draft
+		if not mc_quiz_data.is_empty() and mc_quiz_data.has("questions"):
+			if quiz_creation_panel.has_method("load_existing_data"):
+				quiz_creation_panel.load_existing_data(mc_quiz_data["questions"])
 		_show_screen("quiz_creation")
 
 
@@ -307,6 +360,8 @@ func _on_game_mode_toggled(button_pressed: bool) -> void:
 			mc_section.visible = false
 		if generate_button:
 			generate_button.visible = true
+		if save_draft_button:
+			save_draft_button.visible = true
 		if mc_view_btn:
 			mc_view_btn.visible = false
 		_reset_mc_state()
@@ -329,6 +384,8 @@ func _on_game_mode_toggled(button_pressed: bool) -> void:
 func _on_multiple_choice_toggled(button_pressed: bool) -> void:
 	if button_pressed:
 		game_mode_btn.set_pressed_no_signal(false)
+		if choose_game_hint:
+			choose_game_hint.text = "Pick minigame for the room"
 		if choose_game_row:
 			choose_game_row.visible = false
 		selected_minigame = ""
@@ -347,6 +404,8 @@ func _on_multiple_choice_toggled(button_pressed: bool) -> void:
 			mc_section.visible = false
 		if generate_button:
 			generate_button.visible = true
+		if save_draft_button:
+			save_draft_button.visible = true
 		selected_difficulty = ""
 		if mc_view_btn:
 			mc_view_btn.visible = false
@@ -430,6 +489,128 @@ func _on_restrict_checkbox_toggled(pressed: bool) -> void:
 	if not pressed and _student_numbers_edit:
 		_student_numbers_edit.text = ""
 
+func _build_save_draft_button() -> void:
+	if not generate_button_row: return
+	
+	save_draft_button = Button.new()
+	save_draft_button.text = "Save as Draft"
+	save_draft_button.custom_minimum_size = Vector2(160, 40)
+	save_draft_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	var sb_normal := StyleBoxFlat.new()
+	sb_normal.bg_color = Color(0.1, 0.15, 0.25, 0.9)
+	sb_normal.border_color = Color(0.145, 0.878, 0.992, 0.6)
+	sb_normal.set_border_width_all(2)
+	sb_normal.set_corner_radius_all(6)
+	save_draft_button.add_theme_stylebox_override("normal", sb_normal)
+	
+	var sb_hover := StyleBoxFlat.new()
+	sb_hover.bg_color = Color(0.15, 0.25, 0.35, 1.0)
+	sb_hover.border_color = Color(0.145, 0.878, 0.992, 1.0)
+	sb_hover.set_border_width_all(2)
+	sb_hover.set_corner_radius_all(6)
+	save_draft_button.add_theme_stylebox_override("hover", sb_hover)
+	
+	save_draft_button.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0))
+	save_draft_button.add_theme_font_size_override("font_size", 14)
+	
+	save_draft_button.pressed.connect(_on_save_draft_pressed)
+	
+	# Insert it to the left of the generate button (assuming generate is at index 0 or 1)
+	generate_button_row.add_child(save_draft_button)
+	generate_button_row.move_child(save_draft_button, generate_button.get_index())
+
+func _build_refresh_button() -> void:
+	var top_bar: HBoxContainer = main_panel.get_node_or_null("TopBar")
+	if not top_bar: return
+	
+	var refresh_btn := Button.new()
+	refresh_btn.text = "Refresh"
+	refresh_btn.custom_minimum_size = Vector2(90, 36)
+	refresh_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.145, 0.878, 0.992, 0.2)
+	sb.border_color = Color(0.145, 0.878, 0.992, 0.8)
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(5)
+	refresh_btn.add_theme_stylebox_override("normal", sb)
+	
+	var sb_hover := sb.duplicate()
+	sb_hover.bg_color = Color(0.145, 0.878, 0.992, 0.4)
+	refresh_btn.add_theme_stylebox_override("hover", sb_hover)
+	refresh_btn.add_theme_stylebox_override("pressed", sb)
+	
+	refresh_btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	refresh_btn.pressed.connect(_load_room_history)
+	
+	top_bar.add_child(refresh_btn)
+	
+	# Try to insert it right before the Create button
+	var create_btn = top_bar.get_node_or_null("CreateButton")
+	if create_btn:
+		top_bar.move_child(refresh_btn, create_btn.get_index())
+		
+	# Add a small spacer between Refresh and Create just in case
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(10, 0)
+	top_bar.add_child(spacer)
+	top_bar.move_child(spacer, refresh_btn.get_index() + 1)
+	
+func _on_save_draft_pressed() -> void:
+	var room_name := room_name_input.text.strip_edges()
+	if room_name.is_empty():
+		_flash_error(room_name_input); return
+	if not _is_player_count_valid():
+		_flash_error(player_count_input)
+		player_validation_label.visible = true
+		player_validation_label.text = "Enter a valid player count (1-50)."
+		return
+	if not game_mode_btn.button_pressed and not multiple_choice_btn.button_pressed:
+		return
+	if game_mode_btn.button_pressed:
+		if selected_minigame.is_empty() or selected_difficulty.is_empty(): return
+	if multiple_choice_btn.button_pressed:
+		if not mc_all_questions_completed: return
+	current_room_name = room_name
+	_finalise_draft_room()
+
+func _finalise_draft_room() -> void:
+	var draft_code := _editing_draft_code if not _editing_draft_code.is_empty() else _generate_code()
+	var cats: Array[String] = []
+	if game_mode_btn.button_pressed: cats.append("Game Mode")
+	if multiple_choice_btn.button_pressed: cats.append("Multiple Choice")
+	var room_data: Dictionary = {
+		"name": current_room_name, "difficulty": selected_difficulty,
+		"categories": ", ".join(cats), "minigame": selected_minigame,
+		"minigame_scene": selected_minigame_scene, "player_count": _get_player_count(),
+		"status": "draft"
+	}
+	if multiple_choice_btn.button_pressed and not mc_quiz_data.is_empty():
+		room_data["mc_quiz_data"] = mc_quiz_data.duplicate(true)
+		room_data["mc_time_per_q"] = mc_selected_time
+
+	# We don't put it in `rooms` dict (active rooms), we only save it to Firestore history
+	# Collect student whitelist if enabled
+	var allowed_list: Array = []
+	if _restrict_checkbox and _restrict_checkbox.button_pressed and _student_numbers_edit:
+		var raw := _student_numbers_edit.text
+		var parts := raw.replace("\n", ",").replace("\r", ",").split(",")
+		for p in parts:
+			var trimmed := p.strip_edges()
+			if not trimmed.is_empty():
+				allowed_list.append(trimmed)
+	room_data["allowed_students"] = allowed_list
+
+	_save_room_to_history(draft_code, room_data)
+	
+	# Skip opening the Code display screen -> return to Main History List directly
+	_reset_form()
+	_show_screen("main")
+	# Refreshing will happen naturally when saving to Firestore, but we can call it now too
+	_load_room_history()
+
+
 # ── Reset ────────────────────────────────────────────────────────────────────
 
 func _reset_mc_state() -> void:
@@ -449,25 +630,7 @@ func _reset_mc_state() -> void:
 		b.remove_theme_color_override("font_color")
 
 
-func _reset_form() -> void:
-	game_mode_btn.set_pressed_no_signal(false)
-	multiple_choice_btn.set_pressed_no_signal(false)
-	if choose_game_row:
-		choose_game_row.visible = false
-	if mc_section:
-		mc_section.visible = false
-	if generate_button:
-		generate_button.visible = true
-	selected_minigame = ""
-	selected_minigame_scene = ""
-	selected_difficulty = ""
-	_selected_difficulty_button = null
-	if player_count_input:
-		player_count_input.text = "10"
-	if player_validation_label:
-		player_validation_label.visible = false
-	_reset_mc_state()
-	_update_generate_button()
+
 
 # ── Screen management ────────────────────────────────────────────────────────
 
@@ -523,7 +686,7 @@ func _on_generate_pressed() -> void:
 	_finalise_room()
 
 func _finalise_room() -> void:
-	current_room_code = _generate_code()
+	current_room_code = _editing_draft_code if not _editing_draft_code.is_empty() else _generate_code()
 	var cats: Array[String] = []
 	if game_mode_btn.button_pressed: cats.append("Game Mode")
 	if multiple_choice_btn.button_pressed: cats.append("Multiple Choice")
@@ -756,6 +919,10 @@ func _select_card(card: PanelContainer, game: Dictionary) -> void:
 	selected_minigame = game["name"]
 	selected_minigame_scene = game["scene"]
 	selected_difficulty = game.get("level", "Beginner")
+	
+	if choose_game_hint:
+		choose_game_hint.text = game["name"]
+		
 	popup_selected_label.text = "Selected: %s  [%s]" % [game["name"], game["level"]]
 	popup_confirm_btn.disabled = false
 
@@ -923,14 +1090,20 @@ func _create_room_item(rname: String, code: String, diff: String, game: String, 
 		info_lbl.add_theme_font_size_override("font_size", 12)
 		hbox.add_child(info_lbl)
 	
-	# View button (matching Figma style)
+	# View / Resume button (matching Figma style)
 	var view_btn := Button.new()
-	view_btn.text = "View"
-	view_btn.custom_minimum_size = Vector2(65, 30)
+	if _status == "draft":
+		view_btn.text = "Resume"
+	else:
+		view_btn.text = "View"
+	view_btn.custom_minimum_size = Vector2(75, 30)
 	view_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	
 	var btn_style := StyleBoxFlat.new()
-	btn_style.bg_color = Color(0.145, 0.878, 0.992, 0.9)
+	if _status == "draft":
+		btn_style.bg_color = Color(0.145, 0.90, 0.60, 0.9) # Green-ish for resume
+	else:
+		btn_style.bg_color = Color(0.145, 0.878, 0.992, 0.9)
 	btn_style.set_corner_radius_all(5)
 	btn_style.content_margin_left = 12
 	btn_style.content_margin_right = 12
@@ -939,7 +1112,10 @@ func _create_room_item(rname: String, code: String, diff: String, game: String, 
 	view_btn.add_theme_stylebox_override("normal", btn_style)
 	
 	var btn_hover := StyleBoxFlat.new()
-	btn_hover.bg_color = Color(0.2, 0.92, 1.0, 1.0)
+	if _status == "draft":
+		btn_hover.bg_color = Color(0.18, 0.95, 0.65, 1.0)
+	else:
+		btn_hover.bg_color = Color(0.2, 0.92, 1.0, 1.0)
 	btn_hover.set_corner_radius_all(5)
 	btn_hover.content_margin_left = 12
 	btn_hover.content_margin_right = 12
@@ -952,10 +1128,136 @@ func _create_room_item(rname: String, code: String, diff: String, game: String, 
 	
 	var cap_code := code
 	var cap_category := category
-	view_btn.pressed.connect(func(): _view_room_history(cap_code, cap_category))
+	if _status == "draft":
+		view_btn.pressed.connect(func(): _load_draft_into_form(cap_code, cap_category))
+	else:
+		view_btn.pressed.connect(func(): _view_room_history(cap_code, cap_category))
 	hbox.add_child(view_btn)
 	
 	return item
+
+func _load_draft_into_form(code: String, category: String) -> void:
+	var draft_data: Dictionary = {}
+	for h in room_history:
+		if h.get("room_code") == code:
+			draft_data = h
+			break
+			
+	if draft_data.is_empty(): return
+	
+	# Reconstruct room_data format
+	var room_data := {
+		"name": draft_data.get("room_name", "Untitled Draft"),
+		"difficulty": draft_data.get("difficulty", ""),
+		"categories": "Multiple Choice" if category == "multiple_choice" else "Game Mode",
+		"minigame": draft_data.get("game_name", ""),
+		"minigame_scene": "",
+		"player_count": int(draft_data.get("player_count", 10)),
+		"allowed_students": [] 
+	}
+	
+	# Find scene from game name
+	for g in ALL_MINIGAMES:
+		if g["name"] == room_data["minigame"]:
+			room_data["minigame_scene"] = g["scene"]
+			room_data["difficulty"] = g.get("level", "Beginner")
+			break
+			
+	# We need to load full document to get mc_quiz_data for multiple choice
+	if category == "multiple_choice":
+		_fetch_full_draft_and_edit(code, room_data)
+	else:
+		_complete_draft_edit(code, room_data)
+		
+func _fetch_full_draft_and_edit(code: String, base_room_data: Dictionary) -> void:
+	var uid := Auth.current_local_id
+	var token := Auth.current_id_token
+	var url := "%s/users/%s" % [FIRESTORE_BASE_URL, uid]
+	var headers := ["Content-Type: application/json", "Authorization: Bearer %s" % token]
+	
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, call_code, _h, body):
+		http.queue_free()
+		if call_code == 200:
+			var doc = JSON.parse_string(body.get_string_from_utf8())
+			if typeof(doc) == TYPE_DICTIONARY:
+				var fields = doc.get("fields", {})
+				if fields.has("room_history"):
+					var arr = fields["room_history"].get("arrayValue", {}).get("values", [])
+					for item in arr:
+						var rfields = item.get("mapValue", {}).get("fields", {})
+						if rfields.has("room_code") and rfields["room_code"].get("stringValue") == code:
+							if rfields.has("mc_quiz_data_json"):
+								var qdata_str = rfields["mc_quiz_data_json"].get("stringValue", "{}")
+								base_room_data["mc_quiz_data"] = JSON.parse_string(qdata_str)
+							if rfields.has("mc_time_per_q"):
+								base_room_data["mc_time_per_q"] = int(rfields["mc_time_per_q"].get("integerValue", "30"))
+							break
+		_complete_draft_edit(code, base_room_data)
+	)
+	http.request(url, headers, HTTPClient.METHOD_GET)
+
+func _complete_draft_edit(code: String, room_data: Dictionary) -> void:
+	_reset_form()
+	_editing_draft_code = code
+	room_name_input.text = room_data.get("name", "")
+	player_count_input.text = str(room_data.get("player_count", 10))
+	
+	# ✅ FIX: Check category from room_data string, not button state
+	var cats_str: String = str(room_data.get("categories", ""))
+	var is_mc := cats_str.contains("Multiple Choice")
+	
+	if is_mc:
+		multiple_choice_btn.button_pressed = true
+		_on_multiple_choice_toggled(true)
+		if room_data.has("mc_quiz_data"):
+			mc_quiz_data.clear()
+			mc_quiz_data = room_data["mc_quiz_data"]
+			mc_all_questions_completed = true
+			mc_quiz_created = true
+			var num_q = int(mc_quiz_data.get("total_questions", 0))
+			if num_q == 0 and mc_quiz_data.has("questions"):
+				num_q = mc_quiz_data["questions"].size()
+			mc_questions_input.text = str(num_q)
+			mc_view_btn.disabled = false
+			mc_create_btn.text = "Edit Quiz"
+			mc_create_btn.disabled = false
+			
+			var target_time = int(room_data.get("mc_time_per_q", 30))
+			for btn in _mc_time_buttons:
+				if btn.text == str(target_time) + "s":
+					_on_mc_time_selected(target_time, btn)
+	else:
+		game_mode_btn.button_pressed = true
+		_on_game_mode_toggled(true)
+		selected_minigame = room_data.get("minigame", "")
+		selected_minigame_scene = room_data.get("minigame_scene", "")
+		selected_difficulty = room_data.get("difficulty", "Beginner")
+		
+		# ✅ FIX: Show correct hint text — fallback if minigame is empty
+		if choose_game_hint:
+			if not selected_minigame.is_empty():
+				choose_game_hint.text = selected_minigame
+			else:
+				choose_game_hint.text = "Pick minigame for the room"
+		
+		# ✅ FIX: Visually highlight the selected card in the popup grid
+		if not selected_minigame.is_empty():
+			for card in minigame_grid.get_children():
+				if card is PanelContainer and card.name.begins_with("Card_"):
+					var lbl = card.get_node_or_null("HBoxContainer/VBoxContainer/Label")
+					if lbl and lbl.text == selected_minigame:
+						_clear_card_highlight()
+						card.add_theme_stylebox_override("panel", _card_style(true))
+						_selected_card = card
+						popup_selected_label.text = "Selected: %s  [%s]" % [selected_minigame, selected_difficulty]
+						popup_confirm_btn.disabled = false
+						break
+		
+	_update_generate_button()
+	_show_screen("form")
+
 
 ## View room history — fetch and display statistics for a completed/active room
 func _view_room_history(code: String, category: String) -> void:
@@ -1078,6 +1380,7 @@ func _on_quiz_started(room_code: String) -> void:
 	_start_gamemode_results_polling(room_code)
 
 func _on_stats_back_pressed() -> void:
+	_quiz_start_posted = false
 	# Mark room as completed and return to room history
 	if not current_room_code.is_empty():
 		_mark_room_completed(current_room_code)
@@ -1644,9 +1947,10 @@ func _post_gamemode_to_server(room_code: String, room_data: Dictionary) -> void:
 		"host_id": Auth.current_local_id,
 		"host_username": Auth.current_username,
 		"game_name": room_data.get("minigame", ""),
-		"game_scene": room_data.get("minigame_scene", ""),
-		"difficulty": room_data.get("difficulty", ""),
-		"max_players": room_data.get("player_count", 50),
+		# Provide fallback scene to prevent server crashing if missing
+		"game_scene": room_data.get("minigame_scene", "res://scene/tutorial_cyber_fundamentals.tscn"),
+		"difficulty": room_data.get("difficulty", "Beginner"),
+		"max_players": int(room_data.get("player_count", 50)),
 		"allowed_students": room_data.get("allowed_students", []),
 	}
 	var headers := ["Content-Type: application/json"]
@@ -2016,7 +2320,6 @@ func _save_room_to_history(room_code: String, room_data: Dictionary) -> void:
 	var uid := Auth.current_local_id
 	var token := Auth.current_id_token
 	
-	# First, fetch current room_history array from user doc
 	var get_url := "%s/users/%s" % [FIRESTORE_BASE_URL, uid]
 	var headers := [
 		"Content-Type: application/json",
@@ -2033,7 +2336,6 @@ func _save_room_to_history(room_code: String, room_data: Dictionary) -> void:
 			push_warning("[RoomHistory] Failed to fetch user doc: HTTP %d" % code)
 			return
 		
-		# Parse existing room_history array
 		var doc = JSON.parse_string(body.get_string_from_utf8())
 		var existing_rooms: Array = []
 		
@@ -2043,15 +2345,18 @@ func _save_room_to_history(room_code: String, room_data: Dictionary) -> void:
 				var array_val = fields["room_history"]["arrayValue"].get("values", [])
 				for item in array_val:
 					if item.has("mapValue"):
-						existing_rooms.append(item)
+						var t_code = item["mapValue"].get("fields", {}).get("room_code", {}).get("stringValue", "")
+						if t_code != room_code:
+							existing_rooms.append(item)
 		
-		# Create new room entry
-		var category := "game_mode" if game_mode_btn.button_pressed else "multiple_choice"
+		# ✅ FIX: Derive category from room_data, NOT from live button state
+		var cats_str: String = str(room_data.get("categories", ""))
+		var category := "multiple_choice" if cats_str.contains("Multiple Choice") else "game_mode"
+		
 		var game_name: String = str(room_data.get("minigame", ""))
 		var difficulty: String = str(room_data.get("difficulty", ""))
 		var player_count := int(room_data.get("player_count", 10))
 		
-		# Get proper UTC timestamp with 'Z'
 		var now := Time.get_datetime_dict_from_system(true)
 		var timestamp := "%04d-%02d-%02dT%02d:%02d:%02dZ" % [
 			now.year, now.month, now.day, now.hour, now.minute, now.second
@@ -2067,19 +2372,22 @@ func _save_room_to_history(room_code: String, room_data: Dictionary) -> void:
 					"difficulty": {"stringValue": difficulty},
 					"player_count": {"integerValue": str(player_count)},
 					"created_at": {"timestampValue": timestamp},
-					"status": {"stringValue": "active"}
+					"status": {"stringValue": room_data.get("status", "active")}
 				}
 			}
 		}
 		
-		# Add to existing array
-		existing_rooms.insert(0, new_room)  # Insert at beginning (newest first)
+		# Save full quiz data string if it's a multiple choice draft
+		if category == "multiple_choice" and room_data.has("mc_quiz_data"):
+			new_room["mapValue"]["fields"]["mc_quiz_data_json"] = {"stringValue": JSON.stringify(room_data["mc_quiz_data"])}
+			if room_data.has("mc_time_per_q"):
+				new_room["mapValue"]["fields"]["mc_time_per_q"] = {"integerValue": str(room_data["mc_time_per_q"])}
 		
-		# Limit to 50 most recent rooms
+		existing_rooms.insert(0, new_room)
+		
 		if existing_rooms.size() > 50:
 			existing_rooms = existing_rooms.slice(0, 50)
 		
-		# Update user document with new array
 		var update_doc := {
 			"fields": {
 				"room_history": {

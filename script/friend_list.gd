@@ -602,8 +602,14 @@ func _start_presence_check(username: String, label: Control) -> void:
 			return
 		var parsed = JSON.parse_string(txt)
 		var state := "offline"
-		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("state"):
-			state = str(parsed["state"])
+		if typeof(parsed) == TYPE_DICTIONARY:
+			if parsed.has("state"):
+				state = str(parsed["state"])
+			if state == "online" and parsed.has("last_seen"):
+				var last_seen = float(str(parsed["last_seen"]))
+				var now = Time.get_unix_time_from_system()
+				if now - last_seen > 120.0:
+					state = "offline"
 		_set_presence_label(label, username, state)
 	)
 	http.request(url, [], HTTPClient.METHOD_GET)
@@ -635,20 +641,21 @@ func _fetch_presence_for_uid(uid: String, label: Control, username: String, toke
 				raw = raw.strip_edges()
 				parsed = {"state": raw}
 
-		var state := ""
-		if typeof(parsed) == TYPE_DICTIONARY and parsed.has("state"):
-			state = str(parsed["state"])
-		else:
-			state = "offline"
+		var state := "offline"
+		if typeof(parsed) == TYPE_DICTIONARY:
+			if parsed.has("state"):
+				state = str(parsed["state"])
+			if state == "online" and parsed.has("last_seen"):
+				var last_seen = float(str(parsed["last_seen"]))
+				var now = Time.get_unix_time_from_system()
+				if now - last_seen > 120.0:
+					state = "offline"
 
 		# Check if label is still valid before updating
 		if not is_instance_valid(label):
 			return
 
-		if state == "online":
-			_set_presence_label(label, username, "online")
-		else:
-			_set_presence_label(label, username, "offline")
+		_set_presence_label(label, username, state)
 	)
 	http.request(url, [], HTTPClient.METHOD_GET)
 

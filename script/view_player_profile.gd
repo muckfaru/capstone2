@@ -124,7 +124,6 @@ func _on_player_data_received(_result, response_code, _headers, body) -> void:
 
 	if response_code != 200:
 		if response_code == 403:
-			# Firestore rules block reads of other users — fall back to public RTDB profile
 			print("[ViewPlayerProfile] Firestore 403 — falling back to RTDB public profile")
 			if is_instance_valid(http):
 				http.queue_free()
@@ -137,7 +136,6 @@ func _on_player_data_received(_result, response_code, _headers, body) -> void:
 		return
 
 	var arr = JSON.parse_string(body_text)
-	# runQuery returns an array; if the first element has no "document" key the user wasn't found
 	if typeof(arr) != TYPE_ARRAY or arr.size() == 0 or not arr[0].has("document"):
 		push_error("⚠️ Player not found. Raw response: %s" % body_text)
 		if is_instance_valid(http):
@@ -146,48 +144,66 @@ func _on_player_data_received(_result, response_code, _headers, body) -> void:
 
 	var player_data = arr[0]["document"]["fields"]
 	print("[ViewPlayerProfile] Player data received: ", player_data.keys())
-	
-	# Update UI with player data
+
 	if username_label and player_data.has("username"):
 		username_label.text = player_data["username"]["stringValue"]
 		print("[ViewPlayerProfile] Set username: ", username_label.text)
-	
-	if level_label and player_data.has("level"):
-		level_label.text = str(player_data["level"]["integerValue"])
-	
-	if wins_label and player_data.has("wins"):
-		wins_label.text = str(player_data["wins"]["integerValue"])
-	
-	if losses_label and player_data.has("losses"):
-		losses_label.text = str(player_data["losses"]["integerValue"])
-	
-	if winrate_label and player_data.has("wins") and player_data.has("losses"):
-		var wins = int(player_data["wins"]["integerValue"])
-		var losses = int(player_data["losses"]["integerValue"])
-		var total = wins + losses
-		var wr = 0
-		if total > 0:
-			wr = int((float(wins) / float(total)) * 100)
-		winrate_label.text = str(wr)
-	
-	if match_played_label and player_data.has("wins") and player_data.has("losses"):
-		var total = int(player_data["wins"]["integerValue"]) + int(player_data["losses"]["integerValue"])
-		match_played_label.text = str(total)
-	
-	# ✅ FIXED: Load and display avatar (handles both preset and custom avatars)
+
+	if level_label:
+		if player_data.has("level"):
+			level_label.text = str(int(_from_firestore_value(player_data["level"])))
+		else:
+			level_label.text = "1"
+
+	var total_wins := 0
+	var total_losses := 0
+
+	if player_data.has("cb_wins"):    total_wins   += int(_from_firestore_value(player_data["cb_wins"]))
+	if player_data.has("cb_losses"):  total_losses += int(_from_firestore_value(player_data["cb_losses"]))
+
+	if player_data.has("akashic_wins"):   total_wins   += int(_from_firestore_value(player_data["akashic_wins"]))
+	if player_data.has("akashic_losses"): total_losses += int(_from_firestore_value(player_data["akashic_losses"]))
+
+	if player_data.has("dt_wins"):    total_wins   += int(_from_firestore_value(player_data["dt_wins"]))
+	if player_data.has("dt_losses"):  total_losses += int(_from_firestore_value(player_data["dt_losses"]))
+
+	# Legacy fallback if no per-game fields exist
+	if total_wins == 0 and player_data.has("wins"):
+		total_wins = int(_from_firestore_value(player_data["wins"]))
+	if total_losses == 0 and player_data.has("losses"):
+		total_losses = int(_from_firestore_value(player_data["losses"]))
+
+	if wins_label:
+		wins_label.text = str(total_wins)
+	if losses_label:
+		losses_label.text = str(total_losses)
+
+	var total_matches := total_wins + total_losses
+	if winrate_label:
+		var wr := 0
+		if total_matches > 0:
+			wr = int((float(total_wins) / float(total_matches)) * 100.0)
+		winrate_label.text = str(wr) + "%"
+
+	if match_played_label:
+		match_played_label.text = str(total_matches)
+
+	# Avatar
 	if profile_pic and player_data.has("avatar"):
 		_apply_avatar(player_data["avatar"]["stringValue"])
-	
-	# ✅ NEW: Load and display rank based on XP
+
+	# ✅ FIX 2: use _from_firestore_value so doubleValue / string-encoded ints all work
 	var xp_for_rank := 0
 	if player_data.has("total_xp"):
-		xp_for_rank = int(player_data["total_xp"]["integerValue"])
+		xp_for_rank = int(_from_firestore_value(player_data["total_xp"]))
 	_display_rank(_get_rank_from_xp(xp_for_rank))
 
-	if http:
+	# Free http node before any async work
+	if is_instance_valid(http):
 		http.queue_free()
+		http = null
 
-	# Parse recent_matches directly from the Firestore fields we already have
+	# Match history — read from the Firestore fields we already have
 	print("[ViewPlayerProfile] Firestore fields keys: ", player_data.keys())
 	if player_data.has("recent_matches"):
 		var decoded = _from_firestore_value(player_data["recent_matches"])
@@ -197,7 +213,7 @@ func _on_player_data_received(_result, response_code, _headers, body) -> void:
 			_clear_history_rows()
 			_add_history_placeholder("No match history yet")
 	else:
-		# Field absent — try RTDB public_profiles as fallback
+		# Field absent — fall back to RTDB public_profiles
 		_fetch_rtdb_match_history(_pending_username)
 
 ## Recursively decode a Firestore-encoded value into a plain GDScript value.
@@ -319,48 +335,60 @@ func _fetch_rtdb_profile() -> void:
 	)
 	req.request(url, [], HTTPClient.METHOD_GET)
 
-
 func _populate_from_rtdb_data(data: Dictionary) -> void:
-	# RTDB stores flat values (not Firestore fields format)
+	print("[ViewPlayerProfile] RTDB data keys: ", data.keys())
+	print("[ViewPlayerProfile] RTDB data: ", data)
+
 	if username_label:
 		username_label.text = str(data.get("username", _pending_username))
 
 	if level_label:
 		level_label.text = str(int(float(str(data.get("level", 1)))))
 
-	var wins := int(data.get("wins", 0))
-	var losses := int(data.get("losses", 0))
-	var total := wins + losses
+	var total_wins := 0
+	var total_losses := 0
 
-	if wins_label:
-		wins_label.text = str(wins)
-	if losses_label:
-		losses_label.text = str(losses)
-	if match_played_label:
-		match_played_label.text = str(total)
+	if data.has("cb_wins"):      total_wins   += int(float(str(data["cb_wins"])))
+	if data.has("cb_losses"):    total_losses += int(float(str(data["cb_losses"])))
+	if data.has("akashic_wins"): total_wins   += int(float(str(data["akashic_wins"])))
+	if data.has("akashic_losses"): total_losses += int(float(str(data["akashic_losses"])))
+	if data.has("dt_wins"):      total_wins   += int(float(str(data["dt_wins"])))
+	if data.has("dt_losses"):    total_losses += int(float(str(data["dt_losses"])))
+
+	# Legacy wins/losses: use whichever is larger (handles stale nodes missing per-game fields)
+	if data.has("wins"):
+		var legacy_w := int(float(str(data["wins"])))
+		if legacy_w > total_wins:
+			total_wins = legacy_w
+	if data.has("losses"):
+		var legacy_l := int(float(str(data["losses"])))
+		if legacy_l > total_losses:
+			total_losses = legacy_l
+
+	var total_matches := total_wins + total_losses
+
+	if wins_label:        wins_label.text        = str(total_wins)
+	if losses_label:      losses_label.text      = str(total_losses)
+	if match_played_label: match_played_label.text = str(total_matches)
 	if winrate_label:
 		var wr := 0
-		if total > 0:
-			wr = int((float(wins) / float(total)) * 100.0)
-		winrate_label.text = str(wr)
+		if total_matches > 0:
+			wr = int((float(total_wins) / float(total_matches)) * 100.0)
+		winrate_label.text = str(wr) + "%"
 
-	# Avatar
 	var avatar_path: String = str(data.get("avatar", ""))
 	if profile_pic and avatar_path != "":
 		_apply_avatar(avatar_path)
 
-	# Rank from XP
 	var total_xp := int(float(str(data.get("total_xp", 0))))
 	_display_rank(_get_rank_from_xp(total_xp))
 
-	# Match history
 	var history_raw = data.get("recent_matches", null)
 	if history_raw != null:
 		var history_items: Array = []
 		if typeof(history_raw) == TYPE_ARRAY:
 			history_items = history_raw
 		elif typeof(history_raw) == TYPE_DICTIONARY:
-			# Firebase RTDB returns arrays as {"0":{...},"1":{...}} objects
 			var keys = history_raw.keys()
 			keys.sort()
 			for k in keys:
@@ -369,8 +397,6 @@ func _populate_from_rtdb_data(data: Dictionary) -> void:
 		print("[ViewPlayerProfile] recent_matches found in RTDB profile node (%d items)" % history_items.size())
 		_render_friend_match_history(history_items, str(data.get("username", _pending_username)))
 	else:
-		# recent_matches not in root profile node (may have been wiped by a PUT login before the PATCH fix).
-		# Try the sub-path directly: public_profiles/{username}/recent_matches
 		print("[ViewPlayerProfile] recent_matches absent from profile node — trying sub-path and Firestore")
 		_fetch_rtdb_match_history_with_fallback(_pending_username, str(data.get("uid", "")))
 

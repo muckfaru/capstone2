@@ -2333,11 +2333,23 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 		if Auth:
 			Auth.current_level = lvl
 
-	if f.has("wins"):
-		wins_input.text = str(f["wins"]["integerValue"])
+	var total_w := 0
+	var total_l := 0
 
-	if f.has("losses"):
-		losses_input.text = str(f["losses"]["integerValue"])
+	if f.has("cb_wins"): total_w += int(f["cb_wins"]["integerValue"])
+	if f.has("cb_losses"): total_l += int(f["cb_losses"]["integerValue"])
+
+	if f.has("akashic_wins"): total_w += int(f["akashic_wins"]["integerValue"])
+	if f.has("akashic_losses"): total_l += int(f["akashic_losses"]["integerValue"])
+
+	if f.has("dt_wins"): total_w += int(f["dt_wins"]["integerValue"])
+	if f.has("dt_losses"): total_l += int(f["dt_losses"]["integerValue"])
+
+	if total_w == 0 and f.has("wins"): total_w += int(f["wins"]["integerValue"])
+	if total_l == 0 and f.has("losses"): total_l += int(f["losses"]["integerValue"])
+
+	wins_input.text = str(total_w)
+	losses_input.text = str(total_l)
 	
 	if match_played_input:
 		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
@@ -2350,9 +2362,16 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 	Auth.publish_public_profile({
 		"wins": _pub_w,
 		"losses": _pub_l,
-		"total_xp": TutorialManager.total_xp
+		"total_xp": int(str(f["total_xp"].get("integerValue", f["total_xp"].get("doubleValue", 0)))) if f.has("total_xp") else 0,
+		"level": int(level_input.text) if level_input and level_input.text.is_valid_int() else 0,
+		"avatar": selected_avatar,
+		"cb_wins":        int(str(f["cb_wins"].get("integerValue", 0)))        if f.has("cb_wins")        else 0,
+		"cb_losses":      int(str(f["cb_losses"].get("integerValue", 0)))      if f.has("cb_losses")      else 0,
+		"akashic_wins":   int(str(f["akashic_wins"].get("integerValue", 0)))   if f.has("akashic_wins")   else 0,
+		"akashic_losses": int(str(f["akashic_losses"].get("integerValue", 0))) if f.has("akashic_losses") else 0,
+		"dt_wins":        int(str(f["dt_wins"].get("integerValue", 0)))        if f.has("dt_wins")        else 0,
+		"dt_losses":      int(str(f["dt_losses"].get("integerValue", 0)))      if f.has("dt_losses")      else 0,
 	})
-	
 	# Check welcome tutorial
 	var welcome_completed := true
 	if f.has("welcome_tutorial_completed"):
@@ -2809,12 +2828,24 @@ func _on_user_data_response(_result, response_code, _headers, body) -> void:
 		if Auth:
 			Auth.current_level = lvl
 
-	if f.has("wins"):
-		wins_input.text = str(f["wins"]["integerValue"])
+	var total_w := 0
+	var total_l := 0
 
-	if f.has("losses"):
-		losses_input.text = str(f["losses"]["integerValue"])
-	
+	if f.has("cb_wins"): total_w += int(f["cb_wins"]["integerValue"])
+	if f.has("cb_losses"): total_l += int(f["cb_losses"]["integerValue"])
+
+	if f.has("akashic_wins"): total_w += int(f["akashic_wins"]["integerValue"])
+	if f.has("akashic_losses"): total_l += int(f["akashic_losses"]["integerValue"])
+
+	if f.has("dt_wins"): total_w += int(f["dt_wins"]["integerValue"])
+	if f.has("dt_losses"): total_l += int(f["dt_losses"]["integerValue"])
+
+	if total_w == 0 and f.has("wins"): total_w += int(f["wins"]["integerValue"])
+	if total_l == 0 and f.has("losses"): total_l += int(f["losses"]["integerValue"])
+
+	wins_input.text = str(total_w)
+	losses_input.text = str(total_l)
+
 	if match_played_input:
 		var wins = int(wins_input.text) if wins_input.text.is_valid_int() else 0
 		var losses = int(losses_input.text) if losses_input.text.is_valid_int() else 0

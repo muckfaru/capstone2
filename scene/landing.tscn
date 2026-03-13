@@ -1,4 +1,4 @@
-[gd_scene load_steps=175 format=3 uid="uid://5o3qtaqdnl8s"]
+[gd_scene load_steps=188 format=3 uid="uid://5o3qtaqdnl8s"]
 
 [ext_resource type="Script" uid="uid://dqln3gc2uswuk" path="res://script/landing.gd" id="1_86hhj"]
 [ext_resource type="Texture2D" uid="uid://dv07o70iijuox" path="res://asset/newUIlandingupdate/cyber ct 2 (1).png" id="2_1sd5v"]
@@ -683,13 +683,12 @@ font_color = Color(0.443137, 0.619608, 1, 1)
 outline_size = 10
 outline_color = Color(0, 0, 0, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qjbfm"]
-content_margin_left = 16.0
-content_margin_top = 4.0
-content_margin_right = 16.0
-content_margin_bottom = 4.0
-bg_color = Color(0, 0, 0, 0)
-border_color = Color(0, 0, 0, 0)
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_kffdy"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 25.0
+expand_margin_top = 4.0
+expand_margin_right = 20.0
+expand_margin_bottom = 4.0
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7oonc"]
 texture = ExtResource("31_6jpks")
@@ -698,9 +697,30 @@ expand_margin_top = 4.0
 expand_margin_right = 20.0
 expand_margin_bottom = 4.0
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7k1jk"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 25.0
+expand_margin_top = 4.0
+expand_margin_right = 20.0
+expand_margin_bottom = 4.0
+
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a4nn5"]
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ytcxp"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_01m1f"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_mf8rx"]
 texture = ExtResource("31_6jpks")
 expand_margin_left = 5.0
 expand_margin_top = 4.0
@@ -715,7 +735,21 @@ content_margin_bottom = 4.0
 bg_color = Color(0, 0, 0, 0)
 border_color = Color(0, 0, 0, 0)
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_asipl"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_fth8t"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7r6m6"]
 texture = ExtResource("31_6jpks")
 expand_margin_left = 5.0
 expand_margin_top = 4.0
@@ -730,11 +764,32 @@ content_margin_bottom = 4.0
 bg_color = Color(0, 0, 0, 0)
 border_color = Color(0, 0, 0, 0)
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1q6mp"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3jmaa"]
 texture = ExtResource("31_6jpks")
 expand_margin_left = 5.0
 expand_margin_top = 4.0
 expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_fjxa1"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xl82l"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 10.0
+expand_margin_top = 4.0
+expand_margin_right = 10.0
 expand_margin_bottom = 4.0
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_76yyg"]
@@ -744,7 +799,42 @@ expand_margin_top = 4.0
 expand_margin_right = 10.0
 expand_margin_bottom = 4.0
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_naut5"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 10.0
+expand_margin_top = 4.0
+expand_margin_right = 10.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dcjmu"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_y0g3t"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vqdhy"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yg883"]
+texture = ExtResource("31_6jpks")
+expand_margin_left = 5.0
+expand_margin_top = 4.0
+expand_margin_right = 5.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_pj8di"]
 texture = ExtResource("31_6jpks")
 expand_margin_left = 5.0
 expand_margin_top = 4.0
@@ -1829,8 +1919,9 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
-theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/focus = SubResource("StyleBoxTexture_kffdy")
 theme_override_styles/hover = SubResource("StyleBoxTexture_7oonc")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_7k1jk")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_a4nn5")
 text = "Home"
 
@@ -1840,8 +1931,9 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
-theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/focus = SubResource("StyleBoxTexture_ytcxp")
 theme_override_styles/hover = SubResource("StyleBoxTexture_01m1f")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_mf8rx")
 theme_override_styles/normal = SubResource("StyleBoxFlat_bafi2")
 text = "Game"
 
@@ -1851,8 +1943,9 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
-theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/focus = SubResource("StyleBoxTexture_asipl")
 theme_override_styles/hover = SubResource("StyleBoxTexture_fth8t")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_7r6m6")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Ranking"
 
@@ -1862,8 +1955,9 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
-theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/focus = SubResource("StyleBoxTexture_1q6mp")
 theme_override_styles/hover = SubResource("StyleBoxTexture_3jmaa")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_fjxa1")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Profile"
 
@@ -1873,8 +1967,9 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
-theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/focus = SubResource("StyleBoxTexture_xl82l")
 theme_override_styles/hover = SubResource("StyleBoxTexture_76yyg")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_naut5")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "MINI GAMES"
 
@@ -1884,8 +1979,9 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
-theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/focus = SubResource("StyleBoxTexture_dcjmu")
 theme_override_styles/hover = SubResource("StyleBoxTexture_y0g3t")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_vqdhy")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Shop"
 
@@ -1895,8 +1991,9 @@ mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_nicomoji")
 theme_override_font_sizes/font_size = 16
-theme_override_styles/focus = SubResource("StyleBoxFlat_qjbfm")
+theme_override_styles/focus = SubResource("StyleBoxTexture_yg883")
 theme_override_styles/hover = SubResource("StyleBoxTexture_y0g3t")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_pj8di")
 theme_override_styles/normal = SubResource("StyleBoxFlat_7xp6e")
 text = "Bag"
 
