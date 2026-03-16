@@ -924,6 +924,7 @@ func _select_card(card: PanelContainer, game: Dictionary) -> void:
 	selected_minigame = game["name"]
 	selected_minigame_scene = game["scene"]
 	selected_difficulty = game.get("level", "Beginner")
+	_update_generate_button()
 	
 	if choose_game_hint:
 		choose_game_hint.text = game["name"]
@@ -1330,8 +1331,9 @@ func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file(scene_on_back)
 
 func _on_create_button_pressed() -> void:
-	room_name_input.text = "Quiz-%d" % (rooms.size() + 1)
 	_reset_form()
+	room_name_input.text = "Quiz-%d" % (rooms.size() + 1)
+	_update_generate_button()
 	_show_screen("form")
 
 func _on_form_back_pressed() -> void:
