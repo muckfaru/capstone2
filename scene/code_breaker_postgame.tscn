@@ -1,4 +1,4 @@
-[gd_scene load_steps=60 format=3 uid="uid://dd58djqli2krd"]
+[gd_scene load_steps=62 format=3 uid="uid://dd58djqli2krd"]
 
 [ext_resource type="Script" uid="uid://cc1dsxq63hv6s" path="res://script/code_breaker_postgame.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dxsbky12irmbw" path="res://asset/background/cleaned_ff9ce763-1403-486e-bad2-76192a44120f_clean.png" id="2_ap0hc"]
@@ -244,6 +244,16 @@ corner_radius_bottom_left = 5
 shadow_color = Color(0.819608, 0.0352941, 0.164706, 1)
 shadow_size = 2
 
+[sub_resource type="LabelSettings" id="LabelSettings_2goow"]
+font = ExtResource("7_ap0hc")
+font_size = 24
+font_color = Color(1, 0.839216, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 10
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(2, 2)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_g7yna"]
 bg_color = Color(0.380392, 0.0784314, 0.109804, 1)
 border_color = Color(0.380392, 0.0784314, 0.109804, 0.705882)
@@ -390,19 +400,22 @@ border_width_right = 4
 border_width_bottom = 4
 border_color = Color(0.819608, 0.0352941, 0.164706, 0.12549)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j8all"]
-bg_color = Color(0.188758, 0.388218, 0.996268, 0.980392)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_47r3j"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2ka5p"]
+bg_color = Color(0.188235, 0.388235, 0.996078, 0.980392)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.164706, 0.792157, 0.898039, 1)
+border_blend = true
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 shadow_color = Color(0.164706, 0.792157, 0.898039, 1)
-shadow_size = 5
+shadow_size = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cxpu1"]
 bg_color = Color(4.57242e-07, 0.349703, 0.444371, 1)
@@ -499,6 +512,7 @@ offset_bottom = 400.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_7kbm2")
 
 [node name="WinnerBadge" type="Label" parent="HostCard"]
+visible = false
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -728,15 +742,16 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -80.0
-offset_top = -54.0
-offset_right = 80.0
-offset_bottom = -28.0
+offset_left = -76.0
+offset_top = -76.0
+offset_right = 84.0
+offset_bottom = -50.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.839216, 0, 1)
 theme_override_fonts/font = ExtResource("3_70ufc")
 theme_override_font_sizes/font_size = 20
 text = "WINNER"
+label_settings = SubResource("LabelSettings_2goow")
 horizontal_alignment = 1
 
 [node name="ClientAvatar" type="Sprite2D" parent="ClientCard"]
@@ -940,8 +955,9 @@ offset_bottom = -25.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("7_ap0hc")
-theme_override_font_sizes/font_size = 24
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_j8all")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("StyleBoxEmpty_47r3j")
+theme_override_styles/hover = SubResource("StyleBoxFlat_2ka5p")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_cxpu1")
 theme_override_styles/normal = SubResource("StyleBoxFlat_47r3j")
 text = "EXIT"

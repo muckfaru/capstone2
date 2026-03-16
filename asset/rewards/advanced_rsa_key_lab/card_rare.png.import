@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://br4kq5kg68pe5"
-path="res://.godot/imported/powerup_legendary.png-a8ec92f626f87d07e87a41b3ca695d1a.ctex"
+uid="uid://h2aeg0gjkdhy"
+path="res://.godot/imported/card_rare.png-182b1d8ce60f794ad37e34e2e129b1a1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://asset/rewards/beginner_fundamentals/powerup_legendary.png"
-dest_files=["res://.godot/imported/powerup_legendary.png-a8ec92f626f87d07e87a41b3ca695d1a.ctex"]
+source_file="res://asset/rewards/advanced_rsa_key_lab/card_rare.png"
+dest_files=["res://.godot/imported/card_rare.png-182b1d8ce60f794ad37e34e2e129b1a1.ctex"]
 
 [params]
 

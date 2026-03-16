@@ -1,19 +1,22 @@
-[gd_scene load_steps=46 format=3 uid="uid://is1i2pruqde7"]
+[gd_scene load_steps=64 format=3 uid="uid://is1i2pruqde7"]
 
 [ext_resource type="Script" uid="uid://45tavck3ofgm" path="res://script/network_defense_game.gd" id="1_defense"]
 [ext_resource type="Texture2D" uid="uid://dden4kvuvpn8t" path="res://asset/minigamesicon/newnetworksbg.png" id="2_dr2xa"]
 [ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="2_font"]
 [ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="3_bris7"]
-[ext_resource type="Texture2D" uid="uid://bcog7wq365a7y" path="res://asset/minigamesicon/Gemini_Generated_Image_de9s1de9s1de9s1d-removebg-preview.png" id="3_vlvk8"]
 [ext_resource type="Texture2D" uid="uid://bab7c013cai2q" path="res://asset/minigamesicon/bartlt.png" id="4_f7d7f"]
-[ext_resource type="Texture2D" uid="uid://bob2kcxc3y8kw" path="res://asset/minigamesicon/Gemini_Generated_Image_wigowwigowwigoww-removebg-preview.png" id="4_tt36q"]
 [ext_resource type="FontFile" uid="uid://dm3scevbrlcx" path="res://asset/fonts/NicoMoji-Regular.ttf" id="5_fg3d6"]
 [ext_resource type="Texture2D" uid="uid://gtrgqhtfwthb" path="res://asset/minigamesicon/hnt.png" id="7_f7d7f"]
 [ext_resource type="Texture2D" uid="uid://bgn8fyreeh7e2" path="res://asset/minigamesicon/frreez.png" id="8_sgu7c"]
 [ext_resource type="Texture2D" uid="uid://de1cek4n31sxm" path="res://asset/minigamesicon/aut.png" id="9_7vyor"]
 [ext_resource type="Texture2D" uid="uid://cevar5lwq7a2e" path="res://asset/minigamesicon/ntbg.png" id="10_7vyor"]
+[ext_resource type="Texture2D" uid="uid://bsth5jodvfeub" path="res://asset/minigames new ui/Gemini_Generated_Image_q84cpuq84cpuq84c (1).png" id="10_t018p"]
 [ext_resource type="FontFile" uid="uid://gj4s1cvcj5il" path="res://asset/fonts/ChakraPetch-SemiBold.ttf" id="11_1hdti"]
+[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="12_qa80h"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="12_t018p"]
+[ext_resource type="Texture2D" uid="uid://devimdf0lhufq" path="res://asset/minigames new ui/Gemini_Generated_Image_1s6wnr1s6wnr1s6w-Photoroom.png" id="13_uwvng"]
+[ext_resource type="Texture2D" uid="uid://dep0y2pnfgoa6" path="res://asset/minigames new ui/Gemini_Generated_Image_vydtqvvydtqvvydt-Photoroom.png" id="14_dr2xa"]
+[ext_resource type="FontFile" uid="uid://cuspredyadq7c" path="res://asset/fonts/BankGothic Bold.ttf" id="15_uwvng"]
 
 [sub_resource type="Gradient" id="Gradient_xc4th"]
 offsets = PackedFloat32Array(0.216049, 1)
@@ -40,41 +43,77 @@ expand_margin_right = 210.0
 expand_margin_bottom = 60.0
 modulate_color = Color(0.807843, 0, 0.0901961, 0.960784)
 
+[sub_resource type="LabelSettings" id="LabelSettings_81kcg"]
+font = ExtResource("15_uwvng")
+font_size = 20
+font_color = Color(0.718334, 0.638968, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.755)
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qa80h"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0ks8o"]
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_f7d7f"]
 texture = ExtResource("7_f7d7f")
-expand_margin_left = 15.0
-expand_margin_top = 15.0
-expand_margin_right = 15.0
-expand_margin_bottom = 15.0
-modulate_color = Color(0.435192, 0.435192, 0.435192, 1)
+expand_margin_left = 20.0
+expand_margin_top = 20.0
+expand_margin_right = 20.0
+expand_margin_bottom = 20.0
+modulate_color = Color(0.427493, 0.427493, 0.427493, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l2tw8"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_fg3d6"]
 texture = ExtResource("7_f7d7f")
-expand_margin_left = 15.0
-expand_margin_top = 15.0
-expand_margin_right = 15.0
-expand_margin_bottom = 15.0
+expand_margin_left = 20.0
+expand_margin_top = 20.0
+expand_margin_right = 20.0
+expand_margin_bottom = 20.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_81kcg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1ys4s"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1hdti"]
 texture = ExtResource("8_sgu7c")
+expand_margin_left = 20.0
+expand_margin_top = 15.0
+expand_margin_right = 20.0
+expand_margin_bottom = 15.0
 modulate_color = Color(0.336608, 0.336608, 0.336608, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dt243"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dr2xa"]
 texture = ExtResource("8_sgu7c")
-expand_margin_left = 15.0
-expand_margin_top = 10.0
-expand_margin_right = 15.0
-expand_margin_bottom = 10.0
+expand_margin_left = 20.0
+expand_margin_top = 15.0
+expand_margin_right = 20.0
+expand_margin_bottom = 15.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_awe2t"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8s1wt"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_uwvng"]
 texture = ExtResource("9_7vyor")
+expand_margin_left = 20.0
+expand_margin_top = 15.0
+expand_margin_right = 20.0
+expand_margin_bottom = 15.0
 modulate_color = Color(0.262932, 0.262932, 0.262932, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ptk6b"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_t018p"]
 texture = ExtResource("9_7vyor")
-expand_margin_left = 15.0
+expand_margin_left = 20.0
 expand_margin_top = 15.0
-expand_margin_right = 15.0
+expand_margin_right = 20.0
 expand_margin_bottom = 15.0
 
 [sub_resource type="Animation" id="Animation_t018p"]
@@ -114,12 +153,22 @@ _data = {
 &"poweruppani": SubResource("Animation_1hdti")
 }
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qa80h"]
-texture = ExtResource("10_7vyor")
-expand_margin_left = 200.0
-expand_margin_top = 20.0
-expand_margin_right = 200.0
-expand_margin_bottom = 20.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t018p"]
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+
+[sub_resource type="LabelSettings" id="LabelSettings_l2tw8"]
+font = ExtResource("12_qa80h")
+font_size = 15
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 5
+shadow_color = Color(0, 0, 0, 0.789)
+shadow_offset = Vector2(4, 4)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dr2xa"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_l2tw8"]
 texture = ExtResource("4_f7d7f")
@@ -128,6 +177,8 @@ expand_margin_top = 50.0
 expand_margin_right = 20.0
 expand_margin_bottom = 50.0
 modulate_color = Color(0.459, 0.043, 0.161, 0.613)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uwvng"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_81kcg"]
 texture = ExtResource("4_f7d7f")
@@ -180,11 +231,21 @@ modulate_color = Color(0.459, 0.043, 0.161, 1)
 size = Vector2(271, 194)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tt36q"]
-texture = ExtResource("3_vlvk8")
-expand_margin_left = 120.0
+texture = ExtResource("13_uwvng")
+expand_margin_left = 30.0
 expand_margin_top = 40.0
-expand_margin_right = 120.0
+expand_margin_right = 30.0
 expand_margin_bottom = 40.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_qa80h"]
+font = ExtResource("15_uwvng")
+font_size = 40
+font_color = Color(3.99485e-06, 0.887663, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 5
+shadow_color = Color(0, 0, 0, 0.823)
+shadow_offset = Vector2(4, 4)
 
 [sub_resource type="Animation" id="Animation_uwvng"]
 length = 0.001
@@ -226,11 +287,21 @@ _data = {
 size = Vector2(273, 182)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xc4th"]
-texture = ExtResource("4_tt36q")
-expand_margin_left = 120.0
+texture = ExtResource("14_dr2xa")
+expand_margin_left = 30.0
 expand_margin_top = 40.0
-expand_margin_right = 120.0
+expand_margin_right = 30.0
 expand_margin_bottom = 40.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_t018p"]
+font = ExtResource("15_uwvng")
+font_size = 40
+font_color = Color(1, 0, 0, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 5
+shadow_color = Color(0, 0, 0, 0.831)
+shadow_offset = Vector2(4, 4)
 
 [sub_resource type="Animation" id="Animation_81kcg"]
 length = 0.001
@@ -522,21 +593,22 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -187.0
-offset_top = -112.0
-offset_right = -20.0
-offset_bottom = 100.0
+offset_left = -192.0
+offset_top = -203.0
+offset_right = -25.0
+offset_bottom = 43.0
 grow_horizontal = 0
 grow_vertical = 2
 rotation = -1.91435
-theme_override_constants/separation = 10
+theme_override_constants/separation = 25
 
 [node name="PowerUpLabel" type="Label" parent="UI/PowerUps"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
 theme_override_fonts/font = ExtResource("5_fg3d6")
 theme_override_font_sizes/font_size = 16
-text = "⚡ POWER-UPS"
+text = " POWER-UPS"
+label_settings = SubResource("LabelSettings_81kcg")
 horizontal_alignment = 1
 
 [node name="HintButton" type="Button" parent="UI/PowerUps"]
@@ -544,7 +616,10 @@ custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_qa80h")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_0ks8o")
 theme_override_styles/hover = SubResource("StyleBoxTexture_f7d7f")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_l2tw8")
 theme_override_styles/normal = SubResource("StyleBoxTexture_fg3d6")
 
 [node name="FreezeButton" type="Button" parent="UI/PowerUps"]
@@ -552,7 +627,10 @@ custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_81kcg")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_1ys4s")
 theme_override_styles/hover = SubResource("StyleBoxTexture_1hdti")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_dt243")
 theme_override_styles/normal = SubResource("StyleBoxTexture_dr2xa")
 
 [node name="AutoButton" type="Button" parent="UI/PowerUps"]
@@ -560,7 +638,10 @@ custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_awe2t")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_8s1wt")
 theme_override_styles/hover = SubResource("StyleBoxTexture_uwvng")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_ptk6b")
 theme_override_styles/normal = SubResource("StyleBoxTexture_t018p")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="UI/PowerUps"]
@@ -570,6 +651,7 @@ libraries = {
 autoplay = "poweruppani"
 
 [node name="IntroPanel" type="Panel" parent="UI"]
+clip_children = 1
 z_index = 100
 layout_mode = 1
 anchors_preset = 8
@@ -577,23 +659,32 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -251.0
-offset_top = -222.0
-offset_right = 235.0
-offset_bottom = 248.0
+offset_left = -224.0
+offset_top = -244.0
+offset_right = 262.0
+offset_bottom = 226.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxTexture_qa80h")
+theme_override_styles/panel = SubResource("StyleBoxFlat_t018p")
+
+[node name="TextureRect" type="TextureRect" parent="UI/IntroPanel"]
+clip_children = 2
+layout_mode = 0
+offset_top = -1.0
+offset_right = 486.0
+offset_bottom = 470.0
+texture = ExtResource("10_t018p")
+expand_mode = 1
 
 [node name="VBox" type="VBoxContainer" parent="UI/IntroPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 92.0
-offset_top = 77.0
-offset_right = -82.0
-offset_bottom = 63.0
+offset_left = 43.0
+offset_top = 40.0
+offset_right = -43.0
+offset_bottom = -29.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
@@ -615,14 +706,18 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("11_1hdti")
 theme_override_font_sizes/font_size = 15
 text = "Network breach detected..."
+label_settings = SubResource("LabelSettings_l2tw8")
 autowrap_mode = 3
 
 [node name="StartButton" type="Button" parent="UI/IntroPanel/VBox"]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 24
+theme_override_styles/focus = SubResource("StyleBoxEmpty_dr2xa")
 theme_override_styles/hover = SubResource("StyleBoxTexture_l2tw8")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_uwvng")
 theme_override_styles/normal = SubResource("StyleBoxTexture_81kcg")
 text = " START DEFENSE"
 
@@ -721,17 +816,13 @@ shape = SubResource("RectangleShape2D_allow")
 offset_left = -128.0
 offset_top = -167.0
 offset_right = 112.0
-offset_bottom = -45.0
+offset_bottom = -47.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_tt36q")
 
 [node name="Label" type="Label" parent="GameArea/AllowZone/Panel"]
-visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 1, 0.2, 1)
-theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 24
-text = "✅ ALLOW
-Safe Connections"
+text = "ALLOW"
+label_settings = SubResource("LabelSettings_qa80h")
 horizontal_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="GameArea/AllowZone"]
@@ -756,13 +847,12 @@ offset_bottom = -40.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_xc4th")
 
 [node name="Label" type="Label" parent="GameArea/BlockZone/Panel"]
-visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 24
-text = "🛑 BLOCK
-Threats"
+text = "DENY"
+label_settings = SubResource("LabelSettings_t018p")
 horizontal_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="GameArea/BlockZone"]

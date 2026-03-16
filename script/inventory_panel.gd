@@ -623,11 +623,14 @@ func _equip_card(item: Dictionary) -> void:
 		_show_error_message("Please log in to equip items")
 		return
 	var item_id: String = str(item.get("id", ""))
+	var icon_path: String = str(item.get("icon_path", ""))
 	if item_id.strip_edges() == "":
 		_show_error_message("Invalid card")
 		return
 	Auth.current_equipped_card = item_id
+	Auth.current_card_bg_path = icon_path
 	_persist_user_field("equipped_card", item_id)
+	_persist_user_field("equipped_card_bg_path", icon_path)
 	_refresh_display()
 	_show_item_details(item)
 
@@ -679,6 +682,8 @@ func _equip_avatar(item: Dictionary) -> void:
 		var icon_path: String = str(item.get("icon_path", ""))
 		if icon_path.begins_with("res://asset/avatars/"):
 			file_name = icon_path.get_file()
+		elif icon_path != "":
+			file_name = icon_path
 	if file_name.strip_edges() == "":
 		_show_error_message("Invalid avatar")
 		return
@@ -739,7 +744,9 @@ func _unequip_card(item: Dictionary) -> void:
 	if not Auth:
 		return
 	Auth.current_equipped_card = ""
+	Auth.current_card_bg_path = ""
 	_persist_user_field("equipped_card", "")
+	_persist_user_field("equipped_card_bg_path", "")
 	_refresh_display()
 	_show_item_details(item)
 

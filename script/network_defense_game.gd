@@ -976,13 +976,13 @@ func _update_ui() -> void:
 		shield_icon.add_theme_font_size_override("font_size", 20)
 		shield_container.add_child(shield_icon)
 	
-	hint_button.text = "💡 %d" % hint_tokens
+	hint_button.text = "" % hint_tokens
 	hint_button.disabled = hint_tokens <= 0 or is_game_over
 	
-	freeze_button.text = "⏸️ %s" % ("1" if time_freeze_available else "Used")
+	freeze_button.text = "" % ("1" if time_freeze_available else "Used")
 	freeze_button.disabled = not time_freeze_available or is_game_over
 	
-	auto_button.text = "🤖 %d" % auto_filter_charges
+	auto_button.text = "" % auto_filter_charges
 	auto_button.disabled = auto_filter_charges <= 0 or is_game_over
 
 

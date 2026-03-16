@@ -33,7 +33,8 @@ height = 5.67052
 
 [sub_resource type="Environment" id="Environment_hr7lf"]
 background_mode = 1
-ambient_light_color = Color(0.3, 0.2, 0.5, 1)
+background_color = Color(0.29219, 0.29219, 0.29219, 1)
+ambient_light_color = Color(0.336898, 0.228198, 0.555863, 1)
 ambient_light_energy = 0.2
 glow_enabled = true
 glow_intensity = 1.5
@@ -55,12 +56,23 @@ size = Vector3(20, 0.2, 20)
 render_priority = 0
 shader = ExtResource("4_3sxgj")
 shader_parameter/rock_color_dark = Color(0.2, 0.2, 0.22, 1)
+shader_parameter/rock_color_mid = Color(0.35, 0.33, 0.3, 1)
 shader_parameter/rock_color_light = Color(0.299005, 0.282754, 0.258369, 1)
 shader_parameter/crack_color = Color(0.1, 0.1, 0.12, 1)
-shader_parameter/roughness = 1.0
+shader_parameter/moss_color = Color(0.18, 0.28, 0.1, 1)
+shader_parameter/wet_color_tint = Color(0.1, 0.1, 0.12, 1)
 shader_parameter/rock_scale = 3.252
-shader_parameter/crack_amount = 0.403
-shader_parameter/bump_strength = 0.754
+shader_parameter/crack_scale = 6.0
+shader_parameter/crack_width = 0.25
+shader_parameter/crack_depth = 0.6
+shader_parameter/moss_amount = 0.3
+shader_parameter/moss_fuzziness = 0.15
+shader_parameter/roughness_base = 0.92
+shader_parameter/roughness_vary = 0.18
+shader_parameter/normal_strength = 1.8
+shader_parameter/wetness = 0.0
+shader_parameter/ao_strength = 0.5
+shader_parameter/micro_detail = 0.5
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_h6nst"]
 size = Vector3(6.77135, 10.513, 4.48486)
@@ -69,37 +81,85 @@ size = Vector3(6.77135, 10.513, 4.48486)
 render_priority = 0
 shader = ExtResource("6_pnqar")
 shader_parameter/wood_color_dark = Color(0.3, 0.2, 0.1, 1)
+shader_parameter/wood_color_mid = Color(0.5, 0.3, 0.13, 1)
 shader_parameter/wood_color_light = Color(0.6, 0.4, 0.2, 1)
 shader_parameter/grain_scale = 2.0
-shader_parameter/ring_scale = 5.0
-shader_parameter/roughness = 0.8
+shader_parameter/ring_frequency = 12.0
+shader_parameter/ring_distortion = 2.5
+shader_parameter/grain_angle = 0.0
+shader_parameter/grain_stretch = 4.0
+shader_parameter/plank_width = 0.3
+shader_parameter/plank_softness = 0.01
+shader_parameter/knot_count = 2.0
+shader_parameter/knot_size = 0.08
+shader_parameter/knot_strength = 0.7
+shader_parameter/roughness_base = 0.75
+shader_parameter/roughness_vary = 0.2
+shader_parameter/normal_strength = 1.2
+shader_parameter/ao_strength = 0.35
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_x4yfu"]
 render_priority = 0
 shader = ExtResource("6_pnqar")
 shader_parameter/wood_color_dark = Color(0.3, 0.2, 0.1, 1)
+shader_parameter/wood_color_mid = Color(0.5, 0.3, 0.13, 1)
 shader_parameter/wood_color_light = Color(0.6, 0.4, 0.2, 1)
 shader_parameter/grain_scale = 2.0
-shader_parameter/ring_scale = 5.0
-shader_parameter/roughness = 0.8
+shader_parameter/ring_frequency = 12.0
+shader_parameter/ring_distortion = 2.5
+shader_parameter/grain_angle = 0.0
+shader_parameter/grain_stretch = 4.0
+shader_parameter/plank_width = 0.3
+shader_parameter/plank_softness = 0.01
+shader_parameter/knot_count = 2.0
+shader_parameter/knot_size = 0.08
+shader_parameter/knot_strength = 0.7
+shader_parameter/roughness_base = 0.75
+shader_parameter/roughness_vary = 0.2
+shader_parameter/normal_strength = 1.2
+shader_parameter/ao_strength = 0.35
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_pnqar"]
 render_priority = 0
 shader = ExtResource("6_pnqar")
 shader_parameter/wood_color_dark = Color(0.3, 0.2, 0.1, 1)
+shader_parameter/wood_color_mid = Color(0.5, 0.3, 0.13, 1)
 shader_parameter/wood_color_light = Color(0.6, 0.4, 0.2, 1)
 shader_parameter/grain_scale = 2.0
-shader_parameter/ring_scale = 5.0
-shader_parameter/roughness = 0.8
+shader_parameter/ring_frequency = 12.0
+shader_parameter/ring_distortion = 2.5
+shader_parameter/grain_angle = 0.0
+shader_parameter/grain_stretch = 4.0
+shader_parameter/plank_width = 0.3
+shader_parameter/plank_softness = 0.01
+shader_parameter/knot_count = 2.0
+shader_parameter/knot_size = 0.08
+shader_parameter/knot_strength = 0.7
+shader_parameter/roughness_base = 0.75
+shader_parameter/roughness_vary = 0.2
+shader_parameter/normal_strength = 1.2
+shader_parameter/ao_strength = 0.35
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_764rb"]
 render_priority = 0
 shader = ExtResource("6_pnqar")
 shader_parameter/wood_color_dark = Color(0.3, 0.2, 0.1, 1)
+shader_parameter/wood_color_mid = Color(0.5, 0.3, 0.13, 1)
 shader_parameter/wood_color_light = Color(0.6, 0.4, 0.2, 1)
 shader_parameter/grain_scale = 2.0
-shader_parameter/ring_scale = 5.0
-shader_parameter/roughness = 0.8
+shader_parameter/ring_frequency = 12.0
+shader_parameter/ring_distortion = 2.5
+shader_parameter/grain_angle = 0.0
+shader_parameter/grain_stretch = 4.0
+shader_parameter/plank_width = 0.3
+shader_parameter/plank_softness = 0.01
+shader_parameter/knot_count = 2.0
+shader_parameter/knot_size = 0.08
+shader_parameter/knot_strength = 0.7
+shader_parameter/roughness_base = 0.75
+shader_parameter/roughness_vary = 0.2
+shader_parameter/normal_strength = 1.2
+shader_parameter/ao_strength = 0.35
 
 [sub_resource type="StandardMaterial3D" id="Material_ceiling"]
 albedo_color = Color(0.05, 0.05, 0.08, 1)
@@ -207,7 +267,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="FootstepPlayer" type="AudioStreamPlayer3D" parent="Player"]
-volume_db = 0.0
 max_distance = 20.0
 
 [node name="MainLight" type="DirectionalLight3D" parent="."]
@@ -323,7 +382,6 @@ transform = Transform3D(0.0174524, 0, -0.999848, 0, 1, 0, 0.999848, 0, 0.0174524
 
 [node name="BackgroundMusic" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("14_hrl0l")
-volume_db = 0.0
 autoplay = true
 
 [node name="StoryManager" type="Node" parent="."]

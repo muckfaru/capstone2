@@ -15,11 +15,13 @@ expand_margin_bottom = 20.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_2mwuo"]
 font = ExtResource("3_2mwuo")
-font_size = 28
+font_size = 26
+font_color = Color(1, 0.386388, 0.162548, 1)
 outline_size = 5
-outline_color = Color(0.881562, 0.0904291, 0.864845, 1)
+outline_color = Color(0.908831, 0.000245563, 0.256275, 1)
 shadow_size = 10
 shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(4, 4)
 
 [node name="DropZone" type="PanelContainer"]
 custom_minimum_size = Vector2(400, 200)

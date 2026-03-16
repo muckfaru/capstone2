@@ -59,7 +59,7 @@ const LEVEL_COLORS := {
 }
 
 const PLAYER_MIN: int = 1
-const PLAYER_MAX: int = 50
+const PLAYER_MAX: int = 999
 
 @onready var main_panel: Panel = $CanvasLayer/MainPanel
 @onready var create_form_panel: Panel = $CanvasLayer/CreateFormPanel
@@ -564,7 +564,7 @@ func _on_save_draft_pressed() -> void:
 	if not _is_player_count_valid():
 		_flash_error(player_count_input)
 		player_validation_label.visible = true
-		player_validation_label.text = "Enter a valid player count (1-50)."
+		player_validation_label.text = "Enter a valid player count (%d-%d)." % [PLAYER_MIN, PLAYER_MAX]
 		return
 	if not game_mode_btn.button_pressed and not multiple_choice_btn.button_pressed:
 		return
@@ -674,7 +674,7 @@ func _on_generate_pressed() -> void:
 	if not _is_player_count_valid():
 		_flash_error(player_count_input)
 		player_validation_label.visible = true
-		player_validation_label.text = "Enter a valid player count (1-50)."
+		player_validation_label.text = "Enter a valid player count (%d-%d)." % [PLAYER_MIN, PLAYER_MAX]
 		return
 	if not game_mode_btn.button_pressed and not multiple_choice_btn.button_pressed:
 		return
@@ -1950,7 +1950,7 @@ func _post_gamemode_to_server(room_code: String, room_data: Dictionary) -> void:
 		# Provide fallback scene to prevent server crashing if missing
 		"game_scene": room_data.get("minigame_scene", "res://scene/tutorial_cyber_fundamentals.tscn"),
 		"difficulty": room_data.get("difficulty", "Beginner"),
-		"max_players": int(room_data.get("player_count", 50)),
+		"max_players": int(room_data.get("player_count", 10)),
 		"allowed_students": room_data.get("allowed_students", []),
 	}
 	var headers := ["Content-Type: application/json"]

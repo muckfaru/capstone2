@@ -523,7 +523,7 @@ You NOW know:
 ═══════════════════════════════════════════
 
 Now let's test your skills in a real defense simulation!""" % [xp_earned]
-			next_button.text = "START DEFENSE GAME"
+			next_button.text = "START"
 			next_button.disabled = false
 	
 	# Start typing animation

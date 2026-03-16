@@ -43,7 +43,7 @@ var current_wave = 1
 var total_waves = 8
 var attacks_spawned = 0
 var attacks_per_wave = [3, 4, 5, 5, 6, 7, 8, 10]
-var time_per_attack = [5.0, 4.5, 4.0, 3.5, 3.0, 2.8, 2.5, 2.0]
+var time_per_attack = [5.0, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5, 1.0] # Speeds up faster per wave
 var score = 0
 var combo = 0
 var total_attacks = 0
@@ -383,10 +383,15 @@ func _play_sfx(sfx_player: AudioStreamPlayer, pitch_variation: float = 0.0, base
 	print("🔊 PLAYING SFX: " + sfx_player.stream.resource_path.get_file() + " | Volume: " + str(sfx_player.volume_db) + " dB | Pitch: " + str(sfx_player.pitch_scale))
 	sfx_player.play()
 	
-	# Verify it's actually playing
-	await get_tree().create_timer(0.05).timeout
-	if not sfx_player.playing:
-		print("⚠️  WARNING: Audio started but is NOT playing! (playing=%s)" % sfx_player.playing)
+	# Verify it's actually playing if we're still in the tree
+	if not is_inside_tree():
+		return
+		
+	var tree = get_tree()
+	if tree:
+		await tree.create_timer(0.05).timeout
+		if is_instance_valid(sfx_player) and not sfx_player.playing:
+			print("⚠️  WARNING: Audio started but is NOT playing! (playing=%s)" % sfx_player.playing)
 
 
 func connect_button_sounds(button: Button):
@@ -769,6 +774,10 @@ func spawn_attack():
 	if attacks_spawned >= attacks_per_wave[current_wave - 1]:
 		return
 	
+	# ONLY spawn one card at a time. If there's already a card, don't spawn another yet.
+	if attack_container.get_child_count() > 0:
+		return
+		
 	if available_attacks.is_empty():
 		print("[ERROR] Cannot spawn - no available attacks!")
 		return
@@ -840,13 +849,22 @@ func _on_zone_dropped(card, zone_type):
 	# Wait a tiny bit to ensure sound starts playing
 	await get_tree().create_timer(0.1).timeout
 	
-	card.queue_free()
+	if is_instance_valid(card):
+		card.queue_free()
 	
 	await get_tree().process_frame
-	check_wave_completion()
 	
 	is_processing_feedback = false
-
+	
+	if system_health.is_system_critical():
+		return # Game over handles itself
+		
+	check_wave_completion()
+	
+	# Drop the next card if the wave is not fully spawned yet
+	if attacks_spawned < attacks_per_wave[current_wave - 1]:
+		spawn_timer.start(0.5) # Small delay before the next card drops
+	
 func handle_correct_answer(attack_data, card):
 	correct_attacks += 1
 	if attack_data.category == "data":
@@ -922,15 +940,19 @@ func _on_card_expired(card):
 	# Wait a tiny bit to ensure sound starts playing
 	await get_tree().create_timer(0.1).timeout
 	
-	card.queue_free()
+	if is_instance_valid(card):
+		card.queue_free()
 	await get_tree().process_frame
+	
+	is_processing_feedback = false
 	
 	if system_health.is_system_critical():
 		game_over()
 	else:
 		check_wave_completion()
-	
-	is_processing_feedback = false
+		# Drop the next card if the wave is not fully spawned yet
+		if attacks_spawned < attacks_per_wave[current_wave - 1]:
+			spawn_timer.start(0.5) # Small delay before the next card drops
 
 func check_wave_completion():
 	if attacks_spawned >= attacks_per_wave[current_wave - 1]:
@@ -981,15 +1003,26 @@ func complete_wave():
 		spawn_attack()
 
 func show_feedback(is_success, title, message):
+	# Pause active cards while feedback is showing
+	for child in attack_container.get_children():
+		if child and "is_paused" in child:
+			child.is_paused = true
+			
 	# Remove any existing feedback popup to prevent pile-up
 	for child in $CanvasLayer.get_children():
-		if child.has_method("setup") and child is Panel:
+		if child.has_method("setup") and (child is Panel or child is PanelContainer):
 			child.queue_free()
 	await get_tree().process_frame
 	var popup = FEEDBACK_POPUP.instantiate()
 	$CanvasLayer.add_child(popup)
 	popup.setup(is_success, title, message)
 	await get_tree().create_timer(2.5).timeout
+	
+	# Resume active cards after feedback closes
+	if is_instance_valid(attack_container):
+		for child in attack_container.get_children():
+			if child and "is_paused" in child:
+				child.is_paused = false
 
 func show_victory():
 	spawn_timer.stop()
@@ -1003,9 +1036,9 @@ func show_victory():
 	
 	# ✅ AWARD XP BASED ON PERFORMANCE (First-time only)
 	var accuracy = int((float(correct_attacks) / float(total_attacks)) * 100) if total_attacks > 0 else 0
-	var base_xp = 40  # Base XP for completion
-	var performance_xp = int((score / 1000.0) * 40)  # Up to 40 XP from score
-	var accuracy_xp = int((accuracy / 100.0) * 20)  # Up to 20 XP from accuracy
+	var base_xp = 150  # Base XP for completion
+	var performance_xp = int((score / 1000.0) * 150)  # Up to 150 XP from score
+	var accuracy_xp = int((accuracy / 100.0) * 100)  # Up to 100 XP from accuracy
 	var total_xp_earned = base_xp + performance_xp + accuracy_xp
 	
 	print("[Drop Zone Defender] 🎉 Victory! Awarding XP:")
@@ -1046,8 +1079,8 @@ func game_over():
 	_play_sfx(audio_game_over, 0, 1.0)
 	
 	# ✅ AWARD PARTIAL XP ON LOSS (Based on performance)
-	var performance_xp = int((float(score) / 1000.0) * 20)  # Up to 20 XP from score
-	var attempts_xp = min(correct_attacks * 2, 15)  # Up to 15 XP from correct attempts
+	var performance_xp = int((float(score) / 1000.0) * 100)  # Up to 100 XP from score
+	var attempts_xp = min(correct_attacks * 5, 50)  # Up to 50 XP from correct attempts
 	var partial_xp = performance_xp + attempts_xp
 	
 	print("[Drop Zone Defender] 💀 Game Over - Awarding partial XP:")
@@ -1055,13 +1088,17 @@ func game_over():
 	print("  Attempts XP: %d (%d correct)" % [attempts_xp, correct_attacks])
 	print("  Total Partial XP: %d" % partial_xp)
 	
-	# Award XP but DON'T mark as completed (score = 0 signals incomplete)
-	TutorialManager.add_xp(partial_xp, "Drop Zone Defender (Attempt)")
-	
-	# Mark as attempted so prerequisite system can unlock the next game
-	# Use both the minigame ID and the tutorial ID (prerequisite system uses tutorial IDs)
-	TutorialManager.mark_minigame_attempted("drop_zone_defender", partial_xp)
-	TutorialManager.mark_minigame_attempted("beginner_drop_zone", partial_xp)
+	# Only award partial XP and mark as attempted if NOT already fully completed
+	if not TutorialManager.completed_minigames.has("drop_zone_defender"):
+		# Award XP but DON'T mark as completed (score = 0 signals incomplete)
+		TutorialManager.add_xp(partial_xp, "Drop Zone Defender (Attempt)")
+		
+		# Mark as attempted so prerequisite system can unlock the next game
+		# Use both the minigame ID and the tutorial ID (prerequisite system uses tutorial IDs)
+		TutorialManager.mark_minigame_attempted("drop_zone_defender", partial_xp)
+		TutorialManager.mark_minigame_attempted("beginner_drop_zone", partial_xp)
+	else:
+		print("  ⚠️ Replay - Game already completed. No partial XP awarded.")
 	
 	# In GameMode, submit score and go to leaderboard (no retry)
 	if _is_gamemode:

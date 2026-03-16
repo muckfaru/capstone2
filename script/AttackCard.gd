@@ -11,6 +11,7 @@ var drag_offset: Vector2 = Vector2.ZERO
 var original_position: Vector2 = Vector2.ZERO
 var game_manager = null  # Reference to main game manager for sounds
 var _has_expired: bool = false  # Guard: emit card_expired only once
+var is_paused: bool = false  # Allow pausing the timer from game manager
 
 @onready var timer_bar = $VBox/Header/TimerBar
 @onready var icon = $VBox/Icon
@@ -32,6 +33,9 @@ func _ready():
 	timer_bar.value = 1.0
 
 func _process(delta):
+	if is_paused:
+		return
+		
 	if not is_dragging:
 		time_remaining -= delta
 		var progress = time_remaining / time_limit

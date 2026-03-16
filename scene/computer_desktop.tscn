@@ -1,16 +1,137 @@
-[gd_scene load_steps=10 format=3 uid="uid://bjg11hwbs4b2n"]
+[gd_scene load_steps=40 format=3 uid="uid://bjg11hwbs4b2n"]
 
 [ext_resource type="Script" uid="uid://yaxegflmrqln" path="res://script/computer_desktop.gd" id="1"]
 [ext_resource type="AudioStream" uid="uid://434ciwbb7kcy" path="res://asset/audio/sfx/click-short-411516.mp3" id="2_07waw"]
-[ext_resource type="Texture2D" uid="uid://cdj0n8dbrosd1" path="res://asset/icons/browser_icons.png" id="2_browser"]
 [ext_resource type="Texture2D" uid="uid://dwcbmtvhpjifc" path="res://asset/icons/desktop_bg.jpg" id="2_t34nj"]
-[ext_resource type="Texture2D" uid="uid://dey0uchbqt8m6" path="res://asset/icons/messages_icons.png" id="3_messages"]
 [ext_resource type="AudioStream" uid="uid://buae13e83e8pc" path="res://asset/audio/sfx/pc-speaker-error-beep-104100.mp3" id="4_akfn5"]
 [ext_resource type="AudioStream" uid="uid://be3vq0gly3l24" path="res://asset/audio/sfx/success-340660.mp3" id="5_8mjvp"]
-[ext_resource type="Texture2D" uid="uid://cbxnk50mvs60f" path="res://asset/icons/open-folder.png" id="5_t34nj"]
+[ext_resource type="Texture2D" uid="uid://b767u081vtycx" path="res://asset/icons/chrome.png" id="6_5ciwf"]
+[ext_resource type="Texture2D" uid="uid://045ss27gmcnk" path="res://asset/icons/messenger.png" id="7_5ciwf"]
+[ext_resource type="Texture2D" uid="uid://cbxf4kbrjllm6" path="res://asset/icons/folder.png" id="8_07waw"]
+[ext_resource type="Texture2D" uid="uid://bbtf1loljgvyk" path="res://asset/icons/photo 1.png" id="9_photo1"]
+[ext_resource type="Texture2D" uid="uid://dpbfqdih6nvna" path="res://asset/icons/photo 2.png" id="9_photo2"]
+[ext_resource type="Texture2D" uid="uid://detpe5vj71xy1" path="res://asset/icons/photo 3.png" id="9_photo3"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5ciwf"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kjpbq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_akfn5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8mjvp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4qybe"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nacxy"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_taskbar"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5ciwf"]
+bg_color = Color(0.318679, 0.596343, 1, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 2
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_07waw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kjpbq"]
+bg_color = Color(0.711845, 0, 0.152283, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_akfn5"]
+bg_color = Color(0.903, 0, 0.204, 0.772)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8mjvp"]
+bg_color = Color(0.910078, 0, 0.00501638, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4qybe"]
+bg_color = Color(0.214703, 0.214703, 0.214702, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wnm74"]
+bg_color = Color(0, 0, 0, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+border_blend = true
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_07waw"]
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qxw2n"]
+bg_color = Color(0, 0, 0, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nacxy"]
+bg_color = Color(0, 0, 0, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uy7u0"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.126612, 0.388196, 1, 1)
+border_blend = true
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ea4ac"]
+bg_color = Color(0.903, 0, 0.204, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qh78l"]
+bg_color = Color(0.903, 0, 0.204, 0.772)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_khe18"]
+bg_color = Color(0.903, 0, 0.204, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_11nys"]
+bg_color = Color(0.903, 0, 0.204, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_folder"]
+bg_color = Color(0.15, 0.15, 0.2, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.8, 1, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_foldertitle"]
+bg_color = Color(0.1, 0.1, 0.18, 1)
+border_width_bottom = 1
+border_color = Color(0, 0.8, 1, 0.5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1g4qf"]
+bg_color = Color(0.903, 0, 0.204, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f00tn"]
+bg_color = Color(0.903, 0, 0.204, 0.772)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uom6f"]
+bg_color = Color(0.903, 0, 0.204, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ag41m"]
+bg_color = Color(0.903, 0, 0.204, 1)
 
 [node name="ComputerDesktop" type="Control"]
 layout_mode = 3
@@ -33,13 +154,13 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_t34nj")
 expand_mode = 1
-stretch_mode = 6
 
 [node name="Desktop" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 8.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -49,6 +170,9 @@ offset_left = 50.0
 offset_top = 50.0
 offset_right = 178.0
 offset_bottom = 210.0
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_5ciwf")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_kjpbq")
 flat = true
 
 [node name="VBox" type="VBoxContainer" parent="Desktop/IconBrowser"]
@@ -65,7 +189,8 @@ theme_override_constants/separation = 10
 custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
 mouse_filter = 2
-texture = ExtResource("2_browser")
+mouse_default_cursor_shape = 2
+texture = ExtResource("6_5ciwf")
 expand_mode = 1
 stretch_mode = 5
 
@@ -85,6 +210,9 @@ offset_left = 50.0
 offset_top = 230.0
 offset_right = 178.0
 offset_bottom = 390.0
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_akfn5")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_8mjvp")
 flat = true
 
 [node name="VBox" type="VBoxContainer" parent="Desktop/IconMessages"]
@@ -101,7 +229,8 @@ theme_override_constants/separation = 10
 custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
 mouse_filter = 2
-texture = ExtResource("3_messages")
+mouse_default_cursor_shape = 2
+texture = ExtResource("7_5ciwf")
 expand_mode = 1
 stretch_mode = 5
 
@@ -121,6 +250,9 @@ offset_left = 50.0
 offset_top = 410.0
 offset_right = 178.0
 offset_bottom = 570.0
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4qybe")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_nacxy")
 flat = true
 
 [node name="VBox" type="VBoxContainer" parent="Desktop/IconFiles"]
@@ -137,7 +269,8 @@ theme_override_constants/separation = 10
 custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
 mouse_filter = 2
-texture = ExtResource("5_t34nj")
+mouse_default_cursor_shape = 2
+texture = ExtResource("8_07waw")
 expand_mode = 1
 stretch_mode = 5
 
@@ -217,12 +350,15 @@ anchors_preset = 10
 anchor_right = 1.0
 offset_bottom = 40.0
 grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_5ciwf")
 
 [node name="TitleLabel" type="Label" parent="WindowBrowser/TitleBar"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 16.0
+offset_right = 16.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Web Browser"
@@ -236,6 +372,10 @@ anchor_right = 1.0
 offset_left = -40.0
 offset_bottom = 40.0
 grow_horizontal = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_07waw")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxFlat_kjpbq")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxFlat_akfn5")
+theme_override_styles/normal = SubResource("StyleBoxFlat_8mjvp")
 text = "X"
 
 [node name="AddressBar" type="LineEdit" parent="WindowBrowser"]
@@ -245,6 +385,7 @@ anchor_right = 1.0
 offset_top = 50.0
 offset_bottom = 80.0
 grow_horizontal = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_4qybe")
 placeholder_text = "Enter search term..."
 
 [node name="SearchButton" type="Button" parent="WindowBrowser"]
@@ -256,6 +397,10 @@ offset_left = -100.0
 offset_top = 50.0
 offset_bottom = 80.0
 grow_horizontal = 0
+theme_override_styles/focus = SubResource("StyleBoxFlat_wnm74")
+theme_override_styles/hover = SubResource("StyleBoxFlat_07waw")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_qxw2n")
+theme_override_styles/normal = SubResource("StyleBoxFlat_nacxy")
 text = "Search"
 
 [node name="ContentArea" type="ScrollContainer" parent="WindowBrowser"]
@@ -263,10 +408,11 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 90.0
+offset_top = 88.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_uy7u0")
 
 [node name="SearchResults" type="VBoxContainer" parent="WindowBrowser/ContentArea"]
 layout_mode = 2
@@ -313,6 +459,10 @@ anchor_right = 1.0
 offset_left = -40.0
 offset_bottom = 40.0
 grow_horizontal = 0
+theme_override_styles/focus = SubResource("StyleBoxFlat_ea4ac")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxFlat_qh78l")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_khe18")
+theme_override_styles/normal = SubResource("StyleBoxFlat_11nys")
 text = "X"
 
 [node name="ChatArea" type="ScrollContainer" parent="WindowMessages"]
@@ -328,3 +478,133 @@ grow_vertical = 2
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+
+[node name="WindowFiles" type="Panel" parent="."]
+visible = false
+z_index = 10
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -220.0
+offset_right = 350.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_folder")
+
+[node name="TitleBar" type="Panel" parent="WindowFiles"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 44.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_foldertitle")
+
+[node name="TitleLabel" type="Label" parent="WindowFiles/TitleBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "📁 My Photos"
+vertical_alignment = 1
+
+[node name="CloseBtn" type="Button" parent="WindowFiles/TitleBar"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -44.0
+offset_bottom = 44.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxFlat_1g4qf")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxFlat_f00tn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_uom6f")
+theme_override_styles/normal = SubResource("StyleBoxFlat_ag41m")
+text = "X"
+
+[node name="PhotosContainer" type="HBoxContainer" parent="WindowFiles"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 64.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Photo1Box" type="VBoxContainer" parent="WindowFiles/PhotosContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Photo1" type="TextureRect" parent="WindowFiles/PhotosContainer/Photo1Box"]
+custom_minimum_size = Vector2(150, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+texture = ExtResource("9_photo1")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label1" type="Label" parent="WindowFiles/PhotosContainer/Photo1Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 13
+text = "photo 1"
+horizontal_alignment = 1
+
+[node name="Photo2Box" type="VBoxContainer" parent="WindowFiles/PhotosContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Photo2" type="TextureRect" parent="WindowFiles/PhotosContainer/Photo2Box"]
+custom_minimum_size = Vector2(150, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+texture = ExtResource("9_photo2")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label2" type="Label" parent="WindowFiles/PhotosContainer/Photo2Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 13
+text = "photo 2"
+horizontal_alignment = 1
+
+[node name="Photo3Box" type="VBoxContainer" parent="WindowFiles/PhotosContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="Photo3" type="TextureRect" parent="WindowFiles/PhotosContainer/Photo3Box"]
+custom_minimum_size = Vector2(150, 150)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+texture = ExtResource("9_photo3")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label3" type="Label" parent="WindowFiles/PhotosContainer/Photo3Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 13
+text = "photo 3"
+horizontal_alignment = 1

@@ -356,10 +356,26 @@ const _MINIGAME_IDS := [
 
 ## Returns true if the given tutorial/minigame has been completed.
 func _is_tutorial_completed(tid: String) -> bool:
+	var script_alias: String = ""
+	match tid:
+		"beginner_drop_zone": script_alias = "drop_zone_defender"
+		"beginner_malware": script_alias = "malware_defense"
+		"intermediate_assetandthreat": script_alias = "asset_vs_threats"
+		"intermediate_incident_commander": script_alias = "incident_commander"
+		"intermediate_crypt_contract": script_alias = "crypt_contract"
+		"advanced_security_guardian": script_alias = "security_guardian"
+		"advanced_encryption": script_alias = "beginner_encryption"
+		"beginner_network": script_alias = "network_defense"
+		
 	if tid in _MINIGAME_IDS:
-		return TutorialManager.completed_minigames.has(tid)
+		if TutorialManager.completed_minigames.has(tid): return true
+		if script_alias != "" and TutorialManager.completed_minigames.has(script_alias): return true
+		if tid == "intermediate_incident_commander" and TutorialManager.completed_minigames.has("cmd_defender"): return true
+		return false
 	else:
-		return TutorialManager.completed_tutorials.has(tid)
+		if TutorialManager.completed_tutorials.has(tid): return true
+		if script_alias != "" and TutorialManager.completed_tutorials.has(script_alias): return true
+		return false
 
 
 ## Checks whether a tutorial's prerequisites are met.
@@ -470,16 +486,37 @@ func _create_tutorial_card(tutorial: Dictionary, level_int: int, overlay: Contro
 
 	var is_minigame: bool = tutorial_id in _MINIGAME_IDS
 
-	var is_completed: bool = false
+	var is_completed: bool = _is_tutorial_completed(tutorial_id)
 	var completion_data: Dictionary = {}
-	if is_minigame:
-		is_completed = TutorialManager.completed_minigames.has(tutorial_id)
-		if is_completed:
-			completion_data = TutorialManager.completed_minigames[tutorial_id]
-	else:
-		is_completed = TutorialManager.completed_tutorials.has(tutorial_id)
-		if is_completed:
-			completion_data = TutorialManager.completed_tutorials[tutorial_id]
+	
+	if is_completed:
+		var script_alias: String = ""
+		match tutorial_id:
+			"beginner_drop_zone": script_alias = "drop_zone_defender"
+			"beginner_malware": script_alias = "malware_defense"
+			"intermediate_assetandthreat": script_alias = "asset_vs_threats"
+			"intermediate_incident_commander": script_alias = "incident_commander"
+			"advanced_security_guardian": script_alias = "security_guardian"
+			"advanced_encryption": script_alias = "beginner_encryption"
+			"beginner_network": script_alias = "network_defense"
+			"intermediate_crypt_contract": script_alias = "crypt_contract"
+		
+		# Find the correct key to pull completion data from
+		var actual_key: String = tutorial_id
+		if is_minigame:
+			if not TutorialManager.completed_minigames.has(actual_key) and script_alias != "" and TutorialManager.completed_minigames.has(script_alias):
+				actual_key = script_alias
+			if not TutorialManager.completed_minigames.has(actual_key) and tutorial_id == "intermediate_incident_commander" and TutorialManager.completed_minigames.has("cmd_defender"):
+				actual_key = "cmd_defender"
+				
+			if TutorialManager.completed_minigames.has(actual_key):
+				completion_data = TutorialManager.completed_minigames[actual_key]
+		else:
+			if not TutorialManager.completed_tutorials.has(actual_key) and script_alias != "" and TutorialManager.completed_tutorials.has(script_alias):
+				actual_key = script_alias
+				
+			if TutorialManager.completed_tutorials.has(actual_key):
+				completion_data = TutorialManager.completed_tutorials[actual_key]
 
 	# ── Prerequisite check ───────────────────────────────────────────────
 	var unlock_info: Dictionary = _check_unlocked(tutorial_id)

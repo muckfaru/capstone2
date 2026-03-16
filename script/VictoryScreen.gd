@@ -19,9 +19,13 @@ func _ready():
 	if retry_btn:
 		retry_btn.mouse_entered.connect(_on_button_hover)
 		retry_btn.pressed.connect(_on_button_click)
+		if not retry_btn.pressed.is_connected(_on_retry_pressed):
+			retry_btn.pressed.connect(_on_retry_pressed)
 	if next_btn:
 		next_btn.mouse_entered.connect(_on_button_hover)
 		next_btn.pressed.connect(_on_button_click)
+		if not next_btn.pressed.is_connected(_on_next_pressed):
+			next_btn.pressed.connect(_on_next_pressed)
 
 func _on_button_hover():
 	if game_manager:
@@ -49,5 +53,5 @@ func _on_retry_pressed():
 	get_tree().reload_current_scene()
 
 func _on_next_pressed():
-	print("Next lesson not implemented yet")
-	get_tree().quit()
+	print("Returning to mode selection...")
+	get_tree().change_scene_to_file("res://scene/mode_selection.tscn")

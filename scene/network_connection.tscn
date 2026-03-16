@@ -3,17 +3,16 @@
 [ext_resource type="Script" uid="uid://b3a6moynp6mcb" path="res://script/network_connection.gd" id="1_conn"]
 [ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="2_font"]
 [ext_resource type="FontFile" uid="uid://spter0fgddof" path="res://asset/fonts/BraahOne-Regular.ttf" id="2_ln7kb"]
-[ext_resource type="Texture2D" uid="uid://ckvxcu8yi6jlv" path="res://asset/minigamesicon/spawner.png" id="2_uvdut"]
+[ext_resource type="Texture2D" uid="uid://bjrlywidl8t0p" path="res://asset/minigames new ui/Gemini_Generated_Image_kd5nlakd5nlakd5n-Photoroom.png" id="2_uvdut"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
-size = Vector2(320, 177)
+size = Vector2(299, 170)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lchf6"]
 texture = ExtResource("2_uvdut")
-expand_margin_left = 160.0
-expand_margin_top = 20.0
-expand_margin_right = 140.0
-expand_margin_bottom = 20.0
+expand_margin_left = 40.0
+expand_margin_top = 40.0
+expand_margin_right = 40.0
 modulate_color = Color(0.700117, 0.673779, 0.817013, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uvdut"]
@@ -23,7 +22,8 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.259821, 0.0840511, 0.187818, 1)
+border_color = Color(0.192355, 0.645355, 0.355568, 1)
+border_blend = true
 corner_radius_top_left = 4
 corner_radius_top_right = 2
 corner_radius_bottom_right = 4
@@ -45,7 +45,7 @@ corner_radius_bottom_left = 2
 script = ExtResource("1_conn")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(-5, 2.5)
+position = Vector2(5.5, -18)
 shape = SubResource("RectangleShape2D_1")
 
 [node name="GlowRect" type="ColorRect" parent="."]
@@ -63,11 +63,13 @@ offset_top = -67.0
 offset_right = 145.0
 offset_bottom = 67.0
 mouse_filter = 2
+mouse_default_cursor_shape = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_lchf6")
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
-offset_right = 260.0
+offset_left = 22.0
+offset_right = 258.0
 offset_bottom = 134.0
 theme_override_constants/separation = 5
 

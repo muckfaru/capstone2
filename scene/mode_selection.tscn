@@ -518,19 +518,19 @@ stretch_mode = 6
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 287.0
-offset_top = -167.0
-offset_right = 455.0
-offset_bottom = -137.0
+offset_left = 284.0
+offset_top = -164.0
+offset_right = 452.0
+offset_bottom = -134.0
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.984475, 0.991507, 0.908535, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "BRONZE"
 vertical_alignment = 1
-autowrap_mode = 2
+autowrap_mode = 3
 
 [node name="UnlockProgressPanel" type="Panel" parent="CanvasLayer"]
 visible = false

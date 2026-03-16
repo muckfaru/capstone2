@@ -1,7 +1,7 @@
 # MinigameRewards.gd
 # Autoload singleton — add to Project > Project Settings > Autoload as "MinigameRewards"
 #
-# Manages per-minigame reward drops (badge + card + avatar, legendary powerup).
+# Manages per-minigame reward drops (badge + card + avatar).
 #
 # Usage A (award_minigame_xp scripts):
 #   var xp = TutorialManager.award_minigame_xp(id, xp, score)
@@ -23,13 +23,11 @@ extends Node
 #   badge_common.png      — Common badge icon
 #   card_rare.png         — Rare card artwork
 #   avatar_epic.png       — Epic avatar unlock
-#   powerup_legendary.png — Legendary powerup (only shown on high score)
 #
 # Example for beginner_fundamentals:
 #   res://asset/rewards/beginner_fundamentals/badge_common.png
 #   res://asset/rewards/beginner_fundamentals/card_rare.png
 #   res://asset/rewards/beginner_fundamentals/avatar_epic.png
-#   res://asset/rewards/beginner_fundamentals/powerup_legendary.png
 # ============================================================================
 
 const REWARD_BASE_PATH := "res://asset/rewards/"
@@ -51,117 +49,86 @@ const SCRIPT_ID_TO_FOLDER := {
 	"network_defense":     "beginner_network",
 }
 
-# ── Legendary score thresholds per game (score >= threshold → legendary) ──
-# Tweak these values to control how hard legendary is to earn.
-const LEGENDARY_THRESHOLDS := {
-	"beginner_fundamentals": 90,
-	"beginner_network": 90,
-	"advanced_encryption": 90,
-	"beginner_password": 150,
-	"beginner_malware": 80,
-	"beginner_drop_zone": 400,
-	"intermediate_phishing": 1000,
-	"intermediate_assetandthreat": 400,
-	"intermediate_crypt_contract": 400,
-	"intermediate_incident_commander": 400,
-	"advanced_crypto_sorter": 400,
-	"advanced_rsa_key_lab": 400,
-	"advanced_security_guardian": 400,
-}
+
 
 # ── Reward definitions for every game ─────────────────────────────────────
 # Each game maps to an array of reward dicts:
-#   type     : "badge" | "card" | "avatar" | "powerup"
-#   rarity   : "common" | "rare" | "epic" | "legendary"
+#   type     : "badge" | "card" | "avatar"
+#   rarity   : "common" | "rare" | "epic"
 #   name     : display name shown in popup
 #   file     : texture filename inside the game's reward folder
 #   desc     : short flavour text
-#   legendary: bool — only included when score meets the threshold
 #
-# The first 3 rewards are ALWAYS given (common badge, rare card, epic avatar).
-# The 4th (legendary powerup) is conditional on score.
+# All 3 rewards are given on first-time completion.
 
 const GAME_REWARDS := {
 	# ────────────────────── BEGINNER ──────────────────────────────────────
 	"beginner_fundamentals": [
-		{"type": "badge", "rarity": "common", "name": "Cyber Recruit Badge", "file": "badge_common.png", "desc": "Awarded for completing Cybersecurity Fundamentals."},
-		{"type": "card", "rarity": "rare", "name": "Firewall Sentinel Card", "file": "card_rare.png", "desc": "A rare card depicting the first line of defense."},
-		{"type": "avatar", "rarity": "epic", "name": "Agent Zero Avatar", "file": "avatar_epic.png", "desc": "An epic avatar for budding cyber agents."},
-		{"type": "powerup", "rarity": "legendary", "name": "Cyber Shield Boost", "file": "powerup_legendary.png", "desc": "A legendary powerup — double XP on your next game!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Cyber Recruit", "file": "badge_common.png", "desc": "Awarded for completing Cybersecurity Fundamentals."},
+		{"type": "card", "rarity": "rare", "name": "Firewall Sentinel", "file": "card_rare.png", "desc": "A rare card depicting the first line of defense."},
+		{"type": "avatar", "rarity": "epic", "name": "Agent Zero", "file": "avatar_epic.png", "desc": "An epic avatar for budding cyber agents."},
 	],
 	"beginner_network": [
-		{"type": "badge", "rarity": "common", "name": "Network Explorer Badge", "file": "badge_common.png", "desc": "Awarded for mastering Network Basics."},
-		{"type": "card", "rarity": "rare", "name": "Packet Tracer Card", "file": "card_rare.png", "desc": "A rare card showing data packets in flight."},
-		{"type": "avatar", "rarity": "epic", "name": "Router Guardian Avatar", "file": "avatar_epic.png", "desc": "An epic avatar of the network protector."},
-		{"type": "powerup", "rarity": "legendary", "name": "Bandwidth Surge", "file": "powerup_legendary.png", "desc": "Legendary powerup — bonus combo multiplier!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Network Explorer", "file": "badge_common.png", "desc": "Awarded for mastering Network Basics."},
+		{"type": "card", "rarity": "rare", "name": "Packet Tracer", "file": "card_rare.png", "desc": "A rare card showing data packets in flight."},
+		{"type": "avatar", "rarity": "epic", "name": "Router Guardian", "file": "avatar_epic.png", "desc": "An epic avatar of the network protector."},
 	],
 	"advanced_encryption": [
-		{"type": "badge", "rarity": "common", "name": "Cipher Initiate Badge", "file": "badge_common.png", "desc": "Awarded for unlocking the secrets of encryption."},
-		{"type": "card", "rarity": "rare", "name": "Caesar Wheel Card", "file": "card_rare.png", "desc": "A rare card featuring the classic Caesar cipher."},
-		{"type": "avatar", "rarity": "epic", "name": "Cryptkeeper Avatar", "file": "avatar_epic.png", "desc": "An epic avatar shrouded in encrypted mystery."},
-		{"type": "powerup", "rarity": "legendary", "name": "Decryption Key", "file": "powerup_legendary.png", "desc": "Legendary powerup — instant hint in crypto games!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Cipher Initiate", "file": "badge_common.png", "desc": "Awarded for unlocking the secrets of encryption."},
+		{"type": "card", "rarity": "rare", "name": "Caesar Wheel", "file": "card_rare.png", "desc": "A rare card featuring the classic Caesar cipher."},
+		{"type": "avatar", "rarity": "epic", "name": "Cryptkeeper", "file": "avatar_epic.png", "desc": "An epic avatar shrouded in encrypted mystery."},
 	],
 	"beginner_password": [
-		{"type": "badge", "rarity": "common", "name": "Fortress Builder Badge", "file": "badge_common.png", "desc": "Awarded for defending the Password Fortress."},
-		{"type": "card", "rarity": "rare", "name": "Iron Gate Card", "file": "card_rare.png", "desc": "A rare card depicting an impenetrable gate."},
-		{"type": "avatar", "rarity": "epic", "name": "Vault Keeper Avatar", "file": "avatar_epic.png", "desc": "An epic avatar of the vault's guardian."},
-		{"type": "powerup", "rarity": "legendary", "name": "Unbreakable Wall", "file": "powerup_legendary.png", "desc": "Legendary powerup — extra life in battle games!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Fortress Builder", "file": "badge_common.png", "desc": "Awarded for defending the Password Fortress."},
+		{"type": "card", "rarity": "rare", "name": "Iron Gate", "file": "card_rare.png", "desc": "A rare card depicting an impenetrable gate."},
+		{"type": "avatar", "rarity": "epic", "name": "Vault Keeper", "file": "avatar_epic.png", "desc": "An epic avatar of the vault's guardian."},
 	],
 	"beginner_malware": [
-		{"type": "badge", "rarity": "common", "name": "Malware Hunter Badge", "file": "badge_common.png", "desc": "Awarded for identifying all malware types."},
-		{"type": "card", "rarity": "rare", "name": "Trojan Horse Card", "file": "card_rare.png", "desc": "A rare card revealing the hidden threat."},
-		{"type": "avatar", "rarity": "epic", "name": "Virus Slayer Avatar", "file": "avatar_epic.png", "desc": "An epic avatar of the malware destroyer."},
-		{"type": "powerup", "rarity": "legendary", "name": "Antivirus Overcharge", "file": "powerup_legendary.png", "desc": "Legendary powerup — area-of-effect damage boost!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Malware Hunter", "file": "badge_common.png", "desc": "Awarded for identifying all malware types."},
+		{"type": "card", "rarity": "rare", "name": "Trojan Horse", "file": "card_rare.png", "desc": "A rare card revealing the hidden threat."},
+		{"type": "avatar", "rarity": "epic", "name": "Virus Slayer", "file": "avatar_epic.png", "desc": "An epic avatar of the malware destroyer."},
 	],
 	# ────────────────────── INTERMEDIATE ──────────────────────────────────
 	"beginner_drop_zone": [
-		{"type": "badge", "rarity": "common", "name": "Drop Zone Ace Badge", "file": "badge_common.png", "desc": "Awarded for mastering data vs network classification."},
-		{"type": "card", "rarity": "rare", "name": "Firewall Matrix Card", "file": "card_rare.png", "desc": "A rare card showing layered firewall rules."},
-		{"type": "avatar", "rarity": "epic", "name": "Data Warden Avatar", "file": "avatar_epic.png", "desc": "An epic avatar who guards the data streams."},
-		{"type": "powerup", "rarity": "legendary", "name": "Sorting Surge", "file": "powerup_legendary.png", "desc": "Legendary powerup — auto-sort one wave!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Drop Zone Ace", "file": "badge_common.png", "desc": "Awarded for mastering data vs network classification."},
+		{"type": "card", "rarity": "rare", "name": "Firewall Matrix", "file": "card_rare.png", "desc": "A rare card showing layered firewall rules."},
+		{"type": "avatar", "rarity": "epic", "name": "Data Warden", "file": "avatar_epic.png", "desc": "An epic avatar who guards the data streams."},
 	],
 	"intermediate_phishing": [
-		{"type": "badge", "rarity": "common", "name": "Phishing Detective Badge", "file": "badge_common.png", "desc": "Awarded for spotting phishing attempts."},
-		{"type": "card", "rarity": "rare", "name": "Bait & Hook Card", "file": "card_rare.png", "desc": "A rare card illustrating social engineering."},
-		{"type": "avatar", "rarity": "epic", "name": "Inbox Guardian Avatar", "file": "avatar_epic.png", "desc": "An epic avatar protecting the inbox."},
-		{"type": "powerup", "rarity": "legendary", "name": "Spam Shield", "file": "powerup_legendary.png", "desc": "Legendary powerup — block one wrong answer!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Phishing Detective", "file": "badge_common.png", "desc": "Awarded for spotting phishing attempts."},
+		{"type": "card", "rarity": "rare", "name": "Bait & Hook", "file": "card_rare.png", "desc": "A rare card illustrating social engineering."},
+		{"type": "avatar", "rarity": "epic", "name": "Inbox Guardian", "file": "avatar_epic.png", "desc": "An epic avatar protecting the inbox."},
 	],
 	"intermediate_assetandthreat": [
-		{"type": "badge", "rarity": "common", "name": "Threat Analyst Badge", "file": "badge_common.png", "desc": "Awarded for defending assets from threats."},
-		{"type": "card", "rarity": "rare", "name": "Risk Matrix Card", "file": "card_rare.png", "desc": "A rare card mapping assets to vulnerabilities."},
-		{"type": "avatar", "rarity": "epic", "name": "Shield Operator Avatar", "file": "avatar_epic.png", "desc": "An epic avatar wielding a digital shield."},
-		{"type": "powerup", "rarity": "legendary", "name": "Threat Neutralizer", "file": "powerup_legendary.png", "desc": "Legendary powerup — freeze all threats for 5s!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Threat Analyst", "file": "badge_common.png", "desc": "Awarded for defending assets from threats."},
+		{"type": "card", "rarity": "rare", "name": "Risk Matrix", "file": "card_rare.png", "desc": "A rare card mapping assets to vulnerabilities."},
+		{"type": "avatar", "rarity": "epic", "name": "Shield Operator", "file": "avatar_epic.png", "desc": "An epic avatar wielding a digital shield."},
 	],
 	"intermediate_crypt_contract": [
-		{"type": "badge", "rarity": "common", "name": "Crypto Engineer Badge", "file": "badge_common.png", "desc": "Awarded for completing the Crypt Contract."},
-		{"type": "card", "rarity": "rare", "name": "Encryption Seal Card", "file": "card_rare.png", "desc": "A rare card sealed with cryptographic proof."},
-		{"type": "avatar", "rarity": "epic", "name": "Key Master Avatar", "file": "avatar_epic.png", "desc": "An epic avatar who forges encryption keys."},
-		{"type": "powerup", "rarity": "legendary", "name": "Master Key", "file": "powerup_legendary.png", "desc": "Legendary powerup — skip one encryption puzzle!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Crypto Engineer", "file": "badge_common.png", "desc": "Awarded for completing the Crypt Contract."},
+		{"type": "card", "rarity": "rare", "name": "Encryption Seal", "file": "card_rare.png", "desc": "A rare card sealed with cryptographic proof."},
+		{"type": "avatar", "rarity": "epic", "name": "Key Master", "file": "avatar_epic.png", "desc": "An epic avatar who forges encryption keys."},
 	],
 	"intermediate_incident_commander": [
-		{"type": "badge", "rarity": "common", "name": "Incident Commander Badge", "file": "badge_common.png", "desc": "Awarded for commanding the SOC center."},
-		{"type": "card", "rarity": "rare", "name": "Alert Console Card", "file": "card_rare.png", "desc": "A rare card showing the SOC command console."},
-		{"type": "avatar", "rarity": "epic", "name": "SOC Director Avatar", "file": "avatar_epic.png", "desc": "An epic avatar leading the security team."},
-		{"type": "powerup", "rarity": "legendary", "name": "Command Override", "file": "powerup_legendary.png", "desc": "Legendary powerup — auto-resolve one incident!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Incident Commander", "file": "badge_common.png", "desc": "Awarded for commanding the SOC center."},
+		{"type": "card", "rarity": "rare", "name": "Alert Console", "file": "card_rare.png", "desc": "A rare card showing the SOC command console."},
+		{"type": "avatar", "rarity": "epic", "name": "SOC Director", "file": "avatar_epic.png", "desc": "An epic avatar leading the security team."},
 	],
 	# ────────────────────── ADVANCED ──────────────────────────────────────
 	"advanced_crypto_sorter": [
-		{"type": "badge", "rarity": "common", "name": "Crypto Sorter Badge", "file": "badge_common.png", "desc": "Awarded for sorting symmetric vs asymmetric crypto."},
-		{"type": "card", "rarity": "rare", "name": "Algorithm Atlas Card", "file": "card_rare.png", "desc": "A rare card cataloging every major algorithm."},
-		{"type": "avatar", "rarity": "epic", "name": "Algorithm Sage Avatar", "file": "avatar_epic.png", "desc": "An epic avatar who knows every cipher."},
-		{"type": "powerup", "rarity": "legendary", "name": "Cipher Mastery", "file": "powerup_legendary.png", "desc": "Legendary powerup — reveal answer hints!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Crypto Sorter", "file": "badge_common.png", "desc": "Awarded for sorting symmetric vs asymmetric crypto."},
+		{"type": "card", "rarity": "rare", "name": "Algorithm Atlas", "file": "card_rare.png", "desc": "A rare card cataloging every major algorithm."},
+		{"type": "avatar", "rarity": "epic", "name": "Algorithm Sage", "file": "avatar_epic.png", "desc": "An epic avatar who knows every cipher."},
 	],
 	"advanced_rsa_key_lab": [
-		{"type": "badge", "rarity": "common", "name": "RSA Scholar Badge", "file": "badge_common.png", "desc": "Awarded for completing the RSA Key Lab."},
-		{"type": "card", "rarity": "rare", "name": "Prime Factor Card", "file": "card_rare.png", "desc": "A rare card showing the beauty of prime numbers."},
-		{"type": "avatar", "rarity": "epic", "name": "Cryptographer Avatar", "file": "avatar_epic.png", "desc": "An epic avatar of a master cryptographer."},
-		{"type": "powerup", "rarity": "legendary", "name": "Prime Catalyst", "file": "powerup_legendary.png", "desc": "Legendary powerup — double score on next game!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "RSA Scholar", "file": "badge_common.png", "desc": "Awarded for completing the RSA Key Lab."},
+		{"type": "card", "rarity": "rare", "name": "Prime Factor", "file": "card_rare.png", "desc": "A rare card showing the beauty of prime numbers."},
+		{"type": "avatar", "rarity": "epic", "name": "Cryptographer", "file": "avatar_epic.png", "desc": "An epic avatar of a master cryptographer."},
 	],
 	"advanced_security_guardian": [
-		{"type": "badge", "rarity": "common", "name": "Guardian Elite Badge", "file": "badge_common.png", "desc": "Awarded for mastering authentication security."},
-		{"type": "card", "rarity": "rare", "name": "Auth Protocol Card", "file": "card_rare.png", "desc": "A rare card detailing multi-factor auth."},
-		{"type": "avatar", "rarity": "epic", "name": "Sentinel Prime Avatar", "file": "avatar_epic.png", "desc": "An epic avatar — the ultimate security sentinel."},
-		{"type": "powerup", "rarity": "legendary", "name": "Guardian's Blessing", "file": "powerup_legendary.png", "desc": "Legendary powerup — invincibility for one round!", "legendary": true},
+		{"type": "badge", "rarity": "common", "name": "Guardian Elite", "file": "badge_common.png", "desc": "Awarded for mastering authentication security."},
+		{"type": "card", "rarity": "rare", "name": "Auth Protocol", "file": "card_rare.png", "desc": "A rare card detailing multi-factor auth."},
+		{"type": "avatar", "rarity": "epic", "name": "Sentinel Prime", "file": "avatar_epic.png", "desc": "An epic avatar — the ultimate security sentinel."},
 	],
 }
 
@@ -210,16 +177,9 @@ func try_grant_rewards(game_id: String, score: int, xp_awarded: int, parent: Nod
 		push_warning("[MinigameRewards] No reward definitions for '%s' (folder: '%s')" % [game_id, folder])
 		return false
 
-	# Determine whether legendary is earned
-	var legendary_threshold: int = LEGENDARY_THRESHOLDS.get(folder, 999999)
-	var earned_legendary: bool = score >= legendary_threshold
-
 	# Build RewardItem list
 	var reward_list: Array = []
 	for def in defs:
-		var is_legendary: bool = def.get("legendary", false)
-		if is_legendary and not earned_legendary:
-			continue  # skip legendary if score too low
 
 		var icon_path: String = REWARD_BASE_PATH + folder + "/" + str(def["file"])
 		var icon_tex: Texture2D = null
@@ -248,13 +208,11 @@ func try_grant_rewards(game_id: String, score: int, xp_awarded: int, parent: Nod
 	parent.add_child(popup)
 
 	var title := "🎉 REWARDS UNLOCKED!"
-	if earned_legendary:
-		title = "🌟 LEGENDARY REWARDS!"
 
 	popup.show_rewards(reward_list, title)
 
 	# NOTE: Inventory save is handled by RewardPopup._apply_rewards() when user clicks "Claim".
 	# Do NOT save here — it would create duplicate items in Firestore.
 
-	print("[MinigameRewards] Granted %d rewards for '%s' (folder: '%s', legendary=%s)" % [reward_list.size(), game_id, folder, earned_legendary])
+	print("[MinigameRewards] Granted %d rewards for '%s' (folder: '%s')" % [reward_list.size(), game_id, folder])
 	return true

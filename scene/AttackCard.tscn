@@ -89,8 +89,7 @@ theme_override_colors/font_color = Color(0.852847, 0.884072, 0.852076, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("5_bcf5t")
 theme_override_font_sizes/font_size = 16
-text = "Attack 
-Description Here"
+text = "Attack Description Here"
 label_settings = SubResource("LabelSettings_bcf5t")
 horizontal_alignment = 1
 autowrap_mode = 3

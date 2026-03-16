@@ -614,10 +614,15 @@ func _save_reward_to_inventory_async(reward: RewardItem, item_type: String) -> b
 
 	var url = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents/users/%s/inventory/%s" % [user_id, item_id]
 
+	var subtype_str = ""
+	if item_type == "card":
+		subtype_str = "card_background"
+
 	var body = {
 		"fields": {
 			"name":          {"stringValue":  reward.name},
 			"type":          {"stringValue":  item_type},
+			"subtype":       {"stringValue":  subtype_str},
 			"rarity":        {"stringValue":  rarity_str},
 			"description":   {"stringValue":  reward.description},
 			"icon_path":     {"stringValue":  icon_path},

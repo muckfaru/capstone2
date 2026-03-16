@@ -23,52 +23,48 @@ var asset_positions = {
 	"ceo_laptop": Vector2(880, 480)
 }
 
-# ✅ NEW: Legacy spawn function (backwards compatible)
+# Legacy spawn function (backwards compatible)
 func spawn_threat(threat_type, target_asset):
-	# Call the advanced version with default values
 	spawn_threat_advanced(threat_type, target_asset, 100.0, 1)
 
-# ✅ NEW: Advanced spawn function with wave configuration
+# Advanced spawn function with wave configuration
 func spawn_threat_advanced(threat_type: String, target_asset: String, threat_speed: float, threat_health: int):
 	print("📦 Spawning threat: ", threat_type, " targeting ", target_asset)
 	print("   Speed: ", threat_speed, " | Health: ", threat_health)
-	
+
 	var threat = ThreatScene.instantiate()
-	
-	# Set threat properties BEFORE adding to tree
+
+	# ✅ Set ALL properties BEFORE adding to scene tree
+	# This way _ready() runs with the correct values already set
 	threat.threat_type = threat_type
 	threat.target_asset = target_asset
 	threat.target_position = asset_positions[target_asset]
-	threat.speed = threat_speed           # ✅ NEW: Set custom speed
-	threat.max_health = threat_health     # ✅ NEW: Set custom health
-	threat.current_health = threat_health # ✅ NEW: Initialize current health
-	
+	threat.speed = threat_speed
+	threat.max_health = threat_health
+	threat.current_health = threat_health
+
 	# Random spawn position
 	var spawn_pos = spawn_positions[randi() % spawn_positions.size()]
 	threat.global_position = spawn_pos
-	
-	# Add to scene tree
+
+	# ✅ add_child triggers _ready() which calls load_threat_animations() automatically
+	# Do NOT call initialize_visuals() — it no longer exists
 	add_child(threat)
-	
-	# NOW initialize visuals (after threat_type is set)
-	threat.initialize_visuals()
-	
+
 	print("   Spawned at: ", threat.global_position)
 	print("   Target: ", threat.target_position)
-	print("   Threat type set to: ", threat.threat_type)
-	
-	# Connect signals to game manager - PASS THE THREAT OBJECT
+	print("   Threat type: ", threat.threat_type)
+
+	# Connect signals to game manager
 	var game_manager = get_tree().get_nodes_in_group("game_manager")
 	if game_manager.size() > 0:
-		# Lambda adds threat as first parameter (YOUR ORIGINAL PATTERN)
-		threat.threat_blocked.connect(func(ttype, defense): 
+		threat.threat_blocked.connect(func(ttype, defense):
 			game_manager[0].on_threat_blocked(threat, ttype, defense))
 		threat.threat_succeeded.connect(game_manager[0].on_threat_succeeded)
 		print("   ✅ Signals connected to game manager")
 	else:
 		print("   ❌ ERROR: No game manager found!")
-	
+
 	# Start moving
 	threat.start_moving()
-	
 	print("   🚀 Threat spawned and moving!")

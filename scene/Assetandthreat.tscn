@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bcrwqjamwa43l" path="res://script/GameManager.gd" id="1"]
 [ext_resource type="Script" uid="uid://d27de5h78jkjp" path="res://script/ThreatSpawner.gd" id="2"]
-[ext_resource type="Texture2D" uid="uid://db8o74ymebpoc" path="res://asset/minigamesicon/2dcommandobg.png" id="2_5n6sv"]
+[ext_resource type="Texture2D" uid="uid://ccds3q7gytqpy" path="res://asset/minigames new ui/Gemini_Generated_Image_q7rmhuq7rmhuq7rm (1).png" id="2_5n6sv"]
 [ext_resource type="Script" uid="uid://chjpwllto78rx" path="res://script/Asset.gd" id="3"]
 [ext_resource type="Texture2D" uid="uid://hstur8hv7j0y" path="res://asset/minigamesicon/employeepc.png" id="3_t6jst"]
 [ext_resource type="Script" uid="uid://dq8djqptj30s2" path="res://scene/point_light_2d.gd" id="3_tbxa5"]
@@ -44,7 +44,8 @@ texture = ExtResource("2_5n6sv")
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_w470u"]
 gradient = SubResource("Gradient_rf0f6")
 fill = 1
-fill_from = Vector2(0, 0.84188)
+fill_from = Vector2(1, 0.179487)
+fill_to = Vector2(0.250712, 0.834758)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5qpxn"]
 
@@ -488,18 +489,18 @@ offset_bottom = 646.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_vj0ud")
 
 [node name="PointLight2D" type="PointLight2D" parent="Panel"]
-position = Vector2(322.242, 228.094)
+position = Vector2(867.263, 204.801)
 rotation = 4.69909
-scale = Vector2(1.0119, 0.932093)
-color = Color(1, 0.2, 1, 1)
+scale = Vector2(1.76776, 1.83659)
+color = Color(0.739778, 0.101136, 0.263386, 1)
 texture = SubResource("GradientTexture2D_w470u")
 script = ExtResource("3_tbxa5")
 
 [node name="PointLight2D2" type="PointLight2D" parent="Panel"]
-position = Vector2(583.751, 178.427)
+position = Vector2(490.187, 383.657)
 rotation = 0.000718191
-scale = Vector2(2.06194, 0.81738)
-color = Color(1, 0.2, 1, 1)
+scale = Vector2(6.28992, 5.52237)
+color = Color(0.355148, 0.750542, 0, 1)
 texture = SubResource("GradientTexture2D_w470u")
 script = ExtResource("3_tbxa5")
 
@@ -542,6 +543,10 @@ theme_override_font_sizes/font_size = 40
 theme_override_styles/normal = SubResource("StyleBoxTexture_d31th")
 horizontal_alignment = 1
 
+[node name="SpriteAnim" type="AnimatedSprite2D" parent="NetworkDiagram/employee_pc"]
+position = Vector2(0, -30)
+scale = Vector2(2, 2)
+
 [node name="NameLabel" type="Label" parent="NetworkDiagram/employee_pc"]
 offset_left = -60.0
 offset_top = 17.0
@@ -576,6 +581,10 @@ offset_bottom = -10.0
 theme_override_font_sizes/font_size = 40
 theme_override_styles/normal = SubResource("StyleBoxTexture_qgma4")
 horizontal_alignment = 1
+
+[node name="SpriteAnim" type="AnimatedSprite2D" parent="NetworkDiagram/database"]
+position = Vector2(0, -30)
+scale = Vector2(2, 2)
 
 [node name="NameLabel" type="Label" parent="NetworkDiagram/database"]
 offset_left = -58.0
@@ -612,6 +621,10 @@ theme_override_font_sizes/font_size = 40
 theme_override_styles/normal = SubResource("StyleBoxTexture_l4dle")
 horizontal_alignment = 1
 
+[node name="SpriteAnim" type="AnimatedSprite2D" parent="NetworkDiagram/router"]
+position = Vector2(0, -30)
+scale = Vector2(2, 2)
+
 [node name="NameLabel" type="Label" parent="NetworkDiagram/router"]
 offset_left = -60.0
 offset_top = 24.0
@@ -645,6 +658,10 @@ offset_bottom = -10.0
 theme_override_font_sizes/font_size = 40
 theme_override_styles/normal = SubResource("StyleBoxTexture_f8xt3")
 horizontal_alignment = 1
+
+[node name="SpriteAnim" type="AnimatedSprite2D" parent="NetworkDiagram/email_server"]
+position = Vector2(0, -30)
+scale = Vector2(2, 2)
 
 [node name="NameLabel" type="Label" parent="NetworkDiagram/email_server"]
 offset_left = -70.0
@@ -681,6 +698,10 @@ theme_override_font_sizes/font_size = 40
 theme_override_styles/normal = SubResource("StyleBoxTexture_y8ji5")
 horizontal_alignment = 1
 
+[node name="SpriteAnim" type="AnimatedSprite2D" parent="NetworkDiagram/backup"]
+position = Vector2(0, -30)
+scale = Vector2(2, 2)
+
 [node name="NameLabel" type="Label" parent="NetworkDiagram/backup"]
 offset_left = -59.0
 offset_top = 24.0
@@ -716,6 +737,10 @@ offset_bottom = 17.0
 theme_override_font_sizes/font_size = 40
 theme_override_styles/normal = SubResource("StyleBoxTexture_dyur8")
 horizontal_alignment = 1
+
+[node name="SpriteAnim" type="AnimatedSprite2D" parent="NetworkDiagram/ceo_laptop"]
+position = Vector2(0, -10)
+scale = Vector2(2, 2)
 
 [node name="NameLabel" type="Label" parent="NetworkDiagram/ceo_laptop"]
 offset_left = -60.0
@@ -1174,6 +1199,7 @@ alignment = 1
 [node name="PrevButton" type="Button" parent="UILayer/InstructionPanel/VBox/ButtonBox"]
 custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("9_dmne6")
 theme_override_font_sizes/font_size = 20
@@ -1193,6 +1219,7 @@ text = "◀ Previous"
 [node name="NextButton" type="Button" parent="UILayer/InstructionPanel/VBox/ButtonBox"]
 custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_fonts/font = ExtResource("9_dmne6")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/focus = SubResource("StyleBoxEmpty_5n6sv")

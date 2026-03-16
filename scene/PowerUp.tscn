@@ -1,0 +1,46 @@
+[gd_scene load_steps=4 format=3 uid="uid://dx7858xvf38sx"]
+
+[ext_resource type="Script" uid="uid://dk8pk68pv8koe" path="res://script/PowerUp.gd" id="1_pwrup"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_6yhwk"]
+radius = 45.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fngh"]
+bg_color = Color(0.1, 0.1, 0.1, 0.8)
+draw_center = false
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+
+[node name="PowerUp" type="Area2D"]
+collision_mask = 0
+script = ExtResource("1_pwrup")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_6yhwk")
+
+[node name="Background" type="Panel" parent="."]
+offset_left = -40.0
+offset_top = -40.0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fngh")
+
+[node name="TypeLabel" type="Label" parent="."]
+offset_left = -40.0
+offset_top = -40.0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpriteAnim" type="AnimatedSprite2D" parent="."]
+scale = Vector2(1.5, 1.5)

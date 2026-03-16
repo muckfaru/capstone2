@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://bx7j7f3bi2bqh"]
+[gd_scene load_steps=20 format=3 uid="uid://bx7j7f3bi2bqh"]
 
 [ext_resource type="Script" uid="uid://bwml6gv3jyhry" path="res://script/tutorial_cia_triad.gd" id="1"]
 [ext_resource type="Script" uid="uid://wgxi2ss7p62k" path="res://script/cia_triad_drag_area.gd" id="2"]
@@ -39,24 +39,6 @@ expand_margin_right = 45.0
 texture = ExtResource("5_oa5vp")
 expand_margin_left = 71.0
 expand_margin_right = 45.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_7cy6w"]
-texture = ExtResource("2_0in3n")
-expand_margin_left = 200.0
-expand_margin_top = 50.0
-expand_margin_right = 200.0
-expand_margin_bottom = 50.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_57oo3"]
-texture = ExtResource("2_elcup")
-expand_margin_top = 90.0
-expand_margin_bottom = 90.0
-modulate_color = Color(0.223, 0.223, 0.223, 0.84)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_826bi"]
-texture = ExtResource("2_elcup")
-expand_margin_top = 90.0
-expand_margin_bottom = 90.0
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ql3u7"]
 texture = ExtResource("2_elcup")
@@ -213,7 +195,7 @@ anchor_bottom = 0.5
 offset_left = -300.0
 offset_top = -190.0
 offset_right = 322.0
-offset_bottom = -10.0
+offset_bottom = 3.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
@@ -259,9 +241,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -455.0
-offset_top = 40.0
+offset_top = 60.0
 offset_right = 505.0
-offset_bottom = 240.0
+offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 30
@@ -420,60 +402,6 @@ theme_override_font_sizes/font_size = 12
 text = "Keeping systems RUNNING"
 horizontal_alignment = 1
 autowrap_mode = 3
-
-[node name="FeedbackPopup" type="Panel" parent="CanvasLayer"]
-visible = false
-custom_minimum_size = Vector2(500, 300)
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -250.0
-offset_top = -150.0
-offset_right = 250.0
-offset_bottom = 150.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxTexture_7cy6w")
-
-[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/FeedbackPopup"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 51.0
-offset_top = -23.0
-offset_right = -49.0
-offset_bottom = 95.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
-
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/FeedbackPopup/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 15
-
-[node name="FeedbackText" type="RichTextLabel" parent="CanvasLayer/FeedbackPopup/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 180)
-layout_mode = 2
-size_flags_vertical = 3
-bbcode_enabled = true
-text = "[center]⚠️ Not Quite![/center]"
-fit_content = true
-scroll_active = false
-
-[node name="TryAgainButton" type="Button" parent="CanvasLayer/FeedbackPopup/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("3_7cy6w")
-theme_override_font_sizes/font_size = 18
-theme_override_styles/hover = SubResource("StyleBoxTexture_57oo3")
-theme_override_styles/normal = SubResource("StyleBoxTexture_826bi")
-text = "TRY AGAIN"
 
 [node name="ResultsScreen" type="Panel" parent="CanvasLayer"]
 visible = false

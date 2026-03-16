@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://yfarxf2di6ej"]
+[gd_scene load_steps=23 format=3 uid="uid://yfarxf2di6ej"]
 
 [ext_resource type="Script" uid="uid://chmrq2q3rn56y" path="res://script/TeacherLobby.gd" id="1_lobby"]
 [ext_resource type="Texture2D" uid="uid://batbgvw03em3o" path="res://asset/newUIlandingupdate/message-square-dots_svgrepo.com.png" id="2_msa84"]
@@ -8,6 +8,10 @@
 [ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="12_a4gcc"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_msa84"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_isoly"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xv1sv"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_isoly"]
 font = ExtResource("10_ttatp")
@@ -175,6 +179,8 @@ offset_right = 36.0
 offset_bottom = 39.0
 mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 22
+theme_override_styles/focus = SubResource("StyleBoxEmpty_isoly")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_xv1sv")
 text = "←"
 flat = true
 

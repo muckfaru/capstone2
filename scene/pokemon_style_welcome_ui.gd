@@ -48,6 +48,16 @@ var tutorial_steps := [
 		"action": null
 	},
 	{
+		"text": "Head to the SHOP to spend your CyberCoins! Buy badges, cards, and avatars to customize your profile!",
+		"highlight": "ShopNavigate",
+		"action": null
+	},
+	{
+		"text": "Your INVENTORY is inside your PROFILE! Check the Inventory tab to see all the badges, cards, and avatars you've collected!",
+		"highlight": "ProfileNavigate",
+		"action": "show_profile"
+	},
+	{
 		"text": "I have your first mission ready. Are you prepared to take it on?",
 		"highlight": null,
 		"action": "show_mission_file"

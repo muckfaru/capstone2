@@ -158,8 +158,8 @@ func _ready() -> void:
 	if not CyberCoinManager.balance_changed.is_connected(_on_cybercoin_balance_changed):
 		CyberCoinManager.balance_changed.connect(_on_cybercoin_balance_changed)
 	_setup_cybercoin_display()
-	await get_tree().create_timer(1.0).timeout
-	CyberCoinManager.claim_daily_bonus()
+	# Claim daily bonus AFTER data is loaded (one-shot fires when load_from_firestore completes)
+	CyberCoinManager.balance_changed.connect(func(_b): CyberCoinManager.claim_daily_bonus(), CONNECT_ONE_SHOT)
 
 	# Load shop data from Firestore
 	ShopManager.load_from_firestore()
@@ -1474,6 +1474,26 @@ func _on_avatar_selected(file_name: String) -> void:
 				preview.texture = avatars[file_name]
 		
 		print("[Landing] ✅ Preset avatar loaded")
+	elif file_name.begins_with("res://") and ResourceLoader.exists(file_name):
+		var tex = load(file_name)
+		var img = tex.get_image()
+		if img:
+			img.resize(80, 80, Image.INTERPOLATE_LANCZOS)
+			profile_pic.texture = ImageTexture.create_from_image(img)
+		else:
+			profile_pic.texture = tex
+			
+		selected_avatar = file_name
+		avatar_picker.hide()
+		
+		if edit_profile_popup and is_instance_valid(edit_profile_popup):
+			var preview = edit_profile_popup.get_node_or_null("AvatarPreview")
+			if preview:
+				preview.texture = profile_pic.texture
+		
+		print("[Landing] ✅ Minigame/Resource avatar loaded")
+	else:
+		_show_error_message("Invalid Avatar")
 
 func _check_for_changes() -> void:
 	"""Check if profile has unsaved changes"""
@@ -2300,6 +2320,24 @@ func _on_combined_data_response(_result, response_code, _headers, body) -> void:
 	if f.has("username"):
 		Auth.current_username = f["username"]["stringValue"]
 		username_input.text = Auth.current_username
+
+	# Equipped card background (for Host/Client cards)
+	if Auth:
+		if f.has("equipped_card_bg_path"):
+			Auth.current_card_bg_path = str(f["equipped_card_bg_path"].get("stringValue", ""))
+		else:
+			Auth.current_card_bg_path = ""
+
+	# Load equipped badge / card from inventory
+	if Auth:
+		if f.has("equipped_badge"):
+			Auth.current_equipped_badge = str(f["equipped_badge"].get("stringValue", ""))
+		else:
+			Auth.current_equipped_badge = ""
+		if f.has("equipped_card"):
+			Auth.current_equipped_card = str(f["equipped_card"].get("stringValue", ""))
+		else:
+			Auth.current_equipped_card = ""
 
 	# Equipped card background (for Host/Client cards)
 	if Auth:
@@ -3474,8 +3512,18 @@ func _show_badge_slots_full_notification() -> void:
 func _on_inventory_avatar_selected(file_name: String) -> void:
 	# Load texture (try preloaded dict first, then load from disk)
 	var tex = avatars.get(file_name, null)
-	if tex == null and ResourceLoader.exists("res://asset/avatars/" + file_name):
-		tex = load("res://asset/avatars/" + file_name)
+	if tex == null:
+		if file_name.begins_with("res://") or file_name.begins_with("user://"):
+			if ResourceLoader.exists(file_name):
+				tex = load(file_name)
+			elif file_name.begins_with("user://") and FileAccess.file_exists(file_name):
+				var img = Image.load_from_file(file_name)
+				if img:
+					img.resize(80, 80, Image.INTERPOLATE_LANCZOS)
+					tex = ImageTexture.create_from_image(img)
+		elif ResourceLoader.exists("res://asset/avatars/" + file_name):
+			tex = load("res://asset/avatars/" + file_name)
+			
 	if tex == null:
 		push_error("[Landing] Could not load avatar: %s" % file_name)
 		return

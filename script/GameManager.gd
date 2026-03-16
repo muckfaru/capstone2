@@ -141,6 +141,10 @@ var wave_configs = {
 @onready var start_panel = $UILayer/StartPanel
 @onready var instruction_panel = $UILayer/InstructionPanel
 
+# ✅ PowerUp System
+const PowerUpScene = preload("res://scene/PowerUp.tscn")
+var powerup_timer: Timer
+
 func _ready():
 	randomize()
 	
@@ -352,8 +356,95 @@ func setup_game():
 	for asset in assets_health.keys():
 		assets_health[asset] = assets_max_health[asset]
 	
+	setup_powerup_timer()
+	
 	update_ui()
 	update_all_health_bars()
+
+func setup_powerup_timer():
+	if powerup_timer == null:
+		powerup_timer = Timer.new()
+		powerup_timer.name = "PowerUpTimer"
+		powerup_timer.timeout.connect(_on_powerup_timer_timeout)
+		add_child(powerup_timer)
+		
+func _on_powerup_timer_timeout():
+	if is_game_active and wave_in_progress:
+		spawn_powerup()
+		# Randomize next drop interval between 10 to 25 seconds
+		powerup_timer.start(randf_range(10.0, 25.0))
+
+func spawn_powerup():
+	var powerup = PowerUpScene.instantiate()
+	# Randomize the type before adding to scene
+	powerup.powerup_type = randi() % 3
+	# Spawn at a random X position near the top of the screen
+	var random_x = randf_range(100.0, 1000.0)
+	powerup.position = Vector2(random_x, -50.0)
+	add_child(powerup)
+
+# ✅ POWER UP ACTIVATIONS
+func activate_freeze():
+	print("❄️ FREEZE ACTIVATED! Stopping all threats...")
+	show_feedback("❄️ FREEZE!", Color(0.5, 0.8, 1.0), "Threats stopped for 4s")
+	
+	var all_threats = get_tree().get_nodes_in_group("threats")
+	for t in all_threats:
+		if t and "speed" in t and t.speed > 0:
+			var old_speed = t.speed
+			t.speed = 0
+			
+			# Visual feedback
+			t.modulate = Color(0.5, 0.8, 1.0)
+			
+			# Restore speed after 4 seconds
+			var timer = get_tree().create_timer(4.0)
+			timer.timeout.connect(func():
+				if is_instance_valid(t):
+					t.speed = old_speed
+					t.modulate = Color(1.0, 1.0, 1.0)
+			)
+
+func activate_kill_all():
+	print("⚡ KILL ALL ACTIVATED! Wiping board...")
+	show_feedback("⚡ PURGE!", Color(1.0, 0.9, 0.2), "All active threats destroyed!")
+	play_sfx("threat_kill", -2.0)
+	
+	var all_threats = get_tree().get_nodes_in_group("threats")
+	for t in all_threats:
+		if is_instance_valid(t) and not t.is_blocked:
+			# Auto-kill them and grab the points
+			score += 15
+			threats_blocked += 1
+			threats_defeated_this_wave += 1
+			t.block_threat("kill_all_powerup")
+			
+	check_wave_completion()
+	update_ui()
+
+func activate_health_boost():
+	print("✚ HEAL ACTIVATED! Restoring 1 asset...")
+	
+	var damaged_assets = []
+	for asset_name in assets_health.keys():
+		if assets_health[asset_name] > 0 and assets_health[asset_name] < assets_max_health[asset_name]:
+			damaged_assets.append(asset_name)
+			
+	if damaged_assets.size() > 0:
+		var target = damaged_assets[randi() % damaged_assets.size()]
+		assets_health[target] += 1
+		show_feedback("✚ REPAIR!", Color(0.2, 1.0, 0.2), target.replace("_", " ").capitalize() + " Healed!")
+		
+		# Update UI representation
+		var asset_node = get_node_or_null("NetworkDiagram/" + target)
+		if asset_node and asset_node.has_method("set_health"):
+			asset_node.set_health(assets_health[target])
+		update_asset_health_display(asset_node, target)
+	else:
+		# If everyone is full health, give bonus points instead
+		score += 50
+		show_feedback("✚ POWER BOOST!", Color(0.2, 1.0, 0.2), "+50 Bonus XP")
+		update_ui()
 
 func show_start_screen():
 	if instruction_panel:
@@ -376,6 +467,10 @@ func start_game():
 	
 	# ✅ Start background music when game starts
 	start_bgm()
+	
+	# Start the powerup timer
+	if powerup_timer:
+		powerup_timer.start(randf_range(10.0, 20.0))
 	
 	start_wave(current_wave)
 
@@ -487,8 +582,11 @@ func on_threat_blocked(threat, threat_type, defense_used):
 				threats_blocked += 1
 				threats_defeated_this_wave += 1
 				
+				# ✅ +5 second time bonus for each kill!
+				game_time += 5.0
+				
 				play_sfx("threat_kill", -2.0)  # ✅ Killing blow
-				show_feedback("💥 ELIMINATED!", Color(0, 1, 0), "+15 XP")
+				show_feedback("💥 ELIMINATED! +5s ⏱️", Color(0, 1, 0), "+15 XP")
 				
 				check_wave_completion()
 			else:
@@ -601,6 +699,8 @@ func check_lose_condition():
 
 func end_game():
 	is_game_active = false
+	if powerup_timer:
+		powerup_timer.stop()
 	
 	# ✅ Stop BGM on game over
 	stop_bgm()
@@ -610,6 +710,8 @@ func end_game():
 
 func win_game():
 	is_game_active = false
+	if powerup_timer:
+		powerup_timer.stop()
 	
 	# ✅ Stop BGM on victory
 	stop_bgm()

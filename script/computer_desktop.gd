@@ -116,7 +116,10 @@ func _ready():
 	else:
 		# Returning to computer after infection (if not joined CA yet)
 		start_tutorial()
-
+		
+	if has_node("WindowFiles"):
+		$WindowFiles/TitleBar/CloseBtn.pressed.connect(_on_files_close)
+		
 func create_dialogue_ui():
 	print("Creating dialogue UI...")
 	
@@ -435,9 +438,16 @@ func _on_messages_clicked():
 			await get_tree().create_timer(3.0).timeout
 			show_after_messages_dialogue()
 
+func _on_files_close():
+	if has_node("WindowFiles"):
+		$WindowFiles.visible = false
+
 func _on_files_clicked():
+	play_button_sound()
 	stop_all_highlights()
-	show_message("Just some school files and photos...")
+	
+	if has_node("WindowFiles"):
+		$WindowFiles.visible = true
 
 func show_after_messages_dialogue():
 	stop_all_highlights()
@@ -834,35 +844,19 @@ func show_infection_result():
 	show_shutdown_animation()
 
 func show_shutdown_animation():
-	var shutdown_overlay = ColorRect.new()
+	var shutdown_overlay = TextureRect.new()
 	shutdown_overlay.name = "ShutdownOverlay"
-	shutdown_overlay.color = Color(0.067, 0.318, 0.612, 1)
+	
+	# Load your custom Windows shutdown PNG
+	var shutdown_tex = load("res://asset/icons/windows_shutdown.png")
+	if shutdown_tex:
+		shutdown_overlay.texture = shutdown_tex
+	
 	shutdown_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shutdown_overlay.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	shutdown_overlay.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	shutdown_overlay.z_index = 2000
 	add_child(shutdown_overlay)
-	
-	var loading_circle = TextureRect.new()
-	loading_circle.name = "LoadingCircle"
-	# FIX 3: Use load() at runtime instead of preload() to avoid parse-time crash
-	var loading_tex = load("res://asset/icons/loading.png")
-	if loading_tex:
-		loading_circle.texture = loading_tex
-	loading_circle.custom_minimum_size = Vector2(128, 128)
-	loading_circle.set_anchors_preset(Control.PRESET_CENTER)
-	loading_circle.position = Vector2(-64, -120)
-	loading_circle.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	loading_circle.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	shutdown_overlay.add_child(loading_circle)
-	
-	var message_label = Label.new()
-	message_label.text = "Shutting down..."
-	message_label.add_theme_font_size_override("font_size", 24)
-	message_label.add_theme_color_override("font_color", Color.WHITE)
-	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	message_label.set_anchors_preset(Control.PRESET_CENTER)
-	message_label.position = Vector2(-150, 50)
-	message_label.size = Vector2(300, 40)
-	shutdown_overlay.add_child(message_label)
 	
 	await get_tree().create_timer(2.0).timeout
 	
@@ -882,7 +876,6 @@ func show_shutdown_animation():
 	GlobalState.returning_from_computer = true
 	GlobalState.computer_infected = true
 	
-	# FIX 5: Guard against scene-change crash if node was freed mid-await
 	if not is_inside_tree():
 		return
 	get_tree().change_scene_to_file("res://scene/Main.tscn")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://dh1mh2p6lafp6"]
+[gd_scene load_steps=35 format=3 uid="uid://dh1mh2p6lafp6"]
 
 [ext_resource type="Script" uid="uid://cvqso5ubcehs5" path="res://script/intro_cybersecurity.gd" id="1_intro"]
 [ext_resource type="Texture2D" uid="uid://dri7g0isxowjd" path="res://asset/background/arena toturial.jpg" id="2_bg"]
@@ -61,6 +61,8 @@ texture = ExtResource("14_rcaif")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0dr5t"]
 texture = ExtResource("15_5ky23")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ry7p"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_next_hover"]
 bg_color = Color(0, 0.7, 0.8, 0.9)
@@ -636,6 +638,7 @@ grow_vertical = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("4_font2")
 theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("StyleBoxEmpty_8ry7p")
 theme_override_styles/hover = SubResource("StyleBoxFlat_next_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_next_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_next_normal")

@@ -87,7 +87,7 @@ func show_lobby(room_code: String, room_name: String,
 	_minigame = minigame
 	_difficulty = difficulty
 	_is_student_mode = false
-	max_player_count = clampi(player_count, 1, 50)
+	max_player_count = maxi(player_count, 1)
 	_build_slots(max_player_count)
 
 	room_name_label.text = room_name
@@ -116,7 +116,7 @@ func show_lobby_student_mode(room_code: String, game_name: String, game_scene: S
 	_game_scene = game_scene
 	_lobby_url = lobby_url
 	_is_student_mode = true
-	max_player_count = clampi(player_count, 1, 50)
+	max_player_count = maxi(player_count, 1)
 	_build_slots(max_player_count)
 
 	room_name_label.text = game_name
@@ -385,7 +385,7 @@ func remove_player(player_name: String) -> void:
 # ─────────────────────────────────────────────────────────────────────────────
 
 ## Dynamically create `count` slot nodes, replacing any existing ones.
-## This allows the lobby to support any player count (1–50) at runtime.
+## This allows the lobby to support any player count at runtime.
 func _build_slots(count: int) -> void:
 	for child in slot_grid.get_children():
 		slot_grid.remove_child(child)

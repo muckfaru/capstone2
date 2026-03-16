@@ -96,8 +96,21 @@ func save_tutorial_result(tutorial_id: String, score: int, max_score: int) -> vo
 		print("[TutorialManager] Tutorial ID: %s" % tutorial_id)
 		print("[TutorialManager] Score: %d / %d" % [score, max_score])
 		
-		# Check if already completed
-		if completed_tutorials.has(tutorial_id):
+		# Map to actual completion name to avoid duplicates/farming
+		var script_alias: String = ""
+		match tutorial_id:
+			"beginner_drop_zone": script_alias = "drop_zone_defender"
+			"beginner_malware": script_alias = "malware_defense"
+			"intermediate_assetandthreat": script_alias = "asset_vs_threats"
+			"intermediate_incident_commander": script_alias = "incident_commander"
+			"intermediate_crypt_contract": script_alias = "crypt_contract"
+			"advanced_security_guardian": script_alias = "security_guardian"
+			"advanced_encryption": script_alias = "beginner_encryption"
+			"beginner_network": script_alias = "network_defense"
+			"network_defense": script_alias = "beginner_network"
+		
+		# Check if already completed (using direct ID or alias)
+		if completed_tutorials.has(tutorial_id) or (script_alias != "" and completed_tutorials.has(script_alias)):
 			print("[TutorialManager] ⚠️ Tutorial already completed! No XP awarded.")
 			save_completed.emit()
 			return
@@ -396,17 +409,40 @@ func award_minigame_xp(minigame_id: String, xp_amount: int, score: int = 0) -> i
 	print("[TutorialManager] ========== AWARD MINIGAME XP ==========")
 	print("[TutorialManager] Minigame: %s | Score: %d | Potential XP: %d" % [minigame_id, score, xp_amount])
 	
-	# Check if already completed
-	if completed_minigames.has(minigame_id):
+	# Map to actual completion name to avoid duplicates/farming
+	var script_alias: String = ""
+	match minigame_id:
+		"beginner_drop_zone": script_alias = "drop_zone_defender"
+		"beginner_malware": script_alias = "malware_defense"
+		"intermediate_assetandthreat": script_alias = "asset_vs_threats"
+		"intermediate_incident_commander": script_alias = "incident_commander"
+		"intermediate_crypt_contract": script_alias = "crypt_contract"
+		"advanced_security_guardian": script_alias = "security_guardian"
+		"advanced_encryption": script_alias = "beginner_encryption"
+		"beginner_network": script_alias = "network_defense"
+		"drop_zone_defender": script_alias = "beginner_drop_zone"
+		"network_defense": script_alias = "beginner_network"
+		
+	# Check if already completed (using direct ID or alias)
+	if completed_minigames.has(minigame_id) or (script_alias != "" and completed_minigames.has(script_alias)):
 		print("[TutorialManager] ⚠️ Minigame already completed! No XP awarded (replay).")
-		print("[TutorialManager] Previous best score: %d | This score: %d" % [completed_minigames[minigame_id]["score"], score])
+		
+		var ref_id = minigame_id
+		if not completed_minigames.has(minigame_id) and script_alias != "" and completed_minigames.has(script_alias):
+			ref_id = script_alias
+			
+		print("[TutorialManager] Previous best score: %d | This score: %d" % [completed_minigames[ref_id]["score"], score])
 		
 		# Update best score if better
-		if score > completed_minigames[minigame_id]["score"]:
-			completed_minigames[minigame_id]["score"] = score
-			completed_minigames[minigame_id]["timestamp"] = Time.get_unix_time_from_system()
+		if score > completed_minigames[ref_id]["score"]:
+			completed_minigames[ref_id]["score"] = score
+			completed_minigames[ref_id]["timestamp"] = Time.get_unix_time_from_system()
 			print("[TutorialManager] 🎯 New best score! Saving to Firestore...")
 			_save_minigame_data()
+		
+		# ✅ Award a small replay coin bonus (XP is still blocked to prevent farming)
+		if CyberCoinManager:
+			CyberCoinManager.add_coins(5, "Minigame Replay: %s" % minigame_id)
 		
 		return 0  # No XP awarded
 	

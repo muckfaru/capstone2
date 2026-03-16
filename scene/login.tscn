@@ -237,7 +237,7 @@ offset_top = 32.0
 offset_right = 315.0
 offset_bottom = 58.0
 theme_override_fonts/font = ExtResource("3_i5fi3")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 25
 text = "Login"
 
 [node name="EmailLabel" type="Label" parent="VideoStreamPlayer/FillUpForm"]

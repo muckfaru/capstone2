@@ -16,11 +16,13 @@ expand_margin_bottom = 20.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_3vbvy"]
 font = ExtResource("4_1tsd8")
-font_size = 23
-font_color = Color(0.0858877, 0.406606, 1, 1)
+font_size = 22
+font_color = Color(0.18739, 0.841305, 0, 1)
 outline_size = 10
-shadow_size = 10
-shadow_color = Color(0.992, 0.526, 0.718, 1)
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 5
+shadow_color = Color(0.247443, 0.00337119, 0.131799, 1)
+shadow_offset = Vector2(4, 4)
 
 [node name="NetworkZone" type="PanelContainer"]
 custom_minimum_size = Vector2(400, 200)

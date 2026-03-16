@@ -223,6 +223,20 @@ func _apply_results() -> void:
 	# Award CyberCoins for Defuse Trojan completion
 	if CyberCoinManager:
 		CyberCoinManager.award_minigame_coins("defuse_trojan")
+		# In multiplayer, award PvP win bonus to the top scorer
+		if mode != "solo" and player_count >= 2:
+			# Find top scorer
+			var top_score: int = 0
+			var top_scorer_id: String = ""
+			for p in players:
+				var pid := str(p.get("player_id", ""))
+				var st: Dictionary = stats_by_pid.get(pid, {})
+				var sc: int = int(st.get("score", 0))
+				if sc > top_score:
+					top_score = sc
+					top_scorer_id = pid
+			if top_scorer_id == Auth.current_local_id:
+				CyberCoinManager.award_pvp_win("Defuse Trojan")
 
 	# Host card
 	if player_count >= 1:

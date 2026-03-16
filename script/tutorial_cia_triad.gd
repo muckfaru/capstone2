@@ -15,9 +15,7 @@ extends Control
 @onready var confidentiality_zone: Panel = $CanvasLayer/CIAZones/ConfidentialityZone
 @onready var integrity_zone: Panel = $CanvasLayer/CIAZones/IntegrityZone
 @onready var availability_zone: Panel = $CanvasLayer/CIAZones/AvailabilityZone
-@onready var feedback_popup: Panel = $CanvasLayer/FeedbackPopup
-@onready var feedback_text: RichTextLabel = $CanvasLayer/FeedbackPopup/MarginContainer/VBoxContainer/FeedbackText
-@onready var try_again_btn: Button = $CanvasLayer/FeedbackPopup/MarginContainer/VBoxContainer/TryAgainButton
+
 @onready var results_screen: Panel = $CanvasLayer/ResultsScreen
 @onready var results_text: RichTextLabel = $CanvasLayer/ResultsScreen/MarginContainer/VBoxContainer/ResultsText
 @onready var back_btn: Button = $CanvasLayer/ResultsScreen/MarginContainer/VBoxContainer/BackButton
@@ -239,14 +237,12 @@ func _ready() -> void:
 	
 	
 	# Hide popups initially
-	feedback_popup.hide()
 	results_screen.hide()
 	
 	# Store original card position
 	card_original_position = incident_card.position
 	
 	# Connect signals
-	try_again_btn.pressed.connect(_on_try_again_pressed)
 	back_btn.pressed.connect(_on_back_pressed)
 	quit_btn.pressed.connect(_on_quit_pressed)
 	
@@ -494,7 +490,7 @@ func _input(event: InputEvent) -> void:
 		return
 	
 	# Only allow shortcuts when card is visible
-	if not incident_card.visible or feedback_popup.visible:
+	if not incident_card.visible:
 		return
 	
 	if event is InputEventKey and event.pressed:
@@ -596,9 +592,6 @@ func _handle_wrong_answer(chosen: String, correct: String) -> void:
 	# Visual feedback
 	_play_wrong_animation()
 	
-	# Show educational feedback popup
-	_show_feedback(correct)
-	
 	# Update UI
 	_update_ui()
 
@@ -669,56 +662,13 @@ func _play_wrong_animation() -> void:
 	
 	await tween.finished
 	
-	# Reset color
+	# Reset color and snap back
 	incident_card.modulate = Color.WHITE
+	var reset_tween = create_tween()
+	reset_tween.tween_property(incident_card, "position", card_original_position, 0.2)
 
 
-func _show_feedback(correct_answer: String) -> void:
-	"""Show educational feedback popup"""
-	var scenario = shuffled_scenarios[current_scenario_index]
-	
-	var principle_name := ""
-	var principle_color := ""
-	match correct_answer:
-		"C":
-			principle_name = "CONFIDENTIALITY"
-			principle_color = "cyan"
-		"I":
-			principle_name = "INTEGRITY"
-			principle_color = "yellow"
-		"A":
-			principle_name = "AVAILABILITY"
-			principle_color = "green"
-	
-	feedback_text.text = "[center]⚠️ [b]Not Quite![/b] ⚠️[/center]\n\nThis was a [color=%s][b]%s[/b][/color] breach.\n\n[color=%s]Remember:[/color] %s\n\n%s" % [
-		principle_color, 
-		principle_name,
-		principle_color,
-		_get_principle_reminder(correct_answer),
-		scenario["explanation"].split("✅ Correct! ")[1] if "✅ Correct! " in scenario["explanation"] else scenario["explanation"]
-	]
-	
-	feedback_popup.show()
 
-
-func _get_principle_reminder(principle: String) -> String:
-	"""Get reminder text for each principle"""
-	match principle:
-		"C":
-			return "Confidentiality = Keeping data SECRET from unauthorized eyes."
-		"I":
-			return "Integrity = Keeping data ACCURATE and UNCHANGED."
-		"A":
-			return "Availability = Keeping systems RUNNING and ACCESSIBLE."
-	return ""
-
-
-func _on_try_again_pressed() -> void:
-	"""Close feedback popup and allow retry"""
-	feedback_popup.hide()
-	# Reset card for retry
-	incident_card.position = card_original_position
-	incident_card.modulate = Color.WHITE
 
 
 func _show_results() -> void:

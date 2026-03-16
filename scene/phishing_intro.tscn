@@ -66,6 +66,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 46.0
+offset_top = 26.0
+offset_right = -52.0
+offset_bottom = 26.0
 grow_horizontal = 2
 grow_vertical = 2
 follow_focus = true
@@ -87,6 +91,7 @@ layout_mode = 2
 theme_override_constants/separation = 5
 
 [node name="IconLabel" type="Label" parent="ScrollContainer/MainContainer/VBox/Header"]
+visible = false
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 48
@@ -242,6 +247,7 @@ text = "Check three things: (1) Is the ALGORITHM strong? (AES or 3-key Triple DE
 autowrap_mode = 3
 
 [node name="Stats" type="VBoxContainer" parent="ScrollContainer/MainContainer/VBox"]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 6
 
