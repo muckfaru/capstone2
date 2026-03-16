@@ -864,7 +864,6 @@ max_length = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.8, 1, 0.7)
 theme_override_font_sizes/font_size = 11
-text = "(max 50)"
 vertical_alignment = 1
 
 [node name="PlayerValidationLabel" type="Label" parent="CanvasLayer/CreateFormPanel/FormContent/PlayerRow"]
