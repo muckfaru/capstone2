@@ -902,6 +902,7 @@ app.post('/api/quiz/create', (req, res) => {
     max_players: Math.min(Math.max(2, max_players || 10), 10),
     allowed_students: Array.isArray(allowed_students) ? allowed_students.map(s => String(s).trim().toUpperCase()).filter(Boolean) : [],
     status: 'waiting', // waiting | active | finished
+    chat_messages: [],
     created_at: Date.now(),
     last_heartbeat: Date.now()
   };
@@ -1269,6 +1270,52 @@ app.post('/api/quiz/:code/heartbeat', (req, res) => {
   res.json({ ok: true });
 });
 
+// POST /api/quiz/:code/chat — Send a chat message
+app.post('/api/quiz/:code/chat', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { username, message } = req.body;
+
+  if (!username || !message) {
+    return res.status(400).json({ error: 'Missing username or message' });
+  }
+
+  const qr = quizRooms.get(code);
+  if (!qr) {
+    return res.status(404).json({ error: 'Quiz room not found' });
+  }
+
+  const chatMsg = {
+    username,
+    message: String(message).substring(0, 200),
+    timestamp: Date.now()
+  };
+
+  if (!Array.isArray(qr.chat_messages)) qr.chat_messages = [];
+  qr.chat_messages.push(chatMsg);
+  if (qr.chat_messages.length > 100) {
+    qr.chat_messages = qr.chat_messages.slice(-100);
+  }
+
+  qr.last_heartbeat = Date.now();
+  console.log(`[CyberQuiz Chat] ${username} in ${code}: ${chatMsg.message}`);
+  res.json({ ok: true, timestamp: chatMsg.timestamp });
+});
+
+// GET /api/quiz/:code/chat — Get chat messages (optionally since a timestamp)
+app.get('/api/quiz/:code/chat', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const qr = quizRooms.get(code);
+
+  if (!qr) {
+    return res.status(404).json({ error: 'Quiz room not found' });
+  }
+
+  const since = parseInt(req.query.since) || 0;
+  const messages = (qr.chat_messages || []).filter(m => m.timestamp > since);
+
+  res.json({ ok: true, messages });
+});
+
 /**
  * =============================================================================
  * GAMEMODE API ENDPOINTS (Teacher-created minigame rooms)
@@ -1305,6 +1352,7 @@ app.post('/api/gamemode/create', (req, res) => {
     allowed_students: normalizedAllowed,
     status: 'waiting', // waiting | active | finished
     started_at: null,
+    chat_messages: [],
     created_at: Date.now(),
     last_heartbeat: Date.now()
   };
@@ -1578,6 +1626,52 @@ app.post('/api/gamemode/:code/heartbeat', (req, res) => {
   res.json({ ok: true });
 });
 
+// POST /api/gamemode/:code/chat — Send a chat message
+app.post('/api/gamemode/:code/chat', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const { username, message } = req.body;
+
+  if (!username || !message) {
+    return res.status(400).json({ error: 'Missing username or message' });
+  }
+
+  const gr = gameModeRooms.get(code);
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  const chatMsg = {
+    username,
+    message: String(message).substring(0, 200),
+    timestamp: Date.now()
+  };
+
+  if (!Array.isArray(gr.chat_messages)) gr.chat_messages = [];
+  gr.chat_messages.push(chatMsg);
+  if (gr.chat_messages.length > 100) {
+    gr.chat_messages = gr.chat_messages.slice(-100);
+  }
+
+  gr.last_heartbeat = Date.now();
+  console.log(`[GameMode Chat] ${username} in ${code}: ${chatMsg.message}`);
+  res.json({ ok: true, timestamp: chatMsg.timestamp });
+});
+
+// GET /api/gamemode/:code/chat — Get chat messages (optionally since a timestamp)
+app.get('/api/gamemode/:code/chat', (req, res) => {
+  const code = req.params.code.toUpperCase();
+  const gr = gameModeRooms.get(code);
+
+  if (!gr) {
+    return res.status(404).json({ error: 'Game room not found' });
+  }
+
+  const since = parseInt(req.query.since) || 0;
+  const messages = (gr.chat_messages || []).filter(m => m.timestamp > since);
+
+  res.json({ ok: true, messages });
+});
+
 /**
  * =============================================================================
  * SERVER START
@@ -1631,6 +1725,10 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/:code/submit`);
   console.log(`   GET    http://${localIP}:${PORT}/api/gamemode/:code/results`);
   console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/:code/heartbeat`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/quiz/:code/chat`);
+  console.log(`   GET    http://${localIP}:${PORT}/api/quiz/:code/chat`);
+  console.log(`   POST   http://${localIP}:${PORT}/api/gamemode/:code/chat`);
+  console.log(`   GET    http://${localIP}:${PORT}/api/gamemode/:code/chat`);
   console.log(`\n🔌 WebSocket Relay:`);
   console.log(`   WS     ws://${localIP}:${PORT}/ws/relay/:room_id`);
   console.log(`\n🔍 Monitoring:`);
