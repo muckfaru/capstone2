@@ -257,6 +257,10 @@ func _update_generate_button() -> void:
 		if selected_difficulty.is_empty(): ok = false
 	if multiple_choice_btn.button_pressed:
 		if not mc_all_questions_completed: ok = false
+	print("[CreateRoom] Generate btn: ok=%s | name='%s' | player_ok=%s | gm=%s | mc=%s | game='%s' | diff='%s' | mc_done=%s" % [
+		str(ok), room_name_input.text.strip_edges(), str(_is_player_count_valid()),
+		str(game_mode_btn.button_pressed), str(multiple_choice_btn.button_pressed),
+		selected_minigame, selected_difficulty, str(mc_all_questions_completed)])
 	generate_button.disabled = not ok
 	if save_draft_button:
 		save_draft_button.disabled = not ok
@@ -488,6 +492,7 @@ func _on_restrict_checkbox_toggled(pressed: bool) -> void:
 		_student_numbers_section.visible = pressed
 	if not pressed and _student_numbers_edit:
 		_student_numbers_edit.text = ""
+	_update_generate_button()
 
 func _build_save_draft_button() -> void:
 	if not generate_button_row: return
@@ -919,6 +924,7 @@ func _select_card(card: PanelContainer, game: Dictionary) -> void:
 	selected_minigame = game["name"]
 	selected_minigame_scene = game["scene"]
 	selected_difficulty = game.get("level", "Beginner")
+	_update_generate_button()
 	
 	if choose_game_hint:
 		choose_game_hint.text = game["name"]
@@ -1325,8 +1331,9 @@ func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file(scene_on_back)
 
 func _on_create_button_pressed() -> void:
-	room_name_input.text = "Quiz-%d" % (rooms.size() + 1)
 	_reset_form()
+	room_name_input.text = "Quiz-%d" % (rooms.size() + 1)
+	_update_generate_button()
 	_show_screen("form")
 
 func _on_form_back_pressed() -> void:

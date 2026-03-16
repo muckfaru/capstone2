@@ -45,6 +45,13 @@ var _add_student_popup: PanelContainer = null
 var _add_student_input: LineEdit = null
 var _add_student_status: Label = null
 
+# Chat system
+var _room_type: String = "quiz"  # "quiz" or "gamemode"
+var _chat_container: VBoxContainer = null
+var _chat_scroll: ScrollContainer = null
+var _chat_poll_timer: Timer = null
+var _chat_last_ts: int = 0
+
 # ─────────────────────────────────────────────────────────────────────────────
 func _ready() -> void:
 	_slot_nodes.clear()
@@ -74,8 +81,12 @@ func _ready() -> void:
 
 	start_quiz_btn.pressed.connect(_on_start_quiz_pressed)
 	back_button.pressed.connect(_on_back_pressed)
+	if chat_input:
+		chat_input.text_submitted.connect(_on_chat_text_submitted)
+		chat_input.placeholder_text = "Type a message..."
 	_refresh_player_count_label()
 	_build_add_student_ui()
+	_build_chat_display()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PUBLIC API
@@ -102,6 +113,7 @@ func show_lobby(room_code: String, room_name: String,
 	if _add_student_btn:
 		_add_student_btn.visible = true
 	_clear_waiting_label()
+	_clear_chat()
 
 	_players.clear()
 	_refresh_all_slots()
@@ -126,10 +138,11 @@ func show_lobby_student_mode(room_code: String, game_name: String, game_scene: S
 	if start_quiz_btn:
 		start_quiz_btn.visible = false
 	if chat_input:
-		chat_input.visible = false
+		chat_input.visible = true
 	if _add_student_btn:
 		_add_student_btn.visible = false
 	_create_waiting_label()
+	_clear_chat()
 
 	_players.clear()
 	_refresh_all_slots()
@@ -177,6 +190,7 @@ func _animate_waiting_dots() -> void:
 ## CyberQuiz: Start polling server for joined students
 func start_server_polling(room_code: String, lobby_url: String) -> void:
 	_lobby_url = lobby_url
+	_room_type = "quiz"
 	stop_server_polling()
 	_poll_timer = Timer.new()
 	_poll_timer.wait_time = 3.0
@@ -185,10 +199,12 @@ func start_server_polling(room_code: String, lobby_url: String) -> void:
 	_poll_timer.timeout.connect(func(): _poll_server_players(room_code))
 	# Do an immediate first poll
 	_poll_server_players(room_code)
+	_start_chat_polling(room_code)
 
 ## GameMode: Start polling server for joined students (gamemode endpoint)
 func start_gamemode_polling(room_code: String, lobby_url: String) -> void:
 	_lobby_url = lobby_url
+	_room_type = "gamemode"
 	stop_server_polling()
 	_poll_timer = Timer.new()
 	_poll_timer.wait_time = 3.0
@@ -197,11 +213,13 @@ func start_gamemode_polling(room_code: String, lobby_url: String) -> void:
 	_poll_timer.timeout.connect(func(): _poll_gamemode_players(room_code))
 	# Do an immediate first poll
 	_poll_gamemode_players(room_code)
+	_start_chat_polling(room_code)
 
 func stop_server_polling() -> void:
 	if _poll_timer:
 		_poll_timer.queue_free()
 		_poll_timer = null
+	_stop_chat_polling()
 
 func _poll_server_players(room_code: String) -> void:
 	if _lobby_url.is_empty(): return
@@ -311,6 +329,7 @@ func _poll_gamemode_players(room_code: String) -> void:
 ## Student mode polling: Also checks if game started
 func start_gamemode_polling_student(room_code: String, lobby_url: String) -> void:
 	_lobby_url = lobby_url
+	_room_type = "gamemode"
 	stop_server_polling()
 	_poll_timer = Timer.new()
 	_poll_timer.wait_time = 3.0
@@ -319,6 +338,7 @@ func start_gamemode_polling_student(room_code: String, lobby_url: String) -> voi
 	_poll_timer.timeout.connect(func(): _poll_gamemode_student(room_code))
 	# Immediate first poll
 	_poll_gamemode_student(room_code)
+	_start_chat_polling(room_code)
 
 func _poll_gamemode_student(room_code: String) -> void:
 	if _lobby_url.is_empty(): return
@@ -822,3 +842,149 @@ func _on_add_student_submit() -> void:
 		http.queue_free()
 		_add_student_status.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
 		_add_student_status.text = "Network error."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHAT SYSTEM
+# ─────────────────────────────────────────────────────────────────────────────
+
+## Build the chat display area between SlotGrid and BottomBar
+func _build_chat_display() -> void:
+	var panel_bg: Control = $PanelBg
+	if not panel_bg:
+		return
+
+	# Create a ScrollContainer for chat messages
+	_chat_scroll = ScrollContainer.new()
+	_chat_scroll.name = "ChatScroll"
+	_chat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_chat_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	# Position it just above the BottomBar
+	_chat_scroll.offset_left = 15
+	_chat_scroll.offset_top = 460
+	_chat_scroll.offset_right = 508
+	_chat_scroll.offset_bottom = 508
+	panel_bg.add_child(_chat_scroll)
+
+	_chat_container = VBoxContainer.new()
+	_chat_container.name = "ChatMessages"
+	_chat_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_chat_container.add_theme_constant_override("separation", 2)
+	_chat_scroll.add_child(_chat_container)
+
+func _clear_chat() -> void:
+	_chat_last_ts = 0
+	if _chat_container:
+		for child in _chat_container.get_children():
+			child.queue_free()
+
+func _on_chat_text_submitted(text: String) -> void:
+	if text.strip_edges().is_empty():
+		return
+	chat_input.text = ""
+	_send_chat_message(text.strip_edges())
+
+func _send_chat_message(msg: String) -> void:
+	if _lobby_url.is_empty() or _room_code.is_empty():
+		return
+
+	var username: String = ""
+	if Auth and Auth.current_username:
+		username = Auth.current_username
+	else:
+		username = "Teacher"
+
+	var api_path: String = "quiz" if _room_type == "quiz" else "gamemode"
+	var url := _lobby_url + "/api/%s/%s/chat" % [api_path, _room_code]
+	var body := {"username": username, "message": msg}
+	var headers := ["Content-Type: application/json"]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, _b):
+		http.queue_free()
+		if code == 200:
+			# Add own message immediately to display
+			_add_chat_message_to_display(username, msg)
+		else:
+			print("[Chat] ❌ Failed to send message: HTTP %d" % code)
+	)
+	var err := http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	if err != OK:
+		http.queue_free()
+		print("[Chat] ❌ HTTP request failed: %d" % err)
+
+func _start_chat_polling(room_code: String) -> void:
+	_stop_chat_polling()
+	_chat_poll_timer = Timer.new()
+	_chat_poll_timer.wait_time = 3.0
+	_chat_poll_timer.autostart = true
+	add_child(_chat_poll_timer)
+	_chat_poll_timer.timeout.connect(func(): _poll_chat_messages(room_code))
+	# Immediate first poll
+	_poll_chat_messages(room_code)
+
+func _stop_chat_polling() -> void:
+	if _chat_poll_timer:
+		_chat_poll_timer.queue_free()
+		_chat_poll_timer = null
+
+func _poll_chat_messages(room_code: String) -> void:
+	if _lobby_url.is_empty():
+		return
+
+	var api_path: String = "quiz" if _room_type == "quiz" else "gamemode"
+	var url := _lobby_url + "/api/%s/%s/chat?since=%d" % [api_path, room_code, _chat_last_ts]
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		if code != 200:
+			return
+		var text: String = resp_body.get_string_from_utf8()
+		var data = JSON.parse_string(text)
+		if typeof(data) != TYPE_DICTIONARY:
+			return
+		var messages: Array = data.get("messages", [])
+		var my_username := ""
+		if Auth and Auth.current_username:
+			my_username = Auth.current_username
+		for msg_data in messages:
+			var uname: String = str(msg_data.get("username", ""))
+			var msg_text: String = str(msg_data.get("message", ""))
+			var ts: int = int(msg_data.get("timestamp", 0))
+			# Skip own messages (already displayed on send)
+			if uname == my_username:
+				if ts > _chat_last_ts:
+					_chat_last_ts = ts
+				continue
+			_add_chat_message_to_display(uname, msg_text)
+			if ts > _chat_last_ts:
+				_chat_last_ts = ts
+	)
+	http.request(url, [], HTTPClient.METHOD_GET)
+
+func _add_chat_message_to_display(username: String, msg: String) -> void:
+	if not _chat_container:
+		return
+	var lbl := RichTextLabel.new()
+	lbl.bbcode_enabled = true
+	lbl.fit_content = true
+	lbl.scroll_active = false
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Color the username differently
+	var color_hex := "00d4ff"
+	if Auth and Auth.current_username and username == Auth.current_username:
+		color_hex = "4dff8d"  # Green for own messages
+	lbl.text = "[color=#%s]%s:[/color] %s" % [color_hex, username, msg]
+	lbl.add_theme_font_size_override("normal_font_size", 12)
+	_chat_container.add_child(lbl)
+
+	# Keep max 50 messages displayed
+	while _chat_container.get_child_count() > 50:
+		var oldest = _chat_container.get_child(0)
+		_chat_container.remove_child(oldest)
+		oldest.queue_free()
+
+	# Auto-scroll to bottom
+	if _chat_scroll:
+		await get_tree().process_frame
+		_chat_scroll.scroll_vertical = int(_chat_scroll.get_v_scroll_bar().max_value)
