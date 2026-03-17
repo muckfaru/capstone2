@@ -512,6 +512,7 @@ func _create_new_user_terminal(username: String) -> void:
 	await _terminal_line("UPLOADING CREDENTIALS...", COLOR_PROCESSING, true)
 	await _terminal_progress_bar("UPLOAD PROGRESS", 0.5)
 	
+	const CHARIOT_PATH := "res://asset/reward_background_cards/the chariot 7 card.jpeg"
 	var body := {
 		"fields": {
 			"username": {"stringValue": username},
@@ -523,7 +524,8 @@ func _create_new_user_terminal(username: String) -> void:
 			"requests_received": {"arrayValue": {"values": []}},
 			"first_login": {"booleanValue": true},
 			"tutorial_completed": {"booleanValue": true},
-			"welcome_tutorial_completed": {"booleanValue": false}
+			"welcome_tutorial_completed": {"booleanValue": false},
+			"equipped_card_bg_path": {"stringValue": CHARIOT_PATH}
 		}
 	}
 	
@@ -553,6 +555,12 @@ func _create_new_user_terminal(username: String) -> void:
 			_play_sfx(success_sfx)
 			await _terminal_line("CREDENTIALS UPLOADED", COLOR_SUCCESS)
 			await _terminal_line("PROFILE CREATED SUCCESSFULLY", COLOR_SUCCESS)
+			# Grant starter Chariot card immediately so it's available before reward popup
+			if has_node("/root/InventoryHelper"):
+				InventoryHelper.grant_starter_chariot_equipped()
+			# Set equipped card bg on Auth so lobby rooms see it right away
+			if Auth:
+				Auth.current_card_bg_path = CHARIOT_PATH
 			await get_tree().create_timer(0.5).timeout
 			await _terminal_scramble_line_with_highlight("WELCOME, AGENT ", username.to_upper(), COLOR_INFO, COLOR_ERROR, 1.2)
 			await get_tree().create_timer(1.5).timeout

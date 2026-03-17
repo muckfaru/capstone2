@@ -121,7 +121,8 @@ func _create_room_and_enter(room_name: String, anonymous: bool) -> void:
 		"host_level": level,
 		"room_name": final_room_name,
 		"game_type": "defuse_trojan",
-		"max_players": 3
+		"max_players": 3,
+		"host_card_bg": (Auth.current_card_bg_path if Auth else "")
 	}
 
 	var http := HTTPRequest.new()
@@ -371,7 +372,8 @@ func _join_room_via_lobby(room_id: String) -> void:
 		"client_id": uid,
 		"client_username": username,
 		"client_avatar": avatar,
-		"client_level": level
+		"client_level": level,
+		"client_card_bg": (Auth.current_card_bg_path if Auth else "")
 	}
 
 	http.request_completed.connect(func(_result, code, _headers, response_body: PackedByteArray):
