@@ -133,6 +133,11 @@ var _restrict_checkbox: CheckBox = null
 var _student_numbers_section: VBoxContainer = null
 var _student_numbers_edit: TextEdit = null
 var _student_numbers_hint: Label = null
+var _section_dropdown: OptionButton = null
+var _section_mode_tabs: HBoxContainer = null
+var _manual_tab: Button = null
+var _section_tab: Button = null
+var _selected_section_id: String = ""
 
 # ── Room History (Firestore) ─────────────────────────────────────────────────
 const FIRESTORE_BASE_URL: String = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents"
@@ -459,20 +464,76 @@ func _build_student_restriction_ui() -> void:
 	_student_numbers_section = VBoxContainer.new()
 	_student_numbers_section.name = "StudentNumbersSection"
 	_student_numbers_section.visible = false
-	_student_numbers_section.add_theme_constant_override("separation", 6)
+	_student_numbers_section.add_theme_constant_override("separation", 8)
 
+	# ── Mode Tabs (Select Section / Enter Manually) ──
+	_section_mode_tabs = HBoxContainer.new()
+	_section_mode_tabs.add_theme_constant_override("separation", 0)
+	
+	_section_tab = Button.new()
+	_section_tab.text = "📁 Select Section"
+	_section_tab.toggle_mode = true
+	_section_tab.button_pressed = true
+	_section_tab.add_theme_font_size_override("font_size", 12)
+	_section_tab.custom_minimum_size = Vector2(140, 32)
+	_section_tab.pressed.connect(_on_section_tab_pressed)
+	_section_mode_tabs.add_child(_section_tab)
+	
+	_manual_tab = Button.new()
+	_manual_tab.text = "✏️ Enter Manually"
+	_manual_tab.toggle_mode = true
+	_manual_tab.button_pressed = false
+	_manual_tab.add_theme_font_size_override("font_size", 12)
+	_manual_tab.custom_minimum_size = Vector2(140, 32)
+	_manual_tab.pressed.connect(_on_manual_tab_pressed)
+	_section_mode_tabs.add_child(_manual_tab)
+	
+	# Manage Sections link
+	var manage_link := Button.new()
+	manage_link.text = "⚙ Manage Sections"
+	manage_link.flat = true
+	manage_link.add_theme_color_override("font_color", Color(0.4, 0.7, 1.0))
+	manage_link.add_theme_font_size_override("font_size", 11)
+	manage_link.pressed.connect(_on_manage_sections_pressed)
+	_section_mode_tabs.add_child(manage_link)
+	
+	# Manage Bindings link (Anti-Cheat admin)
+	var bindings_link := Button.new()
+	bindings_link.text = "🔐 Manage Bindings"
+	bindings_link.flat = true
+	bindings_link.add_theme_color_override("font_color", Color(1.0, 0.7, 0.4))
+	bindings_link.add_theme_font_size_override("font_size", 11)
+	bindings_link.pressed.connect(_on_manage_bindings_pressed)
+	_section_mode_tabs.add_child(bindings_link)
+	
+	_student_numbers_section.add_child(_section_mode_tabs)
+
+	# ── Section Dropdown ──
+	_section_dropdown = OptionButton.new()
+	_section_dropdown.custom_minimum_size = Vector2(0, 36)
+	_section_dropdown.add_theme_font_size_override("font_size", 13)
+	_section_dropdown.item_selected.connect(_on_section_selected)
+	_student_numbers_section.add_child(_section_dropdown)
+	
+	# Populate dropdown with sections
+	_refresh_section_dropdown()
+
+	# ── Manual Entry Hint ──
 	_student_numbers_hint = Label.new()
 	_student_numbers_hint.text = "Enter student numbers (comma or newline separated):"
 	_student_numbers_hint.add_theme_color_override("font_color", Color(0.65, 0.8, 1.0, 0.6))
 	_student_numbers_hint.add_theme_font_size_override("font_size", 11)
+	_student_numbers_hint.visible = false
 	_student_numbers_section.add_child(_student_numbers_hint)
 
+	# ── Manual Entry TextEdit ──
 	_student_numbers_edit = TextEdit.new()
 	_student_numbers_edit.custom_minimum_size = Vector2(0, 80)
 	_student_numbers_edit.placeholder_text = "21-2169, 21-2170, 21-2171..."
 	_student_numbers_edit.add_theme_color_override("font_color", Color(0.9, 0.96, 1.0, 1.0))
 	_student_numbers_edit.add_theme_color_override("caret_color", Color(0.145, 0.878, 0.992, 1.0))
 	_student_numbers_edit.add_theme_font_size_override("font_size", 13)
+	_student_numbers_edit.visible = false
 	# Style the TextEdit background
 	var edit_style := StyleBoxFlat.new()
 	edit_style.bg_color = Color(0.02, 0.05, 0.14, 1.0)
@@ -487,11 +548,99 @@ func _build_student_restriction_ui() -> void:
 	form_content.add_child(_student_numbers_section)
 	form_content.move_child(_student_numbers_section, insert_idx + 1)
 
+func _refresh_section_dropdown() -> void:
+	if not _section_dropdown:
+		return
+	
+	_section_dropdown.clear()
+	_section_dropdown.add_item("— Select a section —", 0)
+	_section_dropdown.set_item_metadata(0, "")
+	
+	var sections := StudentDatabase.get_all_sections()
+	for section in sections:
+		var count: int = section.get("students", []).size()
+		var display := "%s (%s) — %d students" % [
+			section.get("name", ""),
+			section.get("school_year", ""),
+			count
+		]
+		_section_dropdown.add_item(display)
+		_section_dropdown.set_item_metadata(_section_dropdown.item_count - 1, section["id"])
+	
+	# Add import option
+	_section_dropdown.add_separator()
+	_section_dropdown.add_item("📥 Import new section from Excel/CSV...")
+	_section_dropdown.set_item_metadata(_section_dropdown.item_count - 1, "__import__")
+
+func _on_section_tab_pressed() -> void:
+	_section_tab.button_pressed = true
+	_manual_tab.button_pressed = false
+	_section_dropdown.visible = true
+	_student_numbers_hint.visible = false
+	_student_numbers_edit.visible = false
+
+func _on_manual_tab_pressed() -> void:
+	_section_tab.button_pressed = false
+	_manual_tab.button_pressed = true
+	_section_dropdown.visible = false
+	_student_numbers_hint.visible = true
+	_student_numbers_edit.visible = true
+
+func _on_section_selected(index: int) -> void:
+	var section_id: String = _section_dropdown.get_item_metadata(index)
+	
+	if section_id == "__import__":
+		# Open section manager for import
+		_section_dropdown.select(0)
+		_on_manage_sections_pressed()
+		return
+	
+	_selected_section_id = section_id
+
+func _on_manage_sections_pressed() -> void:
+	# Set return path so Section Manager knows where to go back
+	get_tree().set_meta("section_manager_return", "res://scene/TeacherCreateRoom.tscn")
+	get_tree().change_scene_to_file("res://scene/section_manager.tscn")
+
+func _on_manage_bindings_pressed() -> void:
+	# Set return path and lobby URL for Binding Manager
+	get_tree().set_meta("binding_manager_return", "res://scene/TeacherCreateRoom.tscn")
+	get_tree().set_meta("binding_manager_lobby_url", "https://codebreaker-lobby.onrender.com")
+	get_tree().change_scene_to_file("res://scene/binding_manager.tscn")
+
+func _collect_allowed_students() -> Array:
+	var allowed_list: Array = []
+	
+	if not _restrict_checkbox or not _restrict_checkbox.button_pressed:
+		return allowed_list
+	
+	# Check if using section mode (dropdown visible + section selected)
+	if _section_tab and _section_tab.button_pressed and not _selected_section_id.is_empty():
+		# Get student numbers from selected section
+		allowed_list = StudentDatabase.get_student_numbers_for_section(_selected_section_id)
+	elif _student_numbers_edit and _student_numbers_edit.visible:
+		# Manual entry mode
+		var raw := _student_numbers_edit.text
+		var parts := raw.replace("\n", ",").replace("\r", ",").split(",")
+		for p in parts:
+			var trimmed := p.strip_edges().to_upper()
+			if not trimmed.is_empty():
+				allowed_list.append(trimmed)
+	
+	return allowed_list
+
 func _on_restrict_checkbox_toggled(pressed: bool) -> void:
 	if _student_numbers_section:
 		_student_numbers_section.visible = pressed
-	if not pressed and _student_numbers_edit:
-		_student_numbers_edit.text = ""
+		# Refresh dropdown when shown
+		if pressed:
+			_refresh_section_dropdown()
+	if not pressed:
+		if _student_numbers_edit:
+			_student_numbers_edit.text = ""
+		_selected_section_id = ""
+		if _section_dropdown:
+			_section_dropdown.select(0)
 	_update_generate_button()
 
 func _build_save_draft_button() -> void:
@@ -597,14 +746,7 @@ func _finalise_draft_room() -> void:
 
 	# We don't put it in `rooms` dict (active rooms), we only save it to Firestore history
 	# Collect student whitelist if enabled
-	var allowed_list: Array = []
-	if _restrict_checkbox and _restrict_checkbox.button_pressed and _student_numbers_edit:
-		var raw := _student_numbers_edit.text
-		var parts := raw.replace("\n", ",").replace("\r", ",").split(",")
-		for p in parts:
-			var trimmed := p.strip_edges()
-			if not trimmed.is_empty():
-				allowed_list.append(trimmed)
+	var allowed_list: Array = _collect_allowed_students()
 	room_data["allowed_students"] = allowed_list
 
 	_save_room_to_history(draft_code, room_data)
@@ -715,14 +857,7 @@ func _finalise_room() -> void:
 	_refresh_room_list()
 
 	# Collect student whitelist if enabled (shared for both quiz and game mode)
-	var allowed_list: Array = []
-	if _restrict_checkbox and _restrict_checkbox.button_pressed and _student_numbers_edit:
-		var raw := _student_numbers_edit.text
-		var parts := raw.replace("\n", ",").replace("\r", ",").split(",")
-		for p in parts:
-			var trimmed := p.strip_edges()
-			if not trimmed.is_empty():
-				allowed_list.append(trimmed)
+	var allowed_list: Array = _collect_allowed_students()
 	room_data["allowed_students"] = allowed_list
 
 	# ── CyberQuiz: POST quiz data to server ─────────────────────────────

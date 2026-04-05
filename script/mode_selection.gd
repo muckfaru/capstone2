@@ -867,6 +867,7 @@ func _do_join(room_code: String, lobby_url: String, has_restriction: bool) -> vo
 		"username": Auth.current_username,
 		"avatar": Auth.current_avatar if Auth.current_avatar != "" else "default.png",
 		"xp": xp_val,
+		"uid": Auth.current_local_id,  # Firebase UID for account binding (anti-cheat)
 	}
 
 	# Add student number if required
@@ -913,6 +914,7 @@ func _try_gamemode_join(room_code: String, lobby_url: String, _body: Dictionary,
 		"username": Auth.current_username,
 		"avatar": Auth.current_avatar if Auth.current_avatar != "" else "default.png",
 		"xp": xp_val,
+		"uid": Auth.current_local_id,  # Firebase UID for account binding (anti-cheat)
 	}
 	# Carry student_number from the original body if present
 	if _body.has("student_number"):

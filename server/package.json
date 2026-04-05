@@ -1,6 +1,6 @@
 {
   "name": "code-breaker-lobby-server",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Lobby server for Code Breaker - Pure Direct P2P Architecture",
   "main": "server.js",
   "scripts": {
@@ -20,6 +20,7 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "express-ws": "^5.0.2",
+    "firebase-admin": "^12.0.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
