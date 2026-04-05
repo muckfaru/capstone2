@@ -256,7 +256,37 @@ func _validate_mapping() -> bool:
 # ─────────────────────────────────────────────────────────────
 
 func _setup_step3() -> void:
-	summary_label.text = "Ready to import %d students" % _extracted_students.size()
+	# ── Validate extracted students ──
+	var validation := _importer.validate_import_data(_extracted_students)
+	var cross_dupes := _check_cross_section_duplicates(_extracted_students)
+	
+	# Build summary with warnings
+	var summary_parts: Array[String] = []
+	summary_parts.append("Ready to import %d students" % _extracted_students.size())
+	
+	if not validation["errors"].is_empty():
+		summary_parts.append("")
+		summary_parts.append("❌ Errors:")
+		for err in validation["errors"]:
+			summary_parts.append("  • " + str(err))
+	
+	if not validation["warnings"].is_empty():
+		summary_parts.append("")
+		summary_parts.append("⚠️ Duplicates found in file:")
+		for warning in validation["warnings"]:
+			summary_parts.append("  • " + str(warning))
+	
+	if not cross_dupes.is_empty():
+		summary_parts.append("")
+		summary_parts.append("⚠️ Already exists in other sections:")
+		for dupe in cross_dupes:
+			summary_parts.append("  • %s (%s) → already in %s" % [
+				dupe.get("number", ""),
+				dupe.get("name", ""),
+				dupe.get("section", "unknown")
+			])
+	
+	summary_label.text = "\n".join(summary_parts)
 	
 	# Populate existing sections dropdown
 	existing_dropdown.clear()
@@ -332,3 +362,23 @@ func _do_import() -> void:
 	
 	import_completed.emit(section_id, result)
 	queue_free()
+
+# ─────────────────────────────────────────────────────────────
+# DUPLICATE DETECTION
+# ─────────────────────────────────────────────────────────────
+
+func _check_cross_section_duplicates(students: Array) -> Array:
+	"""Check if any imported students already exist in other sections."""
+	var dupes: Array = []
+	for s in students:
+		var number: String = str(s.get("number", "")).strip_edges()
+		if number.is_empty():
+			continue
+		var found := StudentDatabase.find_student_by_number(number)
+		if not found.is_empty():
+			dupes.append({
+				"number": number,
+				"name": s.get("name", ""),
+				"section": found.get("section_name", "unknown")
+			})
+	return dupes

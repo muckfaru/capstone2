@@ -249,6 +249,12 @@ func _ready() -> void:
 		if lobby_panel.has_signal("quiz_started"):
 			lobby_panel.quiz_started.connect(_on_quiz_started)
 
+	# ── Check if we came from Section Manager with a section prefill ──
+	if get_tree().has_meta("section_manager_return"):
+		scene_on_back = get_tree().get_meta("section_manager_return")
+		get_tree().remove_meta("section_manager_return")
+	_check_section_prefill()
+
 # ── Generate button ──────────────────────────────────────────────────────────
 
 func _update_generate_button() -> void:
@@ -269,6 +275,48 @@ func _update_generate_button() -> void:
 	generate_button.disabled = not ok
 	if save_draft_button:
 		save_draft_button.disabled = not ok
+
+# ── Section Prefill (from Section Manager) ───────────────────────────────────
+
+func _check_section_prefill() -> void:
+	if not get_tree().has_meta("prefill_section_id"):
+		return
+	
+	var section_id: String = get_tree().get_meta("prefill_section_id")
+	var section_name: String = get_tree().get_meta("prefill_section_name")
+	var student_count: int = get_tree().get_meta("prefill_student_count")
+	
+	# Clean up meta
+	get_tree().remove_meta("prefill_section_id")
+	get_tree().remove_meta("prefill_section_name")
+	get_tree().remove_meta("prefill_student_count")
+	
+	# Auto-fill the room name and player count
+	room_name_input.text = "%s — Game Room" % section_name
+	player_count_input.text = str(student_count)
+	
+	# Auto-enable Game Mode toggle
+	game_mode_btn.set_pressed_no_signal(true)
+	_on_game_mode_toggled(true)
+	
+	# Auto-enable student restriction with section pre-selected
+	if _restrict_checkbox:
+		_restrict_checkbox.set_pressed_no_signal(true)
+		_on_restrict_checkbox_toggled(true)
+	
+	# Select the correct section in the dropdown
+	_selected_section_id = section_id
+	if _section_dropdown:
+		for i in _section_dropdown.item_count:
+			if _section_dropdown.get_item_metadata(i) == section_id:
+				_section_dropdown.select(i)
+				break
+	
+	_update_generate_button()
+	
+	# Jump directly to the form (skip the room history list)
+	_show_screen("form")
+	print("[CreateRoom] Section prefill: '%s' (%d students)" % [section_name, student_count])
 
 # ── MC Create button ─────────────────────────────────────────────────────────
 

@@ -3,10 +3,17 @@ class_name StudentDatabaseClass
 
 ## Student Information Management System - Data Storage
 ## Stores sections and students locally at user://student_database.json
+## Syncs to Firestore for cross-device access
 
 const DATABASE_PATH := "user://student_database.json"
+const FIRESTORE_URL := "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents"
 
 signal database_changed
+signal sync_completed(success: bool)
+signal firestore_loaded(success: bool)
+
+var _dirty: bool = false  # True when local changes need syncing to Firestore
+var _syncing: bool = false  # Prevent concurrent syncs
 
 var _data: Dictionary = {
 	"sections": {},
@@ -51,6 +58,7 @@ func save_database() -> void:
 	
 	file.store_string(JSON.stringify(_data, "\t"))
 	file.close()
+	_dirty = true
 	database_changed.emit()
 
 # ─────────────────────────────────────────────────────────────
@@ -259,3 +267,153 @@ func get_total_students() -> int:
 
 func get_total_sections() -> int:
 	return _data["sections"].size()
+
+func is_dirty() -> bool:
+	return _dirty
+
+# ─────────────────────────────────────────────────────────────
+# FIRESTORE SYNC
+# ─────────────────────────────────────────────────────────────
+
+func sync_to_firestore() -> void:
+	"""Batch-save all sections to Firestore under users/{uid}/student_sections."""
+	if not _dirty:
+		print("[StudentDB] No changes to sync.")
+		sync_completed.emit(true)
+		return
+	if _syncing:
+		print("[StudentDB] Sync already in progress, skipping.")
+		return
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		print("[StudentDB] Not logged in, skipping Firestore sync.")
+		sync_completed.emit(false)
+		return
+	
+	_syncing = true
+	print("[StudentDB] ☁️ Syncing %d sections to Firestore..." % _data["sections"].size())
+	
+	# Build Firestore-formatted section fields
+	var section_fields := {}
+	for sid in _data["sections"]:
+		var sec: Dictionary = _data["sections"][sid]
+		section_fields[sid] = {
+			"mapValue": {
+				"fields": {
+					"name": {"stringValue": sec.get("name", "")},
+					"school_year": {"stringValue": sec.get("school_year", "")},
+					"created_at": {"doubleValue": sec.get("created_at", 0.0)},
+					"students_json": {"stringValue": JSON.stringify(sec.get("students", []))}
+				}
+			}
+		}
+	
+	var url := "%s/users/%s?updateMask.fieldPaths=student_sections" % [FIRESTORE_URL, Auth.current_local_id]
+	var headers := [
+		"Content-Type: application/json",
+		"Authorization: Bearer %s" % Auth.current_id_token
+	]
+	var body := {
+		"fields": {
+			"student_sections": {
+				"mapValue": {
+					"fields": section_fields
+				}
+			}
+		}
+	}
+	
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		_syncing = false
+		if code == 200:
+			_dirty = false
+			print("[StudentDB] ✅ Sections synced to Firestore")
+			sync_completed.emit(true)
+		else:
+			var err_text: String = resp_body.get_string_from_utf8() if resp_body.size() > 0 else ""
+			push_error("[StudentDB] ❌ Firestore sync failed (%d): %s" % [code, err_text])
+			sync_completed.emit(false)
+	)
+	
+	var err := http.request(url, headers, HTTPClient.METHOD_PATCH, JSON.stringify(body))
+	if err != OK:
+		push_error("[StudentDB] ❌ HTTP request failed: %d" % err)
+		http.queue_free()
+		_syncing = false
+		sync_completed.emit(false)
+
+func load_from_firestore() -> void:
+	"""Load sections from Firestore and overwrite local data."""
+	if Auth.current_local_id == "" or Auth.current_id_token == "":
+		print("[StudentDB] Not logged in, skipping Firestore load.")
+		firestore_loaded.emit(false)
+		return
+	
+	print("[StudentDB] ☁️ Loading sections from Firestore...")
+	
+	var url := "%s/users/%s" % [FIRESTORE_URL, Auth.current_local_id]
+	var headers := ["Authorization: Bearer %s" % Auth.current_id_token]
+	
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(_r, code, _h, resp_body):
+		http.queue_free()
+		
+		if code != 200:
+			print("[StudentDB] ⚠️ Firestore load failed (%d), keeping local data." % code)
+			firestore_loaded.emit(false)
+			return
+		
+		var json = JSON.parse_string(resp_body.get_string_from_utf8())
+		if json == null or not json.has("fields"):
+			print("[StudentDB] ⚠️ No fields in Firestore response, keeping local data.")
+			firestore_loaded.emit(false)
+			return
+		
+		var fields: Dictionary = json["fields"]
+		if not fields.has("student_sections"):
+			print("[StudentDB] ℹ️ No student_sections in Firestore yet. Keeping local data.")
+			firestore_loaded.emit(true)
+			return
+		
+		# Parse sections from Firestore
+		var sections_map = fields["student_sections"].get("mapValue", {}).get("fields", {})
+		if sections_map.is_empty():
+			print("[StudentDB] ℹ️ Firestore has empty sections.")
+			_data["sections"] = {}
+			save_database()
+			_dirty = false
+			firestore_loaded.emit(true)
+			return
+		
+		# Overwrite local data with Firestore data
+		var new_sections := {}
+		for sid in sections_map:
+			var sec_fields = sections_map[sid].get("mapValue", {}).get("fields", {})
+			var students_str: String = sec_fields.get("students_json", {}).get("stringValue", "[]")
+			var students = JSON.parse_string(students_str)
+			if students == null:
+				students = []
+			
+			new_sections[sid] = {
+				"id": sid,
+				"name": sec_fields.get("name", {}).get("stringValue", ""),
+				"school_year": sec_fields.get("school_year", {}).get("stringValue", ""),
+				"created_at": float(sec_fields.get("created_at", {}).get("doubleValue", 0.0)),
+				"students": students
+			}
+		
+		_data["sections"] = new_sections
+		save_database()
+		_dirty = false  # Just loaded, nothing to sync back
+		print("[StudentDB] ✅ Loaded %d sections from Firestore" % new_sections.size())
+		firestore_loaded.emit(true)
+	)
+	
+	var err := http.request(url, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		push_error("[StudentDB] ❌ HTTP request failed: %d" % err)
+		http.queue_free()
+		firestore_loaded.emit(false)

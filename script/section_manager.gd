@@ -22,6 +22,7 @@ signal back_pressed
 @onready var import_more_btn: Button = $MainContainer/ContentArea/DetailPanel/DetailVBox/DetailActions/ImportMoreBtn
 @onready var export_btn: Button = $MainContainer/ContentArea/DetailPanel/DetailVBox/DetailActions/ExportBtn
 @onready var delete_section_btn: Button = $MainContainer/ContentArea/DetailPanel/DetailVBox/DetailActions/DeleteSectionBtn
+var create_room_btn: Button = null
 
 @onready var file_dialog: FileDialog = $FileDialog
 @onready var new_section_dialog: ConfirmationDialog = $NewSectionDialog
@@ -40,9 +41,14 @@ func _ready() -> void:
 		get_tree().remove_meta("section_manager_return")
 	
 	_connect_signals()
+	_build_create_room_button()
 	_refresh_section_list()
 	_update_global_stats()
 	_show_no_selection()
+	
+	# Load latest data from Firestore (overwrites local)
+	StudentDatabase.firestore_loaded.connect(_on_firestore_loaded)
+	StudentDatabase.load_from_firestore()
 
 func _connect_signals() -> void:
 	back_btn.pressed.connect(_on_back_pressed)
@@ -156,6 +162,7 @@ func _select_section(section_id: String) -> void:
 	import_more_btn.disabled = false
 	export_btn.disabled = false
 	delete_section_btn.disabled = false
+	create_room_btn.disabled = false
 
 func _show_no_selection() -> void:
 	section_name_label.text = "Select a section"
@@ -171,6 +178,7 @@ func _show_no_selection() -> void:
 	import_more_btn.disabled = true
 	export_btn.disabled = true
 	delete_section_btn.disabled = true
+	create_room_btn.disabled = true
 
 # ─────────────────────────────────────────────────────────────
 # DETAIL PANEL
@@ -292,6 +300,8 @@ func _on_remove_student(student_number: String) -> void:
 # ─────────────────────────────────────────────────────────────
 
 func _on_back_pressed() -> void:
+	# Batch sync to Firestore before leaving
+	StudentDatabase.sync_to_firestore()
 	back_pressed.emit()
 	get_tree().change_scene_to_file(_return_scene)
 
@@ -413,6 +423,78 @@ func _on_delete_confirmed() -> void:
 	_show_no_selection()
 
 # ─────────────────────────────────────────────────────────────
+# BUILD CREATE ROOM BUTTON (dynamic)
+# ─────────────────────────────────────────────────────────────
+
+func _build_create_room_button() -> void:
+	var detail_actions: HBoxContainer = $MainContainer/ContentArea/DetailPanel/DetailVBox/DetailActions
+	if not detail_actions:
+		return
+	
+	create_room_btn = Button.new()
+	create_room_btn.name = "CreateRoomBtn"
+	create_room_btn.text = "🎮 Create Room"
+	create_room_btn.custom_minimum_size = Vector2(120, 40)
+	create_room_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	create_room_btn.disabled = true
+	create_room_btn.add_theme_font_size_override("font_size", 13)
+	create_room_btn.add_theme_color_override("font_color", Color(0.8, 1.0, 0.9, 1.0))
+	create_room_btn.add_theme_color_override("font_hover_color", Color(0.3, 1.0, 0.6, 1.0))
+	create_room_btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.5, 0.6))
+	
+	# Normal style (green accent)
+	var normal_style := StyleBoxFlat.new()
+	normal_style.bg_color = Color(0.02, 0.2, 0.12, 1.0)
+	normal_style.border_color = Color(0.2, 0.9, 0.5, 0.6)
+	normal_style.set_border_width_all(2)
+	normal_style.set_corner_radius_all(8)
+	create_room_btn.add_theme_stylebox_override("normal", normal_style)
+	
+	# Hover style
+	var hover_style := StyleBoxFlat.new()
+	hover_style.bg_color = Color(0.05, 0.3, 0.18, 1.0)
+	hover_style.border_color = Color(0.2, 0.95, 0.55, 1.0)
+	hover_style.set_border_width_all(2)
+	hover_style.set_corner_radius_all(8)
+	hover_style.shadow_color = Color(0.2, 0.9, 0.5, 0.3)
+	hover_style.shadow_size = 4
+	create_room_btn.add_theme_stylebox_override("hover", hover_style)
+	
+	# Disabled style
+	var disabled_style := StyleBoxFlat.new()
+	disabled_style.bg_color = Color(0.1, 0.1, 0.15, 0.5)
+	disabled_style.border_color = Color(0.3, 0.3, 0.4, 0.4)
+	disabled_style.set_border_width_all(2)
+	disabled_style.set_corner_radius_all(8)
+	create_room_btn.add_theme_stylebox_override("disabled", disabled_style)
+	
+	create_room_btn.pressed.connect(_on_create_room_for_section)
+	
+	# Insert after ImportMoreBtn
+	var import_idx := import_more_btn.get_index()
+	detail_actions.add_child(create_room_btn)
+	detail_actions.move_child(create_room_btn, import_idx + 1)
+
+# ─────────────────────────────────────────────────────────────
+# CREATE ROOM FOR SECTION
+# ─────────────────────────────────────────────────────────────
+
+func _on_create_room_for_section() -> void:
+	if _selected_section_id.is_empty():
+		return
+	
+	var section := StudentDatabase.get_section(_selected_section_id)
+	if section.is_empty():
+		return
+	
+	# Pass section info to TeacherCreateRoom via tree meta
+	get_tree().set_meta("prefill_section_id", _selected_section_id)
+	get_tree().set_meta("prefill_section_name", section.get("name", ""))
+	get_tree().set_meta("prefill_student_count", section.get("students", []).size())
+	get_tree().set_meta("section_manager_return", "res://scene/section_manager.tscn")
+	get_tree().change_scene_to_file("res://scene/TeacherCreateRoom.tscn")
+
+# ─────────────────────────────────────────────────────────────
 # STATS
 # ─────────────────────────────────────────────────────────────
 
@@ -423,3 +505,13 @@ func _update_global_stats() -> void:
 		section_count, "" if section_count == 1 else "s",
 		student_count, "" if student_count == 1 else "s"
 	]
+
+func _on_firestore_loaded(success: bool) -> void:
+	if success:
+		print("[SectionManager] Firestore data loaded, refreshing UI.")
+		_refresh_section_list()
+		_update_global_stats()
+		if not _selected_section_id.is_empty():
+			_refresh_detail_panel()
+	else:
+		print("[SectionManager] Firestore load failed, using local data.")
