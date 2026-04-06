@@ -366,7 +366,7 @@ func load_from_firestore() -> void:
 			firestore_loaded.emit(false)
 			return
 		
-		var json = JSON.parse_string(resp_body.get_string_from_utf8())
+		var json: Variant = JSON.parse_string(resp_body.get_string_from_utf8())
 		if json == null or not json.has("fields"):
 			print("[StudentDB] ⚠️ No fields in Firestore response, keeping local data.")
 			firestore_loaded.emit(false)
@@ -379,7 +379,7 @@ func load_from_firestore() -> void:
 			return
 		
 		# Parse sections from Firestore
-		var sections_map = fields["student_sections"].get("mapValue", {}).get("fields", {})
+		var sections_map: Variant = fields["student_sections"].get("mapValue", {}).get("fields", {})
 		if sections_map.is_empty():
 			print("[StudentDB] ℹ️ Firestore has empty sections.")
 			_data["sections"] = {}
@@ -389,11 +389,11 @@ func load_from_firestore() -> void:
 			return
 		
 		# Overwrite local data with Firestore data
-		var new_sections := {}
+		var new_sections: Dictionary = {}
 		for sid in sections_map:
-			var sec_fields = sections_map[sid].get("mapValue", {}).get("fields", {})
+			var sec_fields: Variant = sections_map[sid].get("mapValue", {}).get("fields", {})
 			var students_str: String = sec_fields.get("students_json", {}).get("stringValue", "[]")
-			var students = JSON.parse_string(students_str)
+			var students: Variant = JSON.parse_string(students_str)
 			if students == null:
 				students = []
 			

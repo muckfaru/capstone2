@@ -907,6 +907,7 @@ func _finalise_room() -> void:
 	# Collect student whitelist if enabled (shared for both quiz and game mode)
 	var allowed_list: Array = _collect_allowed_students()
 	room_data["allowed_students"] = allowed_list
+	room_data["has_student_restriction"] = _restrict_checkbox != null and _restrict_checkbox.button_pressed
 
 	# ── CyberQuiz: POST quiz data to server ─────────────────────────────
 	if multiple_choice_btn.button_pressed and not mc_quiz_data.is_empty():
@@ -1613,6 +1614,7 @@ func _post_quiz_to_server(room_code: String, room_data: Dictionary) -> void:
 		"time_per_question": room_data.get("mc_time_per_q", 30),
 		"max_players": room_data.get("player_count", 10),
 		"allowed_students": room_data.get("allowed_students", []),
+		"has_student_restriction": room_data.get("has_student_restriction", false),
 	}
 	var headers := ["Content-Type: application/json"]
 	var http := HTTPRequest.new()
@@ -2142,6 +2144,7 @@ func _post_gamemode_to_server(room_code: String, room_data: Dictionary) -> void:
 		"difficulty": room_data.get("difficulty", "Beginner"),
 		"max_players": int(room_data.get("player_count", 10)),
 		"allowed_students": room_data.get("allowed_students", []),
+		"has_student_restriction": room_data.get("has_student_restriction", false),
 	}
 	var headers := ["Content-Type: application/json"]
 	var http := HTTPRequest.new()
@@ -2768,7 +2771,7 @@ func _save_results_to_firestore(room_code: String, data: Dictionary) -> void:
 	var uid := Auth.current_local_id
 	var token := Auth.current_id_token
 	var safe_code := room_code.replace("/", "_")
-	var field_path := "room_results.%s" % safe_code
+	var field_path := "room_results.`%s`" % safe_code
 	var url := "%s/users/%s?updateMask.fieldPaths=%s" % [FIRESTORE_BASE_URL, uid, field_path]
 	var headers := [
 		"Content-Type: application/json",
