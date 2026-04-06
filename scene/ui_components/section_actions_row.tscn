@@ -1,0 +1,254 @@
+[gd_scene load_steps=33 format=3 uid="uid://dfactrow1"]
+
+[ext_resource type="FontFile" uid="uid://cqfcxnj3ofmyk" path="res://TEACHERCREATEROOMUI/Inter-VariableFont_opsz,wght.ttf" id="1_bl1ah"]
+[ext_resource type="Texture2D" uid="uid://cvvrg74rgjx08" path="res://asset/newUIlandingupdate/performance.png" id="1_uhy4f"]
+[ext_resource type="Texture2D" uid="uid://dw7qj4xxifkvv" path="res://asset/newUIlandingupdate/add.png" id="3_d3o8p"]
+[ext_resource type="Texture2D" uid="uid://v16774587xvw" path="res://asset/newUIlandingupdate/tree-stump.png" id="4_v5q2j"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v5q2j"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xi7q4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8e0k1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ehxb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7kbhl"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j163r"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d3o8p"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_v5q2j"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bl1ah"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uhy4f"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xi7q4"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_d3o8p"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tdksj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6xnr5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kk782"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ur7w8"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ehxb"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7kbhl"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j163r"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.333333, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tdksj"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6yu0k"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wmlry"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_j8hbp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_koqba"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u2sfv"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_305ct"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qm0q0"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6yu0k"]
+bg_color = Color(0.421435, 0.220215, 0.10181, 1)
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.419608, 0.219608, 0.101961, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="SectionActionsRow" type="HBoxContainer"]
+custom_minimum_size = Vector2(0, 48)
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="DashboardBtn" type="Button" parent="."]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+tooltip_text = "Dashboard"
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("1_bl1ah")
+theme_override_styles/focus = SubResource("StyleBoxFlat_v5q2j")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_xi7q4")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_8e0k1")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_8ehxb")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_7kbhl")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_j163r")
+theme_override_styles/hover = SubResource("StyleBoxFlat_d3o8p")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_v5q2j")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_bl1ah")
+theme_override_styles/normal = SubResource("StyleBoxFlat_uhy4f")
+icon = ExtResource("1_uhy4f")
+icon_alignment = 1
+
+[node name="CreateRoomBtn" type="Button" parent="."]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+tooltip_text = "Create Room"
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("1_bl1ah")
+theme_override_styles/focus = SubResource("StyleBoxFlat_xi7q4")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_d3o8p")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_tdksj")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_6xnr5")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_kk782")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_ur7w8")
+theme_override_styles/hover = SubResource("StyleBoxFlat_8ehxb")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_7kbhl")
+theme_override_styles/normal = SubResource("StyleBoxFlat_j163r")
+icon = ExtResource("3_d3o8p")
+icon_alignment = 1
+
+[node name="ExportBtn" type="Button" parent="."]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+tooltip_text = "Export Grades"
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_tdksj")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_6yu0k")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_wmlry")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_j8hbp")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_koqba")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_u2sfv")
+theme_override_styles/hover = SubResource("StyleBoxFlat_305ct")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_qm0q0")
+theme_override_styles/normal = SubResource("StyleBoxFlat_6yu0k")
+icon = ExtResource("4_v5q2j")
+icon_alignment = 1

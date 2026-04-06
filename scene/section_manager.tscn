@@ -1,6 +1,33 @@
-[gd_scene load_steps=11 format=3 uid="uid://ngl58c6xo11y"]
+[gd_scene load_steps=40 format=3 uid="uid://ngl58c6xo11y"]
 
 [ext_resource type="Script" uid="uid://bvprptxkhg2xh" path="res://script/section_manager.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://cuspredyadq7c" path="res://asset/fonts/BankGothic Bold.ttf" id="2_ddx64"]
+[ext_resource type="FontFile" uid="uid://dd7c56fbgxwnr" path="res://asset/fonts/orbitron-bold.otf" id="3_ddx64"]
+[ext_resource type="FontFile" uid="uid://cqfcxnj3ofmyk" path="res://TEACHERCREATEROOMUI/Inter-VariableFont_opsz,wght.ttf" id="4_6obwl"]
+[ext_resource type="Texture2D" uid="uid://hmxnum6ett37" path="res://asset/icons/import.png" id="4_ycvpq"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ttqw8"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ttqw8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ddx64"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ycvpq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6obwl"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ar18y"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
 bg_color = Color(0.05, 0.18, 0.38, 1)
@@ -8,7 +35,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.145, 0.878, 0.992, 1)
+border_color = Color(1, 0, 0, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -22,7 +49,8 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.145, 0.878, 0.992, 1)
+border_color = Color(1, 0, 0, 1)
+border_blend = true
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -30,6 +58,7 @@ corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
 bg_color = Color(0.02, 0.12, 0.28, 1)
+draw_center = false
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -39,6 +68,16 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+
+[sub_resource type="LabelSettings" id="LabelSettings_6obwl"]
+font = ExtResource("2_ddx64")
+font_size = 40
+font_color = Color(0.952105, 0.572311, 3.85046e-07, 1)
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.679)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_separator"]
 content_margin_top = 1.0
@@ -50,18 +89,61 @@ content_margin_left = 16.0
 content_margin_top = 16.0
 content_margin_right = 16.0
 content_margin_bottom = 16.0
-bg_color = Color(0.02, 0.08, 0.18, 0.95)
+bg_color = Color(1.3236e-07, 0.0988921, 0.117671, 0.95)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.145, 0.878, 0.992, 0.4)
+border_color = Color(0.145, 0.878, 0.992, 1)
+border_blend = true
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 shadow_color = Color(0.145, 0.878, 0.992, 0.15)
 shadow_size = 8
+
+[sub_resource type="LabelSettings" id="LabelSettings_ycvpq"]
+font = ExtResource("3_ddx64")
+font_size = 18
+outline_size = 5
+outline_color = Color(0.048, 0.048, 0.048, 0.895)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.636)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b6rlv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gqtcn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4b3iq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7r48j"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sus83"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xtbuf"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_klrdl"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wls0w"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ru4t5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_obj5s"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_grtwy"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ey75e"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ar18y"]
+font = ExtResource("3_ddx64")
+font_size = 22
+outline_size = 5
+outline_color = Color(0, 0, 0, 0.828)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.691)
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
 content_margin_left = 12.0
@@ -79,6 +161,8 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o34qo"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_disabled"]
 bg_color = Color(0.1, 0.1, 0.15, 0.5)
 border_width_left = 2
@@ -90,6 +174,12 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_81he0"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7job2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0qsyn"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_danger_hover"]
 bg_color = Color(0.6, 0.15, 0.15, 1)
@@ -133,7 +223,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.04, 0.06, 0.1, 1)
+color = Color(1.92523e-07, 0.316942, 0.245434, 1)
 
 [node name="MainContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -155,15 +245,23 @@ theme_override_constants/separation = 20
 [node name="BackButton" type="Button" parent="MainContainer/TopBar"]
 custom_minimum_size = Vector2(100, 44)
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_colors/font_hover_color = Color(0.145, 0.878, 0.992, 1)
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 15
+theme_override_styles/focus = SubResource("StyleBoxFlat_ttqw8")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_ttqw8")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_ddx64")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_ycvpq")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_6obwl")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_ar18y")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 text = "← Back"
 
 [node name="Spacer" type="Control" parent="MainContainer/TopBar"]
+custom_minimum_size = Vector2(250, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -171,7 +269,8 @@ size_flags_horizontal = 3
 layout_mode = 2
 theme_override_colors/font_color = Color(0.145, 0.878, 0.992, 1)
 theme_override_font_sizes/font_size = 32
-text = "📁 MY SECTIONS"
+text = " MY CLASS"
+label_settings = SubResource("LabelSettings_6obwl")
 
 [node name="Spacer2" type="Control" parent="MainContainer/TopBar"]
 layout_mode = 2
@@ -214,6 +313,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
 theme_override_font_sizes/font_size = 18
 text = "Sections"
+label_settings = SubResource("LabelSettings_ycvpq")
 
 [node name="Spacer" type="Control" parent="MainContainer/ContentArea/SectionListPanel/SectionListVBox/SectionListHeader"]
 layout_mode = 2
@@ -222,9 +322,17 @@ size_flags_horizontal = 3
 [node name="NewSectionBtn" type="Button" parent="MainContainer/ContentArea/SectionListPanel/SectionListVBox/SectionListHeader"]
 custom_minimum_size = Vector2(80, 36)
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_colors/font_hover_color = Color(0.145, 0.878, 0.992, 1)
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_fonts/font = ExtResource("4_6obwl")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_b6rlv")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_gqtcn")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_4b3iq")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_7r48j")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_sus83")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_xtbuf")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
@@ -233,13 +341,30 @@ text = "+ New"
 [node name="ImportBtn" type="Button" parent="MainContainer/ContentArea/SectionListPanel/SectionListVBox/SectionListHeader"]
 custom_minimum_size = Vector2(100, 36)
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_colors/font_hover_color = Color(0.145, 0.878, 0.992, 1)
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_fonts/font = ExtResource("4_6obwl")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/focus = SubResource("StyleBoxEmpty_klrdl")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_wls0w")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_ru4t5")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_obj5s")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_grtwy")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_ey75e")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-text = "📥 Import"
+text = "   Import"
+
+[node name="TextureRect" type="TextureRect" parent="MainContainer/ContentArea/SectionListPanel/SectionListVBox/SectionListHeader/ImportBtn"]
+layout_mode = 0
+offset_left = 9.0
+offset_top = 10.0
+offset_right = 29.0
+offset_bottom = 26.0
+texture = ExtResource("4_ycvpq")
+expand_mode = 1
 
 [node name="SectionScroll" type="ScrollContainer" parent="MainContainer/ContentArea/SectionListPanel/SectionListVBox"]
 layout_mode = 2
@@ -270,6 +395,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 22
 text = "Select a section"
+label_settings = SubResource("LabelSettings_ar18y")
 
 [node name="Spacer" type="Control" parent="MainContainer/ContentArea/DetailPanel/DetailVBox/DetailHeader"]
 layout_mode = 2
@@ -295,6 +421,7 @@ theme_override_font_sizes/font_size = 14
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
+vertical_scroll_mode = 3
 
 [node name="StudentListContainer" type="VBoxContainer" parent="MainContainer/ContentArea/DetailPanel/DetailVBox/StudentScroll"]
 layout_mode = 2
@@ -309,10 +436,12 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
 theme_override_colors/font_disabled_color = Color(0.4, 0.4, 0.5, 0.6)
 theme_override_colors/font_hover_color = Color(0.145, 0.878, 0.992, 1)
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
+theme_override_styles/focus = SubResource("StyleBoxEmpty_o34qo")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
@@ -324,10 +453,12 @@ text = "+ Add Student"
 custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
 theme_override_colors/font_disabled_color = Color(0.4, 0.4, 0.5, 0.6)
 theme_override_colors/font_hover_color = Color(0.145, 0.878, 0.992, 1)
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
+theme_override_styles/focus = SubResource("StyleBoxEmpty_81he0")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
@@ -344,10 +475,12 @@ size_flags_stretch_ratio = 0.5
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
 theme_override_colors/font_disabled_color = Color(0.4, 0.4, 0.5, 0.6)
 theme_override_colors/font_hover_color = Color(0.145, 0.878, 0.992, 1)
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
+theme_override_styles/focus = SubResource("StyleBoxEmpty_7job2")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
@@ -359,10 +492,12 @@ text = "📤 Export CSV"
 custom_minimum_size = Vector2(110, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
 theme_override_colors/font_disabled_color = Color(0.4, 0.4, 0.5, 0.6)
 theme_override_colors/font_hover_color = Color(1, 0.5, 0.5, 1)
 theme_override_colors/font_color = Color(1, 0.8, 0.8, 1)
 theme_override_font_sizes/font_size = 13
+theme_override_styles/focus = SubResource("StyleBoxEmpty_0qsyn")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 theme_override_styles/hover = SubResource("StyleBoxFlat_danger_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
@@ -402,10 +537,10 @@ ok_button_text = "Create"
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 16.0
-offset_right = -24.0
-offset_bottom = -56.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -49.0
 theme_override_constants/separation = 8
 
 [node name="NameLabel" type="Label" parent="NewSectionDialog/DialogVBox"]
@@ -446,10 +581,10 @@ ok_button_text = "Add"
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 16.0
-offset_right = -24.0
-offset_bottom = -56.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -49.0
 theme_override_constants/separation = 6
 
 [node name="NumLabel" type="Label" parent="AddStudentDialog/DialogVBox"]

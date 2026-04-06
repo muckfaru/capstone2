@@ -1,0 +1,108 @@
+[gd_scene load_steps=11 format=3 uid="uid://cvl6nhrd82sf7"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_001"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.85, 0.9, 0.95, 0.15)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6, 0.75, 0.85, 0.3)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e2vti"]
+bg_color = Color(0.145098, 0.878431, 0.333333, 0.741176)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ugnfc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_d11aj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gpamp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2iqx4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uuteg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_idmfv"]
+bg_color = Color(0.145098, 0.878431, 0.333333, 0.741176)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m78l5"]
+bg_color = Color(0.145098, 0.878431, 0.333333, 0.741176)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tchw0"]
+bg_color = Color(0, 1, 1, 0.658824)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.905882, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="RoomHistoryItem" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_001")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="HBox"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Room Name"
+
+[node name="CodeLabel" type="Label" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "CODE123"
+
+[node name="InfoLabel" type="Label" parent="HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 0.7)
+theme_override_font_sizes/font_size = 12
+text = "Beginner"
+
+[node name="ViewBtn" type="Button" parent="HBox"]
+custom_minimum_size = Vector2(75, 30)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.03, 0.05, 0.12, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/focus = SubResource("StyleBoxFlat_e2vti")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_ugnfc")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_d11aj")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_gpamp")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_2iqx4")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_uuteg")
+theme_override_styles/hover = SubResource("StyleBoxFlat_idmfv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_m78l5")
+theme_override_styles/normal = SubResource("StyleBoxFlat_tchw0")
+text = "View"

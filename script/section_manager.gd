@@ -28,9 +28,6 @@ var dashboard_btn: Button = null
 var dynamic_actions_row: HBoxContainer = null
 
 @onready var file_dialog: FileDialog = $FileDialog
-@onready var new_section_dialog: ConfirmationDialog = $NewSectionDialog
-@onready var delete_confirm_dialog: ConfirmationDialog = $DeleteConfirmDialog
-@onready var add_student_dialog: ConfirmationDialog = $AddStudentDialog
 
 var _selected_section_id: String = ""
 var _import_target_section_id: String = ""  # Section to import into
@@ -68,9 +65,6 @@ func _connect_signals() -> void:
 	delete_section_btn.pressed.connect(_on_delete_section_pressed)
 	
 	file_dialog.file_selected.connect(_on_file_selected)
-	new_section_dialog.confirmed.connect(_on_new_section_confirmed)
-	delete_confirm_dialog.confirmed.connect(_on_delete_confirmed)
-	add_student_dialog.confirmed.connect(_on_add_student_confirmed)
 
 # ─────────────────────────────────────────────────────────────
 # SECTION LIST
@@ -96,35 +90,14 @@ func _refresh_section_list() -> void:
 		section_list_container.add_child(card)
 
 func _create_section_card(section: Dictionary) -> PanelContainer:
-	var card := PanelContainer.new()
+	var card_scene: PackedScene = load("res://scene/ui_components/section_card.tscn")
+	var card: PanelContainer = card_scene.instantiate()
 	card.set_meta("section_id", section["id"])
 	
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.15, 0.15, 0.2)
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 10
-	style.content_margin_bottom = 10
-	card.add_theme_stylebox_override("panel", style)
+	card.get_node("MainVBox/NameLabel").text = "     %s" % section.get("name", "Unnamed")
 	
-	var vbox := VBoxContainer.new()
-	card.add_child(vbox)
-	
-	var name_label := Label.new()
-	name_label.text = "📁 %s" % section.get("name", "Unnamed")
-	name_label.add_theme_font_size_override("font_size", 16)
-	vbox.add_child(name_label)
-	
-	var info_label := Label.new()
 	var count: int = section.get("students", []).size()
-	info_label.text = "%s • %d student%s" % [section.get("school_year", ""), count, "" if count == 1 else "s"]
-	info_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
-	info_label.add_theme_font_size_override("font_size", 13)
-	vbox.add_child(info_label)
+	card.get_node("MainVBox/InfoLabel").text = "%s • %d student%s" % [section.get("school_year", ""), count, "" if count == 1 else "s"]
 	
 	# Make clickable
 	card.gui_input.connect(_on_section_card_input.bind(section["id"]))
@@ -138,21 +111,12 @@ func _create_section_card(section: Dictionary) -> PanelContainer:
 	return card
 
 func _highlight_card(card: PanelContainer, highlight: bool) -> void:
-	var style: StyleBoxFlat = card.get_theme_stylebox("panel").duplicate()
+	# Use self_modulate to brighten/dim the card so we NEVER override 
+	# the background colors the user designed inside the Godot .tscn editor!
 	if highlight:
-		style.bg_color = Color(0.2, 0.3, 0.4)
-		style.border_color = Color(0.3, 0.6, 0.9)
-		style.border_width_left = 2
-		style.border_width_right = 2
-		style.border_width_top = 2
-		style.border_width_bottom = 2
+		card.self_modulate = Color(1.1, 1.1, 1.1, 1.0) # Slight glow for selected/hovered
 	else:
-		style.bg_color = Color(0.15, 0.15, 0.2)
-		style.border_width_left = 0
-		style.border_width_right = 0
-		style.border_width_top = 0
-		style.border_width_bottom = 0
-	card.add_theme_stylebox_override("panel", style)
+		card.self_modulate = Color(0.7, 0.7, 0.7, 0.95) # Dimmed when unselected
 
 func _on_section_card_input(event: InputEvent, section_id: String) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -250,61 +214,34 @@ func _refresh_student_list(search_query: String = "") -> void:
 		student_list_container.add_child(row)
 
 func _create_student_row(num: String, student_num: String, student_name: String, gender: String, is_header: bool, student_id: String = "") -> HBoxContainer:
-	var row := HBoxContainer.new()
+	var row_scene: PackedScene = load("res://scene/ui_components/student_row_item.tscn")
+	var row: HBoxContainer = row_scene.instantiate()
 	
-	var style_color := Color(0.3, 0.3, 0.35) if is_header else Color(0.12, 0.12, 0.15)
+	var num_lbl = row.get_node("NumLabel")
+	var s_num_lbl = row.get_node("StudentNumLabel")
+	var name_lbl = row.get_node("NameLabel")
+	var gender_lbl = row.get_node("GenderLabel")
+	var act_cont = row.get_node("ActionsContainer")
+	var perf_btn = row.get_node("ActionsContainer/PerfBtn")
+	var del_btn = row.get_node("ActionsContainer/DelBtn")
+	
+	num_lbl.text = num
+	s_num_lbl.text = student_num
+	name_lbl.text = student_name
+	gender_lbl.text = gender
+	
 	var font_color := Color(0.8, 0.8, 0.8) if is_header else Color(1, 1, 1)
+	num_lbl.add_theme_color_override("font_color", font_color)
+	s_num_lbl.add_theme_color_override("font_color", font_color)
+	name_lbl.add_theme_color_override("font_color", font_color)
+	gender_lbl.add_theme_color_override("font_color", font_color)
 	
-	# Row number
-	var num_label := Label.new()
-	num_label.text = num
-	num_label.custom_minimum_size = Vector2(40, 30)
-	num_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	num_label.add_theme_color_override("font_color", font_color)
-	row.add_child(num_label)
-	
-	# Student number
-	var snum_label := Label.new()
-	snum_label.text = student_num
-	snum_label.custom_minimum_size = Vector2(120, 30)
-	snum_label.add_theme_color_override("font_color", font_color)
-	row.add_child(snum_label)
-	
-	# Name
-	var name_label := Label.new()
-	name_label.text = student_name
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.custom_minimum_size = Vector2(200, 30)
-	name_label.add_theme_color_override("font_color", font_color)
-	row.add_child(name_label)
-	
-	# Gender
-	var gender_label := Label.new()
-	gender_label.text = gender
-	gender_label.custom_minimum_size = Vector2(60, 30)
-	gender_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	gender_label.add_theme_color_override("font_color", font_color)
-	row.add_child(gender_label)
-	
-	# Delete button (not for header)
-	if not is_header and not student_id.is_empty():
-		# Performance button
-		var perf_btn := Button.new()
-		perf_btn.text = "📊"
-		perf_btn.tooltip_text = "View Performance"
-		perf_btn.custom_minimum_size = Vector2(30, 30)
-		perf_btn.pressed.connect(_on_view_performance.bind(student_id, student_name))
-		row.add_child(perf_btn)
-		
-		var del_btn := Button.new()
-		del_btn.text = "✕"
-		del_btn.custom_minimum_size = Vector2(30, 30)
-		del_btn.pressed.connect(_on_remove_student.bind(student_id))
-		row.add_child(del_btn)
+	if is_header or student_id.is_empty():
+		perf_btn.visible = false
+		del_btn.visible = false
 	else:
-		var spacer := Control.new()
-		spacer.custom_minimum_size = Vector2(60, 30)
-		row.add_child(spacer)
+		perf_btn.pressed.connect(_on_view_performance.bind(student_id, student_name))
+		del_btn.pressed.connect(_on_remove_student.bind(student_id))
 	
 	return row
 
@@ -325,21 +262,30 @@ func _on_back_pressed() -> void:
 	# Batch sync to Firestore before leaving
 	StudentDatabase.sync_to_firestore()
 	back_pressed.emit()
-	get_tree().change_scene_to_file(_return_scene)
+	if has_meta("is_overlay") and get_meta("is_overlay"):
+		queue_free()
+	else:
+		get_tree().change_scene_to_file(_return_scene)
 
 func _on_new_section_pressed() -> void:
-	var name_input: LineEdit = new_section_dialog.get_node("DialogVBox/NameInput")
-	var year_input: LineEdit = new_section_dialog.get_node("DialogVBox/YearInput")
-	name_input.text = ""
-	year_input.text = "2025-2026"
-	new_section_dialog.popup_centered()
-
-func _on_new_section_confirmed() -> void:
-	var name_input: LineEdit = new_section_dialog.get_node("DialogVBox/NameInput")
-	var year_input: LineEdit = new_section_dialog.get_node("DialogVBox/YearInput")
+	var dialog_scene = preload("res://scene/ui_components/dialog_new_section.tscn")
+	var dialog = dialog_scene.instantiate()
+	add_child(dialog)
 	
-	var section_name := name_input.text.strip_edges()
-	var school_year := year_input.text.strip_edges()
+	var name_input = dialog.get_node("ColorRect/Panel/VBox/Margin/FormVBox/Fields/NameInput")
+	var year_input = dialog.get_node("ColorRect/Panel/VBox/Margin/FormVBox/Fields/YearInput")
+	var cancel_btn = dialog.get_node("ColorRect/Panel/VBox/Buttons/CancelBtn")
+	var confirm_btn = dialog.get_node("ColorRect/Panel/VBox/Buttons/ConfirmBtn")
+	
+	cancel_btn.pressed.connect(func(): dialog.queue_free())
+	confirm_btn.pressed.connect(func():
+		_on_new_section_confirmed_custom(name_input.text, year_input.text)
+		dialog.queue_free()
+	)
+
+func _on_new_section_confirmed_custom(section_name: String, school_year: String) -> void:
+	section_name = section_name.strip_edges()
+	school_year = school_year.strip_edges()
 	
 	if section_name.is_empty():
 		return
@@ -383,22 +329,27 @@ func _on_import_cancelled() -> void:
 	pass  # Just close wizard
 
 func _on_add_student_pressed() -> void:
-	var num_input: LineEdit = add_student_dialog.get_node("DialogVBox/NumInput")
-	var name_input: LineEdit = add_student_dialog.get_node("DialogVBox/StudentNameInput")
-	var gender_input: LineEdit = add_student_dialog.get_node("DialogVBox/GenderInput")
-	num_input.text = ""
-	name_input.text = ""
-	gender_input.text = ""
-	add_student_dialog.popup_centered()
-
-func _on_add_student_confirmed() -> void:
-	var num_input: LineEdit = add_student_dialog.get_node("DialogVBox/NumInput")
-	var name_input: LineEdit = add_student_dialog.get_node("DialogVBox/StudentNameInput")
-	var gender_input: LineEdit = add_student_dialog.get_node("DialogVBox/GenderInput")
+	var dialog_scene = preload("res://scene/ui_components/dialog_add_student.tscn")
+	var dialog = dialog_scene.instantiate()
+	add_child(dialog)
 	
-	var number := num_input.text.strip_edges()
-	var student_name := name_input.text.strip_edges()
-	var gender := gender_input.text.strip_edges().to_upper()
+	var num_input = dialog.get_node("ColorRect/Panel/VBox/Margin/FormVBox/Fields/NumInput")
+	var name_input = dialog.get_node("ColorRect/Panel/VBox/Margin/FormVBox/Fields/NameInput")
+	var gender_input = dialog.get_node("ColorRect/Panel/VBox/Margin/FormVBox/Fields/GenderInput")
+	
+	var cancel_btn = dialog.get_node("ColorRect/Panel/VBox/Buttons/CancelBtn")
+	var confirm_btn = dialog.get_node("ColorRect/Panel/VBox/Buttons/ConfirmBtn")
+	
+	cancel_btn.pressed.connect(func(): dialog.queue_free())
+	confirm_btn.pressed.connect(func():
+		_on_add_student_confirmed_custom(num_input.text, name_input.text, gender_input.text)
+		dialog.queue_free()
+	)
+
+func _on_add_student_confirmed_custom(number: String, student_name: String, gender: String) -> void:
+	number = number.strip_edges()
+	student_name = student_name.strip_edges()
+	gender = gender.strip_edges().to_upper()
 	
 	if number.is_empty():
 		return
@@ -430,12 +381,25 @@ func _on_export_pressed() -> void:
 		OS.shell_open(ProjectSettings.globalize_path("user://"))
 
 func _on_delete_section_pressed() -> void:
+	var dialog_scene = preload("res://scene/ui_components/dialog_delete_confirm.tscn")
+	var dialog = dialog_scene.instantiate()
+	add_child(dialog)
+	
 	var section: Dictionary = StudentDatabase.get_section(_selected_section_id)
-	delete_confirm_dialog.dialog_text = "Are you sure you want to delete '%s'?\nThis will remove all %d students in this section." % [
+	var msg_label = dialog.get_node("ColorRect/Panel/VBox/Margin/MessageLabel")
+	msg_label.text = "Are you sure you want to delete '%s'?\nThis will remove all %d students in this section." % [
 		section.get("name", ""),
 		section.get("students", []).size()
 	]
-	delete_confirm_dialog.popup_centered()
+	
+	var cancel_btn = dialog.get_node("ColorRect/Panel/VBox/Buttons/CancelBtn")
+	var confirm_btn = dialog.get_node("ColorRect/Panel/VBox/Buttons/ConfirmBtn")
+	
+	cancel_btn.pressed.connect(func(): dialog.queue_free())
+	confirm_btn.pressed.connect(func():
+		_on_delete_confirmed()
+		dialog.queue_free()
+	)
 
 func _on_delete_confirmed() -> void:
 	StudentDatabase.delete_section(_selected_section_id)
@@ -444,166 +408,41 @@ func _on_delete_confirmed() -> void:
 	_update_global_stats()
 	_show_no_selection()
 
-# ─────────────────────────────────────────────────────────────
-# BUILD DYNAMIC ACTIONS ROW (second row for feature buttons)
-# ─────────────────────────────────────────────────────────────
-
 func _build_dynamic_actions_row() -> void:
 	var detail_vbox: VBoxContainer = $MainContainer/ContentArea/DetailPanel/DetailVBox
 	var detail_actions: HBoxContainer = $MainContainer/ContentArea/DetailPanel/DetailVBox/DetailActions
 	if not detail_vbox or not detail_actions:
 		return
 	
-	dynamic_actions_row = HBoxContainer.new()
-	dynamic_actions_row.name = "DynamicActions"
-	dynamic_actions_row.add_theme_constant_override("separation", 12)
+	var row_scene: PackedScene = load("res://scene/ui_components/section_actions_row.tscn")
+	dynamic_actions_row = row_scene.instantiate()
 	
 	# Insert right after DetailActions
 	var actions_idx := detail_actions.get_index()
 	detail_vbox.add_child(dynamic_actions_row)
 	detail_vbox.move_child(dynamic_actions_row, actions_idx + 1)
-
-# ─────────────────────────────────────────────────────────────
-# BUILD CREATE ROOM BUTTON (dynamic)
-# ─────────────────────────────────────────────────────────────
-
-func _build_create_room_button() -> void:
-	if not dynamic_actions_row:
-		return
 	
-	create_room_btn = Button.new()
-	create_room_btn.name = "CreateRoomBtn"
-	create_room_btn.text = "🎮 Create Room"
-	create_room_btn.custom_minimum_size = Vector2(120, 40)
-	create_room_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	create_room_btn.disabled = true
-	create_room_btn.add_theme_font_size_override("font_size", 13)
-	create_room_btn.add_theme_color_override("font_color", Color(0.8, 1.0, 0.9, 1.0))
-	create_room_btn.add_theme_color_override("font_hover_color", Color(0.3, 1.0, 0.6, 1.0))
-	create_room_btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.5, 0.6))
-	
-	# Normal style (green accent)
-	var normal_style := StyleBoxFlat.new()
-	normal_style.bg_color = Color(0.02, 0.2, 0.12, 1.0)
-	normal_style.border_color = Color(0.2, 0.9, 0.5, 0.6)
-	normal_style.set_border_width_all(2)
-	normal_style.set_corner_radius_all(8)
-	create_room_btn.add_theme_stylebox_override("normal", normal_style)
-	
-	# Hover style
-	var hover_style := StyleBoxFlat.new()
-	hover_style.bg_color = Color(0.05, 0.3, 0.18, 1.0)
-	hover_style.border_color = Color(0.2, 0.95, 0.55, 1.0)
-	hover_style.set_border_width_all(2)
-	hover_style.set_corner_radius_all(8)
-	hover_style.shadow_color = Color(0.2, 0.9, 0.5, 0.3)
-	hover_style.shadow_size = 4
-	create_room_btn.add_theme_stylebox_override("hover", hover_style)
-	
-	# Disabled style
-	var disabled_style := StyleBoxFlat.new()
-	disabled_style.bg_color = Color(0.1, 0.1, 0.15, 0.5)
-	disabled_style.border_color = Color(0.3, 0.3, 0.4, 0.4)
-	disabled_style.set_border_width_all(2)
-	disabled_style.set_corner_radius_all(8)
-	create_room_btn.add_theme_stylebox_override("disabled", disabled_style)
+	create_room_btn = dynamic_actions_row.get_node("CreateRoomBtn")
+	export_grades_btn = dynamic_actions_row.get_node("ExportBtn")
+	dashboard_btn = dynamic_actions_row.get_node("DashboardBtn")
 	
 	create_room_btn.pressed.connect(_on_create_room_for_section)
-	dynamic_actions_row.add_child(create_room_btn)
+	export_grades_btn.pressed.connect(_on_export_grades_pressed)
+	dashboard_btn.pressed.connect(_on_dashboard_pressed)
+	
+	# Initial state
+	create_room_btn.disabled = true
+	export_grades_btn.disabled = true
+	dashboard_btn.disabled = true
 
-# ─────────────────────────────────────────────────────────────
-# BUILD EXPORT GRADES BUTTON (dynamic)
-# ─────────────────────────────────────────────────────────────
+func _build_create_room_button() -> void:
+	pass
 
 func _build_export_grades_button() -> void:
-	if not dynamic_actions_row:
-		return
-	
-	export_grades_btn = Button.new()
-	export_grades_btn.name = "ExportGradesBtn"
-	export_grades_btn.text = "📊 Export Grades"
-	export_grades_btn.custom_minimum_size = Vector2(130, 40)
-	export_grades_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	export_grades_btn.disabled = true
-	export_grades_btn.add_theme_font_size_override("font_size", 13)
-	export_grades_btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.7, 1.0))
-	export_grades_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.8, 0.3, 1.0))
-	export_grades_btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.5, 0.6))
-	
-	# Normal style (orange accent)
-	var normal_style := StyleBoxFlat.new()
-	normal_style.bg_color = Color(0.2, 0.12, 0.02, 1.0)
-	normal_style.border_color = Color(0.9, 0.6, 0.2, 0.6)
-	normal_style.set_border_width_all(2)
-	normal_style.set_corner_radius_all(8)
-	export_grades_btn.add_theme_stylebox_override("normal", normal_style)
-	
-	# Hover style
-	var hover_style := StyleBoxFlat.new()
-	hover_style.bg_color = Color(0.3, 0.18, 0.05, 1.0)
-	hover_style.border_color = Color(0.95, 0.7, 0.2, 1.0)
-	hover_style.set_border_width_all(2)
-	hover_style.set_corner_radius_all(8)
-	hover_style.shadow_color = Color(0.9, 0.6, 0.2, 0.3)
-	hover_style.shadow_size = 4
-	export_grades_btn.add_theme_stylebox_override("hover", hover_style)
-	
-	# Disabled style
-	var disabled_style := StyleBoxFlat.new()
-	disabled_style.bg_color = Color(0.1, 0.1, 0.15, 0.5)
-	disabled_style.border_color = Color(0.3, 0.3, 0.4, 0.4)
-	disabled_style.set_border_width_all(2)
-	disabled_style.set_corner_radius_all(8)
-	export_grades_btn.add_theme_stylebox_override("disabled", disabled_style)
-	
-	export_grades_btn.pressed.connect(_on_export_grades_pressed)
-	dynamic_actions_row.add_child(export_grades_btn)
-
-# ─────────────────────────────────────────────────────────────
-# BUILD DASHBOARD BUTTON (dynamic)
-# ─────────────────────────────────────────────────────────────
+	pass
 
 func _build_dashboard_button() -> void:
-	if not dynamic_actions_row:
-		return
-	
-	dashboard_btn = Button.new()
-	dashboard_btn.name = "DashboardBtn"
-	dashboard_btn.text = "📊 Dashboard"
-	dashboard_btn.custom_minimum_size = Vector2(120, 40)
-	dashboard_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	dashboard_btn.disabled = true
-	dashboard_btn.add_theme_font_size_override("font_size", 13)
-	dashboard_btn.add_theme_color_override("font_color", Color(0.85, 0.75, 1.0, 1.0))
-	dashboard_btn.add_theme_color_override("font_hover_color", Color(0.7, 0.5, 1.0, 1.0))
-	dashboard_btn.add_theme_color_override("font_disabled_color", Color(0.4, 0.4, 0.5, 0.6))
-	
-	# Normal style (purple accent)
-	var normal_style := StyleBoxFlat.new()
-	normal_style.bg_color = Color(0.12, 0.05, 0.2, 1.0)
-	normal_style.border_color = Color(0.6, 0.3, 0.9, 0.6)
-	normal_style.set_border_width_all(2)
-	normal_style.set_corner_radius_all(8)
-	dashboard_btn.add_theme_stylebox_override("normal", normal_style)
-	
-	var hover_style := StyleBoxFlat.new()
-	hover_style.bg_color = Color(0.18, 0.08, 0.3, 1.0)
-	hover_style.border_color = Color(0.7, 0.4, 1.0, 1.0)
-	hover_style.set_border_width_all(2)
-	hover_style.set_corner_radius_all(8)
-	hover_style.shadow_color = Color(0.6, 0.3, 0.9, 0.3)
-	hover_style.shadow_size = 4
-	dashboard_btn.add_theme_stylebox_override("hover", hover_style)
-	
-	var disabled_style := StyleBoxFlat.new()
-	disabled_style.bg_color = Color(0.1, 0.1, 0.15, 0.5)
-	disabled_style.border_color = Color(0.3, 0.3, 0.4, 0.4)
-	disabled_style.set_border_width_all(2)
-	disabled_style.set_corner_radius_all(8)
-	dashboard_btn.add_theme_stylebox_override("disabled", disabled_style)
-	
-	dashboard_btn.pressed.connect(_on_dashboard_pressed)
-	dynamic_actions_row.add_child(dashboard_btn)
+	pass
 
 # ─────────────────────────────────────────────────────────────
 # CREATE ROOM FOR SECTION
@@ -616,6 +455,15 @@ func _on_create_room_for_section() -> void:
 	var section: Dictionary = StudentDatabase.get_section(_selected_section_id)
 	if section.is_empty():
 		return
+	
+	if has_meta("is_overlay") and get_meta("is_overlay"):
+		var p = get_parent()
+		while p != null:
+			if p.has_method("_handle_section_prefill"):
+				p._handle_section_prefill(_selected_section_id, section.get("name", ""), section.get("students", []).size())
+				queue_free()
+				return
+			p = p.get_parent()
 	
 	# Pass section info to TeacherCreateRoom via tree meta
 	get_tree().set_meta("prefill_section_id", _selected_section_id)
@@ -662,89 +510,21 @@ func _show_performance_popup(student_number: String, student_name: String) -> vo
 	if old:
 		old.queue_free()
 	
-	# Backdrop
-	var backdrop := ColorRect.new()
+	var popup_scene: PackedScene = load("res://scene/ui_components/student_perf_popup.tscn")
+	var backdrop: ColorRect = popup_scene.instantiate()
 	backdrop.name = "PerfPopup"
-	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
-	backdrop.color = Color(0, 0, 0, 0.7)
 	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(backdrop)
 	
-	# Popup panel
-	var panel := PanelContainer.new()
-	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.offset_left = -300
-	panel.offset_top = -250
-	panel.offset_right = 300
-	panel.offset_bottom = 250
-	var panel_sb := StyleBoxFlat.new()
-	panel_sb.bg_color = Color(0.06, 0.08, 0.14, 0.97)
-	panel_sb.border_color = Color(0, 1, 1, 0.6)
-	panel_sb.set_border_width_all(2)
-	panel_sb.set_corner_radius_all(14)
-	panel_sb.set_content_margin_all(20)
-	panel.add_theme_stylebox_override("panel", panel_sb)
-	backdrop.add_child(panel)
+	var title = backdrop.get_node("Panel/MainVBox/HeaderRow/TitleLabel")
+	var close_btn = backdrop.get_node("Panel/MainVBox/HeaderRow/CloseBtn")
+	var info_label = backdrop.get_node("Panel/MainVBox/InfoLabel")
 	
-	var main_vbox := VBoxContainer.new()
-	main_vbox.add_theme_constant_override("separation", 10)
-	panel.add_child(main_vbox)
-	
-	# Header row
-	var header_row := HBoxContainer.new()
-	var title := Label.new()
-	title.text = "👤 %s" % student_name if not student_name.is_empty() else "👤 %s" % student_number
-	title.add_theme_color_override("font_color", Color(0, 1, 1))
-	title.add_theme_font_size_override("font_size", 18)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header_row.add_child(title)
-	
-	var close_btn := Button.new()
-	close_btn.text = "✕"
-	close_btn.flat = true
-	close_btn.add_theme_font_size_override("font_size", 18)
-	close_btn.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
+	title.text = " %s" % student_name if not student_name.is_empty() else "👤 %s" % student_number
 	close_btn.pressed.connect(func(): backdrop.queue_free())
-	header_row.add_child(close_btn)
-	main_vbox.add_child(header_row)
 	
-	# Student info
-	var info_label := Label.new()
 	var section: Dictionary = StudentDatabase.get_section(_selected_section_id)
-	info_label.text = "🏫 %s • #%s" % [section.get("name", ""), student_number]
-	info_label.add_theme_color_override("font_color", Color(0.6, 0.7, 0.8))
-	info_label.add_theme_font_size_override("font_size", 13)
-	main_vbox.add_child(info_label)
-	
-	# Divider
-	var div := HSeparator.new()
-	var div_sb := StyleBoxLine.new()
-	div_sb.color = Color(0.3, 0.4, 0.5, 0.5)
-	div.add_theme_stylebox_override("separator", div_sb)
-	main_vbox.add_child(div)
-	
-	# Loading label
-	var loading_label := Label.new()
-	loading_label.name = "LoadingLabel"
-	loading_label.text = "⏳ Loading performance data..."
-	loading_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
-	loading_label.add_theme_font_size_override("font_size", 13)
-	loading_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	main_vbox.add_child(loading_label)
-	
-	# Scrollable results area (hidden until loaded)
-	var scroll := ScrollContainer.new()
-	scroll.name = "ResultsScroll"
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.visible = false
-	main_vbox.add_child(scroll)
-	
-	var results_vbox := VBoxContainer.new()
-	results_vbox.name = "ResultsVBox"
-	results_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	results_vbox.add_theme_constant_override("separation", 6)
-	scroll.add_child(results_vbox)
+	info_label.text = " %s • #%s" % [section.get("name", ""), student_number]
 	
 	# Fetch room results from Firestore
 	_fetch_room_results_for_student(backdrop, student_number, student_name)
