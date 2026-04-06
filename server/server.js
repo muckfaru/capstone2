@@ -1028,7 +1028,7 @@ function broadcastToRoom(room_id, message, excludeConnection = null) {
 
 // POST /api/quiz/create — Teacher creates a quiz room
 app.post('/api/quiz/create', (req, res) => {
-  const { room_code, room_name, host_id, host_username, quiz_data, time_per_question, max_players, allowed_students } = req.body;
+  const { room_code, room_name, host_id, host_username, quiz_data, time_per_question, max_players, allowed_students, has_student_restriction } = req.body;
 
   if (!room_code || !host_id || !quiz_data) {
     return res.status(400).json({ error: 'Missing required fields: room_code, host_id, quiz_data' });
@@ -1055,6 +1055,7 @@ app.post('/api/quiz/create', (req, res) => {
     players: [],
     max_players: Math.min(Math.max(2, max_players || 10), 10),
     allowed_students: Array.isArray(allowed_students) ? allowed_students.map(s => String(s).trim().toUpperCase()).filter(Boolean) : [],
+    has_student_restriction: has_student_restriction === true,
     status: 'waiting', // waiting | active | finished
     chat_messages: [],
     created_at: Date.now(),
@@ -1094,7 +1095,7 @@ app.get('/api/quiz/:code/info', (req, res) => {
     max_players: qr.max_players,
     question_count: qr.quiz_data.questions.length,
     time_per_question: qr.quiz_data.time_per_question,
-    has_student_restriction: Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0,
+    has_student_restriction: qr.has_student_restriction || (Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0),
     players: qr.players.map(p => ({
       player_id: p.player_id,
       username: p.username,
@@ -1129,13 +1130,15 @@ app.post('/api/quiz/:code/join', async (req, res) => {
   }
 
   // Student number whitelist validation + account binding
-  if (Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0) {
+  if (qr.has_student_restriction || (Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0)) {
     if (!student_number) {
       return res.status(403).json({ error: 'This room requires a student number to join.' });
     }
     const normalised = String(student_number).trim().toUpperCase();
-    if (!qr.allowed_students.includes(normalised)) {
-      return res.status(403).json({ error: 'Your student number is not authorized for this room.' });
+    if (Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0) {
+      if (!qr.allowed_students.includes(normalised)) {
+        return res.status(403).json({ error: 'Your student number is not authorized for this room.' });
+      }
     }
     
     // Account binding check (anti-cheating) - now uses Firestore persistence
@@ -1393,6 +1396,7 @@ app.get('/api/quiz/:code/results', (req, res) => {
     .map((p, rank) => ({
       rank: rank + 1,
       player_id: p.player_id,
+      student_number: p.student_number || '',
       username: p.username,
       score: p.score,
       finished: p.finished,
@@ -1500,7 +1504,7 @@ app.get('/api/quiz/:code/chat', (req, res) => {
 
 // POST /api/gamemode/create — Teacher creates a game mode room
 app.post('/api/gamemode/create', (req, res) => {
-  const { room_code, room_name, host_id, host_username, game_name, game_scene, difficulty, max_players, allowed_students } = req.body;
+  const { room_code, room_name, host_id, host_username, game_name, game_scene, difficulty, max_players, allowed_students, has_student_restriction } = req.body;
 
   if (!room_code || !host_id || !game_name) {
     return res.status(400).json({ error: 'Missing required fields: room_code, host_id, game_name' });
@@ -1526,6 +1530,7 @@ app.post('/api/gamemode/create', (req, res) => {
     players: [],
     max_players: Math.min(Math.max(2, max_players || 50), 50),
     allowed_students: normalizedAllowed,
+    has_student_restriction: has_student_restriction === true,
     status: 'waiting', // waiting | active | finished
     started_at: null,
     chat_messages: [],
@@ -1564,7 +1569,7 @@ app.get('/api/gamemode/:code/info', (req, res) => {
     difficulty: gr.difficulty,
     status: gr.status,
     max_players: gr.max_players,
-    has_student_restriction: Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0,
+    has_student_restriction: gr.has_student_restriction || (Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0),
     players: gr.players.map(p => ({
       player_id: p.player_id,
       username: p.username,
@@ -1592,15 +1597,17 @@ app.post('/api/gamemode/:code/join', async (req, res) => {
     return res.status(404).json({ error: 'Game room not found' });
   }
 
-  // Whitelist check: if room has allowed_students, validate student_number + account binding
+  // Whitelist check: if room has allowed_students or restriction enabled, validate student_number + account binding
   const { student_number } = req.body;
-  if (Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0) {
+  if (gr.has_student_restriction || (Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0)) {
     if (!student_number || String(student_number).trim().length === 0) {
       return res.status(403).json({ error: 'Please enter your student number.' });
     }
     const normalized = String(student_number).trim().toUpperCase();
-    if (!gr.allowed_students.includes(normalized)) {
-      return res.status(403).json({ error: 'Your student number is not authorized for this room.' });
+    if (Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0) {
+      if (!gr.allowed_students.includes(normalized)) {
+        return res.status(403).json({ error: 'Your student number is not authorized for this room.' });
+      }
     }
     
     // Account binding check (anti-cheating) - now uses Firestore persistence
@@ -1858,6 +1865,7 @@ app.get('/api/gamemode/:code/results', (req, res) => {
   const leaderboard = sorted.map((p, i) => ({
     rank: i + 1,
     player_id: p.player_id,
+    student_number: p.student_number || '',
     username: p.username,
     finished: p.finished,
     score: p.score,
