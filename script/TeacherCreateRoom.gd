@@ -133,6 +133,11 @@ var _restrict_checkbox: CheckBox = null
 var _student_numbers_section: VBoxContainer = null
 var _student_numbers_edit: TextEdit = null
 var _student_numbers_hint: Label = null
+var _section_dropdown: OptionButton = null
+var _section_mode_tabs: HBoxContainer = null
+var _manual_tab: Button = null
+var _section_tab: Button = null
+var _selected_section_id: String = ""
 
 # ── Room History (Firestore) ─────────────────────────────────────────────────
 const FIRESTORE_BASE_URL: String = "https://firestore.googleapis.com/v1/projects/capstone-823dc/databases/(default)/documents"
@@ -244,6 +249,12 @@ func _ready() -> void:
 		if lobby_panel.has_signal("quiz_started"):
 			lobby_panel.quiz_started.connect(_on_quiz_started)
 
+	# ── Check if we came from Section Manager with a section prefill ──
+	if get_tree().has_meta("section_manager_return"):
+		scene_on_back = get_tree().get_meta("section_manager_return")
+		get_tree().remove_meta("section_manager_return")
+	_check_section_prefill()
+
 # ── Generate button ──────────────────────────────────────────────────────────
 
 func _update_generate_button() -> void:
@@ -264,6 +275,48 @@ func _update_generate_button() -> void:
 	generate_button.disabled = not ok
 	if save_draft_button:
 		save_draft_button.disabled = not ok
+
+# ── Section Prefill (from Section Manager) ───────────────────────────────────
+
+func _check_section_prefill() -> void:
+	if not get_tree().has_meta("prefill_section_id"):
+		return
+	
+	var section_id: String = get_tree().get_meta("prefill_section_id")
+	var section_name: String = get_tree().get_meta("prefill_section_name")
+	var student_count: int = get_tree().get_meta("prefill_student_count")
+	
+	# Clean up meta
+	get_tree().remove_meta("prefill_section_id")
+	get_tree().remove_meta("prefill_section_name")
+	get_tree().remove_meta("prefill_student_count")
+	
+	# Auto-fill the room name and player count
+	room_name_input.text = "%s — Game Room" % section_name
+	player_count_input.text = str(student_count)
+	
+	# Auto-enable Game Mode toggle
+	game_mode_btn.set_pressed_no_signal(true)
+	_on_game_mode_toggled(true)
+	
+	# Auto-enable student restriction with section pre-selected
+	if _restrict_checkbox:
+		_restrict_checkbox.set_pressed_no_signal(true)
+		_on_restrict_checkbox_toggled(true)
+	
+	# Select the correct section in the dropdown
+	_selected_section_id = section_id
+	if _section_dropdown:
+		for i in _section_dropdown.item_count:
+			if _section_dropdown.get_item_metadata(i) == section_id:
+				_section_dropdown.select(i)
+				break
+	
+	_update_generate_button()
+	
+	# Jump directly to the form (skip the room history list)
+	_show_screen("form")
+	print("[CreateRoom] Section prefill: '%s' (%d students)" % [section_name, student_count])
 
 # ── MC Create button ─────────────────────────────────────────────────────────
 
@@ -438,42 +491,60 @@ func _build_student_restriction_ui() -> void:
 			break
 	if insert_idx < 0:
 		insert_idx = form_content.get_child_count() - 1  # fallback: before last
-
-	# ── Checkbox Row ──
-	var checkbox_row := HBoxContainer.new()
-	checkbox_row.name = "StudentRestrictRow"
-	checkbox_row.visible = false  # Hidden until Game Mode is selected
-	checkbox_row.add_theme_constant_override("separation", 10)
-
-	_restrict_checkbox = CheckBox.new()
-	_restrict_checkbox.text = "Restrict by Student Number"
-	_restrict_checkbox.add_theme_color_override("font_color", Color(0.65, 0.8, 1.0, 0.9))
-	_restrict_checkbox.add_theme_font_size_override("font_size", 13)
+	
+	var ui_scene: PackedScene = load("res://scene/ui_components/student_restriction_ui.tscn")
+	var ui: Control = ui_scene.instantiate()
+	form_content.add_child(ui)
+	form_content.move_child(ui, insert_idx)
+	
+	_restrict_checkbox = ui.get_node("StudentRestrictRow/RestrictCheckbox")
 	_restrict_checkbox.toggled.connect(_on_restrict_checkbox_toggled)
-	checkbox_row.add_child(_restrict_checkbox)
-
-	form_content.add_child(checkbox_row)
-	form_content.move_child(checkbox_row, insert_idx)
-
-	# ── Student Numbers Section (hidden until checkbox checked) ──
-	_student_numbers_section = VBoxContainer.new()
-	_student_numbers_section.name = "StudentNumbersSection"
-	_student_numbers_section.visible = false
-	_student_numbers_section.add_theme_constant_override("separation", 6)
-
-	_student_numbers_hint = Label.new()
-	_student_numbers_hint.text = "Enter student numbers (comma or newline separated):"
-	_student_numbers_hint.add_theme_color_override("font_color", Color(0.65, 0.8, 1.0, 0.6))
-	_student_numbers_hint.add_theme_font_size_override("font_size", 11)
-	_student_numbers_section.add_child(_student_numbers_hint)
-
-	_student_numbers_edit = TextEdit.new()
-	_student_numbers_edit.custom_minimum_size = Vector2(0, 80)
-	_student_numbers_edit.placeholder_text = "21-2169, 21-2170, 21-2171..."
-	_student_numbers_edit.add_theme_color_override("font_color", Color(0.9, 0.96, 1.0, 1.0))
-	_student_numbers_edit.add_theme_color_override("caret_color", Color(0.145, 0.878, 0.992, 1.0))
-	_student_numbers_edit.add_theme_font_size_override("font_size", 13)
-	# Style the TextEdit background
+	
+	_student_numbers_section = ui.get_node("StudentNumbersSection")
+	_section_mode_tabs = ui.get_node("StudentNumbersSection/SectionModeTabs")
+	
+	_section_tab = ui.get_node("StudentNumbersSection/SectionModeTabs/SectionTab")
+	_section_tab.pressed.connect(_on_section_tab_pressed)
+	
+	_manual_tab = ui.get_node("StudentNumbersSection/SectionModeTabs/ManualTab")
+	_manual_tab.pressed.connect(_on_manual_tab_pressed)
+	
+	var manage_link = ui.get_node("StudentNumbersSection/SectionModeTabs/ManageLink")
+	manage_link.pressed.connect(_on_manage_sections_pressed)
+	
+	var bindings_link = ui.get_node("StudentNumbersSection/SectionModeTabs/BindingsLink")
+	bindings_link.pressed.connect(_on_manage_bindings_pressed)
+	
+	_section_dropdown = ui.get_node("StudentNumbersSection/SectionDropdown")
+	_section_dropdown.item_selected.connect(_on_section_selected)
+	_section_dropdown.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	
+	# Apply cyberpunk styling to the underlying popup menu
+	var popup = _section_dropdown.get_popup()
+	
+	var popup_style := StyleBoxFlat.new()
+	popup_style.bg_color = Color(0.02, 0.05, 0.14, 0.95)
+	popup_style.border_color = Color(0.145, 0.878, 0.992, 0.6)
+	popup_style.set_border_width_all(2)
+	popup_style.set_corner_radius_all(6)
+	popup_style.content_margin_left = 8
+	popup_style.content_margin_right = 8
+	popup_style.content_margin_top = 8
+	popup_style.content_margin_bottom = 8
+	popup.add_theme_stylebox_override("panel", popup_style)
+	
+	var popup_hover := StyleBoxFlat.new()
+	popup_hover.bg_color = Color(0.145, 0.878, 0.992, 0.3)
+	popup_hover.set_corner_radius_all(4)
+	popup.add_theme_stylebox_override("hover", popup_hover)
+	
+	popup.add_theme_color_override("font_color", Color(0.8, 0.95, 1.0, 0.9))
+	popup.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
+	
+	_student_numbers_hint = ui.get_node("StudentNumbersSection/StudentNumbersHint")
+	_student_numbers_edit = ui.get_node("StudentNumbersSection/StudentNumbersEdit")
+	
+	# Apply styling via Script to override if needed, but it's now mostly in TSCN
 	var edit_style := StyleBoxFlat.new()
 	edit_style.bg_color = Color(0.02, 0.05, 0.14, 1.0)
 	edit_style.border_color = Color(0.145, 0.878, 0.992, 0.4)
@@ -482,16 +553,130 @@ func _build_student_restriction_ui() -> void:
 	edit_style.set_content_margin_all(10)
 	_student_numbers_edit.add_theme_stylebox_override("normal", edit_style)
 	_student_numbers_edit.add_theme_stylebox_override("focus", edit_style)
-	_student_numbers_section.add_child(_student_numbers_edit)
+	
+	ui.get_node("StudentRestrictRow").visible = false # Hidden until Game Mode is selected
+	
+	# Populate dropdown with sections
+	_refresh_section_dropdown()
 
-	form_content.add_child(_student_numbers_section)
-	form_content.move_child(_student_numbers_section, insert_idx + 1)
+func _refresh_section_dropdown() -> void:
+	if not _section_dropdown:
+		return
+	
+	_section_dropdown.clear()
+	_section_dropdown.add_item("— Select a section —", 0)
+	_section_dropdown.set_item_metadata(0, "")
+	
+	var sections := StudentDatabase.get_all_sections()
+	for section in sections:
+		var count: int = section.get("students", []).size()
+		var display := "%s (%s) — %d students" % [
+			section.get("name", ""),
+			section.get("school_year", ""),
+			count
+		]
+		_section_dropdown.add_item(display)
+		_section_dropdown.set_item_metadata(_section_dropdown.item_count - 1, section["id"])
+	
+	# Add import option
+	_section_dropdown.add_separator()
+	_section_dropdown.add_item("Import new section from Excel/CSV...")
+	_section_dropdown.set_item_metadata(_section_dropdown.item_count - 1, "__import__")
+
+func _on_section_tab_pressed() -> void:
+	_section_tab.button_pressed = true
+	_manual_tab.button_pressed = false
+	_section_dropdown.visible = true
+	_student_numbers_hint.visible = false
+	_student_numbers_edit.visible = false
+
+func _on_manual_tab_pressed() -> void:
+	_section_tab.button_pressed = false
+	_manual_tab.button_pressed = true
+	_section_dropdown.visible = false
+	_student_numbers_hint.visible = true
+	_student_numbers_edit.visible = true
+
+func _on_section_selected(index: int) -> void:
+	var section_id: String = _section_dropdown.get_item_metadata(index)
+	
+	if section_id == "__import__":
+		# Open section manager for import
+		_section_dropdown.select(0)
+		_on_manage_sections_pressed()
+		return
+	
+	_selected_section_id = section_id
+
+func _on_manage_sections_pressed() -> void:
+	var sm_scene = load("res://scene/section_manager.tscn")
+	var sm = sm_scene.instantiate()
+	sm.set_meta("is_overlay", true)
+	$CanvasLayer.add_child(sm)
+
+func _handle_section_prefill(section_id: String, section_name: String, student_count: int) -> void:
+	room_name_input.text = "%s — Game Room" % section_name
+	player_count_input.text = str(student_count)
+	
+	# Auto-enable Game Mode toggle
+	game_mode_btn.set_pressed_no_signal(true)
+	_on_game_mode_toggled(true)
+	
+	# Auto-enable student restriction with section pre-selected
+	if _restrict_checkbox:
+		_restrict_checkbox.set_pressed_no_signal(true)
+		_on_restrict_checkbox_toggled(true)
+	
+	# Select the correct section in the dropdown
+	_selected_section_id = section_id
+	if _section_dropdown:
+		for i in _section_dropdown.item_count:
+			if _section_dropdown.get_item_metadata(i) == section_id:
+				_section_dropdown.select(i)
+				break
+	
+	_update_generate_button()
+	_show_screen("form")
+
+func _on_manage_bindings_pressed() -> void:
+	# Set return path and lobby URL for Binding Manager
+	get_tree().set_meta("binding_manager_return", "res://scene/TeacherCreateRoom.tscn")
+	get_tree().set_meta("binding_manager_lobby_url", "https://codebreaker-lobby.onrender.com")
+	get_tree().change_scene_to_file("res://scene/binding_manager.tscn")
+
+func _collect_allowed_students() -> Array:
+	var allowed_list: Array = []
+	
+	if not _restrict_checkbox or not _restrict_checkbox.button_pressed:
+		return allowed_list
+	
+	# Check if using section mode (dropdown visible + section selected)
+	if _section_tab and _section_tab.button_pressed and not _selected_section_id.is_empty():
+		# Get student numbers from selected section
+		allowed_list = StudentDatabase.get_student_numbers_for_section(_selected_section_id)
+	elif _student_numbers_edit and _student_numbers_edit.visible:
+		# Manual entry mode
+		var raw := _student_numbers_edit.text
+		var parts := raw.replace("\n", ",").replace("\r", ",").split(",")
+		for p in parts:
+			var trimmed := p.strip_edges().to_upper()
+			if not trimmed.is_empty():
+				allowed_list.append(trimmed)
+	
+	return allowed_list
 
 func _on_restrict_checkbox_toggled(pressed: bool) -> void:
 	if _student_numbers_section:
 		_student_numbers_section.visible = pressed
-	if not pressed and _student_numbers_edit:
-		_student_numbers_edit.text = ""
+		# Refresh dropdown when shown
+		if pressed:
+			_refresh_section_dropdown()
+	if not pressed:
+		if _student_numbers_edit:
+			_student_numbers_edit.text = ""
+		_selected_section_id = ""
+		if _section_dropdown:
+			_section_dropdown.select(0)
 	_update_generate_button()
 
 func _build_save_draft_button() -> void:
@@ -535,32 +720,59 @@ func _build_refresh_button() -> void:
 	refresh_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.145, 0.878, 0.992, 0.2)
+	sb.bg_color = Color(0.05, 0.12, 0.2, 0.9)
 	sb.border_color = Color(0.145, 0.878, 0.992, 0.8)
-	sb.set_border_width_all(1)
-	sb.set_corner_radius_all(5)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(6)
 	refresh_btn.add_theme_stylebox_override("normal", sb)
 	
-	var sb_hover := sb.duplicate()
-	sb_hover.bg_color = Color(0.145, 0.878, 0.992, 0.4)
+	var sb_hover := StyleBoxFlat.new()
+	sb_hover.bg_color = Color(0.1, 0.2, 0.3, 1.0)
+	sb_hover.border_color = Color(0.145, 0.878, 0.992, 1.0)
+	sb_hover.set_border_width_all(2)
+	sb_hover.set_corner_radius_all(6)
 	refresh_btn.add_theme_stylebox_override("hover", sb_hover)
-	refresh_btn.add_theme_stylebox_override("pressed", sb)
 	
-	refresh_btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	var sb_pressed := StyleBoxFlat.new()
+	sb_pressed.bg_color = Color(0.02, 0.08, 0.15, 1.0)
+	sb_pressed.border_color = Color(0.145, 0.878, 0.992, 1.0)
+	sb_pressed.set_border_width_all(2)
+	sb_pressed.set_corner_radius_all(6)
+	refresh_btn.add_theme_stylebox_override("pressed", sb_pressed)
+	
+	refresh_btn.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0, 1.0))
 	refresh_btn.pressed.connect(_load_room_history)
+	
+	var manage_btn := Button.new()
+	manage_btn.text = "Manage Sections"
+	manage_btn.custom_minimum_size = Vector2(160, 36)
+	manage_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	manage_btn.add_theme_stylebox_override("normal", sb)
+	manage_btn.add_theme_stylebox_override("hover", sb_hover)
+	manage_btn.add_theme_stylebox_override("pressed", sb_pressed)
+	manage_btn.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0, 1.0))
+	manage_btn.pressed.connect(_on_manage_sections_pressed)
 	
 	top_bar.add_child(refresh_btn)
 	
-	# Try to insert it right before the Create button
+	var mid_spacer := Control.new()
+	mid_spacer.custom_minimum_size = Vector2(8, 0)
+	top_bar.add_child(mid_spacer)
+	
+	top_bar.add_child(manage_btn)
+	
+	# Try to insert them right before the Create button
 	var create_btn = top_bar.get_node_or_null("CreateButton")
 	if create_btn:
 		top_bar.move_child(refresh_btn, create_btn.get_index())
+		top_bar.move_child(mid_spacer, create_btn.get_index())
+		top_bar.move_child(manage_btn, create_btn.get_index())
 		
-	# Add a small spacer between Refresh and Create just in case
+	# Add a small spacer between Manage Sections and Create
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(10, 0)
 	top_bar.add_child(spacer)
-	top_bar.move_child(spacer, refresh_btn.get_index() + 1)
+	top_bar.move_child(spacer, manage_btn.get_index() + 1)
 	
 func _on_save_draft_pressed() -> void:
 	var room_name := room_name_input.text.strip_edges()
@@ -597,14 +809,7 @@ func _finalise_draft_room() -> void:
 
 	# We don't put it in `rooms` dict (active rooms), we only save it to Firestore history
 	# Collect student whitelist if enabled
-	var allowed_list: Array = []
-	if _restrict_checkbox and _restrict_checkbox.button_pressed and _student_numbers_edit:
-		var raw := _student_numbers_edit.text
-		var parts := raw.replace("\n", ",").replace("\r", ",").split(",")
-		for p in parts:
-			var trimmed := p.strip_edges()
-			if not trimmed.is_empty():
-				allowed_list.append(trimmed)
+	var allowed_list: Array = _collect_allowed_students()
 	room_data["allowed_students"] = allowed_list
 
 	_save_room_to_history(draft_code, room_data)
@@ -715,15 +920,9 @@ func _finalise_room() -> void:
 	_refresh_room_list()
 
 	# Collect student whitelist if enabled (shared for both quiz and game mode)
-	var allowed_list: Array = []
-	if _restrict_checkbox and _restrict_checkbox.button_pressed and _student_numbers_edit:
-		var raw := _student_numbers_edit.text
-		var parts := raw.replace("\n", ",").replace("\r", ",").split(",")
-		for p in parts:
-			var trimmed := p.strip_edges()
-			if not trimmed.is_empty():
-				allowed_list.append(trimmed)
+	var allowed_list: Array = _collect_allowed_students()
 	room_data["allowed_students"] = allowed_list
+	room_data["has_student_restriction"] = _restrict_checkbox != null and _restrict_checkbox.button_pressed
 
 	# ── CyberQuiz: POST quiz data to server ─────────────────────────────
 	if multiple_choice_btn.button_pressed and not mc_quiz_data.is_empty():
@@ -866,52 +1065,24 @@ func _build_minigame_cards() -> void:
 		minigame_grid.add_child(_make_card(game))
 
 func _make_lesson_header(lesson_key: String) -> PanelContainer:
-	var panel := PanelContainer.new()
-	var s := StyleBoxFlat.new()
-	s.bg_color = Color(0.0, 0.55, 0.75, 0.25)
-	s.corner_radius_top_left = 6; s.corner_radius_top_right = 6
-	s.corner_radius_bottom_left = 6; s.corner_radius_bottom_right = 6
-	s.content_margin_left = 12; s.content_margin_right = 12
-	s.content_margin_top = 6; s.content_margin_bottom = 6
-	panel.add_theme_stylebox_override("panel", s)
-	var lbl := Label.new()
+	var header_scene: PackedScene = load("res://scene/ui_components/lesson_header.tscn")
+	var panel: PanelContainer = header_scene.instantiate()
+	var lbl = panel.get_node("Label")
 	lbl.text = LESSON_HEADERS.get(lesson_key, lesson_key)
-	lbl.add_theme_color_override("font_color", Color(0.0, 0.9, 1.0, 1.0))
-	lbl.add_theme_font_size_override("font_size", 15)
-	panel.add_child(lbl)
 	return panel
 
 func _make_card(game: Dictionary) -> PanelContainer:
-	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(238, 82)
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var card_scene: PackedScene = load("res://scene/ui_components/minigame_card.tscn")
+	var card: PanelContainer = card_scene.instantiate()
 	card.name = "Card_" + game["id"]
-	card.add_theme_stylebox_override("panel", _card_style(false))
-	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 10)
-	card.add_child(hbox)
-	var icon_tex := TextureRect.new()
-	icon_tex.custom_minimum_size = Vector2(48, 48)
-	icon_tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	icon_tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon_tex.texture = _get_icon(game["icon"])
-	hbox.add_child(icon_tex)
-	var vbox := VBoxContainer.new()
-	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 4)
-	hbox.add_child(vbox)
-	var title_lbl := Label.new()
-	title_lbl.text = game["name"]
-	title_lbl.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-	title_lbl.add_theme_font_size_override("font_size", 14)
-	title_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	vbox.add_child(title_lbl)
-	var level_lbl := Label.new()
+	
+	card.get_node("HBox/IconTex").texture = _get_icon(game["icon"])
+	card.get_node("HBox/VBox/TitleLabel").text = game["name"]
+	
+	var level_lbl = card.get_node("HBox/VBox/LevelLabel")
 	level_lbl.text = game["level"]
 	level_lbl.add_theme_color_override("font_color", LEVEL_COLORS.get(game["level"], Color.WHITE))
-	level_lbl.add_theme_font_size_override("font_size", 11)
-	vbox.add_child(level_lbl)
+	
 	card.gui_input.connect(func(ev: InputEvent):
 		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
 			_select_card(card, game))
@@ -1046,91 +1217,30 @@ func _refresh_room_list() -> void:
 				data.get("minigame", ""), data.get("player_count", 0), "active", category))
 
 func _create_room_item(rname: String, code: String, diff: String, game: String, _player_count: int, _status: String = "active", category: String = "game_mode") -> PanelContainer:
-	var item := PanelContainer.new()
-	item.custom_minimum_size = Vector2(0, 46)
-	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var item_scene: PackedScene = load("res://scene/ui_components/room_history_item.tscn")
+	var item: PanelContainer = item_scene.instantiate()
 	
-	# White/light panel style matching Figma
-	var item_style := StyleBoxFlat.new()
-	item_style.bg_color = Color(0.85, 0.9, 0.95, 0.15)
-	item_style.border_color = Color(0.6, 0.75, 0.85, 0.3)
-	item_style.set_border_width_all(1)
-	item_style.set_corner_radius_all(6)
-	item_style.content_margin_left = 16
-	item_style.content_margin_right = 12
-	item_style.content_margin_top = 8
-	item_style.content_margin_bottom = 8
-	item.add_theme_stylebox_override("panel", item_style)
+	item.get_node("HBox/NameLabel").text = rname
+	item.get_node("HBox/CodeLabel").text = code
 	
-	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
-	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	item.add_child(hbox)
-	
-	# Room name label (left-aligned, fixed width)
-	var name_lbl := Label.new()
-	name_lbl.text = rname
-	name_lbl.custom_minimum_size = Vector2(100, 0)
-	name_lbl.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-	name_lbl.add_theme_font_size_override("font_size", 14)
-	hbox.add_child(name_lbl)
-	
-	# Room code label (expanded, takes remaining space)
-	var code_lbl := Label.new()
-	code_lbl.text = code
-	code_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	code_lbl.add_theme_color_override("font_color", Color(0.75, 0.85, 0.95, 0.9))
-	code_lbl.add_theme_font_size_override("font_size", 13)
-	hbox.add_child(code_lbl)
-	
-	# Difficulty / category label (right side, before button)
+	var info_lbl = item.get_node("HBox/InfoLabel")
 	var info_text := diff if diff != "" and diff != "MC" else ""
 	if game != "":
 		info_text = game
 	if category == "multiple_choice" and info_text == "":
 		info_text = "Quiz"
-	if info_text != "":
-		var info_lbl := Label.new()
-		info_lbl.text = info_text
-		info_lbl.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9, 0.7))
-		info_lbl.add_theme_font_size_override("font_size", 12)
-		hbox.add_child(info_lbl)
 	
-	# View / Resume button (matching Figma style)
-	var view_btn := Button.new()
+	if info_text != "":
+		info_lbl.text = info_text
+	else:
+		info_lbl.visible = false
+	
+	var view_btn = item.get_node("HBox/ViewBtn")
 	if _status == "draft":
 		view_btn.text = "Resume"
+		# Optional: User can style "resume" via script or Editor directly now!
 	else:
 		view_btn.text = "View"
-	view_btn.custom_minimum_size = Vector2(75, 30)
-	view_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	
-	var btn_style := StyleBoxFlat.new()
-	if _status == "draft":
-		btn_style.bg_color = Color(0.145, 0.90, 0.60, 0.9) # Green-ish for resume
-	else:
-		btn_style.bg_color = Color(0.145, 0.878, 0.992, 0.9)
-	btn_style.set_corner_radius_all(5)
-	btn_style.content_margin_left = 12
-	btn_style.content_margin_right = 12
-	btn_style.content_margin_top = 4
-	btn_style.content_margin_bottom = 4
-	view_btn.add_theme_stylebox_override("normal", btn_style)
-	
-	var btn_hover := StyleBoxFlat.new()
-	if _status == "draft":
-		btn_hover.bg_color = Color(0.18, 0.95, 0.65, 1.0)
-	else:
-		btn_hover.bg_color = Color(0.2, 0.92, 1.0, 1.0)
-	btn_hover.set_corner_radius_all(5)
-	btn_hover.content_margin_left = 12
-	btn_hover.content_margin_right = 12
-	btn_hover.content_margin_top = 4
-	btn_hover.content_margin_bottom = 4
-	view_btn.add_theme_stylebox_override("hover", btn_hover)
-	
-	view_btn.add_theme_color_override("font_color", Color(0.03, 0.05, 0.12, 1))
-	view_btn.add_theme_font_size_override("font_size", 13)
 	
 	var cap_code := code
 	var cap_category := category
@@ -1138,7 +1248,6 @@ func _create_room_item(rname: String, code: String, diff: String, game: String, 
 		view_btn.pressed.connect(func(): _load_draft_into_form(cap_code, cap_category))
 	else:
 		view_btn.pressed.connect(func(): _view_room_history(cap_code, cap_category))
-	hbox.add_child(view_btn)
 	
 	return item
 
@@ -1430,6 +1539,7 @@ func _post_quiz_to_server(room_code: String, room_data: Dictionary) -> void:
 		"time_per_question": room_data.get("mc_time_per_q", 30),
 		"max_players": room_data.get("player_count", 10),
 		"allowed_students": room_data.get("allowed_students", []),
+		"has_student_restriction": room_data.get("has_student_restriction", false),
 	}
 	var headers := ["Content-Type: application/json"]
 	var http := HTTPRequest.new()
@@ -1959,6 +2069,7 @@ func _post_gamemode_to_server(room_code: String, room_data: Dictionary) -> void:
 		"difficulty": room_data.get("difficulty", "Beginner"),
 		"max_players": int(room_data.get("player_count", 10)),
 		"allowed_students": room_data.get("allowed_students", []),
+		"has_student_restriction": room_data.get("has_student_restriction", false),
 	}
 	var headers := ["Content-Type: application/json"]
 	var http := HTTPRequest.new()
@@ -2585,7 +2696,7 @@ func _save_results_to_firestore(room_code: String, data: Dictionary) -> void:
 	var uid := Auth.current_local_id
 	var token := Auth.current_id_token
 	var safe_code := room_code.replace("/", "_")
-	var field_path := "room_results.%s" % safe_code
+	var field_path := "room_results.`%s`" % safe_code
 	var url := "%s/users/%s?updateMask.fieldPaths=%s" % [FIRESTORE_BASE_URL, uid, field_path]
 	var headers := [
 		"Content-Type: application/json",

@@ -1,0 +1,394 @@
+[gd_scene load_steps=10 format=3 uid="uid://c7n4m2kpqr8fx"]
+
+[ext_resource type="Script" path="res://script/import_wizard.gd" id="1_script"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_existing"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_overlay"]
+bg_color = Color(0, 0, 0, 0.75)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.03, 0.06, 0.12, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.6)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.145, 0.878, 0.992, 0.2)
+shadow_size = 12
+content_margin_left = 24.0
+content_margin_top = 20.0
+content_margin_right = 24.0
+content_margin_bottom = 20.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+bg_color = Color(0.02, 0.12, 0.28, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+bg_color = Color(0.05, 0.18, 0.38, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.145, 0.878, 0.992, 0.3)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary"]
+bg_color = Color(0.145, 0.6, 0.8, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
+bg_color = Color(0.02, 0.05, 0.14, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.4)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_separator"]
+bg_color = Color(0.145, 0.878, 0.992, 0.25)
+content_margin_top = 1.0
+content_margin_bottom = 1.0
+
+[node name="ImportWizard" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_script")
+
+[node name="Overlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.75)
+
+[node name="WizardPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -380.0
+offset_top = -280.0
+offset_right = 380.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="MainVBox" type="VBoxContainer" parent="WizardPanel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="HBoxContainer" parent="WizardPanel/MainVBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="WizardPanel/MainVBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.145, 0.878, 0.992, 1)
+theme_override_font_sizes/font_size = 24
+text = "📥 Import Students - Step 1 of 3"
+
+[node name="CloseBtn" type="Button" parent="WizardPanel/MainVBox/Header"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_colors/font_hover_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "✕"
+
+[node name="HSeparator" type="HSeparator" parent="WizardPanel/MainVBox"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxFlat_separator")
+
+[node name="StepContainer" type="MarginContainer" parent="WizardPanel/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Step1" type="VBoxContainer" parent="WizardPanel/MainVBox/StepContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="FileInfoLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step1"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Parsing file..."
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step1"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 16
+text = ""
+horizontal_alignment = 1
+
+[node name="ErrorLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step1"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 14
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Step2" type="VBoxContainer" parent="WizardPanel/MainVBox/StepContainer"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="InstructionLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step2"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 15
+text = "Map columns from your file to student fields:"
+
+[node name="MappingGrid" type="GridContainer" parent="WizardPanel/MainVBox/StepContainer/Step2"]
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 10
+columns = 2
+
+[node name="NumLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step2/MappingGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "Student Number:"
+
+[node name="NumDropdown" type="OptionButton" parent="WizardPanel/MainVBox/StepContainer/Step2/MappingGrid"]
+custom_minimum_size = Vector2(280, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+
+[node name="NameLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step2/MappingGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "Student Name:"
+
+[node name="NameDropdown" type="OptionButton" parent="WizardPanel/MainVBox/StepContainer/Step2/MappingGrid"]
+custom_minimum_size = Vector2(280, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+
+[node name="GenderLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step2/MappingGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "Gender (optional):"
+
+[node name="GenderDropdown" type="OptionButton" parent="WizardPanel/MainVBox/StepContainer/Step2/MappingGrid"]
+custom_minimum_size = Vector2(280, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+
+[node name="PreviewLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step2"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 13
+text = "Preview (first 5 rows):"
+
+[node name="PreviewScroll" type="ScrollContainer" parent="WizardPanel/MainVBox/StepContainer/Step2"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="PreviewContainer" type="VBoxContainer" parent="WizardPanel/MainVBox/StepContainer/Step2/PreviewScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Step3" type="VBoxContainer" parent="WizardPanel/MainVBox/StepContainer"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="SummaryLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step3"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 18
+text = "Ready to import 45 students"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="WizardPanel/MainVBox/StepContainer/Step3"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
+[node name="DestLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step3"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 15
+text = "Add students to:"
+
+[node name="ExistingRadio" type="CheckBox" parent="WizardPanel/MainVBox/StepContainer/Step3"]
+layout_mode = 2
+button_group = SubResource("ButtonGroup_existing")
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Existing section:"
+
+[node name="ExistingDropdown" type="OptionButton" parent="WizardPanel/MainVBox/StepContainer/Step3"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+disabled = true
+theme_override_font_sizes/font_size = 13
+
+[node name="NewRadio" type="CheckBox" parent="WizardPanel/MainVBox/StepContainer/Step3"]
+layout_mode = 2
+button_pressed = true
+button_group = SubResource("ButtonGroup_existing")
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "New section:"
+
+[node name="NewSectionGrid" type="GridContainer" parent="WizardPanel/MainVBox/StepContainer/Step3"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="NewNameLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step3/NewSectionGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "Section Name:"
+
+[node name="NewNameInput" type="LineEdit" parent="WizardPanel/MainVBox/StepContainer/Step3/NewSectionGrid"]
+custom_minimum_size = Vector2(280, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_colors/font_placeholder_color = Color(0.5, 0.6, 0.7, 0.6)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_input")
+placeholder_text = "e.g. BSIT 3A"
+
+[node name="NewYearLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step3/NewSectionGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "School Year:"
+
+[node name="NewYearInput" type="LineEdit" parent="WizardPanel/MainVBox/StepContainer/Step3/NewSectionGrid"]
+custom_minimum_size = Vector2(280, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_colors/font_placeholder_color = Color(0.5, 0.6, 0.7, 0.6)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_input")
+text = "2025-2026"
+placeholder_text = "e.g. 2025-2026"
+
+[node name="Spacer2" type="Control" parent="WizardPanel/MainVBox/StepContainer/Step3"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="OptionsLabel" type="Label" parent="WizardPanel/MainVBox/StepContainer/Step3"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 13
+text = "Options:"
+
+[node name="SkipDuplicatesCheck" type="CheckBox" parent="WizardPanel/MainVBox/StepContainer/Step3"]
+layout_mode = 2
+button_pressed = true
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "Skip duplicate student numbers"
+
+[node name="HSeparator2" type="HSeparator" parent="WizardPanel/MainVBox"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxFlat_separator")
+
+[node name="ButtonRow" type="HBoxContainer" parent="WizardPanel/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BackBtn" type="Button" parent="WizardPanel/MainVBox/ButtonRow"]
+custom_minimum_size = Vector2(100, 44)
+layout_mode = 2
+disabled = true
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_colors/font_hover_color = Color(0.145, 0.878, 0.992, 1)
+theme_override_colors/font_disabled_color = Color(0.4, 0.4, 0.5, 0.5)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "← Back"
+
+[node name="Spacer" type="Control" parent="WizardPanel/MainVBox/ButtonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CancelBtn" type="Button" parent="WizardPanel/MainVBox/ButtonRow"]
+custom_minimum_size = Vector2(100, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "Cancel"
+
+[node name="NextBtn" type="Button" parent="WizardPanel/MainVBox/ButtonRow"]
+custom_minimum_size = Vector2(120, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "Next →"

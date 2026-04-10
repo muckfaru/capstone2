@@ -1,0 +1,337 @@
+[gd_scene load_steps=42 format=3 uid="uid://cxrestrictui1"]
+
+[ext_resource type="FontFile" uid="uid://cqfcxnj3ofmyk" path="res://TEACHERCREATEROOMUI/Inter-VariableFont_opsz,wght.ttf" id="1_8ib07"]
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="2_uibic"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_31cfn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_85ytv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_map5i"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uibic"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8ib07"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1i5es"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ib07"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fqxhj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3ll7u"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sifk2"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1i5es"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_owafp"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b33md"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_31cfn"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_87ecn"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uibic"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sifk2"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yyajv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_v4gyh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_a8353"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_drdfb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tleyk"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q7bl4"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3ll7u"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fqxhj"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1vje6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cfovh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5w6uq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o166w"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b33md"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_q7bl4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cxhmd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vrkxh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0p8om"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_isdch"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_87ecn"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_uuive"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1vje6"]
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_owafp"]
+draw_center = false
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145098, 0.878431, 0.992157, 1)
+border_blend = true
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="StudentRestrictionUI" type="VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+theme_override_constants/separation = 10
+
+[node name="StudentRestrictRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RestrictCheckbox" type="CheckBox" parent="StudentRestrictRow"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.65, 0.8, 1, 0.9)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/focus = SubResource("StyleBoxEmpty_31cfn")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_85ytv")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_map5i")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_uibic")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_8ib07")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_1i5es")
+text = " Restrict by Student Number"
+
+[node name="StudentNumbersSection" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SectionModeTabs" type="HBoxContainer" parent="StudentNumbersSection"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="SectionTab" type="Button" parent="StudentNumbersSection/SectionModeTabs"]
+custom_minimum_size = Vector2(140, 32)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("1_8ib07")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxFlat_8ib07")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_fqxhj")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_3ll7u")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_sifk2")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_1i5es")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_owafp")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_b33md")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_31cfn")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_87ecn")
+theme_override_styles/normal = SubResource("StyleBoxFlat_uibic")
+toggle_mode = true
+button_pressed = true
+text = "Select Section"
+
+[node name="ManualTab" type="Button" parent="StudentNumbersSection/SectionModeTabs"]
+custom_minimum_size = Vector2(140, 32)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("1_8ib07")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxFlat_sifk2")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_yyajv")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_v4gyh")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_a8353")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_drdfb")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_tleyk")
+theme_override_styles/hover = SubResource("StyleBoxFlat_q7bl4")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_3ll7u")
+theme_override_styles/normal = SubResource("StyleBoxFlat_fqxhj")
+toggle_mode = true
+text = " Enter Manually"
+
+[node name="ManageLink" type="Button" parent="StudentNumbersSection/SectionModeTabs"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.4, 0.7, 1, 1)
+theme_override_fonts/font = ExtResource("1_8ib07")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_1vje6")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_cfovh")
+text = "Manage Sections"
+flat = true
+
+[node name="BindingsLink" type="Button" parent="StudentNumbersSection/SectionModeTabs"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 0.7, 0.4, 1)
+theme_override_fonts/font = ExtResource("1_8ib07")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_5w6uq")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_o166w")
+text = "Manage Bindings"
+flat = true
+
+[node name="SectionDropdown" type="OptionButton" parent="StudentNumbersSection"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_fonts/font = ExtResource("2_uibic")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxFlat_b33md")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_q7bl4")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_cxhmd")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_vrkxh")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_0p8om")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_isdch")
+theme_override_styles/hover = SubResource("StyleBoxFlat_87ecn")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_uuive")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_1vje6")
+theme_override_styles/normal = SubResource("StyleBoxFlat_owafp")
+
+[node name="StudentNumbersHint" type="Label" parent="StudentNumbersSection"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.8, 1, 0.6)
+theme_override_font_sizes/font_size = 11
+text = "Enter student numbers (comma or newline separated):"
+
+[node name="StudentNumbersEdit" type="TextEdit" parent="StudentNumbersSection"]
+visible = false
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.96, 1, 1)
+theme_override_colors/caret_color = Color(0.145, 0.878, 0.992, 1)
+theme_override_font_sizes/font_size = 13
+placeholder_text = "21-2169, 21-2170, 21-2171..."

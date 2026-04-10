@@ -1,0 +1,64 @@
+[gd_scene load_steps=7 format=3 uid="uid://bpq63bnj7mj5e"]
+
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="1_8or0a"]
+[ext_resource type="FontFile" uid="uid://dkc8yt1dddap6" path="res://asset/fonts/ABeeZee-Regular.ttf" id="2_8or0a"]
+[ext_resource type="Texture2D" uid="uid://cbxnk50mvs60f" path="res://asset/icons/open-folder.png" id="2_tvawd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_001"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(1, 0.913725, 0.635294, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.972549, 0.843137, 0.458824, 1)
+border_blend = true
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="LabelSettings" id="LabelSettings_8or0a"]
+font = ExtResource("1_8or0a")
+font_color = Color(0, 0, 0, 1)
+outline_size = 5
+outline_color = Color(1, 1, 1, 0.614)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_tvawd"]
+font = ExtResource("2_8or0a")
+font_size = 13
+font_color = Color(0, 0, 0, 1)
+
+[node name="SectionCard" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 60)
+mouse_default_cursor_shape = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_001")
+
+[node name="MainVBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="MainVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "    Section Name"
+label_settings = SubResource("LabelSettings_8or0a")
+
+[node name="TextureRect" type="TextureRect" parent="MainVBox/NameLabel"]
+layout_mode = 2
+offset_left = -4.0
+offset_top = -2.0
+offset_right = 16.0
+offset_bottom = 19.0
+texture = ExtResource("2_tvawd")
+expand_mode = 1
+
+[node name="InfoLabel" type="Label" parent="MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+theme_override_font_sizes/font_size = 13
+text = "School Year • X students"
+label_settings = SubResource("LabelSettings_tvawd")

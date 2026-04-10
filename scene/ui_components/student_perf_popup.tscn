@@ -1,0 +1,113 @@
+[gd_scene load_steps=7 format=3 uid="uid://cperfpopup22"]
+
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="1_y8dsf"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popup1"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0, 0.0980392, 0.223529, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 1, 1)
+border_blend = true
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="LabelSettings" id="LabelSettings_iyv1u"]
+font = ExtResource("1_y8dsf")
+font_size = 20
+outline_size = 5
+outline_color = Color(0, 0, 0, 0.8)
+shadow_size = 2
+shadow_color = Color(0.145098, 0.878431, 0.333333, 0.392157)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y8dsf"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_y8dsf"]
+font_size = 18
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_sep1"]
+color = Color(0.3, 0.4, 0.5, 0.5)
+
+[node name="StudentPerfPopup" type="ColorRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -250.0
+offset_right = 300.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_popup1")
+
+[node name="MainVBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderRow" type="HBoxContainer" parent="Panel/MainVBox"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/MainVBox/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Student Name"
+label_settings = SubResource("LabelSettings_iyv1u")
+
+[node name="CloseBtn" type="Button" parent="Panel/MainVBox/HeaderRow"]
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/focus = SubResource("StyleBoxEmpty_y8dsf")
+text = "✕"
+flat = true
+
+[node name="InfoLabel" type="Label" parent="Panel/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 13
+text = " Section Name • #0000"
+label_settings = SubResource("LabelSettings_y8dsf")
+
+[node name="HSeparator" type="HSeparator" parent="Panel/MainVBox"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_sep1")
+
+[node name="LoadingLabel" type="Label" parent="Panel/MainVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 13
+text = "⏳ Loading performance data..."
+horizontal_alignment = 1
+
+[node name="ResultsScroll" type="ScrollContainer" parent="Panel/MainVBox"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ResultsVBox" type="VBoxContainer" parent="Panel/MainVBox/ResultsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6

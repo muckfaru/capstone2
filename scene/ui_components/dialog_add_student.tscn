@@ -1,0 +1,221 @@
+[gd_scene format=3 uid="uid://daddstudent22"]
+
+[ext_resource type="FontFile" uid="uid://cmt8nchuqxxrw" path="res://asset/fonts/Audiowide-Regular.ttf" id="1_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popup"]
+content_margin_left = 24.0
+content_margin_top = 24.0
+content_margin_right = 24.0
+content_margin_bottom = 24.0
+bg_color = Color(0.04, 0.08, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.8)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font = ExtResource("1_font")
+font_size = 22
+font_color = Color(0.95, 0.95, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.02, 0.12, 0.28, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.05, 0.18, 0.38, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.145, 0.878, 0.992, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_cancel_normal"]
+bg_color = Color(0.2, 0.2, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.4, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_cancel_hover"]
+bg_color = Color(0.3, 0.3, 0.3, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.5, 0.5, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.01, 0.04, 0.1, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.5, 0.7, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input_focus"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.02, 0.08, 0.2, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.145, 0.878, 0.992, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="AddStudentDialog" type="CanvasLayer"]
+layer = 50
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="Panel" type="PanelContainer" parent="ColorRect"]
+custom_minimum_size = Vector2(400, 240)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -120.0
+offset_right = 200.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_popup")
+
+[node name="VBox" type="VBoxContainer" parent="ColorRect/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="ColorRect/Panel/VBox"]
+layout_mode = 2
+text = "Add Single Student"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+
+[node name="Margin" type="MarginContainer" parent="ColorRect/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="FormVBox" type="VBoxContainer" parent="ColorRect/Panel/VBox/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Fields" type="GridContainer" parent="ColorRect/Panel/VBox/Margin/FormVBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 12
+columns = 2
+
+[node name="NumLabel" type="Label" parent="ColorRect/Panel/VBox/Margin/FormVBox/Fields"]
+layout_mode = 2
+text = "Student Number:"
+
+[node name="NumInput" type="LineEdit" parent="ColorRect/Panel/VBox/Margin/FormVBox/Fields"]
+custom_minimum_size = Vector2(200, 32)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_input_focus")
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+placeholder_text = "e.g. 21-2169"
+
+[node name="NameLabel" type="Label" parent="ColorRect/Panel/VBox/Margin/FormVBox/Fields"]
+layout_mode = 2
+text = "Student Name:"
+
+[node name="NameInput" type="LineEdit" parent="ColorRect/Panel/VBox/Margin/FormVBox/Fields"]
+custom_minimum_size = Vector2(200, 32)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_input_focus")
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+placeholder_text = "e.g. John Doe"
+
+[node name="GenderLabel" type="Label" parent="ColorRect/Panel/VBox/Margin/FormVBox/Fields"]
+layout_mode = 2
+text = "Gender:"
+
+[node name="GenderInput" type="LineEdit" parent="ColorRect/Panel/VBox/Margin/FormVBox/Fields"]
+custom_minimum_size = Vector2(200, 32)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_input_focus")
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+placeholder_text = "e.g. Male/Female"
+
+[node name="Buttons" type="HBoxContainer" parent="ColorRect/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="CancelBtn" type="Button" parent="ColorRect/Panel/VBox/Buttons"]
+custom_minimum_size = Vector2(100, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_cancel_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_cancel_normal")
+text = "Cancel"
+
+[node name="ConfirmBtn" type="Button" parent="ColorRect/Panel/VBox/Buttons"]
+custom_minimum_size = Vector2(100, 36)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_hover_color = Color(0.145, 0.878, 0.992, 1)
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+text = "Add Student"

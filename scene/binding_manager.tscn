@@ -1,0 +1,215 @@
+[gd_scene load_steps=9 format=3 uid="uid://craxbinding"]
+
+[ext_resource type="Script" path="res://script/binding_manager.gd" id="1_binding"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.08, 0.08, 0.12, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.12, 0.12, 0.18, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.8, 0.8, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+bg_color = Color(0, 0.6, 0.6, 0.3)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0, 0.6, 0.6, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 1, 1, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0, 0.8, 0.8, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 1, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_danger"]
+bg_color = Color(0.8, 0.2, 0.2, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.4, 0.4, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_row"]
+bg_color = Color(0.1, 0.1, 0.15, 0.8)
+border_width_bottom = 1
+border_color = Color(0, 0.6, 0.6, 0.3)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="BindingManager" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_binding")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="MainContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 30
+
+[node name="VBox" type="VBoxContainer" parent="MainContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="TopBar" type="HBoxContainer" parent="MainContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="BackButton" type="Button" parent="MainContainer/VBox/TopBar"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+text = "← Back"
+
+[node name="Title" type="Label" parent="MainContainer/VBox/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "🔐 Student Account Bindings"
+
+[node name="RefreshBtn" type="Button" parent="MainContainer/VBox/TopBar"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+text = "↻ Refresh"
+
+[node name="ContentPanel" type="PanelContainer" parent="MainContainer/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="ContentVBox" type="VBoxContainer" parent="MainContainer/VBox/ContentPanel"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Header" type="PanelContainer" parent="MainContainer/VBox/ContentPanel/ContentVBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="HeaderHBox" type="HBoxContainer" parent="MainContainer/VBox/ContentPanel/ContentVBox/Header"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="InfoLabel" type="Label" parent="MainContainer/VBox/ContentPanel/ContentVBox/Header/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+text = "📊 Bindings: 0 | Storage: memory"
+
+[node name="StorageIndicator" type="Label" parent="MainContainer/VBox/ContentPanel/ContentVBox/Header/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0, 1)
+text = "⚠️ Non-persistent (will reset on server restart)"
+
+[node name="SearchRow" type="HBoxContainer" parent="MainContainer/VBox/ContentPanel/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="SearchLabel" type="Label" parent="MainContainer/VBox/ContentPanel/ContentVBox/SearchRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+text = "🔍 Search:"
+
+[node name="SearchBox" type="LineEdit" parent="MainContainer/VBox/ContentPanel/ContentVBox/SearchRow"]
+custom_minimum_size = Vector2(250, 35)
+layout_mode = 2
+placeholder_text = "Student number or username..."
+
+[node name="Spacer" type="Control" parent="MainContainer/VBox/ContentPanel/ContentVBox/SearchRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ClearAllBtn" type="Button" parent="MainContainer/VBox/ContentPanel/ContentVBox/SearchRow"]
+custom_minimum_size = Vector2(150, 35)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_danger")
+text = "🗑️ Clear All Bindings"
+
+[node name="BindingScroll" type="ScrollContainer" parent="MainContainer/VBox/ContentPanel/ContentVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="BindingList" type="VBoxContainer" parent="MainContainer/VBox/ContentPanel/ContentVBox/BindingScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="EmptyState" type="CenterContainer" parent="MainContainer/VBox/ContentPanel/ContentVBox"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EmptyLabel" type="Label" parent="MainContainer/VBox/ContentPanel/ContentVBox/EmptyState"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+theme_override_font_sizes/font_size = 18
+text = "No bindings yet.
+Students will be bound when they first join a restricted room."
+horizontal_alignment = 1
+
+[node name="ConfirmClearDialog" type="ConfirmationDialog" parent="."]
+title = "Clear All Bindings?"
+size = Vector2i(400, 150)
+ok_button_text = "Yes, Clear All"
+cancel_button_text = "Cancel"
+dialog_text = "This will remove ALL student-account bindings.
+Students will need to re-bind when they next join a restricted room.
+
+This action cannot be undone."
+
+[node name="ConfirmUnbindDialog" type="ConfirmationDialog" parent="."]
+title = "Unbind Student?"
+size = Vector2i(350, 130)
+ok_button_text = "Yes, Unbind"
+cancel_button_text = "Cancel"
+dialog_text = "This student will need to re-bind when they next join a restricted room."

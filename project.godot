@@ -30,6 +30,7 @@ MinigameRewards="*res://script/MinigameRewards.gd"
 SettingsManager="*res://script/SettingsManager.gd"
 CyberCoinManager="*res://script/CyberCoinManager.gd"
 ShopManager="*res://script/ShopManager.gd"
+StudentDatabase="*res://script/StudentDatabase.gd"
 
 [display]
 

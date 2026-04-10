@@ -3,6 +3,33 @@ const expressWs = require('express-ws');
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Firebase Admin SDK for persistent storage
+// ═══════════════════════════════════════════════════════════════════════════
+let admin = null;
+let db = null;
+let useFirebase = false;
+
+try {
+  admin = require('firebase-admin');
+  
+  // Initialize Firebase Admin with environment variable credentials
+  // On Render, set FIREBASE_SERVICE_ACCOUNT env var with the JSON string
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    db = admin.firestore();
+    useFirebase = true;
+    console.log('✅ Firebase Admin initialized with Firestore');
+  } else {
+    console.log('⚠️ FIREBASE_SERVICE_ACCOUNT not set - using in-memory storage (bindings will reset on restart)');
+  }
+} catch (err) {
+  console.log('⚠️ Firebase Admin not available - using in-memory storage:', err.message);
+}
+
 const app = express();
 expressWs(app);
 
@@ -26,6 +53,117 @@ const quizRooms = new Map(); // Map<room_code, QuizRoomData>
 // GameMode — Teacher-created minigame rooms (students play & submit scores)
 // ═══════════════════════════════════════════════════════════════════════════
 const gameModeRooms = new Map(); // Map<room_code, GameModeRoomData>
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Student Number → Account Binding (Anti-Cheating)
+// Maps student numbers to Firebase UIDs to prevent impersonation
+// In-memory cache (synced with Firestore when available)
+// ═══════════════════════════════════════════════════════════════════════════
+const studentBindings = new Map(); // Map<student_number, { uid, username, bound_at }>
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Firestore Binding Helpers
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Get binding from Firestore (with local cache)
+async function getBinding(studentNumber) {
+  // Check local cache first
+  if (studentBindings.has(studentNumber)) {
+    return studentBindings.get(studentNumber);
+  }
+  
+  // Try Firestore if available
+  if (useFirebase && db) {
+    try {
+      const doc = await db.collection('student_bindings').doc(studentNumber).get();
+      if (doc.exists) {
+        const data = doc.data();
+        studentBindings.set(studentNumber, data); // Cache locally
+        return data;
+      }
+    } catch (err) {
+      console.error(`[Firestore] Error getting binding for ${studentNumber}:`, err.message);
+    }
+  }
+  
+  return null;
+}
+
+// Set binding in Firestore + local cache
+async function setBinding(studentNumber, bindingData) {
+  // Always update local cache
+  studentBindings.set(studentNumber, bindingData);
+  
+  // Persist to Firestore if available
+  if (useFirebase && db) {
+    try {
+      await db.collection('student_bindings').doc(studentNumber).set(bindingData);
+      console.log(`[Firestore] ✅ Binding saved: ${studentNumber} → ${bindingData.uid}`);
+    } catch (err) {
+      console.error(`[Firestore] Error saving binding for ${studentNumber}:`, err.message);
+    }
+  }
+}
+
+// Delete binding from Firestore + local cache
+async function deleteBinding(studentNumber) {
+  // Remove from local cache
+  studentBindings.delete(studentNumber);
+  
+  // Remove from Firestore if available
+  if (useFirebase && db) {
+    try {
+      await db.collection('student_bindings').doc(studentNumber).delete();
+      console.log(`[Firestore] 🗑️ Binding deleted: ${studentNumber}`);
+    } catch (err) {
+      console.error(`[Firestore] Error deleting binding for ${studentNumber}:`, err.message);
+    }
+  }
+}
+
+// Get all bindings (from Firestore if available, else local cache)
+async function getAllBindings() {
+  if (useFirebase && db) {
+    try {
+      const snapshot = await db.collection('student_bindings').get();
+      const bindings = [];
+      snapshot.forEach(doc => {
+        bindings.push({ student_number: doc.id, ...doc.data() });
+      });
+      return bindings;
+    } catch (err) {
+      console.error('[Firestore] Error getting all bindings:', err.message);
+    }
+  }
+  
+  // Fallback to local cache
+  const bindings = [];
+  for (const [student_number, data] of studentBindings.entries()) {
+    bindings.push({ student_number, ...data });
+  }
+  return bindings;
+}
+
+// Clear all bindings
+async function clearAllBindings() {
+  const count = studentBindings.size;
+  studentBindings.clear();
+  
+  if (useFirebase && db) {
+    try {
+      const snapshot = await db.collection('student_bindings').get();
+      const batch = db.batch();
+      snapshot.docs.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+      console.log(`[Firestore] 🗑️ Cleared ${snapshot.size} bindings`);
+      return snapshot.size;
+    } catch (err) {
+      console.error('[Firestore] Error clearing bindings:', err.message);
+    }
+  }
+  
+  return count;
+}
 
 // Room cleanup interval (remove inactive rooms every 60s)
 setInterval(() => {
@@ -674,20 +812,36 @@ app.get('/', (req, res) => {
 /**
  * Health check endpoint
  */
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
   const active_rooms = Array.from(rooms.values()).filter(r => r.status !== 'finished');
   const waiting_rooms = Array.from(rooms.values()).filter(r => r.status === 'waiting');
   const in_game_rooms = Array.from(rooms.values()).filter(r => r.status === 'in_game');
 
+  // Get binding count (from Firestore if available)
+  let bindingCount = studentBindings.size;
+  if (useFirebase && db) {
+    try {
+      const snapshot = await db.collection('student_bindings').count().get();
+      bindingCount = snapshot.data().count;
+    } catch (err) {
+      // Fallback to local cache count
+    }
+  }
+
   res.json({
     status: 'ok',
-    code_version: 'question-stats-v1',
+    code_version: 'account-binding-v2-firebase',
     uptime: process.uptime(),
     rooms: {
       total: rooms.size,
       active: active_rooms.length,
       waiting: waiting_rooms.length,
       in_game: in_game_rooms.length
+    },
+    bindings: {
+      count: bindingCount,
+      storage: useFirebase ? 'firestore' : 'memory',
+      persistent: useFirebase
     },
     timestamp: new Date().toISOString()
   });
@@ -874,7 +1028,7 @@ function broadcastToRoom(room_id, message, excludeConnection = null) {
 
 // POST /api/quiz/create — Teacher creates a quiz room
 app.post('/api/quiz/create', (req, res) => {
-  const { room_code, room_name, host_id, host_username, quiz_data, time_per_question, max_players, allowed_students } = req.body;
+  const { room_code, room_name, host_id, host_username, quiz_data, time_per_question, max_players, allowed_students, has_student_restriction } = req.body;
 
   if (!room_code || !host_id || !quiz_data) {
     return res.status(400).json({ error: 'Missing required fields: room_code, host_id, quiz_data' });
@@ -901,6 +1055,7 @@ app.post('/api/quiz/create', (req, res) => {
     players: [],
     max_players: Math.min(Math.max(2, max_players || 10), 10),
     allowed_students: Array.isArray(allowed_students) ? allowed_students.map(s => String(s).trim().toUpperCase()).filter(Boolean) : [],
+    has_student_restriction: has_student_restriction === true,
     status: 'waiting', // waiting | active | finished
     chat_messages: [],
     created_at: Date.now(),
@@ -940,7 +1095,7 @@ app.get('/api/quiz/:code/info', (req, res) => {
     max_players: qr.max_players,
     question_count: qr.quiz_data.questions.length,
     time_per_question: qr.quiz_data.time_per_question,
-    has_student_restriction: Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0,
+    has_student_restriction: qr.has_student_restriction || (Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0),
     players: qr.players.map(p => ({
       player_id: p.player_id,
       username: p.username,
@@ -953,9 +1108,9 @@ app.get('/api/quiz/:code/info', (req, res) => {
 });
 
 // POST /api/quiz/:code/join — Student joins quiz room
-app.post('/api/quiz/:code/join', (req, res) => {
+app.post('/api/quiz/:code/join', async (req, res) => {
   const code = req.params.code.toUpperCase();
-  const { player_id, username, avatar, xp, student_number } = req.body;
+  const { player_id, username, avatar, xp, student_number, uid } = req.body;
 
   if (!player_id || !username) {
     return res.status(400).json({ error: 'Missing required fields: player_id, username' });
@@ -974,16 +1129,40 @@ app.post('/api/quiz/:code/join', (req, res) => {
     return res.status(403).json({ error: 'Room is full' });
   }
 
-  // Student number whitelist validation
-  if (Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0) {
+  // Student number whitelist validation + account binding
+  if (qr.has_student_restriction || (Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0)) {
     if (!student_number) {
       return res.status(403).json({ error: 'This room requires a student number to join.' });
     }
     const normalised = String(student_number).trim().toUpperCase();
-    if (!qr.allowed_students.includes(normalised)) {
-      return res.status(403).json({ error: 'Your student number is not authorized for this room.' });
+    if (Array.isArray(qr.allowed_students) && qr.allowed_students.length > 0) {
+      if (!qr.allowed_students.includes(normalised)) {
+        return res.status(403).json({ error: 'Your student number is not authorized for this room.' });
+      }
     }
-    // Check if student number already used by another player
+    
+    // Account binding check (anti-cheating) - now uses Firestore persistence
+    const existingBinding = await getBinding(normalised);
+    if (existingBinding) {
+      // Student number already bound - check if same account
+      if (existingBinding.uid !== uid && existingBinding.uid !== player_id) {
+        console.log(`[Quiz] ❌ Binding rejected: ${normalised} bound to ${existingBinding.uid}, attempted by ${uid || player_id}`);
+        return res.status(403).json({ 
+          error: `This student number is linked to another account (${existingBinding.username}). Contact your teacher if this is an error.` 
+        });
+      }
+    } else {
+      // First time using this student number - bind it (persisted to Firestore)
+      const bindingUid = uid || player_id;
+      await setBinding(normalised, {
+        uid: bindingUid,
+        username: username,
+        bound_at: Date.now()
+      });
+      console.log(`[Quiz] 🔗 New binding: ${normalised} → ${bindingUid} (${username})`);
+    }
+    
+    // Check if student number already used by another player IN THIS ROOM
     const alreadyUsed = qr.players.find(p => p.student_number === normalised && p.player_id !== player_id);
     if (alreadyUsed) {
       return res.status(403).json({ error: 'This student number is already in use by another player.' });
@@ -1217,6 +1396,7 @@ app.get('/api/quiz/:code/results', (req, res) => {
     .map((p, rank) => ({
       rank: rank + 1,
       player_id: p.player_id,
+      student_number: p.student_number || '',
       username: p.username,
       score: p.score,
       finished: p.finished,
@@ -1324,7 +1504,7 @@ app.get('/api/quiz/:code/chat', (req, res) => {
 
 // POST /api/gamemode/create — Teacher creates a game mode room
 app.post('/api/gamemode/create', (req, res) => {
-  const { room_code, room_name, host_id, host_username, game_name, game_scene, difficulty, max_players, allowed_students } = req.body;
+  const { room_code, room_name, host_id, host_username, game_name, game_scene, difficulty, max_players, allowed_students, has_student_restriction } = req.body;
 
   if (!room_code || !host_id || !game_name) {
     return res.status(400).json({ error: 'Missing required fields: room_code, host_id, game_name' });
@@ -1350,6 +1530,7 @@ app.post('/api/gamemode/create', (req, res) => {
     players: [],
     max_players: Math.min(Math.max(2, max_players || 50), 50),
     allowed_students: normalizedAllowed,
+    has_student_restriction: has_student_restriction === true,
     status: 'waiting', // waiting | active | finished
     started_at: null,
     chat_messages: [],
@@ -1388,7 +1569,7 @@ app.get('/api/gamemode/:code/info', (req, res) => {
     difficulty: gr.difficulty,
     status: gr.status,
     max_players: gr.max_players,
-    has_student_restriction: Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0,
+    has_student_restriction: gr.has_student_restriction || (Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0),
     players: gr.players.map(p => ({
       player_id: p.player_id,
       username: p.username,
@@ -1403,9 +1584,9 @@ app.get('/api/gamemode/:code/info', (req, res) => {
 });
 
 // POST /api/gamemode/:code/join — Student joins a game mode room
-app.post('/api/gamemode/:code/join', (req, res) => {
+app.post('/api/gamemode/:code/join', async (req, res) => {
   const code = req.params.code.toUpperCase();
-  const { player_id, username, avatar, xp } = req.body;
+  const { player_id, username, avatar, xp, uid } = req.body;
 
   if (!player_id || !username) {
     return res.status(400).json({ error: 'Missing player_id or username' });
@@ -1416,17 +1597,41 @@ app.post('/api/gamemode/:code/join', (req, res) => {
     return res.status(404).json({ error: 'Game room not found' });
   }
 
-  // Whitelist check: if room has allowed_students, validate student_number
+  // Whitelist check: if room has allowed_students or restriction enabled, validate student_number + account binding
   const { student_number } = req.body;
-  if (Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0) {
+  if (gr.has_student_restriction || (Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0)) {
     if (!student_number || String(student_number).trim().length === 0) {
       return res.status(403).json({ error: 'Please enter your student number.' });
     }
     const normalized = String(student_number).trim().toUpperCase();
-    if (!gr.allowed_students.includes(normalized)) {
-      return res.status(403).json({ error: 'Your student number is not authorized for this room.' });
+    if (Array.isArray(gr.allowed_students) && gr.allowed_students.length > 0) {
+      if (!gr.allowed_students.includes(normalized)) {
+        return res.status(403).json({ error: 'Your student number is not authorized for this room.' });
+      }
     }
-    // Check if student number already used by another player
+    
+    // Account binding check (anti-cheating) - now uses Firestore persistence
+    const existingBinding = await getBinding(normalized);
+    if (existingBinding) {
+      // Student number already bound - check if same account
+      if (existingBinding.uid !== uid && existingBinding.uid !== player_id) {
+        console.log(`[GameMode] ❌ Binding rejected: ${normalized} bound to ${existingBinding.uid}, attempted by ${uid || player_id}`);
+        return res.status(403).json({ 
+          error: `This student number is linked to another account (${existingBinding.username}). Contact your teacher if this is an error.` 
+        });
+      }
+    } else {
+      // First time using this student number - bind it (persisted to Firestore)
+      const bindingUid = uid || player_id;
+      await setBinding(normalized, {
+        uid: bindingUid,
+        username: username,
+        bound_at: Date.now()
+      });
+      console.log(`[GameMode] 🔗 New binding: ${normalized} → ${bindingUid} (${username})`);
+    }
+    
+    // Check if student number already used by another player IN THIS ROOM
     const alreadyUsed = gr.players.find(p => p.student_number === normalized);
     if (alreadyUsed && alreadyUsed.player_id !== player_id) {
       return res.status(403).json({ error: 'This student number has already joined.' });
@@ -1506,6 +1711,69 @@ app.post('/api/gamemode/:code/add-students', (req, res) => {
 
   console.log(`[GameMode] Added ${added.length} student(s) to whitelist for ${code}: ${added.join(', ')}`);
   res.json({ ok: true, added: added.length, total: gr.allowed_students.length });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Student Binding Management API (Teacher Admin)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// GET /api/bindings — List all student number bindings
+app.get('/api/bindings', async (req, res) => {
+  try {
+    const bindings = await getAllBindings();
+    res.json({ 
+      bindings, 
+      count: bindings.length,
+      storage: useFirebase ? 'firestore' : 'memory'
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch bindings', details: err.message });
+  }
+});
+
+// GET /api/bindings/:student_number — Get a specific binding
+app.get('/api/bindings/:student_number', async (req, res) => {
+  const student_number = req.params.student_number.toUpperCase();
+  
+  try {
+    const binding = await getBinding(student_number);
+    if (!binding) {
+      return res.status(404).json({ error: 'Student number not bound' });
+    }
+    res.json({ student_number, ...binding });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch binding', details: err.message });
+  }
+});
+
+// DELETE /api/bindings/:student_number — Unbind a student number (teacher admin)
+app.delete('/api/bindings/:student_number', async (req, res) => {
+  const student_number = req.params.student_number.toUpperCase();
+  
+  try {
+    const binding = await getBinding(student_number);
+    if (!binding) {
+      return res.status(404).json({ error: 'Student number not found in bindings' });
+    }
+    
+    await deleteBinding(student_number);
+    console.log(`[Bindings] 🔓 Unbound: ${student_number} (was ${binding.uid} - ${binding.username})`);
+    
+    res.json({ ok: true, unbound: student_number, was_bound_to: binding.username });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete binding', details: err.message });
+  }
+});
+
+// POST /api/bindings/clear — Clear all bindings (teacher admin / for testing)
+app.post('/api/bindings/clear', async (req, res) => {
+  try {
+    const count = await clearAllBindings();
+    console.log(`[Bindings] 🗑️ Cleared all ${count} bindings`);
+    res.json({ ok: true, cleared: count });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear bindings', details: err.message });
+  }
 });
 
 // POST /api/gamemode/:code/start — Teacher starts the game
@@ -1597,6 +1865,7 @@ app.get('/api/gamemode/:code/results', (req, res) => {
   const leaderboard = sorted.map((p, i) => ({
     rank: i + 1,
     player_id: p.player_id,
+    student_number: p.student_number || '',
     username: p.username,
     finished: p.finished,
     score: p.score,

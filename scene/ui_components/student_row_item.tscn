@@ -1,0 +1,115 @@
+[gd_scene load_steps=7 format=3 uid="uid://buit1yf1dc5su"]
+
+[ext_resource type="Texture2D" uid="uid://dnkod4aym0bk3" path="res://asset/icons/google-analytics.png" id="1_y608c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_y608c"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cxr5e"]
+bg_color = Color(0.255817, 0.600164, 0.268008, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 22
+border_color = Color(1, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r0st5"]
+bg_color = Color(1, 0, 0, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t183w"]
+bg_color = Color(1, 0, 0, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y608c"]
+bg_color = Color(1, 0, 0, 0.65098)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="StudentRowItem" type="HBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+
+[node name="NumLabel" type="Label" parent="."]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StudentNumLabel" type="Label" parent="."]
+custom_minimum_size = Vector2(120, 30)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "21-0000"
+vertical_alignment = 1
+
+[node name="NameLabel" type="Label" parent="."]
+custom_minimum_size = Vector2(200, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Student Name"
+vertical_alignment = 1
+
+[node name="GenderLabel" type="Label" parent="."]
+custom_minimum_size = Vector2(60, 30)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "M"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ActionsContainer" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(64, 30)
+layout_mode = 2
+
+[node name="PerfBtn" type="Button" parent="ActionsContainer"]
+custom_minimum_size = Vector2(16, 16)
+layout_mode = 2
+tooltip_text = "View Performance"
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_y608c")
+icon = ExtResource("1_y608c")
+flat = true
+
+[node name="DelBtn" type="Button" parent="ActionsContainer"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+tooltip_text = "Remove from the class"
+mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxFlat_cxr5e")
+theme_override_styles/hover = SubResource("StyleBoxFlat_r0st5")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_t183w")
+theme_override_styles/normal = SubResource("StyleBoxFlat_y608c")
+text = "✕"
